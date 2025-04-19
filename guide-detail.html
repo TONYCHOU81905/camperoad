@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>新手必讀：第一次露營就上手 - 露途</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/role-system.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container">
+        <div class="logo">
+          <a href="index.html">
+            <img src="images/logo.svg" alt="露途 Logo" />
+            <span>露途</span>
+          </a>
+        </div>
+        <nav class="main-nav">
+          <ul>
+            <li><a href="campsites.html">營地預訂</a></li>
+            <li><a href="shop.html">裝備商城</a></li>
+            <li><a href="camp-guides.html" class="active">露營攻略</a></li>
+            <li><a href="#">關於我們</a></li>
+          </ul>
+        </nav>
+        <div class="user-actions">
+          <a href="#" class="btn-search"><i class="fas fa-search"></i></a>
+          <a href="#" class="btn-cart"
+            ><i class="fas fa-shopping-cart"></i
+            ><span class="cart-count">0</span></a
+          >
+          <a href="login.html" class="btn-login">登入 / 註冊</a>
+        </div>
+        <button class="mobile-menu-toggle">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+    </header>
+
+    <div class="guide-detail-container">
+      <div class="container">
+        <div class="guide-detail-layout">
+          <main class="guide-detail-main">
+            <div class="guide-breadcrumb">
+              <a href="camp-guides.html">露營攻略</a> &gt;
+              <a href="camp-guides.html?category=beginner">新手指南</a> &gt;
+              <span>新手必讀：第一次露營就上手</span>
+            </div>
+
+            <article class="guide-article">
+              <header class="article-header">
+                <h1 class="article-title">新手必讀：第一次露營就上手</h1>
+                <div class="article-meta">
+                  <div class="article-author">
+                    <img src="images/user-1.jpg" alt="作者頭像" />
+                    <span class="author-name">山野專家</span>
+                  </div>
+                  <div class="article-info">
+                    <span class="article-date"><i class="far fa-calendar-alt"></i> 2023/06/15</span>
+                    <span class="article-views"><i class="fas fa-eye"></i> 1,245</span>
+                    <span class="article-comments"><i class="fas fa-comment"></i> 23</span>
+                  </div>
+                </div>
+                <div class="article-tags">
+                  <a href="#" class="article-tag">新手入門</a>
+                  <a href="#" class="article-tag">裝備選擇</a>
+                  <a href="#" class="article-tag">搭帳技巧</a>
+                </div>
+              </header>
+
+              <div class="article-featured-image">
+                <img src="images/camp-1.jpg" alt="新手必讀：第一次露營就上手" />
+              </div>
+
+              <div class="article-content">
+                <h2>前言：為什麼選擇露營？</h2>
+                <p>
+                  露營是一種能夠讓人遠離城市喧囂，親近大自然的休閒活動。在繁忙的現代生活中，露營提供了一個重新連結自然、放鬆身心的機會。無論是與家人共度時光，還是與朋友一起冒險，露營都能創造難忘的回憶。
+                </p>
+                <p>
+                  然而，對於第一次露營的新手來說，從裝備準備到搭建帳篷，可能面臨諸多挑戰。本文將為新手提供全面的露營指南，幫助你順利完成第一次露營體驗。
+                </p>
+
+                <h2>第一部分：露營前的準備</h2>
+                <h3>1. 選擇適合的營地</h3>
+                <p>
+                  對於新手而言，建議選擇設施完善的營地，例如有廁所、淋浴設備和管理人員的營區。這些營地通常提供基本的生活便利，讓你的第一次露營體驗更加舒適。
+                </p>
+                <p>
+                  考慮因素：
+                </p>
+                <ul>
+                  <li>距離：第一次露營選擇離家不要太遠的地方，以便應對突發情況</li>
+                  <li>設施：確認營地是否有飲用水、廁所、淋浴等基本設施</li>
+                  <li>難度：避開需要長途跋涉或地形複雜的營地</li>
+                  <li>季節：考慮當季天氣狀況，避開極端天氣時期</li>
+                </ul>
+
+                <h3>2. 必備裝備清單</h3>
+                <p>
+                  以下是新手露營的基本裝備清單：
+                </p>
+                <ul>
+                  <li><strong>帳篷</strong>：選擇比預計人數多1-2人的帳篷，以確保足夠空間</li>
+                  <li><strong>睡袋</strong>：根據季節選擇適合溫度範圍的睡袋</li>
+                  <li><strong>睡墊</strong>：提供隔絕地面寒氣和增加舒適度</li>
+                  <li><strong>炊具</strong>：簡易爐具、鍋具、餐具等</li>
+                  <li><strong>食物與飲水</strong>：準備易於保存和烹飪的食物</li>
+                  <li><strong>照明工具</strong>：頭燈、手電筒、營燈等</li>
+                  <li><strong>個人用品</strong>：衣物、盥洗用品、防曬用品、防蚊液等</li>
+                  <li><strong>急救包</strong>：基本藥品和急救用品</li>
+                </ul>
+                <p>
+                  對於新手而言，可以考慮租借裝備，這樣可以在不確定是否會長期從事露營活動的情況下，避免一次性投入過多資金。
+                </p>
+
+                <h2>第二部分：露營技巧</h2>
+                <h3>1. 搭建帳篷</h3>
+                <p>
+                  搭建帳篷是露營中最基本也是最重要的技能之一。以下是搭建帳篷的基本步驟：
+                </p>
+                <ol>
+                  <li>選擇平坦、無石塊和樹根的地點</li>
+                  <li>清理地面上的尖銳物體</li>
+                  <li>鋪設地布（如有）</li>
+                  <li>展開帳篷並確認方向（門口朝向適當位置）</li>
+                  <li>組裝支架並插入帳篷相應位置</li>
+                  <li>拉起帳篷並固定營釘</li>
+                  <li>調整拉繩張力，確保帳篷穩固</li>
+                </ol>
+                <p>
+                  建議在家中先練習搭建帳篷，熟悉步驟和技巧，這樣到了營地才不會手忙腳亂。
+                </p>
+
+                <h3>2. 野外生火技巧</h3>
+                <p>
+                  在允許生火的營地，掌握安全生火技巧非常重要：
+                </p>
+                <ul>
+                  <li>確認營地是否允許生火，並使用指定的營火區</li>
+                  <li>準備適當的引火物和木柴</li>
+                  <li>建立安全的營火圈，清除周圍可燃物</li>
+                  <li>保持營火適當大小，避免火勢失控</li>
+                  <li>離開時確保完全熄滅營火</li>
+                </ul>
+
+                <h3>3. 露營料理入門</h3>
+                <p>
+                  露營料理不需要複雜，但需要事先規劃：
+                </p>
+                <ul>
+                  <li>選擇簡單易煮的食材</li>
+                  <li>事先在家中準備好部分食材</li>
+                  <li>使用鋁箔紙包裹食物烹飪，減少清潔工作</li>
+                  <li>帶足夠的飲用水</li>
+                  <li>準備一些不需烹飪的食物作為備用</li>
+                </ul>
+
+                <h2>第三部分：露營安全與環保</h2>
+                <h3>1. 安全注意事項</h3>
+                <p>
+                  露營安全是首要考量：
+                </p>
+                <ul>
+                  <li>告知親友你的露營地點和預計返回時間</li>
+                  <li>了解營地周邊的醫療設施位置</li>
+                  <li>攜帶基本急救用品</li>
+                  <li>注意天氣變化，做好防雨、防曬、防寒準備</li>
+                  <li>保管好貴重物品</li>
+                  <li>注意野生動物，正確存放食物</li>
+                </ul>
+
+                <h3>2. 環保露營原則</h3>
+                <p>
+                  遵循「不留痕跡」(Leave No Trace) 的原則：
+                </p>
+                <ul>
+                  <li>帶走所有垃圾</li>
+                  <li>使用環保清潔用品</li>
+                  <li>尊重野生動植物</li>
+                  <li>使用現有的步道和營地</li>
+                  <li>減少對自然環境的干擾</li>
+                </ul>
+
+                <h2>結語：享受你的第一次露營</h2>
+                <p>
+                  第一次露營可能會遇到各種挑戰，但這正是露營魅力所在。保持開放的心態，享受與大自然相處的時光，從中學習和成長。隨著經驗的積累，你會發現露營帶來的樂趣遠超過初期的不便。
+                </p>
+                <p>
+                  希望本指南能幫助你順利完成第一次露營體驗，開啟你的露營生活！如有任何疑問，歡迎在下方留言區與我們交流。
+                </p>
+              </div>
+
+              <div class="article-actions">
+                <div class="action-buttons">
+                  <button class="btn-like" id="btn-like">
+                    <i class="far fa-heart"></i> <span class="like-count">78</span>
+                  </button>
+                  <button class="btn-bookmark" id="btn-bookmark">
+                    <i class="far fa-bookmark"></i> <span class="bookmark-count">45</span>
+                  </button>
+                  <button class="btn-share">
+                    <i class="fas fa-share-alt"></i> 分享
+                  </button>
+                  <button class="btn-report" id="btn-report">
+                    <i class="fas fa-flag"></i> 檢舉
+                  </button>
+                </div>
+              </div>
+
+              <div class="article-author-bio">
+                <div class="author-avatar">
+                  <img src="images/user-1.jpg" alt="山野專家" />
+                </div>
+                <div class="author-info">
+                  <h3 class="author-name">山野專家</h3>
+                  <p class="author-description">
+                    資深露營愛好者，擁有超過10年露營經驗。專長於輕量化露營裝備評測和野外生存技巧。致力於推廣安全、環保的露營理念。
+                  </p>
+                  <div class="author-social">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-youtube"></i></a>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <section class="article-comments">
+              <h2 class="comments-title">留言討論 <span class="comment-count">(23)</span></h2>
+              
+              <div class="comment-form-container">
+                <form class="comment-form" id="comment-form">
+                  <div class="form-group">
+                    <textarea name="comment" id="comment-content" placeholder="分享你的想法..."></textarea>
+                  </div>
+                  <div class="form-actions">
+                    <button type="submit" class="btn-submit-comment">發表留言</button>
+                  </div>
+                </form>
+              </div>
+
+              <div class="comments-list">
+                <!-- 留言 1 -->
+                <div class="comment-item">
+                  <div class="comment-avatar">
+                    <img src="images/user-2.jpg" alt="使用者頭像" />
+                  </div>
+                  <div class="comment-content">
+                    <div class="comment-header">
+                      <span class="comment-author">露營新手</span>
+                      <span class="comment-date">2023/06/16 14:23</span>
+                    </div>
+                    <div class="comment-text">
+                      <p>非常實用的指南！我正準備下個月第一次露營，這篇文章解答了我很多疑問。想請問一下，對於夏季露營，有沒有特別需要注意的事項？</p>
+                    </div>
+                    <div class="comment-actions">
+                      <button class="btn-like-comment"><i class="far fa-heart"></i> <span>12</span></button>
+                      <button class="btn-reply-comment"><i class="fas fa-reply"></i> 回覆</button>
+                      <button class="btn-report-comment"><i class="fas fa-flag"></i> 檢舉</button>
+                    </div>
+                    
+                    <!-- 回覆表單 -->
+                    <div class="reply-form-container" style="display: none;">
+                      <form class="reply-form">
+                        <div class="form-group">
+                          <textarea name="reply" placeholder="回覆留言..."></textarea>
+                        </div>
+                        <div class="form-actions">
+                          <button type="submit" class="btn-submit-reply">回覆</button>
+                          <button type="button" class="btn-cancel-reply">取消</button>
+                        </div>
+                      </form>
+                    </div>
+                    
+                    <!-- 回覆列表 -->
+                    <div class="replies-list">
+                      <div class="reply-item">
+                        <div class="reply-avatar">
+                          <img src="images/user-1.jpg" alt="作者頭像" />
+                        </div>
+                        <div class="reply-content">
+                          <div class="reply-header">
+                            <span class="reply-author">山野專家</span>
+                            <span class="reply-badge">作者</span>
+                            <span class="reply-date">2023/06/16 15:45</span>
+                          </div>
+                          <div class="reply-text">
+                            <p>謝謝你的提問！夏季露營需要特別注意防曬、防蚊蟲和保持食物新鮮。建議選擇有樹蔭的營位，帶足防曬用品和防蚊液。另外，夏季午後常有雷陣雨，記得帶防水用品和額外的防雨布。如果有其他問題，歡迎繼續提問！</p>
+                          </div>
+                          <div class="reply-actions">
+                            <button class="btn-like-reply"><i class="far fa-heart"></i> <span>8</span></button>
+                            <button class="btn-report-reply"><i class="fas fa-flag"></i> 檢舉</button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- 留言 2 -->
+                <div class="comment-item">
+                  <div class="comment-avatar">
+                    <img src="images/user-3.jpg" alt="使用者頭像" />
+                  </div>
+                  <div class="comment-content">
+                    <div class="comment-header">
+                      <span class="comment-author">裝備控</span>
+                      <span class="comment-date">2023/06/17 09:12</span>
+                    </div>
+                    <div class="comment-text">
+                      <p>文章中提到的裝備清單很全面，但我想補充一點，對於新手來說，一個好的頭燈真的非常重要！夜間在營地活動或是半夜上廁所都會用到。另外，建議帶一些簡易工具，如多功能刀具和繩索，應急時很有用。</p>
+                    </div>
+                    <div class="comment-actions">
+                      <button class="btn-like-comment"><i class="far fa-heart"></i> <span>15</span></button>
+                      <button class="btn-reply-comment"><i class="fas fa-reply"></i> 回覆</button>
+                      <button class="btn-report-comment"><i class="fas fa-flag"></i> 檢舉</button>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- 留言 3 -->
+                <div class="comment-item">
+                  <div class="comment-avatar">
+                    <img src="images/user-2.jpg" alt="使用者頭像" />
+                  </div>
+                  <div class="comment-content">
+                    <div class="comment-header">
+                      <span class="comment-author">山林漫遊者</span>
+                      <span class="comment-date">2023/06/18 16:37</span>
+                    </div>
+                    <div class="comment-text">
+                      <p>上週末按照這篇文章的建議進行了我的第一次露營，體驗非常棒！特別是文章中提到的「先在家練習搭帳篷」這個建議太實用了，省去了我在現場摸索的時間。不過我發現我帶的食物有點太多，下次會更精簡一些。感謝分享這麼詳細的指南！</p>
+                    </div>
+                    <div class="comment-actions">
+                      <button class="btn-like-comment"><i class="far fa-heart"></i> <span>9</span></button>
+                      <button class="btn-reply-comment"><i class="fas fa-reply"></i> 回覆</button>
+                      <button class="btn-report-comment"><i class="fas fa-flag"></i> 檢舉</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="comments-pagination">
+                <a href="#" class="active">1</a>
+                <a href="#">2</a>
+                <a href="#">3</a>
+                <a href="#" class="next">下一頁 <i class="fas fa-chevron-right"></i></a>
+              </div>
+            </section>
+          </main>
+
+          <aside class="guide-detail-sidebar">
+            <div class="sidebar-widget related-guides">
+              <h3 class="widget-title">相關文章</h3>
+              <ul class="related-guide-list">
+                <li>
+                  <a href="#">
+                    <img src="images/product-1.jpg" alt="四季帳篷選購指南" />
+                    <div class="related-guide-info">
+                      <h4>四季帳篷選購指南：如何選擇適合的帳篷</h4>
+                      <div class="related-guide-meta">
+                        <span><i class="fas fa-eye"></i> 987</span>
+                      </div>
+                    </div>
+                  </a>
+                </li>
+                <li>
+                  <a href="#">
+                    <img src="images/product-2.jpg" alt="露營安全指南" />
+                    <div class="related-guide-info">
+                      <h4>露營安全指南：戶外活動的注意事項</h4>
+                      <div class="related-guide-meta">
+                        <span><i class="fas fa-eye"></i> 1,876</span>
+                      </div>
+                    </div>
+                  </a>
+                </li>
+                <li>
+                  <a href="#">
+                    <img src="images/camp-2.jpg" alt="親子露營經驗分享" />
+                    <div class="related-guide-info">
+                      <h4>親子露營：如何讓孩子愛上大自然</h4>
+                      <div class="related-guide-meta">
+                        <span><i class="fas fa-eye"></i> 1,023</span>
+                      </div>
+                    </div>
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            <div class="sidebar-widget guide-tags">
+              <h3 class="widget-title">熱門標籤</h3>
+              <div class="tag-cloud">
+                <a href="#" class="tag-item">新手入門</a>
+                <a href="#" class="tag-item">帳篷</a>
+                <a href="#" class="tag-item">睡袋</a>
+                <a href="#" class="tag-item">野炊</a>
+                <a href="#" class="tag-item">親子露營</a>
+                <a href="#" class="tag-item">登山</a>
+                <a href="#" class="tag-item">營地推薦</a>
+                <a href="#" class="tag-item">露營安全</a>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </div>
+
+    <!-- 檢舉彈窗 -->
+    <div class="modal" id="report-modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>檢舉內容</h3>
+          <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <form id="report-form">
+            <div class="form-group">
+              <label>檢舉原因</label>
+              <select name="report-reason" required>
+                <option value="">請選擇檢舉原因</option>
+                <option value="inappropriate">內容不當</option>
+                <option value="spam">垃圾訊息</option>
+                <option value="offensive">冒犯性言論</option>
+                <option value="copyright">侵犯版權</option>
+                <option value="other">其他原因</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>詳細說明</label>
+              <textarea name="report-detail" placeholder="請提供更多詳細資訊..." required></textarea>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn-submit">提交檢舉</button>
+              <button type="button" class="btn-cancel">取消</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <footer class="site-footer">
+      <div class="container">
+        <div class="footer-content">
+          <div class="footer-logo">
+            <img src="images/logo-white.svg" alt="露途 Logo" />
+            <p>探索自然，體驗野趣</p>
+          </div>
+          <div class="footer-links">
+            <div class="footer-column">
+              <h3>關於我們</h3>
+              <ul>
+                <li><a href="#">公司簡介</a></li>
+                <li><a href="#">服務條款</a></li>
+                <li><a href="#">隱私政策</a></li>
+                <li><a href="#">加入我們</a></li>
+              </ul>
+            </div>
+            <div class="footer-column">
+              <h3>營地資訊</h3>
+              <ul>
+                <li><a href="#">北部營地</a></li>
+                <li><a href="#">中部營地</a></li>
+                <li><a href="#">南部營地</a></li>
+                <li><a href="#">東部營地</a></li>
+              </ul>
+            </div>
+            <div class="footer-column">
+              <h3>商城服務</h3>
+              <ul>
+                <li><a href="#">裝備租借</a></li>
+                <li><a href="#">全新商品</a></li>
+                <li><a href="#">二手市集</a></li>
+                <li><a href="#">配送說明</a></li>
+              </ul>
+            </div>
+            <div class="footer-column">
+              <h3>幫助中心</h3>
+              <ul>
+                <li><a href="#">常見問題</a></li>
+                <li><a href="#">預訂指南</a></li>
+                <li><a href="#">聯絡客服</a></li>
+                <li><a href="#">緊急協助</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <div class="social-links">
+            <a href="#"><i class="fab fa-facebook-f"></i></a>
+            <a href="#"><i class="fab fa-instagram"></i></a>
+            <a href="#"><i class="fab fa-youtube"></i></a>
+            <a href="#"><i class="fab fa-line"></i></a>
+          </div>
+          <p class="copyright">© 2023 露途 All Rights Reserved.</p>
+        </div>
+      </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        // 按讚功能
+        const btnLike = document.getElementById('btn-like');
+        if (btnLike) {
+          btnLike.addEventListener('click', function() {
+            const icon = this.querySelector('i');
+            const likeCount = this.querySelector('.like-count');
+            
+            if (icon.classList.contains('far')) {
+              icon.classList.remove('far');
+              icon.classList.add('fas');
+              likeCount.textContent = parseInt(likeCount.textContent) + 1;
+            } else {
+              icon.classList.remove('fas'); 
+              icon.classList.add('far');
+              likeCount.textContent = parseInt(likeCount.textContent) - 1;
+            }
+          });
+        }
+      });

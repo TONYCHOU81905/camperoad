@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>裝備商城 - 露途</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/role-system.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container">
+        <div class="logo">
+          <a href="index.html">
+            <img src="images/logo.svg" alt="露途 Logo" />
+            <span>露途</span>
+          </a>
+        </div>
+        <nav class="main-nav">
+          <ul>
+            <li><a href="campsites.html">營地預訂</a></li>
+            <li><a href="shop.html" class="active">裝備商城</a></li>
+            <li><a href="camp-guides.html">露營攻略</a></li>
+            <li><a href="#">關於我們</a></li>
+          </ul>
+        </nav>
+        <div class="user-actions">
+          <a href="#" class="btn-search"><i class="fas fa-search"></i></a>
+          <a href="#" class="btn-cart"
+            ><i class="fas fa-shopping-cart"></i
+            ><span class="cart-count">0</span></a
+          >
+          <a href="login.html" class="btn-login">登入 / 註冊</a>
+        </div>
+        <button class="mobile-menu-toggle">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+    </header>
+
+    <div class="breadcrumb">
+      <div class="container">
+        <ul>
+          <li><a href="index.html">首頁</a></li>
+          <li>裝備商城</li>
+        </ul>
+      </div>
+    </div>
+
+    <section class="shop-hero">
+      <div class="container">
+        <div class="hero-content">
+          <h1>露營裝備商城</h1>
+          <p>精選優質露營裝備，打造完美露營體驗</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="shop-filter">
+      <div class="container">
+        <div class="filter-container">
+          <form action="#" method="get" class="filter-form">
+            <div class="filter-group">
+              <label for="category">商品分類</label>
+              <select id="category" name="category">
+                <option value="">全部分類</option>
+                <option value="tent">帳篷</option>
+                <option value="sleeping">睡袋/睡墊</option>
+                <option value="cooking">炊具/餐具</option>
+                <option value="lighting">照明設備</option>
+                <option value="furniture">露營家具</option>
+                <option value="accessories">露營配件</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label for="price">價格範圍</label>
+              <select id="price" name="price">
+                <option value="">不限</option>
+                <option value="0-1000">NT$ 0 - 1,000</option>
+                <option value="1000-3000">NT$ 1,000 - 3,000</option>
+                <option value="3000-5000">NT$ 3,000 - 5,000</option>
+                <option value="5000+">NT$ 5,000 以上</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label for="type">商品類型</label>
+              <select id="type" name="type">
+                <option value="">全部類型</option>
+                <option value="buy">購買商品</option>
+                <option value="rent">租借商品</option>
+                <option value="used">二手商品</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label for="sort">排序方式</label>
+              <select id="sort" name="sort">
+                <option value="popular">熱門程度</option>
+                <option value="price-asc">價格由低至高</option>
+                <option value="price-desc">價格由高至低</option>
+                <option value="newest">最新上架</option>
+              </select>
+            </div>
+            <button type="submit" class="btn-filter-submit">套用篩選</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <section class="shop-products">
+      <div class="container">
+        <h2 class="section-title">熱門商品</h2>
+        <div class="product-grid">
+          <div class="product-card">
+            <div class="product-image">
+              <img src="images/product-1.jpg" alt="四人帳篷 - 星空系列" />
+              <span class="product-tag">熱銷</span>
+            </div>
+            <div class="product-info">
+              <h3><a href="product-detail.html">四人帳篷 - 星空系列</a></h3>
+              <div class="product-rating">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star-half-alt"></i>
+                <span>(32)</span>
+              </div>
+              <div class="product-price">
+                <span class="current-price">NT$ 4,500</span>
+                <span class="original-price">NT$ 5,200</span>
+                <span class="rent-price">租借價：NT$ 800 / 天</span>
+              </div>
+              <button class="btn-add-cart">加入購物車</button>
+            </div>
+          </div>
+          <div class="product-card">
+            <div class="product-image">
+              <img src="images/product-2.jpg" alt="登山睡袋 - 輕量型" />
+              <span class="product-tag product-tag-rent">可租借</span>
+            </div>
+            <div class="product-info">
+              <h3><a href="product-detail.html">登山睡袋 - 輕量型</a></h3>
+              <div class="product-rating">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <span>(18)</span>
+              </div>
+              <div class="product-price">
+                <span class="current-price">NT$ 2,800</span>
+                <span class="rent-price">租借價：NT$ 400 / 天</span>
+              </div>
+              <button class="btn-add-cart">加入購物車</button>
+            </div>
+          </div>
+          <div class="product-card">
+            <div class="product-image">
+              <img src="images/product-3.jpg" alt="露營燈 - 太陽能充電" />
+              <span class="product-tag">促銷</span>
+            </div>
+            <div class="product-info">
+              <h3><a href="product-detail.html">露營燈 - 太陽能充電</a></h3>
+              <div class="product-rating">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="far fa-star"></i>
+                <span>(24)</span>
+              </div>
+              <div class="product-price">
+                <span class="current-price">NT$ 950</span>
+                <span class="original-price">NT$ 1,200</span>
+              </div>
+              <button class="btn-add-cart">加入購物車</button>
+            </div>
+          </div>
+          <div class="product-card">
+            <div class="product-image">
+              <img src="images/product-4.jpg" alt="摺疊椅 - 戶外系列" />
+              <span class="product-tag product-tag-used">二手</span>
+            </div>
+            <div class="product-info">
+              <h3><a href="product-detail.html">摺疊椅 - 戶外系列</a></h3>
+              <div class="product-rating">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star-half-alt"></i>
+                <i class="far fa-star"></i>
+                <span>(9)</span>
+              </div>
+              <div class="product-price">
+                <span class="current-price">NT$ 650</span>
+                <span class="original-price">NT$ 1,200</span>
+              </div>
+              <button class="btn-add-cart">加入購物車</button>
+            </div>
+          </div>
+          <div class="product-card">
+            <div class="product-image">
+              <img src="images/product-1.jpg" alt="便攜式烤肉爐" />
+            </div>
+            <div class="product-info">
+              <h3><a href="product-detail.html">便攜式烤肉爐</a></h3>
+              <div class="product-rating">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="far fa-star"></i>
+                <span>(15)</span>
+              </div>
+              <div class="product-price">
+                <span class="current-price">NT$ 1,800</span>
+              </div>
+              <button class="btn-add-cart">加入購物車</button>
+            </div>
+          </div>
+          <div class="product-card">
+            <div class="product-image">
+              <img src="images/product-2.jpg" alt="多功能露營刀具" />
+              <span class="product-tag">熱銷</span>
+            </div>
+            <div class="product-info">
+              <h3><a href="product-detail.html">多功能露營刀具</a></h3>
+              <div class="product-rating">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star-half-alt"></i>
+                <span>(28)</span>
+              </div>
+              <div class="product-price">
+                <span class="current-price">NT$ 750</span>
+                <span class="original-price">NT$ 900</span>
+              </div>
+              <button class="btn-add-cart">加入購物車</button>
+            </div>
+          </div>
+          <div class="product-card">
+            <div class="product-image">
+              <img src="images/product-3.jpg" alt="防水帳篷地墊" />
+              <span class="product-tag product-tag-rent">可租借</span>
+            </div>
+            <div class="product-info">
+              <h3><a href="product-detail.html">防水帳篷地墊</a></h3>
+              <div class="product-rating">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="far fa-star"></i>
+                <span>(12)</span>
+              </div>
+              <div class="product-price">
+                <span class="current-price">NT$ 580</span>
+                <span class="rent-price">租借價：NT$ 100 / 天</span>
+              </div>
+              <button class="btn-add-cart">加入購物車</button>
+            </div>
+          </div>
+          <div class="product-card">
+            <div class="product-image">
+              <img src="images/product-4.jpg" alt="戶外保溫水壺" />
+            </div>
+            <div class="product-info">
+              <h3><a href="product-detail.html">戶外保溫水壺</a></h3>
+              <div class="product-rating">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="far fa-star"></i>
+                <span>(20)</span>
+              </div>
+              <div class="product-price">
+                <span class="current-price">NT$ 450</span>
+              </div>
+              <button class="btn-add-cart">加入購物車</button>
+            </div>
+          </div>
+        </div>
+        <div class="pagination">
+          <a href="#" class="page-prev"><i class="fas fa-chevron-left"></i></a>
+          <a href="#" class="page-number active">1</a>
+          <a href="#" class="page-number">2</a>
+          <a href="#" class="page-number">3</a>
+          <span class="page-dots">...</span>
+          <a href="#" class="page-number">8</a>
+          <a href="#" class="page-next"><i class="fas fa-chevron-right"></i></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="shop-categories-section">
+      <div class="container">
+        <h2 class="section-title">商品分類</h2>
+        <div class="shop-categories">
+          <div class="shop-category">
+            <div class="category-icon">
+              <i class="fas fa-campground"></i>
+            </div>
+            <h3>帳篷</h3>
+            <p>各種尺寸與款式的高品質帳篷</p>
+          </div>
+          <div class="shop-category">
+            <div class="category-icon">
+              <i class="fas fa-bed"></i>
+            </div>
+            <h3>睡袋/睡墊</h3>
+            <p>舒適保暖的睡袋與睡墊</p>
+          </div>
+          <div class="shop-category">
+            <div class="category-icon">
+              <i class="fas fa-utensils"></i>
+            </div>
+            <h3>炊具/餐具</h3>
+            <p>戶外烹飪與用餐的必備工具</p>
+          </div>
+          <div class="shop-category">
+            <div class="category-icon">
+              <i class="fas fa-lightbulb"></i>
+            </div>
+            <h3>照明設備</h3>
+            <p>各種露營燈具與照明工具</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="shop-features">
+      <div class="container">
+        <div class="feature-cards">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-truck"></i>
+            </div>
+            <h3>全台配送</h3>
+            <p>滿NT$ 1,500免運費，離島地區另計</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-exchange-alt"></i>
+            </div>
+            <h3>彈性租借</h3>
+            <p>多款商品提供租借選項，露營更經濟</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-shield-alt"></i>
+            </div>
+            <h3>品質保證</h3>
+            <p>嚴選優質露營裝備，享有完善保固</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-headset"></i>
+            </div>
+            <h3>專業客服</h3>
+            <p>專業團隊提供露營裝備諮詢服務</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="site-footer">
+      <div class="container">
+        <div class="footer-content">
+          <div class="footer-logo">
+            <img src="images/logo-white.svg" alt="露途 Logo" />
+            <span>露途</span>
+            <p>探索自然，體驗野趣</p>
+          </div>
+          <div class="footer-links">
+            <div class="footer-links-column">
+              <h3>關於我們</h3>
+              <ul>
+                <li><a href="#">品牌故事</a></li>
+                <li><a href="#">團隊介紹</a></li>
+                <li><a href="#">新聞中心</a></li>
+                <li><a href="#">加入我們</a></li>
+              </ul>
+            </div>
+            <div class="footer-links-column">
+              <h3>營地資訊</h3>
+              <ul>
+                <li><a href="#">營地搜尋</a></li>
+                <li><a href="#">熱門營地</a></li>
+                <li><a href="#">營地評價</a></li>
+                <li><a href="#">成為營地主</a></li>
+              </ul>
+            </div>
+            <div class="footer-links-column">
+              <h3>裝備商城</h3>
+              <ul>
+                <li><a href="#">全部商品</a></li>
+                <li><a href="#">租借服務</a></li>
+                <li><a href="#">二手交易</a></li>
+                <li><a href="#">成為商家</a></li>
+              </ul>
+            </div>
+            <div class="footer-links-column">
+              <h3>幫助中心</h3>
+              <ul>
+                <li><a href="#">常見問題</a></li>
+                <li><a href="#">預訂須知</a></li>
+                <li><a href="#">聯絡我們</a></li>
+                <li><a href="#">隱私政策</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <div class="social-links">
+            <a href="#"><i class="fab fa-facebook-f"></i></a>
+            <a href="#"><i class="fab fa-instagram"></i></a>
+            <a href="#"><i class="fab fa-line"></i></a>
+            <a href="#"><i class="fab fa-youtube"></i></a>
+          </div>
+          <div class="copyright">
+            <p>&copy; 2023 露途 All Rights Reserved.</p>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+  </body>
+</html>

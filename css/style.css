@@ -1,0 +1,943 @@
+/* 基礎重置 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    color: #333;
+    background: linear-gradient(135deg, #F4F1DE 0%, #E0D7C7 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+}
+
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.3s ease;
+}
+
+ul {
+    list-style: none;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+button, .btn {
+    cursor: pointer;
+    border: none;
+    outline: none;
+    background: none;
+    font-family: inherit;
+}
+
+/* 主色調應用 */
+.btn-cta, .btn-search-submit, .btn-add-cart {
+    background-color: #3A5A40;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 4px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: inline-block;
+    text-align: center;
+}
+
+.btn-cta:hover, .btn-search-submit:hover, .btn-add-cart:hover {
+    background-color: #2d4731;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(58, 90, 64, 0.2);
+}
+
+.camp-tag, .product-tag {
+    background-color: #E76F51;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.product-tag-rent {
+    background-color: #3A5A40;
+}
+
+.product-tag-used {
+    background-color: #A68A64;
+}
+
+/* 表單元素 */
+input, select, textarea {
+    border: 1px solid #A68A64;
+    padding: 10px 12px;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 1rem;
+    width: 100%;
+    transition: all 0.3s ease;
+}
+
+input:focus, select:focus, textarea:focus {
+    border-color: #3A5A40;
+    box-shadow: 0 0 0 2px rgba(58, 90, 64, 0.2);
+    outline: none;
+}
+
+label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+    color: #3A5A40;
+}
+
+/* 標題樣式 */
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-weight: 500;
+    line-height: 1.3;
+    color: #3A5A40;
+    margin-bottom: 0.5em;
+}
+
+h1 {
+    font-size: 2.5rem;
+}
+
+h2 {
+    font-size: 2rem;
+}
+
+h3 {
+    font-size: 1.5rem;
+}
+
+h4 {
+    font-size: 1.25rem;
+}
+
+.section-title {
+    text-align: center;
+    margin-bottom: 2rem;
+    position: relative;
+    padding-bottom: 0.5rem;
+}
+
+.section-title:after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background-color: #A68A64;
+}
+
+/* 頁頭 */
+.site-header {
+    background-color: white;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 15px 0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.site-header .container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.logo a {
+    display: flex;
+    align-items: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #3A5A40;
+}
+
+.logo img {
+    height: 40px;
+    margin-right: 10px;
+}
+
+.main-nav ul {
+    display: flex;
+    gap: 20px;
+}
+
+.main-nav a {
+    font-weight: 500;
+    padding: 5px 0;
+    position: relative;
+}
+
+.main-nav a:after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: #3A5A40;
+    transition: width 0.3s ease;
+}
+
+.main-nav a:hover:after {
+    width: 100%;
+}
+
+.user-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.btn-search, .btn-cart {
+    font-size: 1.2rem;
+    color: #3A5A40;
+    position: relative;
+}
+
+.cart-count {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background-color: #E76F51;
+    color: white;
+    font-size: 0.7rem;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-login {
+    padding: 8px 16px;
+    border: 1px solid #3A5A40;
+    border-radius: 4px;
+    color: #3A5A40;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-login:hover {
+    background-color: #3A5A40;
+    color: white;
+}
+
+.mobile-menu-toggle {
+    display: none;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 30px;
+    height: 20px;
+}
+
+.mobile-menu-toggle span {
+    height: 2px;
+    width: 100%;
+    background-color: #3A5A40;
+    transition: all 0.3s ease;
+}
+
+/* 英雄區塊 */
+.hero {
+    padding: 80px 0;
+    background-image: url('../images/hero-bg.jpg');
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    color: white;
+}
+
+.hero:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.hero .container {
+    position: relative;
+    z-index: 1;
+}
+
+.hero-content {
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.hero h1 {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: white;
+}
+
+.hero p {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+}
+
+.search-box {
+    background-color: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(58, 90, 64, 0.1);
+}
+
+.search-box form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.search-group {
+    flex: 1;
+    min-width: 150px;
+}
+
+.search-group label {
+    color: #666;
+}
+
+.btn-search-submit {
+    margin-top: 24px;
+    width: 100%;
+}
+
+/* 營地卡片 */
+.featured-camps {
+    padding: 80px 0;
+}
+
+.camp-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 30px;
+    margin-bottom: 40px;
+}
+
+.camp-card {
+    background-color: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(58, 90, 64, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.camp-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(58, 90, 64, 0.15);
+}
+
+.camp-image {
+    position: relative;
+    height: 200px;
+}
+
+.camp-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.camp-tag {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+.camp-info {
+    padding: 20px;
+}
+
+.camp-location {
+    color: #666;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+}
+
+.camp-features {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.camp-features span {
+    font-size: 0.85rem;
+    color: #666;
+    background-color: #f5f5f5;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.camp-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+.camp-price {
+    font-weight: 700;
+    color: #3A5A40;
+}
+
+.camp-price span {
+    font-weight: 400;
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.btn-view {
+    padding: 6px 12px;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.btn-view:hover {
+    background-color: #3A5A40;
+    color: white;
+}
+
+.view-more {
+    text-align: center;
+}
+
+.btn-more {
+    display: inline-block;
+    padding: 10px 20px;
+    border: 2px solid #3A5A40;
+    border-radius: 4px;
+    color: #3A5A40;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-more:hover {
+    background-color: #3A5A40;
+    color: white;
+}
+
+/* 商城預覽 */
+.shop-preview {
+    padding: 80px 0;
+    background-color: #f9f7f4;
+}
+
+.shop-categories {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 30px;
+    margin-bottom: 40px;
+}
+
+.shop-category {
+    background-color: white;
+    border-radius: 8px;
+    padding: 30px 20px;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(58, 90, 64, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.shop-category:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(58, 90, 64, 0.15);
+}
+
+.category-icon {
+    font-size: 2rem;
+    color: #3A5A40;
+    margin-bottom: 15px;
+}
+
+.shop-category h3 {
+    margin-bottom: 10px;
+}
+
+.shop-category p {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.product-preview {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 30px;
+    margin-bottom: 40px;
+}
+
+.product-card {
+    background-color: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(58, 90, 64, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(58, 90, 64, 0.15);
+}
+
+.product-image {
+    position: relative;
+    height: 200px;
+}
+
+.product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.product-tag {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+.product-info {
+    padding: 20px;
+}
+
+.product-rating {
+    color: #FFB800;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+}
+
+.product-rating span {
+    color: #666;
+    margin-left: 5px;
+}
+
+.product-price {
+    margin-bottom: 15px;
+}
+
+.current-price {
+    font-weight: 700;
+    color: #3A5A40;
+    font-size: 1.1rem;
+}
+
+.original-price {
+    text-decoration: line-through;
+    color: #999;
+    font-size: 0.9rem;
+    margin-left: 10px;
+}
+
+.rent-price {
+    display: block;
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 5px;
+}
+
+.btn-add-cart {
+    width: 100%;
+    padding: 10px;
+}
+
+/* 特色區塊 */
+.features {
+    padding: 80px 0;
+}
+
+.feature-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 30px;
+}
+
+.feature-card {
+    background-color: white;
+    border-radius: 8px;
+    padding: 30px 20px;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(58, 90, 64, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+}
+
+.feature-icon {
+    font-size: 2.5rem;
+    color: #3A5A40;
+    margin-bottom: 20px;
+}
+
+.feature-card h3 {
+    margin-bottom: 15px;
+}
+
+.feature-card p {
+    color: #666;
+}
+
+/* 評價區塊 */
+.testimonials {
+    padding: 80px 0;
+    background-color: #f9f7f4;
+}
+
+.testimonial-slider {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+}
+
+.testimonial-card {
+    background-color: white;
+    border-radius: 8px;
+    padding: 30px;
+    box-shadow: 0 4px 6px rgba(58, 90, 64, 0.1);
+}
+
+.testimonial-content {
+    margin-bottom: 20px;
+    font-style: italic;
+    color: #555;
+}
+
+.testimonial-author {
+    display: flex;
+    align-items: center;
+}
+
+.testimonial-author img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 15px;
+    object-fit: cover;
+}
+
+.author-info h4 {
+    margin-bottom: 5px;
+}
+
+.author-info p {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+/* CTA區塊 */
+.cta {
+    padding: 80px 0;
+    background-image: url('../images/cta-bg.jpg');
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    color: white;
+}
+
+.cta:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(58, 90, 64, 0.8);
+}
+
+.cta .container {
+    position: relative;
+    z-index: 1;
+}
+
+.cta-content {
+    max-width: 600px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.cta h2 {
+    color: white;
+    margin-bottom: 15px;
+}
+
+.cta p {
+    margin-bottom: 30px;
+    font-size: 1.1rem;
+}
+
+.btn-cta {
+    background-color: white;
+    color: #3A5A40;
+    font-weight: 700;
+    padding: 15px 30px;
+    font-size: 1.1rem;
+}
+
+.btn-cta:hover {
+    background-color: #f5f5f5;
+    color: #3A5A40;
+}
+
+/* 頁尾 */
+.site-footer {
+    background-color: #3A5A40;
+    color: white;
+    padding: 60px 0 30px;
+}
+
+.footer-content {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 40px;
+    margin-bottom: 40px;
+}
+
+.footer-logo {
+    flex: 1;
+    min-width: 250px;
+}
+
+.footer-logo img {
+    height: 40px;
+    margin-bottom: 15px;
+}
+
+.footer-logo p {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.footer-links {
+    flex: 2;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+}
+
+.footer-column {
+    flex: 1;
+    min-width: 150px;
+}
+
+.footer-column h3 {
+    color: white;
+    margin-bottom: 20px;
+    font-size: 1.1rem;
+}
+
+.footer-column ul li {
+    margin-bottom: 10px;
+}
+
+.footer-column a {
+    color: rgba(255, 255, 255, 0.7);
+    transition: color 0.3s ease;
+}
+
+.footer-column a:hover {
+    color: white;
+}
+
+.footer-bottom {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 30px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.social-links {
+    display: flex;
+    gap: 15px;
+}
+
+.social-links a {
+    color: white;
+    font-size: 1.2rem;
+    transition: transform 0.3s ease;
+}
+
+.social-links a:hover {
+    transform: translateY(-3px);
+}
+
+.copyright {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9rem;
+}
+
+/* 載入動畫 */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.9);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.loading-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.loading-animation {
+    margin-bottom: 20px;
+}
+
+.pine-cone {
+    animation: rotate 2s infinite linear;
+}
+
+.pine-cone-scale {
+    transform-origin: 30px 30px;
+}
+
+@keyframes rotate {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* 響應式設計 */
+@media (max-width: 992px) {
+    .main-nav {
+        display: none;
+    }
+
+    .mobile-menu-toggle {
+        display: flex;
+    }
+
+    .hero h1 {
+        font-size: 2.5rem;
+    }
+
+    .search-box form {
+        flex-direction: column;
+    }
+
+    .search-group {
+        width: 100%;
+    }
+
+    .footer-content {
+        flex-direction: column;
+        gap: 30px;
+    }
+
+    .footer-links {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .footer-column {
+        width: 100%;
+    }
+
+    .footer-bottom {
+        flex-direction: column;
+        gap: 20px;
+        text-align: center;
+    }
+
+    .social-links {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .hero {
+        padding: 60px 0;
+    }
+
+    .hero h1 {
+        font-size: 2rem;
+    }
+
+    .section-title {
+        font-size: 1.8rem;
+    }
+
+    .camp-cards, .product-preview, .shop-categories, .feature-cards, .testimonial-slider {
+        grid-template-columns: 1fr;
+    }
+
+    .cta {
+        padding: 60px 0;
+    }
+
+    .cta h2 {
+        font-size: 1.8rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .site-header .container {
+        flex-wrap: wrap;
+    }
+
+    .logo {
+        margin-bottom: 10px;
+    }
+
+    .user-actions {
+        width: 100%;
+        justify-content: space-between;
+        margin-top: 10px;
+    }
+
+    .hero h1 {
+        font-size: 1.8rem;
+    }
+
+    .hero p {
+        font-size: 1rem;
+    }
+
+    .btn-cta, .btn-search-submit {
+        width: 100%;
+    }
+}

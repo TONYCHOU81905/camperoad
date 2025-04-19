@@ -1,0 +1,7 @@
+<svg width="400" height="300" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="300" fill="#3A5A40" opacity="0.2"/>
+  <path d="M150 100 L250 100 L200 50 Z" fill="#3A5A40" opacity="0.8"/>
+  <path d="M125 200 L275 200 L200 100 Z" fill="#3A5A40"/>
+  <circle cx="300" cy="50" r="20" fill="#E76F51" opacity="0.8"/>
+  <text x="150" y="250" font-family="'Noto Sans TC', sans-serif" font-weight="500" font-size="16" fill="#3A5A40">山林星空營地</text>
+</svg>

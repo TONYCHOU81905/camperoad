@@ -1,0 +1,8 @@
+<svg width="400" height="300" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="300" fill="#A68A64" opacity="0.2"/>
+  <path d="M50 200 L350 200 L200 100 Z" fill="#3A5A40" opacity="0.7"/>
+  <path d="M100 250 L300 250 L200 150 Z" fill="#3A5A40"/>
+  <path d="M150 150 L250 150 L200 100 Z" fill="#A68A64"/>
+  <path d="M50 150 C100 120 150 180 200 150 C250 120 300 180 350 150" stroke="#E76F51" stroke-width="3" opacity="0.8"/>
+  <text x="150" y="270" font-family="'Noto Sans TC', sans-serif" font-weight="500" font-size="16" fill="#3A5A40">森林溪畔營地</text>
+</svg>

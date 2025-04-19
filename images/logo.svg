@@ -1,0 +1,6 @@
+<svg width="120" height="40" viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M20 5 L30 30 L10 30 Z" fill="#3A5A40"/>
+  <path d="M40 5 L50 30 L30 30 Z" fill="#A68A64"/>
+  <path d="M30 15 L35 30 L25 30 Z" fill="#E76F51"/>
+  <text x="60" y="25" font-family="'Noto Sans TC', sans-serif" font-weight="700" font-size="16" fill="#3A5A40">露途</text>
+</svg>

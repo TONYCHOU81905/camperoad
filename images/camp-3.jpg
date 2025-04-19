@@ -1,0 +1,9 @@
+<svg width="400" height="300" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="300" fill="#F4F1DE" opacity="0.3"/>
+  <rect x="50" y="150" width="300" height="100" fill="#A68A64" opacity="0.3"/>
+  <path d="M150 100 L250 100 L200 50 Z" fill="#3A5A40" opacity="0.6"/>
+  <path d="M100 150 L300 150 L200 50 Z" fill="#3A5A40" opacity="0.4"/>
+  <circle cx="300" cy="50" r="20" fill="#E76F51" opacity="0.5"/>
+  <path d="M50 150 L350 150" stroke="#A68A64" stroke-width="2"/>
+  <text x="150" y="250" font-family="'Noto Sans TC', sans-serif" font-weight="500" font-size="16" fill="#3A5A40">高原草地營地</text>
+</svg>

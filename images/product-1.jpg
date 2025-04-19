@@ -1,0 +1,6 @@
+<svg width="300" height="300" viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="300" height="300" fill="#F4F1DE" opacity="0.3"/>
+  <path d="M75 200 L225 200 L150 100 Z" fill="#3A5A40" opacity="0.8"/>
+  <path d="M100 250 L200 250 L150 150 Z" fill="#3A5A40"/>
+  <text x="100" y="270" font-family="'Noto Sans TC', sans-serif" font-weight="500" font-size="14" fill="#3A5A40">四季型四人帳篷</text>
+</svg>

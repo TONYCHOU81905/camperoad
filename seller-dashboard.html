@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>裝備商家後台 - 露途</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/role-system.css" />
+  </head>
+  <body class="dashboard-page">
+    <header class="dashboard-header">
+      <div class="container">
+        <div class="logo">
+          <a href="index.html">
+            <img src="images/logo.svg" alt="露途 Logo" />
+            <span>露途</span>
+          </a>
+        </div>
+        <div class="user-panel">
+          <div class="notifications">
+            <a href="#" class="notification-icon">
+              <i class="fas fa-bell"></i>
+              <span class="notification-count">5</span>
+            </a>
+          </div>
+          <div class="user-info">
+            <img src="images/user-2.jpg" alt="使用者頭像" class="user-avatar" />
+            <div class="user-details">
+              <span class="user-name">王商家</span>
+              <span class="user-role">裝備商家</span>
+            </div>
+            <div class="user-dropdown">
+              <a href="#"><i class="fas fa-user-cog"></i> 帳號設定</a>
+              <a href="#"><i class="fas fa-sign-out-alt"></i> 登出</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="dashboard-container">
+      <aside class="dashboard-sidebar">
+        <nav class="dashboard-nav">
+          <ul>
+            <li class="active">
+              <a href="#">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>儀表板</span>
+              </a>
+            </li>
+            <li>
+              <a href="#">
+                <i class="fas fa-box"></i>
+                <span>商品管理</span>
+              </a>
+              <ul class="sub-menu">
+                <li><a href="#">商品列表</a></li>
+                <li><a href="#">新增商品</a></li>
+                <li><a href="#">庫存管理</a></li>
+                <li><a href="#">批量上傳</a></li>
+              </ul>
+            </li>
+            <li>
+              <a href="#">
+                <i class="fas fa-shopping-cart"></i>
+                <span>訂單管理</span>
+              </a>
+              <ul class="sub-menu">
+                <li><a href="#">訂單列表</a></li>
+                <li><a href="#">出貨管理</a></li>
+                <li><a href="#">退換貨處理</a></li>
+              </ul>
+            </li>
+            <li>
+              <a href="#">
+                <i class="fas fa-exchange-alt"></i>
+                <span>租借管理</span>
+              </a>
+              <ul class="sub-menu">
+                <li><a href="#">租借訂單</a></li>
+                <li><a href="#">歸還處理</a></li>
+                <li><a href="#">損壞賠償</a></li>
+              </ul>
+            </li>
+            <li>
+              <a href="#">
+                <i class="fas fa-comment-alt"></i>
+                <span>訊息中心</span>
+              </a>
+            </li>
+            <li>
+              <a href="#">
+                <i class="fas fa-star"></i>
+                <span>評價管理</span>
+              </a>
+            </li>
+            <li>
+              <a href="#">
+                <i class="fas fa-chart-line"></i>
+                <span>數據分析</span>
+              </a>
+            </li>
+            <li>
+              <a href="#">
+                <i class="fas fa-cog"></i>
+                <span>設定</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </aside>
+
+      <main class="dashboard-content">
+        <div class="dashboard-header-bar">
+          <h1>裝備商家儀表板</h1>
+          <div class="date-filter">
+            <label for="date-range">日期範圍：</label>
+            <select id="date-range">
+              <option value="today">今天</option>
+              <option value="week" selected>本週</option>
+              <option value="month">本月</option>
+              <option value="quarter">本季</option>
+              <option value="year">本年</option>
+              <option value="custom">自訂</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="dashboard-stats">
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-shopping-bag"></i>
+            </div>
+            <div class="stat-info">
+              <h3>本週銷售</h3>
+              <div class="stat-value">48</div>
+              <div class="stat-change increase">
+                <i class="fas fa-arrow-up"></i> 15% 較上週
+              </div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-exchange-alt"></i>
+            </div>
+            <div class="stat-info">
+              <h3>租借數量</h3>
+              <div class="stat-value">23</div>
+              <div class="stat-change increase">
+                <i class="fas fa-arrow-up"></i> 8% 較上週
+              </div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-dollar-sign"></i>
+            </div>
+            <div class="stat-info">
+              <h3>營收</h3>
+              <div class="stat-value">NT$ 64,800</div>
+              <div class="stat-change increase">
+                <i class="fas fa-arrow-up"></i> 12% 較上週
+              </div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-star"></i>
+            </div>
+            <div class="stat-info">
+              <h3>平均評分</h3>
+              <div class="stat-value">4.5</div>
+              <div class="stat-change decrease">
+                <i class="fas fa-arrow-down"></i> 0.2 較上週
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dashboard-widgets">
+          <div class="widget inventory-alert">
+            <div class="widget-header">
+              <h2>庫存警示</h2>
+              <div class="widget-actions">
+                <button class="btn-widget-action">
+                  <i class="fas fa-sync-alt"></i>
+                </button>
+                <button class="btn-widget-action">
+                  <i class="fas fa-ellipsis-v"></i>
+                </button>
+              </div>
+            </div>
+            <div class="widget-content">
+              <table class="inventory-table">
+                <thead>
+                  <tr>
+                    <th>商品名稱</th>
+                    <th>SKU</th>
+                    <th>目前庫存</th>
+                    <th>警戒值</th>
+                    <th>狀態</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>四人帳篷 - 星空系列</td>
+                    <td>TENT-4P-STAR</td>
+                    <td>2</td>
+                    <td>5</td>
+                    <td><span class="status-critical">庫存不足</span></td>
+                    <td>
+                      <button class="btn-table-action">補貨</button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>登山睡袋 - 輕量型</td>
+                    <td>BAG-LIGHT-01</td>
+                    <td>3</td>
+                    <td>5</td>
+                    <td><span class="status-warning">即將不足</span></td>
+                    <td>
+                      <button class="btn-table-action">補貨</button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>露營燈 - 太陽能充電</td>
+                    <td>LIGHT-SOLAR-M</td>
+                    <td>8</td>
+                    <td>10</td>
+                    <td><span class="status-warning">即將不足</span></td>
+                    <td>
+                      <button class="btn-table-action">補貨</button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>摺疊椅 - 豪華版</td>
+                    <td>CHAIR-DLX-01</td>
+                    <td>0</td>
+                    <td>5</td>
+                    <td><span class="status-critical">缺貨中</span></td>
+                    <td>
+                      <button class="btn-table-action">補貨</button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>登山杖 - 碳纖維</td>
+                    <td>POLE-CF-ADJ</td>
+                    <td>4</td>
+                    <td>5</td>
+                    <td><span class="status-warning">即將不足</span></td>
+                    <td>
+                      <button class="btn-table-action">補貨</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class="widget-footer">
+                <a href="#" class="btn-view-all"
+                  >查看所有庫存警示 <i class="fas fa-arrow-right"></i
+                ></a>
+              </div>
+            </div>
+          </div>
+
+          <div class="widget recent-orders">
+            <div class="widget-header">
+              <h2>最近訂單</h2>
+              <div class="widget-actions">
+                <button class="btn-widget-action">
+                  <i class="fas fa-sync-alt"></i>
+                </button>
+                <button class="btn-widget-action">
+                  <i class="fas fa-ellipsis-v"></i>
+                </button>
+              </div>
+            </div>
+            <div class="widget-content">
+              <table class="orders-table">
+                <thead>
+                  <tr>
+                    <th>訂單編號</th>
+                    <th>客戶</th>
+                    <th>訂單類型</th>
+                    <th>金額</th>
+                    <th>狀態</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>#ORD-2023-0568</td>
+                    <td>林小明</td>
+                    <td>購買</td>
+                    <td>NT$ 4,500</td>
+                    <td><span class="status-pending">待出貨</span></td>
+                    <td>
+                      <button class="btn-table-action">處理</button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>#ORD-2023-0567</td>
+                    <td>陳大華</td>
+                    <td>租借</td>
+                    <td>NT$ 1,200</td>
+                    <td><span class="status-processing">出貨中</span></td>
+                    <td>
+                      <button class="btn-table-action">追蹤</button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>#ORD-2023-0566</td>
+                    <td>張小芳</td>
+                    <td>購買</td>
+                    <td>NT$ 2,800</td>
+                    <td><span class="status-completed">已完成</span></td>
+                    <td>
+                      <button class="btn-table-action">詳情</button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>#ORD-2023-0565</td>
+                    <td>王大明</td>
+                    <td>租借</td>
+                    <td>NT$ 3,600</td>
+                    <td><span class="status-return">待歸還</span></td>
+                    <td>
+                      <button class="btn-table-action">提醒</button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>#ORD-2023-0564</td>
+                    <td>李小華</td>
+                    <td>購買</td>
+                    <td>NT$ 5,200</td>
+                    <td><span class="status-completed">已完成</span></td>
+                    <td>
+                      <button class="btn-table-action">詳情</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class="widget-footer">
+                <a href="#" class="btn-view-all"
+                  >查看所有訂單 <i class="fas fa-arrow-right"></i
+                ></a>
+              </div>
+            </div>
+          </div>
+
+          <div class="widget sales-chart">
+            <div class="widget-header">
+              <h2>銷售趨勢</h2>
+              <div class="widget-actions">
+                <div class="chart-type-selector">
+                  <button class="btn-chart-type active" data-type="sales">
+                    銷售額
+                  </button>
+                  <button class="btn-chart-type" data-type="orders">
+                    訂單數
+                  </button>
+                </div>
+                <button class="btn-widget-action">
+                  <i class="fas fa-ellipsis-v"></i>
+                </button>
+              </div>
+            </div>
+            <div class="widget-content">
+              <div class="chart-container">
+                <!-- 這裡將使用Chart.js渲染圖表 -->
+                <div class="chart-placeholder">
+                  <div class="chart-bars">
+                    <div class="chart-bar" style="height: 30%"></div>
+                    <div class="chart-bar" style="height: 45%"></div>
+                    <div class="chart-bar" style="height: 60%"></div>
+                    <div class="chart-bar" style="height: 40%"></div>
+                    <div class="chart-bar" style="height: 75%"></div>
+                    <div class="chart-bar" style="height: 90%"></div>
+                    <div class="chart-bar active" style="height: 65%"></div>
+                  </div>
+                  <div class="chart-labels">
+                    <span>週一</span>
+                    <span>週二</span>
+                    <span>週三</span>
+                    <span>週四</span>
+                    <span>週五</span>
+                    <span>週六</span>
+                    <span>週日</span>
+                  </div>
+                </div>
+              </div>
+              <div class="chart-summary">
+                <div class="summary-item">
+                  <span class="summary-label">本週銷售額</span>
+                  <span class="summary-value">NT$ 64,800</span>
+                  <span class="summary-change increase">+12%</span>
+                </div>
+                <div class="summary-item">
+                  <span class="summary-label">平均訂單金額</span>
+                  <span class="summary-value">NT$ 1,350</span>
+                  <span class="summary-change increase">+5%</span>
+                </div>
+                <div class="summary-item">
+                  <span class="summary-label">轉換率</span>
+                  <span class="summary-value">3.2%</span>
+                  <span class="summary-change decrease">-0.5%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="widget product-performance">
+            <div class="widget-header">
+              <h2>熱銷商品</h2>
+              <div class="widget-actions">
+                <select class="product-type-filter">
+                  <option value="all" selected>所有商品</option>
+                  <option value="sale">銷售商品</option>
+                  <option value="rent">租借商品</option>
+                  <option value="used">二手商品</option>
+                </select>
+                <button class="btn-widget-action">
+                  <i class="fas fa-ellipsis-v"></i>
+                </button>
+              </div>
+            </div>
+            <div class="widget-content">
+              <table class="product-table">
+                <thead>
+                  <tr>
+                    <th>商品</th>
+                    <th>類型</th>
+                    <th>銷量</th>
+                    <th>評分</th>
+                    <th>庫存</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <div class="product-info">
+                        <img src="images/product-1.jpg" alt="四人帳篷" />
+                        <span>四人帳篷 - 星空系列</span>
+                      </div>
+                    </td>
+                    <td><span class="product-type sale">銷售</span></td>
+                    <td>12</td>
+                    <td>
+                      <div class="rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star-half-alt"></i>
+                        <span>4.5</span>
+                      </div>
+                    </td>
+                    <td>2</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div class="product-info">
+                        <img src="images/product-2.jpg" alt="登山睡袋" />
+                        <span>登山睡袋 - 輕量型</span>
+                      </div>
+                    </td>
+                    <td><span class="product-type rent">租借</span></td>
+                    <td>8</td>
+                    <td>
+                      <div class="rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="far fa-star"></i>
+                        <span>4.0</span>
+                      </div>
+                    </td>
+                    <td>3</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div class="product-info">
+                        <img src="images/product-3.jpg" alt="露營燈" />
+                        <span>露營燈 - 太陽能充電</span>
+                      </div>
+                    </td>
+                    <td><span class="product-type sale">銷售</span></td>
+                    <td>15</td>
+                    <td>
+                      <div class="rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <span>4.8</span>
+                      </div>
+                    </td>
+                    <td>8</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div class="product-info">
+                        <img src="images/product-4.jpg" alt="摺疊椅" />
+                        <span>摺疊椅 - 豪華版</span>
+                      </div>
+                    </td>
+                    <td><span class="product-type used">二手</span></td>
+                    <td>6</td>
+                    <td>
+                      <div class="rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star-half-alt"></i>
+                        <i class="far fa-star"></i>
+                        <span>3.5</span>
+                      </div>
+                    </td>
+                    <td>0</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class="widget-footer">
+                <a href="#" class="btn-view-all"
+                  >查看所有商品 <i class="fas fa-arrow-right"></i
+                ></a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="js/main.js"></script>
+  </body>
+</html>

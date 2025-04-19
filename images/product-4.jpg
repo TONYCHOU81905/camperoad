@@ -1,0 +1,8 @@
+<svg width="300" height="300" viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="300" height="300" fill="#F4F1DE" opacity="0.3"/>
+  <path d="M125 100 L175 100 L175 200 L125 200 Z" fill="#3A5A40" opacity="0.6"/>
+  <path d="M125 120 L175 120" stroke="#A68A64" stroke-width="2"/>
+  <path d="M125 150 L175 150" stroke="#A68A64" stroke-width="2"/>
+  <path d="M125 180 L175 180" stroke="#A68A64" stroke-width="2"/>
+  <text x="75" y="270" font-family="'Noto Sans TC', sans-serif" font-weight="500" font-size="14" fill="#3A5A40">專業登山背包 45L</text>
+</svg>

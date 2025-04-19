@@ -1,0 +1,1131 @@
+/* 多角色系統樣式 */
+
+/* 角色切換頁面 */
+.role-switch-page {
+    background: linear-gradient(135deg, #F4F1DE 0%, #E0D7C7 100%);
+    min-height: 100vh;
+}
+
+.role-switch-container {
+    padding: 60px 0;
+}
+
+.role-switch-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.role-switch-header h1 {
+    font-size: 2.5rem;
+    color: #3A5A40;
+    margin-bottom: 10px;
+}
+
+.role-switch-header p {
+    font-size: 1.1rem;
+    color: #666;
+}
+
+.role-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    margin-bottom: 40px;
+}
+
+.role-card {
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(58, 90, 64, 0.1);
+    padding: 30px;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.role-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(58, 90, 64, 0.15);
+}
+
+.role-icon {
+    width: 70px;
+    height: 70px;
+    background-color: rgba(58, 90, 64, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.role-icon i {
+    font-size: 2rem;
+    color: #3A5A40;
+}
+
+.role-info {
+    flex: 1;
+}
+
+.role-info h2 {
+    font-size: 1.5rem;
+    color: #3A5A40;
+    margin-bottom: 10px;
+}
+
+.role-info p {
+    color: #666;
+    margin-bottom: 15px;
+}
+
+.role-features {
+    margin-bottom: 20px;
+}
+
+.role-features li {
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+}
+
+.role-features li i {
+    color: #3A5A40;
+    margin-right: 10px;
+    font-size: 0.9rem;
+}
+
+.role-actions {
+    margin-top: 20px;
+}
+
+.btn-enter-role {
+    display: block;
+    background-color: #3A5A40;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 4px;
+    text-align: center;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    margin-bottom: 10px;
+}
+
+.btn-enter-role:hover {
+    background-color: #2d4731;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(58, 90, 64, 0.2);
+}
+
+.last-login {
+    display: block;
+    text-align: center;
+    font-size: 0.85rem;
+    color: #888;
+}
+
+.role-switch-footer {
+    text-align: center;
+    padding: 20px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.role-switch-footer p {
+    color: #666;
+    margin-bottom: 15px;
+}
+
+.role-switch-footer i {
+    color: #3A5A40;
+}
+
+.btn-manage-roles {
+    display: inline-block;
+    padding: 8px 16px;
+    border: 1px solid #3A5A40;
+    border-radius: 4px;
+    color: #3A5A40;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-manage-roles:hover {
+    background-color: #3A5A40;
+    color: white;
+}
+
+/* 角色管理 */
+.roles-management {
+    margin-bottom: 40px;
+}
+
+.current-role,
+.available-roles {
+    margin-bottom: 30px;
+}
+
+.current-role h3,
+.available-roles h3,
+.role-switch h3 {
+    font-size: 1.3rem;
+    color: #3A5A40;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.role-card.active {
+    border: 2px solid #3A5A40;
+}
+
+.role-status {
+    margin-top: 10px;
+}
+
+.status-active {
+    display: inline-block;
+    padding: 4px 10px;
+    background-color: rgba(58, 90, 64, 0.1);
+    color: #3A5A40;
+    border-radius: 20px;
+    font-size: 0.85rem;
+}
+
+.role-benefits {
+    margin: 15px 0;
+    padding-left: 20px;
+}
+
+.role-benefits li {
+    margin-bottom: 5px;
+    position: relative;
+}
+
+.role-benefits li:before {
+    content: '•';
+    position: absolute;
+    left: -15px;
+    color: #A68A64;
+}
+
+.btn-apply-role {
+    display: block;
+    background-color: white;
+    border: 1px solid #3A5A40;
+    color: #3A5A40;
+    padding: 10px 15px;
+    border-radius: 4px;
+    text-align: center;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    margin-top: 15px;
+}
+
+.btn-apply-role:hover {
+    background-color: #3A5A40;
+    color: white;
+}
+
+.role-application-note {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: rgba(166, 138, 100, 0.1);
+    border-radius: 4px;
+}
+
+.role-application-note p {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.role-application-note i {
+    color: #A68A64;
+    margin-right: 5px;
+}
+
+.role-switch {
+    margin-top: 30px;
+}
+
+.role-switch-note {
+    color: #666;
+    margin-bottom: 15px;
+}
+
+.role-switch-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn-switch-role {
+    padding: 10px 20px;
+    border-radius: 4px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: none;
+}
+
+.btn-switch-role.active {
+    background-color: #3A5A40;
+    color: white;
+}
+
+.btn-switch-role:not(.active):not(.disabled) {
+    background-color: white;
+    border: 1px solid #ccc;
+    color: #333;
+}
+
+.btn-switch-role:not(.active):not(.disabled):hover {
+    border-color: #3A5A40;
+    color: #3A5A40;
+}
+
+.btn-switch-role.disabled {
+    background-color: #f5f5f5;
+    color: #aaa;
+    cursor: not-allowed;
+}
+
+/* 個人資料設定 */
+.profile-page {
+    background-color: #f9f7f4;
+}
+
+.profile-container {
+    display: flex;
+    gap: 30px;
+}
+
+.profile-sidebar {
+    width: 250px;
+    flex-shrink: 0;
+}
+
+.profile-menu {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.profile-menu-item {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    color: #666;
+    border-left: 3px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.profile-menu-item i {
+    margin-right: 10px;
+    width: 20px;
+    text-align: center;
+}
+
+.profile-menu-item.active {
+    background-color: rgba(58, 90, 64, 0.05);
+    color: #3A5A40;
+    border-left-color: #3A5A40;
+    font-weight: 500;
+}
+
+.profile-menu-item:not(.active):hover {
+    background-color: rgba(0, 0, 0, 0.02);
+    color: #333;
+}
+
+.profile-content {
+    flex: 1;
+}
+
+.profile-section {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    padding: 30px;
+    margin-bottom: 30px;
+    display: none;
+}
+
+.profile-section.active {
+    display: block;
+}
+
+.profile-section h2 {
+    font-size: 1.5rem;
+    color: #3A5A40;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.avatar-upload {
+    display: flex;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.avatar-preview {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-right: 20px;
+}
+
+.avatar-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-edit {
+    flex: 1;
+}
+
+.btn-upload {
+    display: inline-block;
+    padding: 8px 16px;
+    background-color: #3A5A40;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-upload:hover {
+    background-color: #2d4731;
+}
+
+#avatar-input {
+    display: none;
+}
+
+.upload-hint {
+    font-size: 0.85rem;
+    color: #888;
+    margin-top: 8px;
+}
+
+.form-row {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+.form-hint {
+    font-size: 0.85rem;
+    color: #888;
+    margin-top: 5px;
+}
+
+.form-actions {
+    margin-top: 30px;
+    display: flex;
+    gap: 15px;
+}
+
+.btn-save {
+    padding: 10px 20px;
+    background-color: #3A5A40;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-save:hover {
+    background-color: #2d4731;
+}
+
+.btn-cancel {
+    padding: 10px 20px;
+    background-color: white;
+    color: #666;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-cancel:hover {
+    border-color: #999;
+    color: #333;
+}
+
+.security-section {
+    margin-bottom: 30px;
+    padding-bottom: 30px;
+    border-bottom: 1px solid #eee;
+}
+
+.security-section:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+    margin-bottom: 0;
+}
+
+.security-section h3 {
+    font-size: 1.2rem;
+    color: #3A5A40;
+    margin-bottom: 20px;
+}
+
+.password-strength {
+    margin-top: 10px;
+}
+
+.strength-bar {
+    height: 5px;
+    background-color: #eee;
+    border-radius: 3px;
+    margin-bottom: 5px;
+}
+
+.strength-fill {
+    height: 100%;
+    border-radius: 3px;
+    background-color: #ccc;
+}
+
+.strength-text {
+    font-size: 0.85rem;
+    color: #888;
+}
+
+.two-factor-auth {
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.two-factor-status {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.status-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+}
+
+.status-icon.enabled {
+    background-color: rgba(58, 90, 64, 0.1);
+    color: #3A5A40;
+}
+
+.status-icon.disabled {
+    background-color: rgba(153, 153, 153, 0.1);
+    color: #999;
+}
+
+.status-info {
+    flex: 1;
+}
+
+.status-info h4 {
+    font-size: 1rem;
+    margin-bottom: 5px;
+}
+
+.status-info p {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.btn-disable-2fa {
+    padding: 6px 12px;
+    background-color: white;
+    border: 1px solid #ccc;
+    color: #666;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-disable-2fa:hover {
+    border-color: #E76F51;
+    color: #E76F51;
+}
+
+.two-factor-methods {
+    display: flex;
+    gap: 15px;
+}
+
+.method-item {
+    flex: 1;
+    position: relative;
+}
+
+.method-item input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+}
+
+.method-item label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px;
+    background-color: white;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.method-item input[type="radio"]:checked + label {
+    border-color: #3A5A40;
+    background-color: rgba(58, 90, 64, 0.05);
+}
+
+.method-item label i {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+    color: #3A5A40;
+}
+
+.linked-accounts {
+    margin-top: 20px;
+}
+
+.linked-account-item {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.account-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    color: white;
+}
+
+.account-icon.google {
+    background-color: #DB4437;
+}
+
+.account-icon.facebook {
+    background-color: #4267B2;
+}
+
+.account-icon.line {
+    background-color: #06C755;
+}
+
+.account-info {
+    flex: 1;
+}
+
+.account-info h4 {
+    font-size: 1rem;
+    margin-bottom: 5px;
+}
+
+.account-info p {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.btn-unlink,
+.btn-link {
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-unlink {
+    background-color: white;
+    border: 1px solid #ccc;
+    color: #666;
+}
+
+.btn-unlink:hover {
+    border-color: #E76F51;
+    color: #E76F51;
+}
+
+.btn-link {
+    background-color: #3A5A40;
+    border: none;
+    color: white;
+}
+
+.btn-link:hover {
+    background-color: #2d4731;
+}
+
+.login-activity {
+    margin-top: 20px;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.activity-device {
+    width: 180px;
+    display: flex;
+    align-items: center;
+}
+
+.activity-device i {
+    margin-right: 10px;
+    color: #666;
+}
+
+.activity-details {
+    flex: 1;
+    font-size: 0.9rem;
+}
+
+.activity-location {
+    color: #333;
+}
+
+.activity-time {
+    color: #888;
+    font-size: 0.85rem;
+    margin-top: 3px;
+}
+
+.activity-status {
+    width: 100px;
+    text-align: right;
+}
+
+.activity-status.current span {
+    display: inline-block;
+    padding: 4px 8px;
+    background-color: rgba(58, 90, 64, 0.1);
+    color: #3A5A40;
+    border-radius: 4px;
+    font-size: 0.85rem;
+}
+
+.btn-logout-device {
+    padding: 4px 8px;
+    background-color: white;
+    border: 1px solid #ccc;
+    color: #666;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-logout-device:hover {
+    border-color: #E76F51;
+    color: #E76F51;
+}
+
+.login-activity-actions {
+    margin-top: 20px;
+    text-align: right;
+}
+
+.btn-logout-all {
+    padding: 8px 16px;
+    background-color: white;
+    border: 1px solid #ccc;
+    color: #666;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-logout-all:hover {
+    border-color: #E76F51;
+    color: #E76F51;
+}
+
+.notification-settings {
+    margin-top: 20px;
+}
+
+.notification-group {
+    margin-bottom: 30px;
+}
+
+.notification-item {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.notification-info {
+    flex: 1;
+}
+
+.notification-info h4 {
+    font-size: 1rem;
+    margin-bottom: 5px;
+}
+
+.notification-info p {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 24px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+    background-color: #3A5A40;
+}
+
+input:checked + .toggle-slider:before {
+    transform: translateX(26px);
+}
+
+.payment-methods {
+    margin-top: 20px;
+}
+
+.payment-method-list {
+    margin-bottom: 20px;
+}
+
+.payment-method-item {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.payment-method-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    color: white;
+}
+
+.payment-method-icon.credit-card {
+    background-color: #3A5A40;
+}
+
+.payment-method-icon.line-pay {
+    background-color: #06C755;
+}
+
+.payment-method-info {
+    flex: 1;
+}
+
+.payment-method-info h4 {
+    font-size: 1rem;
+    margin-bottom: 5px;
+}
+
+.payment-method-info p {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.expiry-date {
+    font-size: 0.85rem;
+    color: #888;
+    display: block;
+    margin-top: 3px;
+}
+
+.payment-method-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.default-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    background-color: rgba(58, 90, 64, 0.1);
+    color: #3A5A40;
+    border-radius: 4px;
+    font-size: 0.85rem;
+}
+
+.btn-edit-payment,
+.btn-delete-payment {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+    border: 1px solid #ccc;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-edit-payment:hover {
+    border-color: #3A5A40;
+    color: #3A5A40;
+}
+
+.btn-delete-payment:hover {
+    border-color: #E76F51;
+    color: #E76F51;
+}
+
+.btn-set-default {
+    padding: 4px 8px;
+    background-color: white;
+    border: 1px solid #ccc;
+    color: #666;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-set-default:hover {
+    border-color: #3A5A40;
+    color: #3A5A40;
+}
+
+.btn-add-payment {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 15px;
+    border: 1px dashed #ccc;
+    border-radius: 8px;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 30px;
+}
+
+.btn-add-payment i {
+    margin-right: 10px;
+}
+
+.btn-add-payment:hover {
+    border-color: #3A5A40;
+    color: #3A5A40;
+}
+
+.payment-history {
+    margin-top: 30px;
+}
+
+.payment-history h3 {
+    font-size: 1.2rem;
+    color: #3A5A40;
+    margin-bottom: 15px;
+}
+
+.payment-history-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.payment-history-table th,
+.payment-history-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.payment-history-table th {
+    font-weight: 500;
+    color: #3A5A40;
+    background-color: rgba(58, 90, 64, 0.05);
+}
+
+.btn-invoice {
+    color: #3A5A40;
+    transition: all 0.3s ease;
+}
+
+.btn-invoice:hover {
+    color: #2d4731;
+}
+
+.payment-history-actions {
+    margin-top: 15px;
+    text-align: right;
+}
+
+.btn-view-all {
+    color: #3A5A40;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-view-all:hover {
+    color: #2d4731;
+}
+
+/* 響應式設計 */
+@media (max-width: 992px) {
+    .profile-container {
+        flex-direction: column;
+    }
+
+    .profile-sidebar {
+        width: 100%;
+        margin-bottom: 20px;
+    }
+
+    .profile-menu {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .profile-menu-item {
+        flex: 1;
+        min-width: 120px;
+        justify-content: center;
+        padding: 10px;
+        border-left: none;
+        border-bottom: 3px solid transparent;
+    }
+
+    .profile-menu-item.active {
+        border-left-color: transparent;
+        border-bottom-color: #3A5A40;
+    }
+
+    .profile-menu-item i {
+        margin-right: 5px;
+    }
+
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .two-factor-methods {
+        flex-direction: column;
+    }
+
+    .role-cards {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .avatar-upload {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .avatar-preview {
+        margin-right: 0;
+        margin-bottom: 15px;
+    }
+
+    .payment-method-item,
+    .linked-account-item,
+    .activity-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .payment-method-icon,
+    .account-icon {
+        margin-bottom: 10px;
+    }
+
+    .payment-method-info,
+    .account-info,
+    .activity-details {
+        margin-bottom: 10px;
+    }
+
+    .payment-method-actions,
+    .activity-status {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .activity-device {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    .notification-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .notification-info {
+        margin-bottom: 10px;
+    }
+}
