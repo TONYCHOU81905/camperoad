@@ -1,449 +1,439 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>露營攻略 - 露途ji3</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
-    <link rel="stylesheet" href="css/style.css" />
-    <link rel="stylesheet" href="css/role-system.css" />
-  </head>
-  <body>
-    <header class="site-header">
-      <div class="container">
-        <div class="logo">
-          <a href="index.html">
-            <img src="images/logo.svg" alt="露途 Logo" />
-            <span>露途</span>
-          </a>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>露營攻略 - 露途yen</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/role-system.css" />
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="container">
+      <div class="logo">
+        <a href="index.html">
+          <img src="images/logo.svg" alt="露途 Logo" />
+          <span>露途</span>
+        </a>
+      </div>
+      <nav class="main-nav">
+        <ul>
+          <li><a href="campsites.html">營地預訂</a></li>
+          <li><a href="shop.html">裝備商城</a></li>
+          <li><a href="camp-guides.html" class="active">露營攻略</a></li>
+          <li><a href="#">關於我們</a></li>
+        </ul>
+      </nav>
+      <div class="user-actions">
+        <a href="#" class="btn-search"><i class="fas fa-search"></i></a>
+        <a href="#" class="btn-cart"><i class="fas fa-shopping-cart"></i><span class="cart-count">0</span></a>
+        <a href="login.html" class="btn-login">登入 / 註冊</a>
+      </div>
+      <button class="mobile-menu-toggle">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </header>
+
+  <section class="guide-hero">
+    <div class="container">
+      <div class="guide-hero-content">
+        <h1>露營攻略</h1>
+        <p>分享露營知識、經驗與技巧，讓每次露營都成為美好回憶</p>
+        <div class="guide-search-box">
+          <form action="#" method="get">
+            <input type="text" placeholder="搜尋攻略文章..." name="search" />
+            <button type="submit" class="btn-search-submit">
+              <i class="fas fa-search"></i>
+            </button>
+          </form>
         </div>
-        <nav class="main-nav">
-          <ul>
-            <li><a href="campsites.html">營地預訂</a></li>
-            <li><a href="shop.html">裝備商城</a></li>
-            <li><a href="camp-guides.html" class="active">露營攻略</a></li>
-            <li><a href="#">關於我們</a></li>
-          </ul>
-        </nav>
-        <div class="user-actions">
-          <a href="#" class="btn-search"><i class="fas fa-search"></i></a>
-          <a href="#" class="btn-cart"
-            ><i class="fas fa-shopping-cart"></i
-            ><span class="cart-count">0</span></a
-          >
-          <a href="login.html" class="btn-login">登入 / 註冊</a>
-        </div>
-        <button class="mobile-menu-toggle">
-          <span></span>
-          <span></span>
-          <span></span>
+      </div>
+    </div>
+  </section>
+
+  <section class="guide-categories">
+    <div class="container">
+      <div class="category-tabs">
+        <button class="category-tab active" data-category="all">
+          全部文章
+        </button>
+        <button class="category-tab" data-category="beginner">
+          新手指南
+        </button>
+        <button class="category-tab" data-category="equipment">
+          裝備選擇
+        </button>
+        <button class="category-tab" data-category="cooking">野炊料理</button>
+        <button class="category-tab" data-category="experience">
+          露營經驗
+        </button>
+        <button class="category-tab" data-category="destination">
+          營地推薦
         </button>
       </div>
-    </header>
+    </div>
+  </section>
 
-    <section class="guide-hero">
-      <div class="container">
-        <div class="guide-hero-content">
-          <h1>露營攻略</h1>
-          <p>分享露營知識、經驗與技巧，讓每次露營都成為美好回憶</p>
-          <div class="guide-search-box">
-            <form action="#" method="get">
-              <input type="text" placeholder="搜尋攻略文章..." name="search" />
-              <button type="submit" class="btn-search-submit">
-                <i class="fas fa-search"></i>
-              </button>
-            </form>
+  <section class="guide-content">
+    <div class="container">
+      <div class="guide-layout">
+        <main class="guide-main">
+          <div class="guide-filter">
+            <div class="filter-options">
+              <select name="sort" id="sort-guides">
+                <option value="latest">最新發布</option>
+                <option value="popular">熱門文章</option>
+                <option value="most-liked">最多讚</option>
+                <option value="most-commented">最多留言</option>
+              </select>
+            </div>
+            <div class="guide-count">共 <span>24</span> 篇文章</div>
           </div>
-        </div>
-      </div>
-    </section>
 
-    <section class="guide-categories">
-      <div class="container">
-        <div class="category-tabs">
-          <button class="category-tab active" data-category="all">
-            全部文章
-          </button>
-          <button class="category-tab" data-category="beginner">
-            新手指南
-          </button>
-          <button class="category-tab" data-category="equipment">
-            裝備選擇
-          </button>
-          <button class="category-tab" data-category="cooking">野炊料理</button>
-          <button class="category-tab" data-category="experience">
-            露營經驗
-          </button>
-          <button class="category-tab" data-category="destination">
-            營地推薦
-          </button>
-        </div>
-      </div>
-    </section>
-
-    <section class="guide-content">
-      <div class="container">
-        <div class="guide-layout">
-          <main class="guide-main">
-            <div class="guide-filter">
-              <div class="filter-options">
-                <select name="sort" id="sort-guides">
-                  <option value="latest">最新發布</option>
-                  <option value="popular">熱門文章</option>
-                  <option value="most-liked">最多讚</option>
-                  <option value="most-commented">最多留言</option>
-                </select>
+          <div class="guide-cards">
+            <!-- 文章卡片 1 -->
+            <div class="guide-card" data-category="beginner">
+              <div class="guide-image">
+                <img src="images/camp-1.jpg" alt="新手必讀：第一次露營就上手" />
+                <span class="guide-tag">新手指南</span>
               </div>
-              <div class="guide-count">共 <span>24</span> 篇文章</div>
+              <div class="guide-info">
+                <h3>
+                  <a href="guide-detail.html">新手必讀：第一次露營就上手</a>
+                </h3>
+                <div class="guide-meta">
+                  <span class="guide-author">
+                    <img src="images/user-1.jpg" alt="作者頭像" />
+                    <span>山野專家</span>
+                  </span>
+                  <span class="guide-date">2023/06/15</span>
+                </div>
+                <p class="guide-excerpt">
+                  第一次露營不知道該準備什麼？本文詳細介紹新手露營的必備知識，從裝備選擇到搭帳技巧，讓你輕鬆享受露營樂趣...
+                </p>
+                <div class="guide-stats">
+                  <span><i class="fas fa-eye"></i> 1,245</span>
+                  <span><i class="fas fa-heart"></i> 78</span>
+                  <span><i class="fas fa-comment"></i> 23</span>
+                  <span><i class="fas fa-bookmark"></i> 45</span>
+                </div>
+              </div>
             </div>
 
-            <div class="guide-cards">
-              <!-- 文章卡片 1 -->
-              <div class="guide-card" data-category="beginner">
-                <div class="guide-image">
-                  <img
-                    src="images/camp-1.jpg"
-                    alt="新手必讀：第一次露營就上手"
-                  />
-                  <span class="guide-tag">新手指南</span>
+            <!-- 文章卡片 2 -->
+            <div class="guide-card" data-category="equipment">
+              <div class="guide-image">
+                <img src="images/product-1.jpg" alt="四季帳篷選購指南" />
+                <span class="guide-tag">裝備選擇</span>
+              </div>
+              <div class="guide-info">
+                <h3><a href="#">四季帳篷選購指南：如何選擇適合的帳篷</a></h3>
+                <div class="guide-meta">
+                  <span class="guide-author">
+                    <img src="images/user-2.jpg" alt="作者頭像" />
+                    <span>裝備達人</span>
+                  </span>
+                  <span class="guide-date">2023/05/28</span>
                 </div>
-                <div class="guide-info">
-                  <h3>
-                    <a href="guide-detail.html">新手必讀：第一次露營就上手</a>
-                  </h3>
-                  <div class="guide-meta">
-                    <span class="guide-author">
-                      <img src="images/user-1.jpg" alt="作者頭像" />
-                      <span>山野專家</span>
-                    </span>
-                    <span class="guide-date">2023/06/15</span>
-                  </div>
-                  <p class="guide-excerpt">
-                    第一次露營不知道該準備什麼？本文詳細介紹新手露營的必備知識，從裝備選擇到搭帳技巧，讓你輕鬆享受露營樂趣...
-                  </p>
-                  <div class="guide-stats">
-                    <span><i class="fas fa-eye"></i> 1,245</span>
-                    <span><i class="fas fa-heart"></i> 78</span>
-                    <span><i class="fas fa-comment"></i> 23</span>
-                    <span><i class="fas fa-bookmark"></i> 45</span>
-                  </div>
+                <p class="guide-excerpt">
+                  帳篷是露營的核心裝備，本文將從材質、結構、季節適用性等方面，詳細介紹如何選擇最適合自己的帳篷...
+                </p>
+                <div class="guide-stats">
+                  <span><i class="fas fa-eye"></i> 987</span>
+                  <span><i class="fas fa-heart"></i> 56</span>
+                  <span><i class="fas fa-comment"></i> 18</span>
+                  <span><i class="fas fa-bookmark"></i> 32</span>
                 </div>
               </div>
+            </div>
 
-              <!-- 文章卡片 2 -->
-              <div class="guide-card" data-category="equipment">
-                <div class="guide-image">
-                  <img src="images/product-1.jpg" alt="四季帳篷選購指南" />
-                  <span class="guide-tag">裝備選擇</span>
+            <!-- 文章卡片 3 -->
+            <div class="guide-card" data-category="cooking">
+              <div class="guide-image">
+                <img src="images/product-3.jpg" alt="露營野炊料理" />
+                <span class="guide-tag">野炊料理</span>
+              </div>
+              <div class="guide-info">
+                <h3><a href="#">10道簡單美味的露營料理食譜</a></h3>
+                <div class="guide-meta">
+                  <span class="guide-author">
+                    <img src="images/user-3.jpg" alt="作者頭像" />
+                    <span>野炊廚師</span>
+                  </span>
+                  <span class="guide-date">2023/04/10</span>
                 </div>
-                <div class="guide-info">
-                  <h3><a href="#">四季帳篷選購指南：如何選擇適合的帳篷</a></h3>
-                  <div class="guide-meta">
-                    <span class="guide-author">
-                      <img src="images/user-2.jpg" alt="作者頭像" />
-                      <span>裝備達人</span>
-                    </span>
-                    <span class="guide-date">2023/05/28</span>
-                  </div>
-                  <p class="guide-excerpt">
-                    帳篷是露營的核心裝備，本文將從材質、結構、季節適用性等方面，詳細介紹如何選擇最適合自己的帳篷...
-                  </p>
-                  <div class="guide-stats">
-                    <span><i class="fas fa-eye"></i> 987</span>
-                    <span><i class="fas fa-heart"></i> 56</span>
-                    <span><i class="fas fa-comment"></i> 18</span>
-                    <span><i class="fas fa-bookmark"></i> 32</span>
-                  </div>
+                <p class="guide-excerpt">
+                  在大自然中享用美食是露營的一大樂趣，本文分享10道簡單又美味的露營料理，讓你的露營餐桌豐富多彩...
+                </p>
+                <div class="guide-stats">
+                  <span><i class="fas fa-eye"></i> 1,567</span>
+                  <span><i class="fas fa-heart"></i> 112</span>
+                  <span><i class="fas fa-comment"></i> 45</span>
+                  <span><i class="fas fa-bookmark"></i> 89</span>
                 </div>
               </div>
+            </div>
 
-              <!-- 文章卡片 3 -->
-              <div class="guide-card" data-category="cooking">
-                <div class="guide-image">
-                  <img src="images/product-3.jpg" alt="露營野炊料理" />
-                  <span class="guide-tag">野炊料理</span>
+            <!-- 文章卡片 4 -->
+            <div class="guide-card" data-category="experience">
+              <div class="guide-image">
+                <img src="images/camp-2.jpg" alt="親子露營經驗分享" />
+                <span class="guide-tag">露營經驗</span>
+              </div>
+              <div class="guide-info">
+                <h3><a href="#">親子露營：如何讓孩子愛上大自然</a></h3>
+                <div class="guide-meta">
+                  <span class="guide-author">
+                    <img src="images/user-1.jpg" alt="作者頭像" />
+                    <span>親子專家</span>
+                  </span>
+                  <span class="guide-date">2023/03/22</span>
                 </div>
-                <div class="guide-info">
-                  <h3><a href="#">10道簡單美味的露營料理食譜</a></h3>
-                  <div class="guide-meta">
-                    <span class="guide-author">
-                      <img src="images/user-3.jpg" alt="作者頭像" />
-                      <span>野炊廚師</span>
-                    </span>
-                    <span class="guide-date">2023/04/10</span>
-                  </div>
-                  <p class="guide-excerpt">
-                    在大自然中享用美食是露營的一大樂趣，本文分享10道簡單又美味的露營料理，讓你的露營餐桌豐富多彩...
-                  </p>
-                  <div class="guide-stats">
-                    <span><i class="fas fa-eye"></i> 1,567</span>
-                    <span><i class="fas fa-heart"></i> 112</span>
-                    <span><i class="fas fa-comment"></i> 45</span>
-                    <span><i class="fas fa-bookmark"></i> 89</span>
-                  </div>
+                <p class="guide-excerpt">
+                  帶孩子露營是親子互動的絕佳機會，本文分享如何規劃適合孩子的露營活動，讓孩子在玩樂中學習和成長...
+                </p>
+                <div class="guide-stats">
+                  <span><i class="fas fa-eye"></i> 1,023</span>
+                  <span><i class="fas fa-heart"></i> 67</span>
+                  <span><i class="fas fa-comment"></i> 29</span>
+                  <span><i class="fas fa-bookmark"></i> 41</span>
                 </div>
               </div>
+            </div>
 
-              <!-- 文章卡片 4 -->
-              <div class="guide-card" data-category="experience">
-                <div class="guide-image">
-                  <img src="images/camp-2.jpg" alt="親子露營經驗分享" />
-                  <span class="guide-tag">露營經驗</span>
+            <!-- 文章卡片 5 -->
+            <div class="guide-card" data-category="destination">
+              <div class="guide-image">
+                <img src="images/camp-3.jpg" alt="北部五大秘境營地" />
+                <span class="guide-tag">營地推薦</span>
+              </div>
+              <div class="guide-info">
+                <h3><a href="#">北部五大秘境營地：遠離人群的寧靜天堂</a></h3>
+                <div class="guide-meta">
+                  <span class="guide-author">
+                    <img src="images/user-2.jpg" alt="作者頭像" />
+                    <span>探險家</span>
+                  </span>
+                  <span class="guide-date">2023/02/18</span>
                 </div>
-                <div class="guide-info">
-                  <h3><a href="#">親子露營：如何讓孩子愛上大自然</a></h3>
-                  <div class="guide-meta">
-                    <span class="guide-author">
-                      <img src="images/user-1.jpg" alt="作者頭像" />
-                      <span>親子專家</span>
-                    </span>
-                    <span class="guide-date">2023/03/22</span>
-                  </div>
-                  <p class="guide-excerpt">
-                    帶孩子露營是親子互動的絕佳機會，本文分享如何規劃適合孩子的露營活動，讓孩子在玩樂中學習和成長...
-                  </p>
-                  <div class="guide-stats">
-                    <span><i class="fas fa-eye"></i> 1,023</span>
-                    <span><i class="fas fa-heart"></i> 67</span>
-                    <span><i class="fas fa-comment"></i> 29</span>
-                    <span><i class="fas fa-bookmark"></i> 41</span>
-                  </div>
+                <p class="guide-excerpt">
+                  厭倦了人滿為患的熱門營地？本文推薦五個北部隱藏版營地，讓你遠離喧囂，享受與大自然獨處的寧靜時光...
+                </p>
+                <div class="guide-stats">
+                  <span><i class="fas fa-eye"></i> 2,134</span>
+                  <span><i class="fas fa-heart"></i> 156</span>
+                  <span><i class="fas fa-comment"></i> 62</span>
+                  <span><i class="fas fa-bookmark"></i> 103</span>
                 </div>
               </div>
+            </div>
 
-              <!-- 文章卡片 5 -->
-              <div class="guide-card" data-category="destination">
-                <div class="guide-image">
+            <!-- 文章卡片 6 -->
+            <div class="guide-card" data-category="beginner">
+              <div class="guide-image">
+                <img src="images/product-2.jpg" alt="露營安全指南" />
+                <span class="guide-tag">新手指南</span>
+              </div>
+              <div class="guide-info">
+                <h3><a href="#">露營安全指南：戶外活動的注意事項</a></h3>
+                <div class="guide-meta">
+                  <span class="guide-author">
+                    <img src="images/user-3.jpg" alt="作者頭像" />
+                    <span>安全專家</span>
+                  </span>
+                  <span class="guide-date">2023/01/30</span>
+                </div>
+                <p class="guide-excerpt">
+                  安全是露營活動的首要考量，本文詳細介紹露營過程中的安全注意事項，包括天氣變化應對、野生動物防範等...
+                </p>
+                <div class="guide-stats">
+                  <span><i class="fas fa-eye"></i> 1,876</span>
+                  <span><i class="fas fa-heart"></i> 98</span>
+                  <span><i class="fas fa-comment"></i> 37</span>
+                  <span><i class="fas fa-bookmark"></i> 76</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="pagination">
+            <a href="#" class="active">1</a>
+            <a href="#">2</a>
+            <a href="#">3</a>
+            <a href="#">4</a>
+            <a href="#" class="next">下一頁 <i class="fas fa-chevron-right"></i></a>
+          </div>
+        </main>
+
+        <aside class="guide-sidebar">
+          <div class="sidebar-widget popular-guides">
+            <h3 class="widget-title">熱門文章</h3>
+            <ul class="popular-guide-list">
+              <li>
+                <a href="#">
                   <img src="images/camp-3.jpg" alt="北部五大秘境營地" />
-                  <span class="guide-tag">營地推薦</span>
-                </div>
-                <div class="guide-info">
-                  <h3><a href="#">北部五大秘境營地：遠離人群的寧靜天堂</a></h3>
-                  <div class="guide-meta">
-                    <span class="guide-author">
-                      <img src="images/user-2.jpg" alt="作者頭像" />
-                      <span>探險家</span>
-                    </span>
-                    <span class="guide-date">2023/02/18</span>
+                  <div class="popular-guide-info">
+                    <h4>北部五大秘境營地：遠離人群的寧靜天堂</h4>
+                    <div class="popular-guide-meta">
+                      <span><i class="fas fa-eye"></i> 2,134</span>
+                      <span><i class="fas fa-heart"></i> 156</span>
+                    </div>
                   </div>
-                  <p class="guide-excerpt">
-                    厭倦了人滿為患的熱門營地？本文推薦五個北部隱藏版營地，讓你遠離喧囂，享受與大自然獨處的寧靜時光...
-                  </p>
-                  <div class="guide-stats">
-                    <span><i class="fas fa-eye"></i> 2,134</span>
-                    <span><i class="fas fa-heart"></i> 156</span>
-                    <span><i class="fas fa-comment"></i> 62</span>
-                    <span><i class="fas fa-bookmark"></i> 103</span>
+                </a>
+              </li>
+              <li>
+                <a href="#">
+                  <img src="images/product-3.jpg" alt="露營野炊料理" />
+                  <div class="popular-guide-info">
+                    <h4>10道簡單美味的露營料理食譜</h4>
+                    <div class="popular-guide-meta">
+                      <span><i class="fas fa-eye"></i> 1,567</span>
+                      <span><i class="fas fa-heart"></i> 112</span>
+                    </div>
                   </div>
-                </div>
-              </div>
-
-              <!-- 文章卡片 6 -->
-              <div class="guide-card" data-category="beginner">
-                <div class="guide-image">
+                </a>
+              </li>
+              <li>
+                <a href="#">
                   <img src="images/product-2.jpg" alt="露營安全指南" />
-                  <span class="guide-tag">新手指南</span>
-                </div>
-                <div class="guide-info">
-                  <h3><a href="#">露營安全指南：戶外活動的注意事項</a></h3>
-                  <div class="guide-meta">
-                    <span class="guide-author">
-                      <img src="images/user-3.jpg" alt="作者頭像" />
-                      <span>安全專家</span>
-                    </span>
-                    <span class="guide-date">2023/01/30</span>
+                  <div class="popular-guide-info">
+                    <h4>露營安全指南：戶外活動的注意事項</h4>
+                    <div class="popular-guide-meta">
+                      <span><i class="fas fa-eye"></i> 1,876</span>
+                      <span><i class="fas fa-heart"></i> 98</span>
+                    </div>
                   </div>
-                  <p class="guide-excerpt">
-                    安全是露營活動的首要考量，本文詳細介紹露營過程中的安全注意事項，包括天氣變化應對、野生動物防範等...
-                  </p>
-                  <div class="guide-stats">
-                    <span><i class="fas fa-eye"></i> 1,876</span>
-                    <span><i class="fas fa-heart"></i> 98</span>
-                    <span><i class="fas fa-comment"></i> 37</span>
-                    <span><i class="fas fa-bookmark"></i> 76</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+                </a>
+              </li>
+            </ul>
+          </div>
 
-            <div class="pagination">
-              <a href="#" class="active">1</a>
-              <a href="#">2</a>
-              <a href="#">3</a>
-              <a href="#">4</a>
-              <a href="#" class="next"
-                >下一頁 <i class="fas fa-chevron-right"></i
-              ></a>
+          <div class="sidebar-widget guide-tags">
+            <h3 class="widget-title">熱門標籤</h3>
+            <div class="tag-cloud">
+              <a href="#" class="tag-item">新手入門</a>
+              <a href="#" class="tag-item">帳篷</a>
+              <a href="#" class="tag-item">睡袋</a>
+              <a href="#" class="tag-item">野炊</a>
+              <a href="#" class="tag-item">親子露營</a>
+              <a href="#" class="tag-item">登山</a>
+              <a href="#" class="tag-item">營地推薦</a>
+              <a href="#" class="tag-item">露營安全</a>
+              <a href="#" class="tag-item">裝備選擇</a>
+              <a href="#" class="tag-item">四季露營</a>
+              <a href="#" class="tag-item">野餐</a>
+              <a href="#" class="tag-item">生火技巧</a>
             </div>
-          </main>
+          </div>
 
-          <aside class="guide-sidebar">
-            <div class="sidebar-widget popular-guides">
-              <h3 class="widget-title">熱門文章</h3>
-              <ul class="popular-guide-list">
-                <li>
-                  <a href="#">
-                    <img src="images/camp-3.jpg" alt="北部五大秘境營地" />
-                    <div class="popular-guide-info">
-                      <h4>北部五大秘境營地：遠離人群的寧靜天堂</h4>
-                      <div class="popular-guide-meta">
-                        <span><i class="fas fa-eye"></i> 2,134</span>
-                        <span><i class="fas fa-heart"></i> 156</span>
-                      </div>
-                    </div>
-                  </a>
-                </li>
-                <li>
-                  <a href="#">
-                    <img src="images/product-3.jpg" alt="露營野炊料理" />
-                    <div class="popular-guide-info">
-                      <h4>10道簡單美味的露營料理食譜</h4>
-                      <div class="popular-guide-meta">
-                        <span><i class="fas fa-eye"></i> 1,567</span>
-                        <span><i class="fas fa-heart"></i> 112</span>
-                      </div>
-                    </div>
-                  </a>
-                </li>
-                <li>
-                  <a href="#">
-                    <img src="images/product-2.jpg" alt="露營安全指南" />
-                    <div class="popular-guide-info">
-                      <h4>露營安全指南：戶外活動的注意事項</h4>
-                      <div class="popular-guide-meta">
-                        <span><i class="fas fa-eye"></i> 1,876</span>
-                        <span><i class="fas fa-heart"></i> 98</span>
-                      </div>
-                    </div>
-                  </a>
-                </li>
-              </ul>
-            </div>
+          <div class="sidebar-widget write-guide">
+            <h3 class="widget-title">分享你的露營經驗</h3>
+            <p>
+              你有獨特的露營經驗或技巧想要分享嗎？成為我們的內容貢獻者，與更多露友交流心得！
+            </p>
+            <a href="#" class="btn-cta">立即投稿</a>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
 
-            <div class="sidebar-widget guide-tags">
-              <h3 class="widget-title">熱門標籤</h3>
-              <div class="tag-cloud">
-                <a href="#" class="tag-item">新手入門</a>
-                <a href="#" class="tag-item">帳篷</a>
-                <a href="#" class="tag-item">睡袋</a>
-                <a href="#" class="tag-item">野炊</a>
-                <a href="#" class="tag-item">親子露營</a>
-                <a href="#" class="tag-item">登山</a>
-                <a href="#" class="tag-item">營地推薦</a>
-                <a href="#" class="tag-item">露營安全</a>
-                <a href="#" class="tag-item">裝備選擇</a>
-                <a href="#" class="tag-item">四季露營</a>
-                <a href="#" class="tag-item">野餐</a>
-                <a href="#" class="tag-item">生火技巧</a>
-              </div>
-            </div>
-
-            <div class="sidebar-widget write-guide">
-              <h3 class="widget-title">分享你的露營經驗</h3>
-              <p>
-                你有獨特的露營經驗或技巧想要分享嗎？成為我們的內容貢獻者，與更多露友交流心得！
-              </p>
-              <a href="#" class="btn-cta">立即投稿</a>
-            </div>
-          </aside>
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-logo">
+          <img src="images/logo-white.svg" alt="露途 Logo" />
+          <p>探索自然，體驗野趣</p>
+        </div>
+        <div class="footer-links">
+          <div class="footer-column">
+            <h3>關於我們</h3>
+            <ul>
+              <li><a href="#">公司簡介</a></li>
+              <li><a href="#">服務條款</a></li>
+              <li><a href="#">隱私政策</a></li>
+              <li><a href="#">加入我們</a></li>
+            </ul>
+          </div>
+          <div class="footer-column">
+            <h3>營地資訊</h3>
+            <ul>
+              <li><a href="#">北部營地</a></li>
+              <li><a href="#">中部營地</a></li>
+              <li><a href="#">南部營地</a></li>
+              <li><a href="#">東部營地</a></li>
+            </ul>
+          </div>
+          <div class="footer-column">
+            <h3>商城服務</h3>
+            <ul>
+              <li><a href="#">裝備租借</a></li>
+              <li><a href="#">全新商品</a></li>
+              <li><a href="#">二手市集</a></li>
+              <li><a href="#">配送說明</a></li>
+            </ul>
+          </div>
+          <div class="footer-column">
+            <h3>幫助中心</h3>
+            <ul>
+              <li><a href="#">常見問題</a></li>
+              <li><a href="#">預訂指南</a></li>
+              <li><a href="#">聯絡客服</a></li>
+              <li><a href="#">緊急協助</a></li>
+            </ul>
+          </div>
         </div>
       </div>
-    </section>
-
-    <footer class="site-footer">
-      <div class="container">
-        <div class="footer-content">
-          <div class="footer-logo">
-            <img src="images/logo-white.svg" alt="露途 Logo" />
-            <p>探索自然，體驗野趣</p>
-          </div>
-          <div class="footer-links">
-            <div class="footer-column">
-              <h3>關於我們</h3>
-              <ul>
-                <li><a href="#">公司簡介</a></li>
-                <li><a href="#">服務條款</a></li>
-                <li><a href="#">隱私政策</a></li>
-                <li><a href="#">加入我們</a></li>
-              </ul>
-            </div>
-            <div class="footer-column">
-              <h3>營地資訊</h3>
-              <ul>
-                <li><a href="#">北部營地</a></li>
-                <li><a href="#">中部營地</a></li>
-                <li><a href="#">南部營地</a></li>
-                <li><a href="#">東部營地</a></li>
-              </ul>
-            </div>
-            <div class="footer-column">
-              <h3>商城服務</h3>
-              <ul>
-                <li><a href="#">裝備租借</a></li>
-                <li><a href="#">全新商品</a></li>
-                <li><a href="#">二手市集</a></li>
-                <li><a href="#">配送說明</a></li>
-              </ul>
-            </div>
-            <div class="footer-column">
-              <h3>幫助中心</h3>
-              <ul>
-                <li><a href="#">常見問題</a></li>
-                <li><a href="#">預訂指南</a></li>
-                <li><a href="#">聯絡客服</a></li>
-                <li><a href="#">緊急協助</a></li>
-              </ul>
-            </div>
-          </div>
+      <div class="footer-bottom">
+        <div class="social-links">
+          <a href="#"><i class="fab fa-facebook-f"></i></a>
+          <a href="#"><i class="fab fa-instagram"></i></a>
+          <a href="#"><i class="fab fa-youtube"></i></a>
+          <a href="#"><i class="fab fa-line"></i></a>
         </div>
-        <div class="footer-bottom">
-          <div class="social-links">
-            <a href="#"><i class="fab fa-facebook-f"></i></a>
-            <a href="#"><i class="fab fa-instagram"></i></a>
-            <a href="#"><i class="fab fa-youtube"></i></a>
-            <a href="#"><i class="fab fa-line"></i></a>
-          </div>
-          <p class="copyright">© 2023 露途 All Rights Reserved.</p>
-        </div>
+        <p class="copyright">© 2023 露途 All Rights Reserved.</p>
       </div>
-    </footer>
+    </div>
+  </footer>
 
-    <script src="js/main.js"></script>
-    <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        // 分類標籤切換功能
-        const categoryTabs = document.querySelectorAll(".category-tab");
-        const guideCards = document.querySelectorAll(".guide-card");
+  <script src="js/main.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // 分類標籤切換功能
+      const categoryTabs = document.querySelectorAll(".category-tab");
+      const guideCards = document.querySelectorAll(".guide-card");
 
-        categoryTabs.forEach((tab) => {
-          tab.addEventListener("click", function () {
-            // 移除所有標籤的active狀態
-            categoryTabs.forEach((t) => t.classList.remove("active"));
-            // 為當前點擊的標籤添加active狀態
-            this.classList.add("active");
+      categoryTabs.forEach((tab) => {
+        tab.addEventListener("click", function () {
+          // 移除所有標籤的active狀態
+          categoryTabs.forEach((t) => t.classList.remove("active"));
+          // 為當前點擊的標籤添加active狀態
+          this.classList.add("active");
 
-            const category = this.dataset.category;
+          const category = this.dataset.category;
 
-            // 顯示或隱藏文章卡片
-            guideCards.forEach((card) => {
-              if (category === "all" || card.dataset.category === category) {
-                card.style.display = "block";
-              } else {
-                card.style.display = "none";
-              }
-            });
+          // 顯示或隱藏文章卡片
+          guideCards.forEach((card) => {
+            if (category === "all" || card.dataset.category === category) {
+              card.style.display = "block";
+            } else {
+              card.style.display = "none";
+            }
           });
         });
       });
-    </script>
-  </body>
+    });
+  </script>
+</body>
+
 </html>
