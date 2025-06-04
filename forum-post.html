@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>露營心得分享：北台灣秋季露營推薦 - 露途論壇</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/role-system.css" />
+  <style>
+    /* 論壇文章頁面樣式 */
+    .forum-container {
+      padding: 40px 0;
+      background-color: #f9f7f4;
+    }
+
+    .forum-breadcrumb {
+      margin-bottom: 20px;
+      font-size: 0.9rem;
+      color: #666;
+    }
+
+    .forum-breadcrumb a {
+      color: #3A5A40;
+      transition: color 0.3s ease;
+    }
+
+    .forum-breadcrumb a:hover {
+      color: #A68A64;
+    }
+
+    .forum-post-container {
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .forum-post {
+      display: flex;
+      border-bottom: 1px solid #eee;
+    }
+
+    .post-author {
+      width: 200px;
+      padding: 20px;
+      background-color: #f5f5f5;
+      border-right: 1px solid #eee;
+    }
+
+    .author-avatar {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+
+    .author-avatar img {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .author-name {
+      font-size: 1.1rem;
+      font-weight: 500;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .author-level {
+      text-align: center;
+      color: #666;
+      font-size: 0.9rem;
+      margin-bottom: 15px;
+    }
+
+    .author-stats {
+      font-size: 0.85rem;
+      color: #666;
+      margin-bottom: 15px;
+    }
+
+    .author-stats p {
+      margin-bottom: 5px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .author-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 15px;
+    }
+
+    .author-badge {
+      display: inline-block;
+      padding: 3px 8px;
+      background-color: rgba(58, 90, 64, 0.1);
+      color: #3A5A40;
+      border-radius: 4px;
+      font-size: 0.8rem;
+    }
+
+    .post-content {
+      flex: 1;
+      padding: 20px;
+    }
+
+    .post-header {
+      margin-bottom: 20px;
+    }
+
+    .post-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #3A5A40;
+      margin-bottom: 10px;
+    }
+
+    .post-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #666;
+      font-size: 0.9rem;
+      margin-bottom: 15px;
+    }
+
+    .post-date {
+      display: flex;
+      align-items: center;
+    }
+
+    .post-date i {
+      margin-right: 5px;
+    }
+
+    .post-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 15px;
+    }
+
+    .post-tag {
+      display: inline-block;
+      padding: 4px 10px;
+      background-color: rgba(166, 138, 100, 0.1);
+      color: #A68A64;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      transition: all 0.3s ease;
+    }
+
+    .post-tag:hover {
+      background-color: rgba(166, 138, 100, 0.2);
+    }
+
+    .post-body {
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .post-body p {
+      margin-bottom: 15px;
+    }
+
+    .post-body img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 4px;
+      margin: 15px 0;
+    }
+
+    .post-body a {
+      color: #3A5A40;
+      text-decoration: underline;
+      transition: color 0.3s ease;
+    }
+
+    .post-body a:hover {
+      color: #A68A64;
+    }
+
+    .post-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 15px;
+      border-top: 1px solid #eee;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 15px;
+    }
+
+    .action-button {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      color: #666;
+      transition: color 0.3s ease;
+      cursor: pointer;
+    }
+
+    .action-button:hover {
+      color: #3A5A40;
+    }
+
+    .action-button i {
+      font-size: 1.1rem;
+    }
+
+    .post-share {
+      display: flex;
+      gap: 10px;
+    }
+
+    .share-button {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      transition: transform 0.3s ease;
+    }
+
+    .share-button:hover {
+      transform: translateY(-3px);
+    }
+
+    .share-facebook {
+      background-color: #4267B2;
+    }
+
+    .share-twitter {
+      background-color: #1DA1F2;
+    }
+
+    .share-line {
+      background-color: #06C755;
+    }
+
+    /* 留言區域樣式 */
+    .forum-comments {
+      margin-top: 30px;
+    }
+
+    .comments-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .comments-title {
+      font-size: 1.2rem;
+      font-weight: 500;
+      color: #3A5A40;
+    }
+
+    .comments-count {
+      color: #666;
+    }
+
+    .comment-sort {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.9rem;
+    }
+
+    .sort-label {
+      color: #666;
+    }
+
+    .sort-options {
+      display: flex;
+      gap: 15px;
+    }
+
+    .sort-option {
+      color: #666;
+      cursor: pointer;
+      transition: color 0.3s ease;
+    }
+
+    .sort-option.active {
+      color: #3A5A40;
+      font-weight: 500;
+    }
+
+    .sort-option:hover:not(.active) {
+      color: #A68A64;
+    }
+
+    .comment-item {
+      display: flex;
+      border-bottom: 1px solid #eee;
+    }
+
+    .comment-item:last-child {
+      border-bottom: none;
+    }
+
+    .comment-author {
+      width: 200px;
+      padding: 20px;
+      background-color: #f5f5f5;
+      border-right: 1px solid #eee;
+    }
+
+    .comment-content {
+      flex: 1;
+      padding: 20px;
+    }
+
+    .comment-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .comment-floor {
+      font-weight: 500;
+      color: #3A5A40;
+    }
+
+    .comment-date {
+      color: #666;
+      font-size: 0.9rem;
+    }
+
+    .comment-body {
+      line-height: 1.6;
+      margin-bottom: 15px;
+    }
+
+    .comment-body p {
+      margin-bottom: 10px;
+    }
+
+    .comment-body img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 4px;
+      margin: 10px 0;
+    }
+
+    .comment-actions {
+      display: flex;
+      gap: 15px;
+    }
+
+    .comment-form-container {
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      padding: 20px;
+      margin-bottom: 30px;
+    }
+
+    .comment-form-title {
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: #3A5A40;
+      margin-bottom: 15px;
+    }
+
+    .comment-form textarea {
+      width: 100%;
+      height: 150px;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      resize: vertical;
+      margin-bottom: 15px;
+      transition: border-color 0.3s ease;
+    }
+
+    .comment-form textarea:focus {
+      border-color: #3A5A40;
+      outline: none;
+    }
+
+    .comment-form-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .comment-tools {
+      display: flex;
+      gap: 10px;
+    }
+
+    .comment-tool {
+      width: 36px;
+      height: 36px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #f5f5f5;
+      color: #666;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .comment-tool:hover {
+      background-color: #eee;
+      color: #3A5A40;
+    }
+
+    .btn-submit-comment {
+      padding: 10px 20px;
+      background-color: #3A5A40;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .btn-submit-comment:hover {
+      background-color: #2d4731;
+    }
+
+    .forum-pagination {
+      display: flex;
+      justify-content: center;
+      margin-top: 30px;
+    }
+
+    .forum-pagination a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      margin: 0 5px;
+      border-radius: 4px;
+      background-color: white;
+      color: #666;
+      transition: all 0.3s ease;
+    }
+
+    .forum-pagination a.active {
+      background-color: #3A5A40;
+      color: white;
+    }
+
+    .forum-pagination a:hover:not(.active) {
+      background-color: #f5f5f5;
+      color: #3A5A40;
+    }
+
+    .forum-pagination a.prev,
+    .forum-pagination a.next {
+      width: auto;
+      padding: 0 15px;
+    }
+
+    .forum-pagination a.prev i,
+    .forum-pagination a.next i {
+      margin: 0 5px;
+    }
+
+    /* 響應式設計 */
+    @media (max-width: 992px) {
+
+      .forum-post,
+      .comment-item {
+        flex-direction: column;
+      }
+
+      .post-author,
+      .comment-author {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #eee;
+        padding: 15px;
+      }
+
+      .author-avatar img {
+        width: 80px;
+        height: 80px;
+      }
+
+      .post-content,
+      .comment-content {
+        padding: 15px;
+      }
+
+      .post-actions,
+      .comment-actions {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+      }
+
+      .post-share {
+        align-self: flex-end;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .comments-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+
+      .comment-form-actions {
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      .comment-tools {
+        align-self: flex-start;
+      }
+
+      .btn-submit-comment {
+        align-self: flex-end;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="container">
+      <div class="logo">
+        <a href="index.html">
+          <img src="images/logo.svg" alt="露途 Logo" />
+          <span>露途</span>
+        </a>
+      </div>
+      <nav class="main-nav">
+        <ul>
+          <li><a href="campsites.html">營地預訂</a></li>
+          <li><a href="shop.html">裝備商城</a></li>
+          <li><a href="camp-guides.html">露營攻略</a></li>
+          <li><a href="#" class="active">討論區</a></li>
+          <li><a href="#">關於我們</a></li>
+        </ul>
+      </nav>
+      <div class="user-actions">
+        <a href="#" class="btn-search"><i class="fas fa-search"></i></a>
+        <a href="#" class="btn-cart"><i class="fas fa-shopping-cart"></i><span class="cart-count">0</span></a>
+        <a href="login.html" class="btn-login">登入 / 註冊</a>
+      </div>
+      <button class="mobile-menu-toggle">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </header>
+
+  <div class="forum-container">
+    <div class="container">
+      <div class="forum-breadcrumb">
+        <a href="#">討論區</a> &gt;
+        <a href="#">露營心得</a> &gt;
+        <span>露營心得分享：北台灣秋季露營推薦</span>
+      </div>
+
+      <div class="forum-post-container">
+        <div class="forum-post">
+          <div class="post-author">
+            <div class="author-avatar">
+              <img src="images/user-1.jpg" alt="作者頭像" />
+            </div>
+            <h3 class="author-name">山林漫遊者</h3>
+            <div class="author-level">露營達人 Lv.5</div>
+            <div class="author-stats">
+              <p>
+                <span>發文數：</span>
+                <span>128</span>
+              </p>
+              <p>
+                <span>註冊日期：</span>
+                <span>2022/03/15</span>
+              </p>
+              <p>
+                <span>人氣：</span>
+                <span>3,456</span>
+              </p>
+            </div>
+            <div class="author-badges">
+              <span class="author-badge">露營達人</span>
+              <span class="author-badge">裝備控</span>
+              <span class="author-badge">攝影師</span>
+            </div>
+          </div>
+          <div class="post-content">
+            <div class="post-header">
+              <h1 class="post-title">露營心得分享：北台灣秋季露營推薦</h1>
+              <div class="post-meta">
+                <div class="post-date">
+                  <i class="far fa-calendar-alt"></i> 2023/09/25 14:30
+                </div>
+                <div class="post-views">
+                  <i class="fas fa-eye"></i> 閱覽人次：1,245
+                </div>
+              </div>
+              <div class="post-tags">
+                <a href="#" class="post-tag">北台灣</a>
+                <a href="#" class="post-tag">秋季露營</a>
+                <a href="#" class="post-tag">營地推薦</a>
+                <a href="#" class="post-tag">露營心得</a>
+              </div>
+            </div>
+            <div class="post-body">
+              <p>
+                大家好！最近趁著秋高氣爽的好天氣，我走訪了北台灣幾個知名的露營地，想和大家分享一下心得和推薦。秋季是露營的黃金季節，北台灣的山區此時氣溫適中，早晚涼爽，非常適合露營活動。
+              </p>
+              <p>
+                以下是我這次走訪的幾個營地，以及個人評價和建議：
+              </p>
+              <h3>1. 拉拉山森林遊樂區附近營地</h3>
+              <p>
+                拉拉山以神木和水蜜桃聞名，秋季前往可以欣賞到山林間的層層霧氣，非常夢幻。我選擇的是森林遊樂區附近的私人營地，環境清幽，設施完善。
+              </p>
+              <img src="images/camp-1.jpg" alt="拉拉山露營地" />
+              <p>
+                <strong>優點：</strong>
+              </p>
+              <ul>
+                <li>視野開闊，可以遠眺山景</li>
+                <li>晚上可以看到滿天星斗，光害少</li>
+                <li>營主很熱情，會提供當地旅遊資訊</li>
+                <li>衛浴設施乾淨</li>
+              </ul>
+              <p>
+                <strong>缺點：</strong>
+              </p>
+              <ul>
+                <li>山路蜿蜒，開車需要特別小心</li>
+                <li>手機訊號不穩定</li>
+                <li>秋季早晚溫差大，需要多準備保暖衣物</li>
+              </ul>
+              <p>
+                <strong>推薦指數：</strong>★★★★☆
+              </p>
+
+              <h3>2. 宜蘭太平山國家森林遊樂區</h3>
+              <p>
+                太平山的秋色絕美，楓葉、黃藤變色，整座山都染上了金黃和紅色。我在這裡住了兩晚，是這次行程中最難忘的體驗。
+              </p>
+              <img src="images/camp-2.jpg" alt="太平山露營地" />
+              <p>
+                <strong>優點：</strong>
+              </p>
+              <ul>
+                <li>秋季楓紅景色絕美</li>
+                <li>有溫泉可以泡，露營後特別舒服</li>
+                <li>森林浴效果極佳，空氣清新</li>
+                <li>有多條登山步道可以選擇</li>
+              </ul>
+              <p>
+                <strong>缺點：</strong>
+              </p>
+              <ul>
+                <li>假日人潮較多，需提前預訂</li>
+                <li>海拔較高，溫度比平地低很多</li>
+                <li>部分區域需要申請入山證</li>
+              </ul>
+              <p>
+                <strong>推薦指數：</strong>★★★★★
+              </p>
+
+              <h3>3. 新北市十分青年谷</h3>
+              <p>
+                位於平溪區的十分青年谷，是近年來很受歡迎的露營地。這裡結合了溪流、瀑布和山林景觀，而且離台北很近，非常適合週末短程露營。
+              </p>
+              <p>
+                <strong>優點：</strong>
+              </p>
+              <ul>
+                <li>交通便利，開車約1小時可從台北到達</li>
+                <li>可以順道遊覽平溪線和放天燈</li>
+                <li>營地旁有溪流，夏秋之際可以戲水</li>
+                <li>附近有多個景點可以一併遊覽</li>
+              </ul>
+              <p>
+                <strong>缺點：</strong>
+              </p>
+              <ul>
+                <li>假日遊客較多，較吵雜</li>
+                <li>部分營位地勢不平</li>
+                <li>雨季時溪水可能暴漲，需注意安全</li>
+              </ul>
+              <p>
+                <strong>推薦指數：</strong>★★★★☆
+              </p>
+
+              <h3>露營裝備分享</h3>
+              <p>
+                秋季露營，我特別推薦以下裝備：
+              </p>
+              <ol>
+                <li>
+                  <strong>四季帳</strong>：秋季早晚溫差大，四季帳可以更好地保持帳內溫度
+                </li>
+                <li>
+                  <strong>保暖睡袋</strong>：山區夜晚溫度可能降到15度以下，建議準備溫度範圍至少到10度的睡袋
+                </li>
+                <li>
+                  <strong>防風外套</strong>：山區風大，防風外套必不可少
+                </li>
+                <li>
+                  <strong>頭燈</strong>：秋季日照時間縮短，好的照明設備很重要
+                </li>
+                <li>
+                  <strong>防水地布</strong>：秋季偶有陣雨，地布可以有效防潮
+                </li>
+              </ol>
+              <p>
+                以上就是我這次北台灣秋季露營的心得分享，希望對計劃秋季露營的朋友有所幫助。如果有任何問題，歡迎在下方留言討論！
+              </p>
+              <p>
+                最後分享一張太平山日出的照片，絕對值得早起！
+              </p>
+              <img src="images/camp-3.jpg" alt="太平山日出" />
+            </div>
+            <div class="post-actions">
+              <div class="action-buttons">
+                <div class="action-button" id="btn-like">
+                  <i class="far fa-heart"></i>
+                  <span>讚 (45)</span>
+                </div>
+                <div class="action-button" id="btn-bookmark">
+                  <i class="far fa-bookmark"></i>
+                  <span>收藏</span>
+                </div>
+                <div class="action-button" id="btn-report">
+                  <i class="fas fa-flag"></i>
+                  <span>檢舉</span>
+                </div>
+              </div>
+              <div class="post-share">
+                <a href="#" class="share-button share-facebook">
+                  <i class="fab fa-facebook-f"></i>
+                </a>
+                <a href="#" class="share-button share-twitter">
+                  <i class="fab fa-twitter"></i>
+                </a>
+                <a href="#" class="share-button share-line">
+                  <i class="fab fa-line"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="comment-form-container">
+        <h3 class="comment-form-title">發表留言</h3>
+        <form class="comment-form" id="comment-form">
+          <textarea name="comment" id="comment-content" placeholder="分享你的想法..."></textarea>
+          <div class="comment-form-actions">
+            <div class="comment-tools">
+              <div class="comment-tool" title="插入圖片">
+                <i class="fas fa-image"></i>
+              </div>
+              <div class="comment-tool" title="插入連結">
+                <i class="fas fa-link"></i>
+              </div>
+              <div class="comment-tool" title="插入表情">
+                <i class="far fa-smile"></i>
+              </div>
+            </div>
+            <button type="submit" class="btn-submit-comment">發表留言</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="forum-comments">
+        <div class="comments-header">
+          <h2 class="comments-title">留言討論 <span class="comments-count">(29)</span></h2>
+          <div class="comment-sort">
+            <span class="sort-label">排序：</span>
+            <div class="sort-options">
+              <span class="sort-option active">最新</span>
+              <span class="sort-option">最舊</span>
+              <span class="sort-option">熱門</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="forum-post-container">
+          <!-- 留言 1 -->
+          <div class="comment-item">
+            <div class="comment-author">
+              <div class="author-avatar">
+                <img src="images/user-2.jpg" alt="留言者頭像" />
+              </div>
+              <h3 class="author-name">露營新手</h3>
+              <div class="author-level">新手上路 Lv.1</div>
+              <div class="author-stats">
+                <p>
+                  <span>發文數：</span>
+                  <span>12</span>
+                </p>
+                <p>
+                  <span>註冊日期：</span>
+                  <span>2023/05/20</span>
+                </p>
+              </div>
+            </div>
+            <div class="comment-content">
+              <div class="comment-header">
+                <div class="comment-floor">第 1 樓</div>
+                <div class="comment-date">2023/09/25 15:45</div>
+              </div>
+              <div class="comment-body">
+                <p>
+                  感謝分享！我一直想去太平山露營但不知道秋季溫度如何，這篇文章幫了大忙。請問太平山的營地需要提前多久預訂呢？週末和平日的人潮差異大嗎？
+                </p>
+              </div>
+              <div class="comment-actions">
+                <div class="action-button">
+                  <i class="far fa-heart"></i>
+                  <span>讚 (5)</span>
+                </div>
+                <div class="action-button">
+                  <i class="fas fa-reply"></i>
+                  <span>回覆</span>
+                </div>
+                <div class="action-button">
+                  <i class="fas fa-flag"></i>
+                  <span>檢舉</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 留言 2 -->
+          <div class="comment-item">
+            <div class="comment-author">
+              <div class="author-avatar">
+                <img src="images/user-1.jpg" alt="作者頭像" />
+              </div>
+              <h3 class="author-name">山林漫遊者</h3>
+              <div class="author-level">露營達人 Lv.5</div>
+              <div class="author-stats">
+                <p>
+                  <span>發文數：</span>
+                  <span>128</span>
+                </p>
+                <p>
+                  <span>註冊日期：</span>
+                  <span>2022/03/15</span>
+                </p>
+              </div>
+              <div class="author-badges">
+                <span class="author-badge">露營達人</span>
+                <span class="author-badge">裝備控</span>
+              </div>
+            </div>
+            <div class="comment-content">
+              <div class="comment-header">
+                <div class="comment-floor">第 2 樓 <span style="color: #A68A64;">(原po)</span></div>
+                <div class="comment-date">2023/09/25 16:20</div>
+              </div>
+              <div class="comment-body">
+                <p>
+                  @露營新手
+                  謝謝你的留言！太平山的營地週末真的很熱門，建議至少提前一個月預訂。平日人潮少很多，價格也會便宜一些。如果可以安排平日前往，體驗會好很多喔！秋季的話，山上早晚溫差可能達到10度以上，記得多帶幾件保暖衣物。
+                </p>
+                <img src="images/camp-4.jpg" alt="太平山營地" />
+                <p>這是營地的早晨，霧氣繚繞，非常美！</p>
+              </div>
+              <div class="comment-actions">
+                <div class="action-button">
+                  <i class="far fa-heart"></i>
+                  <span>讚 (8)</span>
+                </div>
+                <div class="action-button">
+                  <i class="fas fa-reply"></i>
+                  <span>回覆</span>
+                </div>
+                <div class="action-button">
+                  <i class="fas fa-flag"></i>
+                  <span>檢舉</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 留言 3 -->
+          <div class="comment-item">
+            <div class="comment-author">
+              <div class="author-avatar">
+                <img src="images/user-3.jpg" alt="留言者頭像" />
+              </div>
+              <h3 class="author-name">裝備控</h3>
+              <div class="author-level">進階玩家 Lv.3</div>
+              <div class="author-stats">
+                <p>
+                  <span>發文數：</span>
+                  <span>56</span>
+                </p>
+                <p>
+                  <span>註冊日期：</span>
+                  <span>2022/08/10</span>
+                </p>
+              </div>
+              <div class="author-badges">
+                <span class="author-badge">裝備達人</span>
+              </div>
+            </div>
+            <div class="comment-content">
+              <div class="comment-header">
+                <div class="comment-floor">第 3 樓</div>
+                <div class="comment-date">2023/09/25 17:05</div>
+              </div>
+              <div class="comment-body">
+                <p>
+                  關於樓主提到的四季帳，我想補充一下。秋季露營真的很推薦使用四季帳，不只是保暖問題，四季帳的抗風性能也比三季帳好很多。我個人推薦 <a
+                    href="#">某品牌的登山帳</a>，雖然貴一點但耐用度超高，我用了三年還跟新的一樣。
+                </p>
+                <p>
+                  另外想請問樓主，拉拉山那邊的營地有沒有提供電源？我的睡袋需要充電，想確認一下設施情況。
+                </p>
+              </div>
+              <div class="comment-actions">
+                <div class="action-button">
+                  <i class="far fa-heart"></i>
+                  <span>讚 (3)</span>
+                </div>
+                <div class="action-button">
+                  <i class="fas fa-reply"></i>
+                  <span>回覆</span>
+                </div>
+                <div class="action-button">
+                  <i class="fas fa-flag"></i>
+                  <span>檢舉</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 更多留言可以按照上面的格式添加 -->
+          <!-- 留言 4 -->
+          <div class="comment-item">
+            <div class="comment-author">
+              <div class="author-avatar">
+                <img src="images/user-4.jpg" alt="留言者頭像" />
+              </div>
+              <h3 class="author-name">山野攝影師</h3>
+              <div class="author-level">進階玩家 Lv.4</div>
+              <div class="author-stats">
+                <p>
+                  <span>發文數：</span>
+                  <span>87</span>
+                </p>
+                <p>
+                  <span>註冊日期：</span>
+                  <span>2022/05/18</span>
+                </p>
+              </div>
+              <div class="author-badges">
+                <span class="author-badge">攝影師</span>
+              </div>
+            </div>
+            <div class="comment-content">
+              <div class="comment-header">
+                <div class="comment-floor">第 4 樓</div>
+                <div class="comment-date">2023/09/25 18:30</div>
+              </div>
+              <div class="comment-body">
+                <p>
+                  樓主分享的太平山日出照片真的太美了！我也是攝影愛好者，想請問是用什麼相機拍的？構圖很棒！
+                </p>
+                <p>
+                  另外想分享一個小技巧，在山區拍攝日出時，可以使用漸變灰濾鏡來平衡天空和地面的亮度差異，效果會更好。
+                </p>
+              </div>
+              <div class="comment-actions">
+                <div class="action-button">
+                  <i class="far fa-heart"></i>
+                  <span>讚 (7)</span>
+                </div>
+                <div class="action-button">
+                  <i class="fas fa-reply"></i>
+                  <span>回覆</span>
+                </div>
+                <div class="action-button">
+                  <i class="fas fa-flag"></i>
+                  <span>檢舉</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 留言 5 -->
+          <div class="comment-item">
+            <div class="comment-author">
+              <div class="author-avatar">
+                <img src="images/user-5.jpg" alt="留言者頭像" />
+              </div>
+              <h3 class="author-name">親子露營家</h3>
+              <div class="author-level">進階玩家 Lv.3</div>
+              <div class="author-stats">
+                <p>
+                  <span>發文數：</span>
+                  <span>42</span>
+                </p>
+                <p>
+                  <span>註冊日期：</span>
+                  <span>2022/11/05</span>
+                </p>
+              </div>
+              <div class="author-badges">
+                <span class="author-badge">親子露營</span>
+              </div>
+            </div>
+            <div class="comment-content">
+              <div class="comment-header">
+                <div class="comment-floor">第 5 樓</div>
+                <div class="comment-date">2023/09/26 09:15</div>
+              </div>
+              <div class="comment-body">
+                <p>
+                  謝謝樓主的分享！我正在計劃帶小孩去露營，想請問這三個地點哪一個比較適合帶小朋友？有沒有適合小朋友的活動或設施呢？
+                </p>
+              </div>
+              <div class="comment-actions">
+                <div class="action-button">
+                  <i class="far fa-heart"></i>
+                  <span>讚 (2)</span>
+                </div>
+                <div class="action-button">
+                  <i class="fas fa-reply"></i>
+                  <span>回覆</span>
+                </div>
+                <div class="action-button">
+                  <i class="fas fa-flag"></i>
+                  <span>檢舉</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="forum-pagination">
+          <a href="#" class="prev"><i class="fas fa-chevron-left"></i> 上一頁</a>
+          <a href="#" class="active">1</a>
+          <a href="#">2</a>
+          <a href="#">3</a>
+          <a href="#">4</a>
+          <a href="#">5</a>
+          <a href="#">...</a>
+          <a href="#">10</a>
+          <a href="#" class="next">下一頁 <i class="fas fa-chevron-right"></i></a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-logo">
+          <img src="images/logo-white.svg" alt="露途 Logo" />
+          <p>探索自然，體驗野趣</p>
+        </div>
+        <div class="footer-links">
+          <div class="footer-column">
+            <h3>關於我們</h3>
+            <ul>
+              <li><a href="#">公司簡介</a></li>
+              <li><a href="#">服務條款</a></li>
+              <li><a href="#">隱私政策</a></li>
+              <li><a href="#">加入我們</a></li>
+            </ul>
+          </div>
+          <div class="footer-column">
+            <h3>營地資訊</h3>
+            <ul>
+              <li><a href="#">北部營地</a></li>
+              <li><a href="#">中部營地</a></li>
+              <li><a href="#">南部營地</a></li>
+              <li><a href="#">東部營地</a></li>
+            </ul>
+          </div>
+          <div class="footer-column">
+            <h3>商城服務</h3>
+            <ul>
+              <li><a href="#">裝備租借</a></li>
+              <li><a href="#">全新商品</a></li>
+              <li><a href="#">二手市集</a></li>
+              <li><a href="#">配送說明</a></li>
+            </ul>
+          </div>
+          <div class="footer-column">
+            <h3>幫助中心</h3>
+            <ul>
+              <li><a href="#">常見問題</a></li>
+              <li><a href="#">預訂指南</a></li>
+              <li><a href="#">聯絡客服</a></li>
+              <li><a href="#">緊急協助</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <div class="social-links">
+          <a href="#"><i class="fab fa-facebook-f"></i></a>
+          <a href="#"><i class="fab fa-instagram"></i></a>
+          <a href="#"><i class="fab fa-youtube"></i></a>
+          <a href="#"><i class="fab fa-line"></i></a>
+        </div>
+        <p class="copyright">© 2023 露途 All Rights Reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      // 按讚功能
+      const btnLike = document.getElementById('btn-like');
+      if (btnLike) {
+        btnLike.addEventListener('click', function () {
+          const icon = this.querySelector('i');
+          const likeText = this.querySelector('span');
+
+          if (icon.classList.contains('far')) {
+            icon.classList.remove('far');
+            icon.classList.add('fas');
+            likeText.textContent = '讚 (46)';
+          } else {
+            icon.classList.remove('fas');
+            icon.classList.add('far');
+            likeText.textContent = '讚 (45)';
+          }
+        });
+      }
+
+      // 收藏功能
+      const btnBookmark = document.getElementById('btn-bookmark');
+      if (btnBookmark) {
+        btnBookmark.addEventListener('click', function () {
+          const icon = this.querySelector('i');
+
+          if (icon.classList.contains('far')) {
+            icon.classList.remove('far');
+            icon.classList.add('fas');
+            this.querySelector('span').textContent = '已收藏';
+          } else {
+            icon.classList.remove('fas');
+            icon.classList.add('far');
+            this.querySelector('span').textContent = '收藏';
+          }
+        });
+      }
+
+      // 留言區按讚功能
+      const commentLikeButtons = document.querySelectorAll('.comment-actions .action-button:first-child');
+      commentLikeButtons.forEach(button => {
+        button.addEventListener('click', function () {
+          const icon = this.querySelector('i');
+          const likeText = this.querySelector('span');
+          const currentLikes = parseInt(likeText.textContent.match(/\d+/)[0]);
+
+          if (icon.classList.contains('far')) {
+            icon.classList.remove('far');
+            icon.classList.add('fas');
+            likeText.textContent = `讚 (${currentLikes + 1})`;
+          } else {
+            icon.classList.remove('fas');
+            icon.classList.add('far');
+            likeText.textContent = `讚 (${currentLikes - 1})`;
+          }
+        });
+      });
+
+      // 排序選項切換
+      const sortOptions = document.querySelectorAll('.sort-option');
+      sortOptions.forEach(option => {
+        option.addEventListener('click', function () {
+          sortOptions.forEach(opt => opt.classList.remove('active'));
+          this.classList.add('active');
+        });
+      });
+    });
+  </script>
+</body>
+
+</html>
