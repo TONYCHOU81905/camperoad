@@ -1,52 +1,128 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>山林星空營地 - 露途</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
-    <link rel="stylesheet" href="css/style.css" />
-  </head>
-  <body>
-    <header class="site-header">
-      <div class="container">
-        <div class="logo">
-          <a href="index.html">
-            <img src="images/logo.svg" alt="露途 Logo" />
-            <span>露途</span>
-          </a>
-        </div>
-        <nav class="main-nav">
-          <ul>
-            <li><a href="campsites.html" class="active">營地預訂</a></li>
-            <li><a href="shop.html">裝備商城</a></li>
-            <li><a href="camp-guides.html">露營攻略</a></li>
-            <li><a href="#">關於我們</a></li>
-          </ul>
-        </nav>
-        <div class="user-actions">
-          <a href="#" class="btn-search"><i class="fas fa-search"></i></a>
-          <a href="#" class="btn-cart"
-            ><i class="fas fa-shopping-cart"></i
-            ><span class="cart-count">0</span></a
-          >
-          <a href="login.html" class="btn-login">登入 / 註冊</a>
-        </div>
-        <button class="mobile-menu-toggle">
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>山林星空營地 - 露途</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="container">
+      <div class="logo">
+        <a href="index.html">
+          <img src="images/logo.svg" alt="露途 Logo" />
+          <span>露途</span>
+        </a>
       </div>
-    </header>
-  </body>
+      <nav class="main-nav">
+        <ul>
+          <li><a href="campsites.html" class="active">營地預訂</a></li>
+          <li><a href="shop.html">裝備商城</a></li>
+          <li><a href="camp-guides.html">露營攻略</a></li>
+          <li><a href="#">關於我們</a></li>
+        </ul>
+      </nav>
+      <div class="user-actions">
+        <a href="#" class="btn-search"><i class="fas fa-search"></i></a>
+        <a href="cart.html" class="btn-cart"><i class="fas fa-shopping-cart"></i><span class="cart-count">0</span></a>
+        <a href="login.html" class="btn-login">登入 / 註冊</a>
+      </div>
+      <button class="mobile-menu-toggle">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- 營地詳情內容 -->
+  <section class="campsite-detail">
+    <div class="container">
+      <div class="breadcrumb">
+        <ul>
+          <li><a href="index.html">首頁</a></li>
+          <li><a href="campsites.html">營地預訂</a></li>
+          <li>山林星空營地</li>
+        </ul>
+      </div>
+
+      <div class="campsite-header">
+        <div class="campsite-title">
+          <h1>山林星空營地</h1>
+          <div class="campsite-tags">
+            <span class="camp-tag">人氣王</span>
+            <span class="camp-feature-tag"><i class="fas fa-mountain"></i> 山景</span>
+            <span class="camp-feature-tag"><i class="fas fa-shower"></i> 衛浴</span>
+          </div>
+        </div>
+        <div class="campsite-actions">
+          <button class="btn-favorite" id="btn-favorite">
+            <i class="far fa-heart"></i> <span>收藏營地</span>
+          </button>
+          <button class="btn-share">
+            <i class="fas fa-share-alt"></i> <span>分享</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script src="js/main.js"></script>
+  <script>
+    // 收藏功能
+    document.addEventListener('DOMContentLoaded', function () {
+      const favoriteBtn = document.getElementById('btn-favorite');
+
+      if (favoriteBtn) {
+        favoriteBtn.addEventListener('click', function () {
+          // 切換收藏狀態
+          this.classList.toggle('active');
+
+          if (this.classList.contains('active')) {
+            // 已收藏狀態
+            this.innerHTML = '<i class="fas fa-heart"></i> <span>已收藏</span>';
+            // 這裡可以添加AJAX請求，將營地添加到用戶的收藏列表
+            showToast('已將營地加入收藏！');
+          } else {
+            // 未收藏狀態
+            this.innerHTML = '<i class="far fa-heart"></i> <span>收藏營地</span>';
+            // 這裡可以添加AJAX請求，將營地從用戶的收藏列表中移除
+            showToast('已將營地從收藏中移除！');
+          }
+        });
+      }
+
+      // 顯示提示訊息
+      function showToast(message) {
+        // 創建提示元素
+        const toast = document.createElement('div');
+        toast.className = 'toast-message';
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        // 顯示提示
+        setTimeout(() => {
+          toast.classList.add('show');
+        }, 10);
+
+        // 隱藏提示
+        setTimeout(() => {
+          toast.classList.remove('show');
+          setTimeout(() => {
+            document.body.removeChild(toast);
+          }, 300);
+        }, 3000);
+      }
+    });
+  </script>
+</body>
+
 </html>
