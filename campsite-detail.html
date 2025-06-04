@@ -15,6 +15,284 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
     <link rel="stylesheet" href="css/style.css" />
+    <style>
+      /* 營地詳情頁面特定樣式 */
+      .campsite-detail {
+        padding: 60px 0;
+      }
+
+      .campsite-gallery {
+        margin-bottom: 40px;
+      }
+
+      .gallery-main {
+        border-radius: 8px;
+        overflow: hidden;
+        margin-bottom: 15px;
+        height: 400px;
+      }
+
+      .gallery-main img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .gallery-thumbs {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 15px;
+      }
+
+      .gallery-thumb {
+        border-radius: 6px;
+        overflow: hidden;
+        height: 100px;
+        cursor: pointer;
+      }
+
+      .gallery-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: all 0.3s ease;
+      }
+
+      .gallery-thumb:hover img {
+        transform: scale(1.05);
+      }
+
+      .campsite-info-container {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 40px;
+      }
+
+      .campsite-info {
+        background-color: white;
+        border-radius: 8px;
+        padding: 30px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+      }
+
+      .campsite-title {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+
+      .campsite-title h1 {
+        margin-bottom: 0;
+      }
+
+      .campsite-location {
+        color: #666;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+      }
+
+      .campsite-location i {
+        margin-right: 8px;
+        color: #3a5a40;
+      }
+
+      .campsite-features {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-bottom: 30px;
+      }
+
+      .feature-item {
+        background-color: #f4f1de;
+        padding: 8px 15px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        font-size: 0.9rem;
+      }
+
+      .feature-item i {
+        margin-right: 8px;
+        color: #3a5a40;
+      }
+
+      .campsite-description {
+        margin-bottom: 30px;
+        line-height: 1.8;
+      }
+
+      .campsite-amenities h3 {
+        margin-bottom: 15px;
+      }
+
+      .amenities-list {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+
+      .amenities-list li {
+        display: flex;
+        align-items: center;
+      }
+
+      .amenities-list i {
+        margin-right: 10px;
+        color: #3a5a40;
+      }
+
+      .booking-card {
+        background-color: white;
+        border-radius: 8px;
+        padding: 30px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        position: sticky;
+        top: 100px;
+      }
+
+      .price-info {
+        display: flex;
+        align-items: baseline;
+        margin-bottom: 20px;
+      }
+
+      .current-price {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #3a5a40;
+      }
+
+      .price-unit {
+        margin-left: 5px;
+        color: #666;
+      }
+
+      .booking-form label {
+        margin-top: 15px;
+      }
+
+      .booking-form input,
+      .booking-form select {
+        margin-bottom: 15px;
+      }
+
+      .btn-book {
+        background-color: #3a5a40;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 4px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        display: block;
+        width: 100%;
+        text-align: center;
+        margin-top: 20px;
+      }
+
+      .btn-book:hover {
+        background-color: #2d4731;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(58, 90, 64, 0.2);
+      }
+
+      .booking-note {
+        font-size: 0.85rem;
+        color: #666;
+        margin-top: 15px;
+        text-align: center;
+      }
+
+      .reviews-section {
+        margin-top: 60px;
+      }
+
+      .review-card {
+        background-color: white;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+      }
+
+      .review-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 15px;
+      }
+
+      .reviewer-info {
+        display: flex;
+        align-items: center;
+      }
+
+      .reviewer-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        overflow: hidden;
+        margin-right: 15px;
+      }
+
+      .reviewer-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .reviewer-name {
+        font-weight: 500;
+      }
+
+      .review-date {
+        color: #666;
+        font-size: 0.85rem;
+      }
+
+      .review-rating {
+        color: #e76f51;
+      }
+
+      .review-content {
+        line-height: 1.7;
+      }
+
+      .similar-campsites {
+        margin-top: 60px;
+      }
+
+      .camp-cards {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 30px;
+      }
+
+      @media (max-width: 992px) {
+        .campsite-info-container {
+          grid-template-columns: 1fr;
+        }
+
+        .camp-cards {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+
+      @media (max-width: 768px) {
+        .gallery-thumbs {
+          grid-template-columns: repeat(3, 1fr);
+        }
+
+        .amenities-list {
+          grid-template-columns: 1fr;
+        }
+
+        .camp-cards {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
   </head>
   <body>
     <header class="site-header">
@@ -48,5 +326,367 @@
         </button>
       </div>
     </header>
+
+    <main class="campsite-detail">
+      <div class="container">
+        <div class="campsite-gallery">
+          <div class="gallery-main">
+            <img
+              src="images/product-1.jpg"
+              alt="山林星空營地主圖"
+              id="main-image"
+            />
+          </div>
+          <div class="gallery-thumbs">
+            <div
+              class="gallery-thumb"
+              onclick="changeImage('images/product-1.jpg')"
+            >
+              <img src="images/product-1.jpg" alt="山林星空營地測試圖1" />
+            </div>
+            <div
+              class="gallery-thumb"
+              onclick="changeImage('images/product-2.jpg')"
+            >
+              <img src="images/product-2.jpg" alt="山林星空營地測試圖2" />
+            </div>
+            <div
+              class="gallery-thumb"
+              onclick="changeImage('images/product-3.jpg')"
+            >
+              <img src="images/product-3.jpg" alt="山林星空營地測試圖3" />
+            </div>
+            <div
+              class="gallery-thumb"
+              onclick="changeImage('images/product-4.jpg')"
+            >
+              <img src="images/product-4.jpg" alt="山林星空營地測試圖4" />
+            </div>
+          </div>
+        </div>
+
+        <div class="campsite-info-container">
+          <div class="campsite-info">
+            <div class="campsite-title">
+              <h1>山林星空營地</h1>
+              <span class="camp-tag">人氣王</span>
+            </div>
+
+            <p class="campsite-location">
+              <i class="fas fa-map-marker-alt"></i>
+              新北市三峽區，距離台北市區約45分鐘車程
+            </p>
+
+            <div class="campsite-features">
+              <div class="feature-item">
+                <i class="fas fa-mountain"></i> 山景
+              </div>
+              <div class="feature-item">
+                <i class="fas fa-shower"></i> 衛浴設施
+              </div>
+              <div class="feature-item">
+                <i class="fas fa-utensils"></i> 餐廳
+              </div>
+              <div class="feature-item">
+                <i class="fas fa-wifi"></i> 免費WiFi
+              </div>
+              <div class="feature-item">
+                <i class="fas fa-parking"></i> 停車場
+              </div>
+            </div>
+
+            <div class="campsite-description">
+              <h3>營地介紹</h3>
+              <p>
+                山林星空營地位於新北市三峽區的山林之中，是一處遠離塵囂、親近自然的絕佳去處。營地四周被蓊鬱的森林環繞，晚上可以欣賞到滿天星斗，是觀星的理想地點。
+              </p>
+              <p>
+                我們提供完善的露營設施，包括乾淨的衛浴設備、餐廳、休閒區等，讓您在享受大自然的同時，也不失生活的便利。營地內還有多條登山步道，可以探索周邊的自然風光。
+              </p>
+              <p>
+                無論您是露營新手還是經驗豐富的露營愛好者，我們都能為您提供舒適愉快的露營體驗。
+              </p>
+            </div>
+
+            <div class="campsite-amenities">
+              <h3>營地設施</h3>
+              <ul class="amenities-list">
+                <li><i class="fas fa-toilet"></i> 乾淨衛浴設施</li>
+                <li><i class="fas fa-fire"></i> 營火區</li>
+                <li><i class="fas fa-utensils"></i> 餐廳</li>
+                <li><i class="fas fa-store"></i> 小賣部</li>
+                <li><i class="fas fa-parking"></i> 停車場</li>
+                <li><i class="fas fa-wifi"></i> 免費WiFi</li>
+                <li><i class="fas fa-hiking"></i> 登山步道</li>
+                <li><i class="fas fa-water"></i> 飲用水</li>
+                <li><i class="fas fa-bolt"></i> 電源插座</li>
+                <li><i class="fas fa-child"></i> 兒童遊樂區</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="booking-card">
+            <div class="price-info">
+              <span class="current-price">NT$ 2,800</span>
+              <span class="price-unit">/ 晚</span>
+            </div>
+
+            <form class="booking-form">
+              <label for="check-in-date">入住日期</label>
+              <input
+                type="date"
+                id="check-in-date"
+                name="check-in-date"
+                required
+              />
+
+              <label for="check-out-date">退房日期</label>
+              <input
+                type="date"
+                id="check-out-date"
+                name="check-out-date"
+                required
+              />
+
+              <label for="guests">人數</label>
+              <select id="guests" name="guests" required>
+                <option value="1">1人</option>
+                <option value="2" selected>2人</option>
+                <option value="3">3人</option>
+                <option value="4">4人</option>
+                <option value="5">5人</option>
+                <option value="6">6人</option>
+              </select>
+
+              <label for="tent-type">帳篷類型</label>
+              <select id="tent-type" name="tent-type" required>
+                <option value="own">自備帳篷</option>
+                <option value="rent-small">租借雙人帳 (+NT$ 500)</option>
+                <option value="rent-medium">租借四人帳 (+NT$ 800)</option>
+                <option value="rent-large">租借六人帳 (+NT$ 1,200)</option>
+              </select>
+
+              <a href="campsite_order.html" class="btn-book">立即預訂</a>
+            </form>
+
+            <p class="booking-note">免費取消：入住前3天可全額退款</p>
+          </div>
+        </div>
+
+        <div class="reviews-section">
+          <h2 class="section-title">露友評價</h2>
+          <div class="review-card">
+            <div class="review-header">
+              <div class="reviewer-info">
+                <div class="reviewer-avatar">
+                  <img src="images/user-1.jpg" alt="陳小明" />
+                </div>
+                <div>
+                  <div class="reviewer-name">陳小明</div>
+                  <div class="review-date">2023年6月15日</div>
+                </div>
+              </div>
+              <div class="review-rating">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+              </div>
+            </div>
+            <div class="review-content">
+              <p>
+                這是我第二次來山林星空營地了，依然非常滿意！營地環境維護得很好，衛浴設施乾淨，工作人員也很親切。晚上的星空真的很美，值得一來。
+              </p>
+            </div>
+          </div>
+
+          <div class="review-card">
+            <div class="review-header">
+              <div class="reviewer-info">
+                <div class="reviewer-avatar">
+                  <img src="images/user-2.jpg" alt="林美玲" />
+                </div>
+                <div>
+                  <div class="reviewer-name">林美玲</div>
+                  <div class="review-date">2023年5月20日</div>
+                </div>
+              </div>
+              <div class="review-rating">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="far fa-star"></i>
+              </div>
+            </div>
+            <div class="review-content">
+              <p>
+                帶著孩子來露營，營地的設施很完善，孩子們在兒童遊樂區玩得很開心。餐廳的食物也很美味。唯一的小缺點是週末人有點多，建議平日來會更清靜。
+              </p>
+            </div>
+          </div>
+
+          <div class="review-card">
+            <div class="review-header">
+              <div class="reviewer-info">
+                <div class="reviewer-avatar">
+                  <img src="images/user-3.jpg" alt="王大華" />
+                </div>
+                <div>
+                  <div class="reviewer-name">王大華</div>
+                  <div class="review-date">2023年4月8日</div>
+                </div>
+              </div>
+              <div class="review-rating">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star-half-alt"></i>
+              </div>
+            </div>
+            <div class="review-content">
+              <p>
+                作為露營新手，這裡是個很好的選擇。工作人員很耐心地教我們如何搭帳篷，營地的位置也很好，視野開闊。晚上可以看到滿天的星星，真的很美！
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="similar-campsites">
+          <h2 class="section-title">您可能也會喜歡</h2>
+          <div class="camp-cards">
+            <div class="camp-card">
+              <div class="camp-image">
+                <img src="images/product-2.jpg" alt="森林溪畔營地" />
+                <span class="camp-tag">新上架</span>
+              </div>
+              <div class="camp-info">
+                <h3>森林溪畔營地</h3>
+                <p class="camp-location">
+                  <i class="fas fa-map-marker-alt"></i> 宜蘭縣大同鄉
+                </p>
+                <div class="camp-features">
+                  <span><i class="fas fa-tint"></i> 溪流</span>
+                  <span><i class="fas fa-campground"></i> 搭棚</span>
+                  <span><i class="fas fa-fire"></i> 營火</span>
+                </div>
+                <div class="camp-footer">
+                  <div class="camp-price">NT$ 3,200 <span>/ 晚</span></div>
+                  <a href="campsite-detail.html" class="btn-view">查看詳情</a>
+                </div>
+              </div>
+            </div>
+            <div class="camp-card">
+              <div class="camp-image">
+                <img src="images/product-3.jpg" alt="高原草地營地" />
+                <span class="camp-tag">促銷中</span>
+              </div>
+              <div class="camp-info">
+                <h3>高原草地營地</h3>
+                <p class="camp-location">
+                  <i class="fas fa-map-marker-alt"></i> 南投縣仁愛鄉
+                </p>
+                <div class="camp-features">
+                  <span><i class="fas fa-cloud"></i> 雲海</span>
+                  <span><i class="fas fa-bed"></i> 帳篷</span>
+                  <span><i class="fas fa-wifi"></i> 網路</span>
+                </div>
+                <div class="camp-footer">
+                  <div class="camp-price">NT$ 2,500 <span>/ 晚</span></div>
+                  <a href="campsite-detail.html" class="btn-view">查看詳情</a>
+                </div>
+              </div>
+            </div>
+            <div class="camp-card">
+              <div class="camp-image">
+                <img src="images/product-1.jpg" alt="湖畔營地" />
+                <span class="camp-tag">熱門</span>
+              </div>
+              <div class="camp-info">
+                <h3>湖畔營地</h3>
+                <p class="camp-location">
+                  <i class="fas fa-map-marker-alt"></i> 花蓮縣壽豐鄉
+                </p>
+                <div class="camp-features">
+                  <span><i class="fas fa-water"></i> 湖景</span>
+                  <span><i class="fas fa-fish"></i> 釣魚</span>
+                  <span><i class="fas fa-shower"></i> 衛浴</span>
+                </div>
+                <div class="camp-footer">
+                  <div class="camp-price">NT$ 3,000 <span>/ 晚</span></div>
+                  <a href="campsite-detail.html" class="btn-view">查看詳情</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <div class="footer-content">
+          <div class="footer-logo">
+            <img src="images/logo-white.svg" alt="露途 Logo" />
+            <p>探索自然，體驗野趣</p>
+          </div>
+          <div class="footer-links">
+            <div class="footer-column">
+              <h3>關於我們</h3>
+              <ul>
+                <li><a href="#">公司簡介</a></li>
+                <li><a href="#">服務條款</a></li>
+                <li><a href="#">隱私政策</a></li>
+                <li><a href="#">加入我們</a></li>
+              </ul>
+            </div>
+            <div class="footer-column">
+              <h3>營地資訊</h3>
+              <ul>
+                <li><a href="#">北部營地</a></li>
+                <li><a href="#">中部營地</a></li>
+                <li><a href="#">南部營地</a></li>
+                <li><a href="#">東部營地</a></li>
+              </ul>
+            </div>
+            <div class="footer-column">
+              <h3>商城服務</h3>
+              <ul>
+                <li><a href="#">裝備租借</a></li>
+                <li><a href="#">全新商品</a></li>
+                <li><a href="#">二手市集</a></li>
+                <li><a href="#">配送說明</a></li>
+              </ul>
+            </div>
+            <div class="footer-column">
+              <h3>幫助中心</h3>
+              <ul>
+                <li><a href="#">常見問題</a></li>
+                <li><a href="#">預訂指南</a></li>
+                <li><a href="#">聯絡客服</a></li>
+                <li><a href="#">緊急協助</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <div class="social-links">
+            <a href="#"><i class="fab fa-facebook-f"></i></a>
+            <a href="#"><i class="fab fa-instagram"></i></a>
+            <a href="#"><i class="fab fa-youtube"></i></a>
+            <a href="#"><i class="fab fa-line"></i></a>
+          </div>
+          <p class="copyright">© 2023 露途 All Rights Reserved.</p>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      function changeImage(src) {
+        document.getElementById("main-image").src = src;
+      }
+    </script>
   </body>
 </html>
