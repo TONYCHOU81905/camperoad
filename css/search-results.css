@@ -1,0 +1,263 @@
+/* 搜尋結果頁面樣式 */
+
+/* 搜尋結果頁頭部分 */
+.search-results-header {
+  background-color: #f4f1de;
+  padding: 30px 0;
+  margin-bottom: 30px;
+  border-bottom: 1px solid #e0d7c7;
+}
+
+.results-title {
+  margin-bottom: 20px;
+}
+
+.results-title h1 {
+  margin-bottom: 10px;
+  color: #3a5a40;
+}
+
+.search-summary {
+  font-size: 1.1rem;
+  color: #666;
+}
+
+.search-summary strong {
+  color: #3a5a40;
+  font-weight: 700;
+}
+
+.search-criteria {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 20px;
+  padding: 15px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.criteria-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: #f8f5f0;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.criteria-label {
+  font-weight: 500;
+  color: #3a5a40;
+  margin-right: 5px;
+}
+
+.criteria-value {
+  color: #666;
+}
+
+.btn-modify-search {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #a68a64;
+  color: white;
+  border-radius: 4px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-modify-search:hover {
+  background-color: #8a7353;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(166, 138, 100, 0.2);
+}
+
+/* 無搜尋結果樣式 */
+.no-results {
+  text-align: center;
+  padding: 60px 20px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  margin: 30px 0;
+}
+
+.no-results-icon {
+  font-size: 3rem;
+  color: #a68a64;
+  margin-bottom: 20px;
+}
+
+.no-results h2 {
+  color: #3a5a40;
+  margin-bottom: 15px;
+}
+
+.no-results p {
+  color: #666;
+  margin-bottom: 25px;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* 分頁樣式增強 */
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 40px;
+  margin-bottom: 50px; /* 增加與露營小知識的間隔 */
+}
+
+.pagination a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  background-color: white;
+  color: #3a5a40;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.pagination a:hover {
+  background-color: #f4f1de;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.pagination a.active {
+  background-color: #3a5a40;
+  color: white;
+}
+
+/* 露營小知識區域樣式 */
+.camping-tips {
+  padding-top: 30px; /* 增加與分頁的間隔 */
+}
+
+.tips-cards {
+  display: flex;
+  gap: 30px; /* 增加卡片之間的間隔 */
+  margin-top: 30px;
+}
+
+.tip-card {
+  flex: 1;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 25px; /* 增加內部間距 */
+  transition: all 0.3s ease;
+}
+
+.tip-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+}
+
+.tip-icon {
+  font-size: 2rem;
+  color: #3a5a40;
+  margin-bottom: 15px;
+}
+
+.tip-card h3 {
+  color: #3a5a40;
+  margin-bottom: 15px;
+  font-size: 1.2rem;
+}
+
+.tip-card p {
+  color: #666;
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+.btn-more {
+  display: inline-block;
+  color: #a68a64;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-more:hover {
+  color: #8a7353;
+  text-decoration: underline;
+}
+
+/* results-sort 下方間隔 */
+.results-sort {
+  margin-bottom: 25px; /* 增加與營地資料的間隔 */
+}
+
+/* 響應式設計 */
+@media (max-width: 992px) {
+  .search-criteria {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .criteria-item {
+    width: 100%;
+  }
+
+  .tips-cards {
+    gap: 20px; /* 平板上減少間隔 */
+  }
+}
+
+@media (max-width: 768px) {
+  .search-results-header {
+    padding: 20px 0;
+  }
+
+  .results-title h1 {
+    font-size: 1.8rem;
+  }
+
+  .search-summary {
+    font-size: 1rem;
+  }
+
+  .pagination a {
+    width: 35px;
+    height: 35px;
+  }
+
+  .tips-cards {
+    flex-direction: column; /* 手機上改為垂直排列 */
+    gap: 20px;
+  }
+
+  .tip-card {
+    padding: 20px; /* 手機上減少內部間距 */
+  }
+}
+
+@media (max-width: 576px) {
+  .results-header {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .results-sort {
+    width: 50%;
+    padding-bottom: 50px;
+  }
+
+  .pagination {
+    gap: 5px;
+  }
+
+  .pagination a {
+    width: 30px;
+    height: 30px;
+    font-size: 0.9rem;
+  }
+}
