@@ -139,8 +139,14 @@ check_out_el.addEventListener("change", function () {
 });
 
 room_search_btn.addEventListener("click", function (e) {
-  e.preventDefault();
+  // 不再阻止默認行為
+  // e.preventDefault();
   console.log("checkin_btn: " + check_in_date);
   console.log("checkout_btn: " + check_out_date);
-  // console.log("checkin1: " + check_in_el.valueAsDate);
+
+  // 獲取表單元素
+  const form = this.closest("form");
+  if (form) {
+    form.submit(); // 提交表單
+  }
 });

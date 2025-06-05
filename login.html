@@ -16,6 +16,7 @@
     />
     <link rel="stylesheet" href="css/style.css" />
     <link rel="stylesheet" href="css/role-system.css" />
+    <link rel="stylesheet" href="css/login.css" />
   </head>
   <body>
     <header class="site-header">
@@ -53,6 +54,12 @@
     <section class="auth-section">
       <div class="container">
         <div class="auth-container">
+          <div class="auth-logo">
+            <img src="images/logo.svg" alt="露途 Logo" />
+          </div>
+          <h1 class="auth-title">歡迎回到露途</h1>
+          <p class="auth-subtitle">探索自然，體驗野趣</p>
+
           <div class="auth-tabs">
             <button class="auth-tab active" data-tab="login">登入</button>
             <button class="auth-tab" data-tab="register">註冊</button>
@@ -64,17 +71,21 @@
               <form action="#" method="post">
                 <div class="form-group">
                   <label for="login-email">電子郵件</label>
-                  <input
-                    type="email"
-                    id="login-email"
-                    name="email"
-                    required
-                    placeholder="請輸入您的電子郵件"
-                  />
+                  <div class="input-with-icon">
+                    <i class="fas fa-envelope input-icon"></i>
+                    <input
+                      type="email"
+                      id="login-email"
+                      name="email"
+                      required
+                      placeholder="請輸入您的電子郵件"
+                    />
+                  </div>
                 </div>
                 <div class="form-group">
                   <label for="login-password">密碼</label>
-                  <div class="password-input">
+                  <div class="input-with-icon password-input">
+                    <i class="fas fa-lock input-icon"></i>
                     <input
                       type="password"
                       id="login-password"
@@ -101,13 +112,16 @@
                 <p>或使用以下方式登入</p>
                 <div class="social-buttons">
                   <button class="btn-social btn-google">
-                    <i class="fab fa-google"></i> Google
+                    <i class="fab fa-google"></i>
+                    <span>Google</span>
                   </button>
                   <button class="btn-social btn-facebook">
-                    <i class="fab fa-facebook-f"></i> Facebook
+                    <i class="fab fa-facebook-f"></i>
+                    <span>Facebook</span>
                   </button>
                   <button class="btn-social btn-line">
-                    <i class="fab fa-line"></i> Line
+                    <i class="fab fa-line"></i>
+                    <span>Line</span>
                   </button>
                 </div>
               </div>
@@ -118,27 +132,34 @@
               <form action="#" method="post">
                 <div class="form-group">
                   <label for="register-name">姓名</label>
-                  <input
-                    type="text"
-                    id="register-name"
-                    name="name"
-                    required
-                    placeholder="請輸入您的姓名"
-                  />
+                  <div class="input-with-icon">
+                    <i class="fas fa-user input-icon"></i>
+                    <input
+                      type="text"
+                      id="register-name"
+                      name="name"
+                      required
+                      placeholder="請輸入您的姓名"
+                    />
+                  </div>
                 </div>
                 <div class="form-group">
                   <label for="register-email">電子郵件</label>
-                  <input
-                    type="email"
-                    id="register-email"
-                    name="email"
-                    required
-                    placeholder="請輸入您的電子郵件"
-                  />
+                  <div class="input-with-icon">
+                    <i class="fas fa-envelope input-icon"></i>
+                    <input
+                      type="email"
+                      id="register-email"
+                      name="email"
+                      required
+                      placeholder="請輸入您的電子郵件"
+                    />
+                  </div>
                 </div>
                 <div class="form-group">
                   <label for="register-password">密碼</label>
-                  <div class="password-input">
+                  <div class="input-with-icon password-input">
+                    <i class="fas fa-lock input-icon"></i>
                     <input
                       type="password"
                       id="register-password"
@@ -159,7 +180,8 @@
                 </div>
                 <div class="form-group">
                   <label for="register-confirm-password">確認密碼</label>
-                  <div class="password-input">
+                  <div class="input-with-icon password-input">
+                    <i class="fas fa-lock input-icon"></i>
                     <input
                       type="password"
                       id="register-confirm-password"
@@ -174,12 +196,15 @@
                 </div>
                 <div class="form-group">
                   <label for="register-role">註冊身份</label>
-                  <select id="register-role" name="role" required>
-                    <option value="">請選擇您的身份</option>
-                    <option value="camper">露營者</option>
-                    <option value="campsite-owner">營地主</option>
-                    <option value="seller">裝備商家</option>
-                  </select>
+                  <div class="input-with-icon">
+                    <i class="fas fa-user-tag input-icon"></i>
+                    <select id="register-role" name="role" required>
+                      <option value="">請選擇您的身份</option>
+                      <option value="camper">露營者</option>
+                      <option value="campsite-owner">營地主</option>
+                      <option value="seller">裝備商家</option>
+                    </select>
+                  </div>
                 </div>
                 <div class="form-group terms-agree">
                   <label class="checkbox-label">

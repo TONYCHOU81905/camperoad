@@ -1,0 +1,374 @@
+/* 登入/註冊頁面樣式 */
+
+/* 主要區域樣式 */
+.auth-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 0;
+  min-height: calc(100vh - 300px);
+}
+
+.auth-container {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+  overflow: hidden;
+  position: relative;
+  padding: 30px;
+  text-align: center;
+}
+
+/* 登入/註冊頁籤 */
+.auth-tabs {
+  display: flex;
+  margin-bottom: 30px;
+  border-bottom: 1px solid #eee;
+}
+
+.auth-tab {
+  flex: 1;
+  padding: 15px 0;
+  font-weight: 500;
+  color: #666;
+  position: relative;
+  transition: all 0.3s ease;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.auth-tab:after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background-color: #3a5a40;
+  transition: width 0.3s ease;
+}
+
+.auth-tab.active {
+  color: #3a5a40;
+}
+
+.auth-tab.active:after {
+  width: 100%;
+}
+
+/* 表單樣式 */
+.auth-form {
+  display: none;
+}
+
+.auth-form.active {
+  display: block;
+}
+
+.auth-logo {
+  margin-bottom: 20px;
+}
+
+.auth-logo img {
+  height: 50px;
+  margin: 0 auto;
+}
+
+.auth-title {
+  font-size: 24px;
+  margin-bottom: 10px;
+  color: #3a5a40;
+}
+
+.auth-subtitle {
+  color: #666;
+  margin-bottom: 30px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #3a5a40;
+}
+
+.input-with-icon {
+  position: relative;
+}
+
+.input-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #a68a64;
+}
+
+.input-with-icon input {
+  padding-left: 40px;
+}
+
+.password-input {
+  position: relative;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #a68a64;
+  cursor: pointer;
+}
+
+.forgot-password {
+  display: block;
+  text-align: right;
+  color: #3a5a40;
+  font-size: 0.9rem;
+  margin-top: 8px;
+  transition: all 0.3s ease;
+}
+
+.forgot-password:hover {
+  color: #2d4731;
+  text-decoration: underline;
+}
+
+.remember-me {
+  display: flex;
+  align-items: center;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox-label input {
+  width: auto;
+  margin-right: 8px;
+}
+
+.btn-auth {
+  width: 100%;
+  padding: 12px;
+  background-color: #3a5a40;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 10px;
+}
+
+.btn-auth:hover {
+  background-color: #2d4731;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(58, 90, 64, 0.2);
+}
+
+/* 社交登入 */
+.social-login {
+  margin-top: 30px;
+  position: relative;
+}
+
+.social-login p {
+  position: relative;
+  text-align: center;
+  color: #888;
+  margin-bottom: 20px;
+}
+
+.social-login p:before,
+.social-login p:after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 30%;
+  height: 1px;
+  background-color: #ddd;
+}
+
+.social-login p:before {
+  left: 0;
+}
+
+.social-login p:after {
+  right: 0;
+}
+
+.social-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.btn-social {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  color: white;
+  transition: all 0.3s ease;
+  font-size: 1.2rem;
+}
+
+.btn-social span {
+  display: none;
+}
+
+.btn-google {
+  background-color: #db4437;
+}
+
+.btn-facebook {
+  background-color: #4267b2;
+}
+
+.btn-line {
+  background-color: #06c755;
+}
+
+.btn-social:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* 註冊表單特定樣式 */
+.password-strength {
+  margin-top: 8px;
+}
+
+.strength-bar {
+  height: 4px;
+  background-color: #eee;
+  border-radius: 2px;
+  margin-bottom: 5px;
+  overflow: hidden;
+}
+
+.strength-fill {
+  height: 100%;
+  width: 0;
+  transition: all 0.3s ease;
+}
+
+.strength-text {
+  font-size: 0.8rem;
+  color: #888;
+}
+
+.terms-agree {
+  font-size: 0.9rem;
+}
+
+.terms-agree a {
+  color: #3a5a40;
+  text-decoration: underline;
+}
+
+/* 右側資訊區域 */
+.auth-info {
+  display: none;
+}
+
+/* 響應式設計 */
+@media (min-width: 992px) {
+  .auth-section .container {
+    display: flex;
+    align-items: stretch;
+    gap: 50px;
+  }
+
+  .auth-container {
+    flex: 1;
+    max-width: 450px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .auth-info {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    max-width: 500px;
+    justify-content: space-between;
+  }
+
+  .auth-benefits {
+    background-color: white;
+    border-radius: 8px;
+    padding: 30px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+    flex: 1;
+  }
+
+  .auth-benefits h2 {
+    color: #3a5a40;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+  }
+
+  .auth-benefits ul {
+    list-style: none;
+  }
+
+  .auth-benefits li {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+  }
+
+  .auth-benefits i {
+    color: #3a5a40;
+    margin-right: 10px;
+    font-size: 1.2rem;
+  }
+
+  .auth-image {
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    flex: 1;
+    min-height: 250px;
+    display: flex;
+  }
+
+  .auth-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+@media (max-width: 768px) {
+  .auth-section {
+    padding: 40px 0;
+  }
+
+  .auth-container {
+    padding: 20px;
+  }
+
+  .social-buttons {
+    flex-wrap: wrap;
+  }
+}
