@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
-  // 初始化搜尋結果頁面
-  initSearchResults();
+  // 載入營地資料並渲染搜尋結果
+  loadSearchResults();
 
   // 初始化排序功能
   initSorting();
@@ -11,9 +11,42 @@ document.addEventListener("DOMContentLoaded", function () {
   // 解析URL參數並顯示搜尋條件
   parseUrlParams();
 
+  // 更新營地卡片連結
+  updateCampsiteLinks();
+
   // 模擬頁面載入
   simulatePageLoading();
 });
+
+// 載入搜尋結果
+async function loadSearchResults() {
+  try {
+    // 等待營地資料載入
+    if (!campData || campData.length === 0) {
+      await loadCampData();
+    }
+
+    // 渲染所有營地到搜尋結果頁面
+    renderCampCards(campData, "search-results");
+
+    // 初始化搜尋結果
+    initSearchResults();
+  } catch (error) {
+    console.error("載入搜尋結果失敗:", error);
+    showNoResults();
+  }
+}
+
+// 顯示無結果狀態
+function showNoResults() {
+  const searchResults = document.getElementById("search-results");
+  const noResults = document.getElementById("no-results");
+
+  if (searchResults) searchResults.style.display = "none";
+  if (noResults) noResults.style.display = "block";
+
+  updateSearchResultsCount(0);
+}
 
 // 初始化搜尋結果
 function initSearchResults() {
@@ -263,6 +296,42 @@ function parseUrlParams() {
       featureElement.querySelector(".criteria-value").textContent =
         displayValues;
     }
+  }
+}
+
+// 更新營地卡片連結，添加日期參數
+function updateCampsiteLinks() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const checkIn = urlParams.get("check-in");
+  const checkOut = urlParams.get("check-out");
+  const guests = urlParams.get("guests");
+
+  // 如果有日期參數，更新所有營地卡片的連結
+  if (checkIn && checkOut) {
+    const campLinks = document.querySelectorAll(".btn-view");
+    campLinks.forEach((link, index) => {
+      // 獲取原始連結
+      const originalHref = link.getAttribute("href");
+      // 解析原始連結中的參數
+      const hrefParts = originalHref.split("?");
+      const baseUrl = hrefParts[0];
+      const existingParams = new URLSearchParams(hrefParts[1] || "");
+
+      // 設置營地ID（如果原始連結沒有ID參數，則使用索引+1作為ID）
+      const campsiteId = existingParams.get("id") || (index + 1).toString();
+
+      // 構建新的URL參數
+      const newParams = new URLSearchParams();
+      newParams.set("id", campsiteId);
+      newParams.set("check-in", checkIn);
+      newParams.set("check-out", checkOut);
+      if (guests) {
+        newParams.set("guests", guests);
+      }
+
+      // 更新連結
+      link.setAttribute("href", `${baseUrl}?${newParams.toString()}`);
+    });
   }
 }
 

@@ -1,0 +1,79 @@
+[
+  {
+    "order_details_id": 1000000001,
+    "campsite_order_id": "ORD20250124001",
+    "campsite_type_id": 2001,
+    "campsite_num": 2,
+    "campsite_amount": 10400
+  },
+  {
+    "order_details_id": 1000000002,
+    "campsite_order_id": "ORD20250124001",
+    "campsite_type_id": 2002,
+    "campsite_num": 1,
+    "campsite_amount": 3400
+  },
+  {
+    "order_details_id": 1000000003,
+    "campsite_order_id": "ORD20250224001",
+    "campsite_type_id": 2003,
+    "campsite_num": 1,
+    "campsite_amount": 1000
+  },
+  {
+    "order_details_id": 1000000004,
+    "campsite_order_id": "ORD20250224001",
+    "campsite_type_id": 2004,
+    "campsite_num": 1,
+    "campsite_amount": 5000
+  },
+  {
+    "order_details_id": 1000000005,
+    "campsite_order_id": "ORD20250324001",
+    "campsite_type_id": 2005,
+    "campsite_num": 2,
+    "campsite_amount": 2000
+  },
+  {
+    "order_details_id": 1000000006,
+    "campsite_order_id": "ORD20250324001",
+    "campsite_type_id": 2001,
+    "campsite_num": 1,
+    "campsite_amount": 5200
+  },
+  {
+    "order_details_id": 1000000007,
+    "campsite_order_id": "ORD20250327001",
+    "campsite_type_id": 2012,
+    "campsite_num": 1,
+    "campsite_amount": 5200
+  },
+  {
+    "order_details_id": 1000000008,
+    "campsite_order_id": "ORD20250327001",
+    "campsite_type_id": 2013,
+    "campsite_num": 1,
+    "campsite_amount": 6000
+  },
+  {
+    "order_details_id": 1000000009,
+    "campsite_order_id": "ORD20250327001",
+    "campsite_type_id": 2005,
+    "campsite_num": 1,
+    "campsite_amount": 1000
+  },
+  {
+    "order_details_id": 1000000010,
+    "campsite_order_id": "ORD20250512001",
+    "campsite_type_id": 2001,
+    "campsite_num": 1,
+    "campsite_amount": 5200
+  },
+  {
+    "order_details_id": 1000000011,
+    "campsite_order_id": "ORD20250512001",
+    "campsite_type_id": 2002,
+    "campsite_num": 1,
+    "campsite_amount": 3400
+  }
+]

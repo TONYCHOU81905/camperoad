@@ -31,17 +31,18 @@
           <ul>
             <li><a href="campsites.html">營地預訂</a></li>
             <li><a href="shop.html">裝備商城</a></li>
-            <li><a href="camp-guides.html">露營攻略</a></li>
+            <li><a href="camp-guides.html">論壇攻略</a></li>
             <li><a href="#">關於我們</a></li>
           </ul>
         </nav>
         <div class="user-actions">
-          <a href="#" class="btn-search"><i class="fas fa-search"></i></a>
-          <a href="#" class="btn-cart"
+          <a href="cart.html" class="btn-cart"
             ><i class="fas fa-shopping-cart"></i
             ><span class="cart-count">0</span></a
           >
-          <a href="login.html" class="btn-login active">登入 / 註冊</a>
+          <a href="login.html" class="btn-login active"
+            ><i class="fas fa-user"></i
+          ></a>
         </div>
         <button class="mobile-menu-toggle">
           <span></span>
@@ -68,17 +69,17 @@
           <div class="auth-content">
             <!-- 登入表單 -->
             <div class="auth-form active" id="login-form">
-              <form action="#" method="post">
+              <form action="#" method="post" id="loginForm">
                 <div class="form-group">
-                  <label for="login-email">電子郵件</label>
+                  <label for="mem_id">會員ID</label>
                   <div class="input-with-icon">
-                    <i class="fas fa-envelope input-icon"></i>
+                    <i class="fas fa-user input-icon"></i>
                     <input
-                      type="email"
-                      id="login-email"
-                      name="email"
+                      type="text"
+                      id="mem_id"
+                      name="mem_id"
                       required
-                      placeholder="請輸入您的電子郵件"
+                      placeholder="請輸入會員ID"
                     />
                   </div>
                 </div>
@@ -91,7 +92,7 @@
                       id="login-password"
                       name="password"
                       required
-                      placeholder="請輸入您的密碼"
+                      placeholder="請輸入密碼"
                     />
                     <button type="button" class="toggle-password">
                       <i class="fas fa-eye"></i>
@@ -106,6 +107,13 @@
                   </label>
                 </div>
                 <button type="submit" class="btn-auth">登入</button>
+                <div class="demo-info">
+                  <p>
+                    <small
+                      >測試帳號：mem001, mem002, mem003 等<br />密碼：password123</small
+                    >
+                  </p>
+                </div>
               </form>
 
               <div class="social-login">
@@ -129,7 +137,7 @@
 
             <!-- 註冊表單 -->
             <div class="auth-form" id="register-form">
-              <form action="#" method="post">
+              <form action="#" method="post" id="registerForm">
                 <div class="form-group">
                   <label for="register-name">姓名</label>
                   <div class="input-with-icon">
@@ -304,6 +312,8 @@
     </footer>
 
     <script src="js/main.js"></script>
+    <script src="js/camp-data.js"></script>
+    <script src="js/login.js"></script>
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         // 切換登入/註冊頁籤
