@@ -9,13 +9,16 @@ document.addEventListener("DOMContentLoaded", function () {
   initMobileMenu();
 
   // 初始化日期選擇器
-  initDatePickers();
+  // initDatePickers();
 
   // 初始化滾動動畫
-  initScrollAnimations();
+  // initScrollAnimations();
 
   // 初始化購物車功能
-  initCartFunctions();
+  // initCartFunctions();
+
+  //初始化地區
+  initArea();
 });
 
 // 松果載入動畫
@@ -148,5 +151,51 @@ room_search_btn.addEventListener("click", function (e) {
   const form = this.closest("form");
   if (form) {
     form.submit(); // 提交表單
+  }
+});
+
+//所有地區資料
+let taiwanDistricts = {};
+
+//初始化地區
+function initArea() {
+  fetch("/data/taiwan-area.json")
+    .then((response) => response.json())
+    .then((data) => {
+      taiwanDistricts = data;
+
+      // 產生縣市選單
+      const countySelect = document.getElementById("county");
+      Object.values(taiwanDistricts).forEach((county_info) => {
+        const option = document.createElement("option");
+        option.value = county_info.CityName;
+        option.textContent = county_info.CityName;
+        countySelect.appendChild(option);
+      });
+    });
+}
+
+// 縣市選單改變時觸發
+document.getElementById("county").addEventListener("change", function () {
+  console.log("county: " + this.value);
+
+  const county = this.value;
+  console.log(taiwanDistricts[county]);
+  const districtSelect = document.getElementById("district");
+  districtSelect.innerHTML = '<option value="">請選擇鄉鎮市區</option>';
+
+  if (county != "") {
+    Object.values(taiwanDistricts).forEach((county_info) => {
+      if (county_info.CityName == county) {
+        county_info.AreaList.forEach((area_info) => {
+          const option = document.createElement("option");
+          option.value = area_info.AreaName;
+          option.textContent = area_info.AreaName;
+          districtSelect.appendChild(option);
+        });
+      }
+    });
+  } else {
+    districtSelect.innerHTML = '<option value="">請先選擇縣市</option>';
   }
 });

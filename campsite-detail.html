@@ -190,6 +190,7 @@
         width: 100%;
         text-align: center;
         margin-top: 20px;
+        margin-bottom: 20px;
       }
 
       .btn-book:hover {
@@ -303,6 +304,23 @@
             <span>露途</span>
           </a>
         </div>
+        <nav class="main-nav">
+          <ul>
+            <li><a href="campsites.html">營地預訂</a></li>
+            <li><a href="shop.html">裝備商城</a></li>
+            <li><a href="camp-guides.html">論壇攻略</a></li>
+            <li><a href="user-profile.html">關於我們</a></li>
+          </ul>
+        </nav>
+        <div class="user-actions">
+          <a href="cart.html" class="btn-cart">
+            <i class="fas fa-shopping-cart"></i>
+            <span class="cart-count">0</span>
+          </a>
+          <a href="user-profile.html" class="btn-login"
+            ><i class="fas fa-user"></i
+          ></a>
+        </div>
         <div class="campsite-actions">
           <button class="btn-favorite" id="btn-favorite">
             <i class="far fa-heart"></i> <span>收藏營地</span>
@@ -311,6 +329,11 @@
             <i class="fas fa-share-alt"></i> <span>分享</span>
           </button>
         </div>
+        <button class="mobile-menu-toggle">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
       </div>
     </header>
 
@@ -454,8 +477,19 @@
               </select>
 
               <button type="button" id="btn-book" class="btn-book">
-                立即預訂
+                <i class="fas fa-calendar-check"></i> 立即預訂
               </button>
+              <button type="button" class="btn-add-cart" onclick="addToCart()">
+                <i class="fas fa-cart-plus"></i> 加入購物車
+              </button>
+
+              <!-- 聊天室消息容器（新增初始对话） -->
+              <!-- <div class="chat-messages">
+                <div class="message assistant-message">
+                  <p>您好！有任何營地問題都可以諮詢我們～</p>
+                  <span class="message-time">10:30</span>
+                </div>
+              </div> -->
             </form>
 
             <p class="booking-note">免費取消：入住前3天可全額退款</p>
@@ -672,12 +706,59 @@
       </div>
     </footer>
 
+    <!-- 懸浮聊天室 -->
+    <div class="chat-widget">
+      <div class="chat-icon" id="chat-toggle">
+        <i class="fas fa-comments"></i>
+      </div>
+      <div class="chat-window" id="chat-window">
+        <div class="chat-header">
+          <div class="chat-title">
+            <i class="fas fa-comments"></i>
+            <span>營地客服</span>
+          </div>
+          <button class="btn-close-chat" id="btn-close-chat">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="chat-body" id="chat-messages">
+          <div class="chat-message other">
+            <div class="chat-user">
+              <img src="images/user-1.jpg" alt="客服" />
+              <span>客服小露</span>
+            </div>
+            <div class="message-content">
+              您好！歡迎來到山林星空營地，有什麼可以為您服務的嗎？
+            </div>
+            <div class="message-info">剛剛</div>
+          </div>
+        </div>
+        <div class="chat-footer">
+          <div class="chat-input-container">
+            <input
+              type="text"
+              class="chat-input"
+              id="chat-message-input"
+              placeholder="輸入訊息..."
+            />
+            <button class="chat-send" id="btn-send-message">
+              <i class="fas fa-paper-plane"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script>
       function changeImage(src) {
         document.getElementById("main-image").src = src;
       }
     </script>
     <script src="js/main.js"></script>
+    <script src="js/camp-data.js"></script>
     <script src="js/campsite-detail.js"></script>
+    <script src="js/chat.js"></script>
+    <script src="js/cart.js"></script>
+    <link rel="stylesheet" href="css/chat.css" />
   </body>
 </html>
