@@ -1,0 +1,26 @@
+[
+  {
+    "mem_id": 10000001,
+    "discount_code_id": "A00001",
+    "discount_code_type": 0,
+    "used_at": "2025-05-01 02:13:33"
+  },
+  {
+    "mem_id": 10000002,
+    "discount_code_id": "A00001",
+    "discount_code_type": 1,
+    "used_at": "2025-05-01 01:22:21"
+  },
+  {
+    "mem_id": 10000003,
+    "discount_code_id": "S00001",
+    "discount_code_type": 1,
+    "used_at": "2025-05-11 10:45:20"
+  },
+  {
+    "mem_id": 10000004,
+    "discount_code_id": "C00001",
+    "discount_code_type": 0,
+    "used_at": "2025-05-05 14:56:37"
+  }
+]

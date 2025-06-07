@@ -299,7 +299,7 @@
   display: flex;
   gap: 30px;
   max-width: 1200px;
-  margin: 0 auto;
+  margin: 0 auto 0 calc(50% - 650px);
   padding: 20px;
 }
 
@@ -377,8 +377,395 @@
   transform: translateX(4px);
 }
 
+/* 選單分隔線 */
+.menu-divider {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.1) 50%,
+    transparent 100%
+  );
+  margin: 12px 24px;
+}
+
+/* 登出按鈕特殊樣式 */
+.profile-menu-item.logout-btn {
+  color: #dc3545;
+  margin-top: 8px;
+}
+
+.profile-menu-item.logout-btn:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(220, 53, 69, 0.1) 0%,
+    rgba(220, 53, 69, 0.05) 100%
+  );
+  color: #dc3545;
+  border-left-color: #dc3545;
+  transform: translateX(4px);
+}
+
+.profile-menu-item.logout-btn i {
+  color: #dc3545;
+}
+
 .profile-content {
-  flex: 1;
+  /* flex: 1; */
+  max-width: 1800px;
+  width: 100%;
+}
+
+/* 表格樣式優化 */
+.orders-table-container,
+.discount-codes-table-container {
+  overflow-x: auto;
+}
+
+.orders-table-container table,
+.discount-codes-table-container table {
+  min-width: 1200px;
+  table-layout: auto;
+}
+
+/* 訂單詳細資料模態框樣式 */
+.campsite-detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 15px;
+  margin-bottom: 15px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.campsite-info h6 {
+  color: #2c5530;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.campsite-info p {
+  margin-bottom: 4px;
+  font-size: 0.9em;
+}
+
+.campsite-booking {
+  text-align: right;
+  min-width: 150px;
+}
+
+.campsite-booking p {
+  margin-bottom: 4px;
+  font-size: 0.9em;
+}
+
+.amount-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.amount-item:last-child {
+  border-bottom: none;
+}
+
+.amount-item.total {
+  border-top: 2px solid #2c5530;
+  margin-top: 10px;
+  padding-top: 15px;
+  font-size: 1.1em;
+}
+
+.amount-item.discount {
+  color: #28a745;
+}
+
+.order-summary h6 {
+  color: #2c5530;
+  font-weight: 600;
+  margin-bottom: 15px;
+  border-bottom: 2px solid #2c5530;
+  padding-bottom: 5px;
+}
+
+.campsite-details h6,
+.amount-breakdown h6 {
+  color: #2c5530;
+  font-weight: 600;
+  margin-bottom: 15px;
+  border-bottom: 2px solid #2c5530;
+  padding-bottom: 5px;
+}
+
+/* Bundle Modal Styles */
+.bundle-modal {
+  max-width: 500px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+.bundle-modal .modal-header {
+  background: linear-gradient(135deg, #2c5530, #4a7c59);
+  color: white;
+  border-radius: 12px 12px 0 0;
+  padding: 20px 25px;
+}
+
+.bundle-modal .modal-header h3 {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.bundle-modal .modal-close {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: none;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.bundle-modal .modal-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
+}
+
+.bundle-modal .modal-body {
+  padding: 25px;
+}
+
+.bundle-modal .form-row {
+  margin-bottom: 20px;
+}
+
+.bundle-modal .form-group label {
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  color: #2c5530;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+}
+
+.bundle-modal .form-group label i {
+  margin-right: 8px;
+  color: #4a7c59;
+  width: 16px;
+}
+
+.bundle-modal .input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.bundle-modal .input-prefix {
+  background: #f8f9fa;
+  border: 1px solid #ddd;
+  border-right: none;
+  padding: 10px 12px;
+  border-radius: 6px 0 0 6px;
+  color: #666;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.bundle-modal .input-group input {
+  border-radius: 0 6px 6px 0;
+  border-left: none;
+}
+
+.bundle-modal input[type="text"],
+.bundle-modal input[type="number"] {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  background: #fff;
+}
+
+.bundle-modal input[type="text"]:focus,
+.bundle-modal input[type="number"]:focus {
+  outline: none;
+  border-color: #4a7c59;
+  box-shadow: 0 0 0 3px rgba(74, 124, 89, 0.1);
+}
+
+.bundle-modal .form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+}
+
+.bundle-modal .btn {
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.3s ease;
+}
+
+.bundle-modal .btn-secondary {
+  background: #6c757d;
+  border-color: #6c757d;
+}
+
+.bundle-modal .btn-secondary:hover {
+  background: #5a6268;
+  transform: translateY(-1px);
+}
+
+.bundle-modal .btn-camping {
+  background: linear-gradient(135deg, #2c5530, #4a7c59);
+  border-color: #2c5530;
+}
+
+.bundle-modal .btn-camping:hover {
+  background: linear-gradient(135deg, #1e3a21, #2c5530);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(44, 85, 48, 0.3);
+}
+
+/* Discount Info Styles */
+.amount-item.discount-info {
+  background: #e3f2fd;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin: 5px 0;
+  border-left: 4px solid #2196f3;
+}
+
+.amount-item.discount-detail {
+  background: #f5f5f5;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin: 5px 0;
+  font-size: 0.9rem;
+}
+
+.amount-item.discount-detail span.text-muted {
+  font-style: italic;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.orders-table-container th,
+.orders-table-container td,
+.discount-codes-table-container th,
+.discount-codes-table-container td {
+  white-space: nowrap;
+  padding: 12px 16px;
+  text-align: center;
+}
+
+/* 特定欄位寬度調整 */
+.orders-table-container th:nth-child(1),
+.orders-table-container td:nth-child(1) {
+  min-width: 140px; /* 訂單編號 */
+}
+
+.orders-table-container th:nth-child(2),
+.orders-table-container td:nth-child(2) {
+  min-width: 100px; /* 客戶姓名 */
+}
+
+.orders-table-container th:nth-child(3),
+.orders-table-container td:nth-child(3) {
+  min-width: 150px; /* 房型 */
+}
+
+.orders-table-container th:nth-child(4),
+.orders-table-container td:nth-child(4) {
+  min-width: 80px; /* 營地數量 */
+}
+
+.orders-table-container th:nth-child(5),
+.orders-table-container td:nth-child(5) {
+  min-width: 120px; /* 營地金額 */
+}
+
+.orders-table-container th:nth-child(6),
+.orders-table-container td:nth-child(6) {
+  min-width: 110px; /* 入住日期 */
+}
+
+.orders-table-container th:nth-child(7),
+.orders-table-container td:nth-child(7) {
+  min-width: 110px; /* 退房日期 */
+}
+
+.orders-table-container th:nth-child(8),
+.orders-table-container td:nth-child(8) {
+  min-width: 120px; /* 總金額 */
+}
+
+.orders-table-container th:nth-child(9),
+.orders-table-container td:nth-child(9) {
+  min-width: 100px; /* 訂單狀態 */
+}
+
+.orders-table-container th:nth-child(10),
+.orders-table-container td:nth-child(10) {
+  min-width: 80px; /* 操作 */
+}
+
+/* 折價券管理表格欄位寬度 */
+.discount-codes-table-container th:nth-child(1),
+.discount-codes-table-container td:nth-child(1) {
+  min-width: 80px; /* ID */
+}
+
+.discount-codes-table-container th:nth-child(2),
+.discount-codes-table-container td:nth-child(2) {
+  min-width: 120px; /* 折價券代碼 */
+}
+
+.discount-codes-table-container th:nth-child(3),
+.discount-codes-table-container td:nth-child(3) {
+  min-width: 150px; /* 說明 */
+  text-align: left;
+}
+
+.discount-codes-table-container th:nth-child(4),
+.discount-codes-table-container td:nth-child(4) {
+  min-width: 120px; /* 折扣類型 */
+}
+
+.discount-codes-table-container th:nth-child(5),
+.discount-codes-table-container td:nth-child(5) {
+  min-width: 100px; /* 折扣值 */
+}
+
+.discount-codes-table-container th:nth-child(6),
+.discount-codes-table-container td:nth-child(6) {
+  min-width: 120px; /* 最低消費 */
+}
+
+.discount-codes-table-container th:nth-child(7),
+.discount-codes-table-container td:nth-child(7) {
+  min-width: 200px; /* 有效期間 */
+}
+
+.discount-codes-table-container th:nth-child(8),
+.discount-codes-table-container td:nth-child(8) {
+  min-width: 80px; /* 操作 */
 }
 
 .profile-section {
@@ -408,12 +795,21 @@
   }
 }
 
-.profile-section h2 {
-  font-size: 1.8rem;
-  color: #2c3e50;
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 30px;
   padding-bottom: 20px;
   border-bottom: 3px solid #3a5a40;
+}
+
+.profile-section h2 {
+  font-size: 1.8rem;
+  color: #2c3e50;
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
   position: relative;
   font-weight: 700;
 }
@@ -2100,6 +2496,66 @@ input:checked + .toggle-slider:before {
 .empty-state .btn-primary:hover {
   background: linear-gradient(135deg, #2980b9, #21618c);
   transform: translateY(-2px);
+}
+
+/* 露營風格按鈕 */
+.btn-camping {
+  background: linear-gradient(135deg, #3a5a40, #2d4731);
+  color: white !important;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-camping:hover {
+  background: linear-gradient(135deg, #2d4731, #1e2f22);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(58, 90, 64, 0.3);
+  color: white !important;
+  text-decoration: none;
+}
+
+.btn-camping:focus,
+.btn-camping:active {
+  color: white !important;
+  text-decoration: none;
+}
+
+/* 區塊標題樣式 */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.section-header h2 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.order-filters {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.order-filters select {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: white;
+  font-size: 14px;
 }
 
 @media (max-width: 768px) {

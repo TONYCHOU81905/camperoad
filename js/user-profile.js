@@ -399,4 +399,100 @@ class UserProfileManager {
 // 初始化
 document.addEventListener("DOMContentLoaded", () => {
   new UserProfileManager();
+
+  // 登出按鈕事件監聽
+  const logoutBtn = document.getElementById("logoutBtn");
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+
+      // 顯示確認對話框
+      if (confirm("確定要登出嗎？")) {
+        // 清除本地儲存的會員資料
+        localStorage.removeItem("currentMember");
+
+        // 顯示登出成功訊息
+        showMessage("已成功登出", "success");
+
+        // 延遲跳轉到首頁
+        setTimeout(() => {
+          window.location.href = "index.html";
+        }, 1500);
+      }
+    });
+  }
 });
+
+// 顯示訊息函數
+function showMessage(message, type = "info") {
+  // 創建訊息元素
+  const messageDiv = document.createElement("div");
+  messageDiv.className = `message message-${type}`;
+  messageDiv.innerHTML = `
+    <i class="fas ${
+      type === "success"
+        ? "fa-check-circle"
+        : type === "error"
+        ? "fa-exclamation-circle"
+        : "fa-info-circle"
+    }"></i>
+    <span>${message}</span>
+  `;
+
+  // 添加樣式
+  messageDiv.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: ${
+      type === "success" ? "#d4edda" : type === "error" ? "#f8d7da" : "#d1ecf1"
+    };
+    color: ${
+      type === "success" ? "#155724" : type === "error" ? "#721c24" : "#0c5460"
+    };
+    border: 1px solid ${
+      type === "success" ? "#c3e6cb" : type === "error" ? "#f5c6cb" : "#bee5eb"
+    };
+    border-radius: 8px;
+    padding: 12px 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    animation: slideInRight 0.3s ease-out;
+  `;
+
+  // 添加動畫樣式
+  if (!document.querySelector("#message-animations")) {
+    const style = document.createElement("style");
+    style.id = "message-animations";
+    style.textContent = `
+      @keyframes slideInRight {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  // 添加到頁面
+  document.body.appendChild(messageDiv);
+
+  // 3秒後移除訊息
+  setTimeout(() => {
+    messageDiv.style.animation = "slideInRight 0.3s ease-out reverse";
+    setTimeout(() => {
+      if (messageDiv.parentNode) {
+        messageDiv.remove();
+      }
+    }, 300);
+  }, 3000);
+}
