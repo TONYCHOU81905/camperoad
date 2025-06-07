@@ -1,0 +1,50 @@
+[
+  {
+    "admin_id": 30000001,
+    "admin_acc": "yeh06061995@gmail.com",
+    "admin_pwd": "pwd001",
+    "admin_pwd_hash": "pwd111",
+    "admin_status": 1,
+    "admin_name": "江佳燁"
+  },
+  {
+    "admin_id": 30000002,
+    "admin_acc": "ju25433@gamil.com",
+    "admin_pwd": "pwd002",
+    "admin_pwd_hash": "pwd222",
+    "admin_status": 1,
+    "admin_name": "朱曉莉"
+  },
+  {
+    "admin_id": 30000003,
+    "admin_acc": "admin3@example.com",
+    "admin_pwd": "pwd003",
+    "admin_pwd_hash": "pwd333",
+    "admin_status": 1,
+    "admin_name": "趙裕正"
+  },
+  {
+    "admin_id": 30000004,
+    "admin_acc": "admin4@example.com",
+    "admin_pwd": "pwd004",
+    "admin_pwd_hash": "pwd444",
+    "admin_status": 0,
+    "admin_name": "夏宜跳"
+  },
+  {
+    "admin_id": 30000005,
+    "admin_acc": "admin5@example.com",
+    "admin_pwd": "pwd005",
+    "admin_pwd_hash": "pwd555",
+    "admin_status": 1,
+    "admin_name": "魏昇綿"
+  },
+  {
+    "admin_id": 30000006,
+    "admin_acc": "admin6@example.com",
+    "admin_pwd": "pwd006",
+    "admin_pwd_hash": "pwd666",
+    "admin_status": 1,
+    "admin_name": "洪律登"
+  }
+]

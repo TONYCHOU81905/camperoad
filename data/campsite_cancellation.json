@@ -1,0 +1,20 @@
+[
+  {
+    "campsite_cancel_id": "CAN20250516001",
+    "campsite_order_id": "ORD20250324001",
+    "campsite_cancel_date": "2025-05-16",
+    "campsite_cancel_reason": "颱風天，不敢進山區",
+    "campsite_cancel_status": 2,
+    "campsite_cancel_reply_customer": "希望未來有機會為您服務",
+    "return_method": 1
+  },
+  {
+    "campsite_cancel_id": "CAN20250520001",
+    "campsite_order_id": "ORD20250327001",
+    "campsite_cancel_date": "2025-05-20",
+    "campsite_cancel_reason": "老公要生了，只能取消，不好意思",
+    "campsite_cancel_status": 0,
+    "campsite_cancel_reply_customer": null,
+    "return_method": 2
+  }
+]

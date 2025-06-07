@@ -68,6 +68,70 @@
   display: block;
 }
 
+/* 身份選擇器樣式 */
+.role-selector {
+  margin-bottom: 25px;
+  text-align: left;
+}
+
+.role-selector label {
+  display: block;
+  margin-bottom: 12px;
+  font-weight: 500;
+  color: #3a5a40;
+  font-size: 14px;
+}
+
+.role-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.role-tab {
+  flex: 1;
+  padding: 12px 8px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  font-size: 12px;
+  color: #666;
+}
+
+.role-tab:hover {
+  border-color: #3a5a40;
+  background-color: #f8f9fa;
+}
+
+.role-tab.active {
+  border-color: #3a5a40;
+  background-color: #3a5a40;
+  color: white;
+}
+
+.role-tab i {
+  display: block;
+  font-size: 18px;
+  margin-bottom: 4px;
+}
+
+.role-tab span {
+  display: block;
+  font-weight: 500;
+}
+
+/* 角色表單樣式 */
+.role-form {
+  display: none;
+}
+
+.role-form.active {
+  display: block;
+}
+
 .auth-logo {
   margin-bottom: 20px;
 }
@@ -110,6 +174,12 @@
   top: 50%;
   transform: translateY(-50%);
   color: #a68a64;
+  transition: color 0.3s ease;
+}
+
+.input-with-icon:hover .input-icon,
+.input-with-icon input:focus ~ .input-icon {
+  color: #3a5a40;
 }
 
 .input-with-icon input {
@@ -129,6 +199,12 @@
   border: none;
   color: #a68a64;
   cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.password-input:hover .toggle-password,
+.password-input input:focus ~ .toggle-password {
+  color: #3a5a40;
 }
 
 .forgot-password {
