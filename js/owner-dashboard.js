@@ -14,8 +14,11 @@ class OwnerDashboard {
     // 檢查登入狀態
     this.checkLoginStatus();
 
-    // 載入資料
+    // 載入所有資料
     await this.loadAllData();
+
+    // 更新營地主資訊（在載入資料後）
+    this.updateOwnerInfo();
 
     // 初始化UI
     this.initUI();
@@ -28,7 +31,9 @@ class OwnerDashboard {
   }
 
   checkLoginStatus() {
-    const savedOwner = localStorage.getItem("currentOwner");
+    const savedOwner =
+      localStorage.getItem("currentOwner") ||
+      sessionStorage.getItem("currentOwner");
     if (!savedOwner) {
       alert("請先登入營地主帳號");
       window.location.href = "login.html";
@@ -36,7 +41,6 @@ class OwnerDashboard {
     }
 
     this.currentOwner = JSON.parse(savedOwner);
-    this.updateOwnerInfo();
   }
 
   updateOwnerInfo() {
@@ -46,9 +50,27 @@ class OwnerDashboard {
     if (ownerDisplayName)
       ownerDisplayName.textContent = this.currentOwner.owner_name;
 
-    // 更新右上角用戶按鈕的標題，顯示營地主名稱
-    if (ownerProfileBtn) {
-      ownerProfileBtn.title = `營地主：${this.currentOwner.owner_name}`;
+    // 更新右上角用戶按鈕，顯示營地名稱
+    if (ownerProfileBtn && this.campData) {
+      ownerProfileBtn.title = `營地：${this.campData.camp_name}`;
+      ownerProfileBtn.innerHTML = `<i class="fas fa-user"></i> ${this.campData.camp_name}`;
+
+      // 添加點擊事件，跳轉到房型管理tab
+      ownerProfileBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        this.showTabContent("camp-info");
+
+        // 更新選單狀態
+        document.querySelectorAll(".profile-menu-item").forEach((menuItem) => {
+          menuItem.classList.remove("active");
+        });
+        const roomTypesMenuItem = document.querySelector(
+          '.profile-menu-item[data-tab="camp-info"]'
+        );
+        if (roomTypesMenuItem) {
+          roomTypesMenuItem.classList.add("active");
+        }
+      });
     }
   }
 
@@ -141,6 +163,37 @@ class OwnerDashboard {
       const element = document.getElementById(id);
       if (element) element.value = value;
     });
+
+    // 初始化營地照片顯示
+    this.renderCampImages();
+  }
+
+  renderCampImages() {
+    for (let i = 1; i <= 4; i++) {
+      const container = document.getElementById(`campImage${i}Container`);
+      if (!container) continue;
+
+      const imageUrl = this.campData[`camp_pic${i}`];
+
+      if (imageUrl) {
+        container.innerHTML = `
+          <div class="image-container">
+            <img src="${imageUrl}" class="thumbnail" onclick="ownerDashboard.showCampImageModal('${imageUrl}', ${i})" />
+            <div class="image-actions">
+              <button class="btn btn-sm btn-camping" onclick="ownerDashboard.uploadCampImage(${i})"><i class="fas fa-upload"></i></button>
+              <button class="btn btn-sm btn-danger" onclick="ownerDashboard.deleteCampImage(${i})"><i class="fas fa-trash"></i></button>
+            </div>
+          </div>
+        `;
+      } else {
+        container.innerHTML = `
+          <div class="image-placeholder" onclick="ownerDashboard.uploadCampImage(${i})">
+            <i class="fas fa-plus"></i>
+            <span>上傳圖片</span>
+          </div>
+        `;
+      }
+    }
   }
 
   bindEvents() {
@@ -966,7 +1019,12 @@ class OwnerDashboard {
   // 事件處理函數
   handleLogout() {
     if (confirm("確定要登出嗎？")) {
+      // 清除所有相關的儲存資料
       localStorage.removeItem("currentOwner");
+      sessionStorage.removeItem("currentOwner");
+      // 也清除可能的其他相關資料
+      localStorage.removeItem("ownerRememberMe");
+      sessionStorage.removeItem("ownerRememberMe");
       this.showMessage("已成功登出", "success");
       setTimeout(() => {
         window.location.href = "index.html";
@@ -1592,6 +1650,148 @@ class OwnerDashboard {
 
     // 重新渲染房型列表
     this.renderRoomTypes();
+  }
+
+  // 營地照片相關功能
+  showCampImageModal(imageUrl, imageIndex) {
+    // 移除舊的模態框
+    const existingModal = document.getElementById("campImageModal");
+    if (existingModal) {
+      existingModal.remove();
+    }
+
+    const modalHtml = `
+      <div class="modal fade" id="campImageModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">營地圖片預覽 - 圖片${imageIndex}</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+              <img src="${imageUrl}" class="img-fluid" style="max-height: 500px;" />
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-camping" onclick="ownerDashboard.uploadCampImage(${imageIndex})">
+                <i class="fas fa-upload"></i> 更新圖片
+              </button>
+              <button type="button" class="btn btn-danger" onclick="ownerDashboard.deleteCampImage(${imageIndex})">
+                <i class="fas fa-trash"></i> 刪除圖片
+              </button>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // 添加新模態框
+    document.body.insertAdjacentHTML("beforeend", modalHtml);
+
+    // 顯示模態框
+    const modal = new bootstrap.Modal(
+      document.getElementById("campImageModal")
+    );
+    modal.show();
+
+    // 模態框關閉後移除DOM
+    document
+      .getElementById("campImageModal")
+      .addEventListener("hidden.bs.modal", function () {
+        this.remove();
+      });
+  }
+
+  uploadCampImage(imageIndex) {
+    // 創建文件輸入元素
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.accept = "image/*";
+    fileInput.style.display = "none";
+
+    fileInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        // 檢查文件類型
+        if (!file.type.startsWith("image/")) {
+          this.showMessage("請選擇圖片文件", "error");
+          return;
+        }
+
+        // 檢查文件大小（限制5MB）
+        if (file.size > 5 * 1024 * 1024) {
+          this.showMessage("圖片大小不能超過5MB", "error");
+          return;
+        }
+
+        // 使用FileReader讀取文件
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const imageUrl = event.target.result;
+          this.updateCampImage(imageIndex, imageUrl);
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // 觸發文件選擇
+    document.body.appendChild(fileInput);
+    fileInput.click();
+    document.body.removeChild(fileInput);
+  }
+
+  updateCampImage(imageIndex, imageUrl) {
+    if (!this.campData) {
+      this.showMessage("找不到營地資料", "error");
+      return;
+    }
+
+    // 更新圖片URL
+    const fieldName = `camp_pic${imageIndex}`;
+    this.campData[fieldName] = imageUrl;
+
+    console.log(`更新營地圖片${imageIndex}:`, imageUrl);
+    this.showMessage(`圖片${imageIndex}更新成功！`, "success");
+
+    // 關閉圖片模態框（如果存在）
+    const imageModal = bootstrap.Modal.getInstance(
+      document.getElementById("campImageModal")
+    );
+    if (imageModal) {
+      imageModal.hide();
+    }
+
+    // 重新渲染營地照片
+    this.renderCampImages();
+  }
+
+  deleteCampImage(imageIndex) {
+    if (!confirm(`確定要刪除圖片${imageIndex}嗎？`)) {
+      return;
+    }
+
+    if (!this.campData) {
+      this.showMessage("找不到營地資料", "error");
+      return;
+    }
+
+    // 刪除圖片URL
+    const fieldName = `camp_pic${imageIndex}`;
+    this.campData[fieldName] = null;
+
+    console.log(`刪除營地圖片${imageIndex}`);
+    this.showMessage(`圖片${imageIndex}已刪除！`, "success");
+
+    // 關閉圖片模態框（如果存在）
+    const imageModal = bootstrap.Modal.getInstance(
+      document.getElementById("campImageModal")
+    );
+    if (imageModal) {
+      imageModal.hide();
+    }
+
+    // 重新渲染營地照片
+    this.renderCampImages();
   }
 
   // 工具函數
