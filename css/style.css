@@ -180,6 +180,19 @@ h4 {
   justify-content: space-between;
 }
 
+.header-title {
+  flex: 1;
+  text-align: center;
+  margin: 0 20px;
+}
+
+.header-title h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #3a5a40;
+  margin: 0;
+}
+
 .logo a {
   display: flex;
   align-items: center;
@@ -223,6 +236,7 @@ h4 {
   display: flex;
   align-items: center;
   gap: 15px;
+  height: 40px; /* 確保統一高度 */
 }
 
 .btn-search,
@@ -989,27 +1003,121 @@ h4 {
 
 /* 頁尾 */
 .site-footer {
-  background-color: #3a5a40;
+  background: linear-gradient(135deg, #3a5a40 0%, #2d4731 100%);
   color: white;
-  padding: 60px 0 30px;
+  padding: 50px 0 25px;
   margin-top: 60px;
+  position: relative;
+  overflow: hidden;
+}
+
+.site-footer::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    #e76f51,
+    #f4a261,
+    #e9c46a,
+    #2a9d8f,
+    #264653
+  );
 }
 
 .footer-content {
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center; /* 這行是關鍵，讓整組置中 */
   gap: 40px;
   margin-bottom: 40px;
 }
 
+.footer-section {
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.footer-section:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.footer-section h4 {
+  margin-bottom: 20px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #f4a261;
+  position: relative;
+  padding-bottom: 10px;
+}
+
+.footer-section h4::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 30px;
+  height: 2px;
+  background: #e76f51;
+  border-radius: 1px;
+}
+
+.footer-section ul {
+  list-style: none;
+  padding: 0;
+}
+
+.footer-section ul li {
+  margin-bottom: 12px;
+  padding-left: 20px;
+  position: relative;
+}
+
+.footer-section ul li::before {
+  content: "▶";
+  position: absolute;
+  left: 0;
+  color: #e76f51;
+  font-size: 0.8rem;
+}
+
+.footer-section a {
+  color: #e0d7c7;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.footer-section a:hover {
+  color: #f4a261;
+  padding-left: 5px;
+}
+
+.footer-section p {
+  color: #e0d7c7;
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+
 .footer-logo {
-  flex: 1;
-  min-width: 250px;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 0;
+  max-width: 50%;
+  flex: unset; /* 或直接刪除 flex: 1; */
 }
 
 .footer-logo img {
-  height: 40px;
-  margin-bottom: 15px;
+  width: 250px;
+  height: 80px;
+  filter: brightness(1.2);
 }
 
 .footer-links {
@@ -1044,17 +1152,32 @@ h4 {
 }
 
 .footer-bottom {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 30px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
+  padding: 25px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  color: #e0d7c7;
+  background: rgba(0, 0, 0, 0.1);
+  margin: 0 -50vw -25px -50vw;
+  left: 50%;
+  right: 50%;
+  position: relative;
+}
+
+.footer-bottom::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #f4a261, transparent);
 }
 
 .social-links {
   display: flex;
   gap: 15px;
+  margin-left: 100px;
 }
 
 .social-links a {
@@ -1445,7 +1568,11 @@ h4 {
   }
 
   .footer-content {
+    display: flex; /* 改為flexbox佈局 */
+    gap: 40px;
+    margin-bottom: 40px;
     flex-direction: column;
+    align-items: center;
   }
 
   .footer-links {
@@ -1553,4 +1680,43 @@ h4 {
   color: #666;
   margin: 0 8px;
   align-self: flex-end;
+}
+
+/* 用戶下拉選單樣式 */
+.user-dropdown {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  height: 100%;
+}
+
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  min-width: 120px;
+  z-index: 1000;
+  margin-top: 5px;
+}
+
+.dropdown-item {
+  display: block;
+  padding: 8px 16px;
+  color: #333;
+  text-decoration: none;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.dropdown-item:hover {
+  background-color: #f5f5f5;
+}
+
+.user-dropdown:hover .dropdown-menu {
+  display: block;
 }

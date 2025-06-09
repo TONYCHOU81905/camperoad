@@ -41,8 +41,9 @@ async function handleLogin(e) {
   const formData = new FormData(e.target);
   const memId = formData.get("mem_id") || formData.get("username");
   const password = formData.get("password");
+  const remember = formData.get("remember");
 
-  console.log("登入請求：", { memId, password });
+  console.log("登入請求：", { memId, password, remember });
 
   if (!memId || !password) {
     showMessage("請輸入會員ID和密碼", "error");
@@ -62,7 +63,14 @@ async function handleLogin(e) {
   if (member) {
     // 登入成功
     currentMember = member;
-    localStorage.setItem("currentMember", JSON.stringify(member));
+
+    // 根據remember checkbox決定存儲方式
+    if (remember) {
+      localStorage.setItem("currentMember", JSON.stringify(member));
+    } else {
+      sessionStorage.setItem("currentMember", JSON.stringify(member));
+    }
+
     showMessage("登入成功！", "success");
 
     // 延遲跳轉到首頁
@@ -174,8 +182,9 @@ async function handleOwnerLogin(e) {
   const formData = new FormData(e.target);
   const ownerAcc = formData.get("owner_acc");
   const ownerPwd = formData.get("owner_pwd");
+  const remember = formData.get("remember");
 
-  console.log("營地主登入請求：", { ownerAcc, ownerPwd }); // Add this line for debuggi
+  console.log("營地主登入請求：", { ownerAcc, ownerPwd, remember });
 
   if (!ownerAcc || !ownerPwd) {
     showMessage("請輸入營地主帳號和密碼", "error");
@@ -195,7 +204,13 @@ async function handleOwnerLogin(e) {
 
     if (owner) {
       // 登入成功
-      localStorage.setItem("currentOwner", JSON.stringify(owner));
+      // 根據remember checkbox決定存儲方式
+      if (remember) {
+        localStorage.setItem("currentOwner", JSON.stringify(owner));
+      } else {
+        sessionStorage.setItem("currentOwner", JSON.stringify(owner));
+      }
+
       showMessage("營地主登入成功！", "success");
 
       // 延遲跳轉到營地主後台
@@ -218,6 +233,7 @@ async function handleAdminLogin(e) {
   const formData = new FormData(e.target);
   const adminAcc = formData.get("admin_acc");
   const adminPwd = formData.get("admin_pwd");
+  const remember = formData.get("remember");
 
   if (!adminAcc || !adminPwd) {
     showMessage("請輸入管理員帳號和密碼", "error");
@@ -232,14 +248,20 @@ async function handleAdminLogin(e) {
     // 驗證登入
     const admin = admins.find(
       (a) =>
-        a.admin_acc === adminAcc &&
-        a.admin_pwd === adminPwd &&
-        a.admin_status === "1"
+        a.admin_acc == adminAcc &&
+        a.admin_pwd == adminPwd &&
+        a.admin_status == 1
     );
 
     if (admin) {
       // 登入成功
-      localStorage.setItem("currentAdmin", JSON.stringify(admin));
+      // 根據remember checkbox決定存儲方式
+      if (remember) {
+        localStorage.setItem("currentAdmin", JSON.stringify(admin));
+      } else {
+        sessionStorage.setItem("currentAdmin", JSON.stringify(admin));
+      }
+      
       showMessage("管理員登入成功！", "success");
 
       // 延遲跳轉到管理員後台

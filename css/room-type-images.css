@@ -102,6 +102,30 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
+/* 營地照片上傳區域樣式 */
+.camp-images-container {
+  margin-top: 10px;
+}
+
+.image-upload-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 15px;
+  max-width: 600px;
+}
+
+.image-upload-item {
+  text-align: center;
+}
+
+.image-upload-item label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: #666;
+  margin-bottom: 5px;
+}
+
 /* 響應式設計 */
 @media (max-width: 768px) {
   .image-cell {
@@ -120,6 +144,11 @@
 
   .image-placeholder span {
     font-size: 8px;
+  }
+
+  .image-upload-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
   }
 }
 

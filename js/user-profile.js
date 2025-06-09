@@ -409,7 +409,12 @@ document.addEventListener("DOMContentLoaded", () => {
       // 顯示確認對話框
       if (confirm("確定要登出嗎？")) {
         // 清除本地儲存的會員資料
+        // 清除所有相關的儲存資料
         localStorage.removeItem("currentMember");
+        sessionStorage.removeItem("currentMember");
+        // 也清除可能的其他相關資料
+        localStorage.removeItem("memberRememberMe");
+        sessionStorage.removeItem("memberRememberMe");
 
         // 顯示登出成功訊息
         showMessage("已成功登出", "success");
