@@ -7,6 +7,11 @@ let currentMember = null;
 // 載入營地資料
 async function loadCampData() {
   try {
+    // const response = await fetch("http://localhost:8081/CJA101G02/api/camps");
+    // console.log("response:", response);
+    // const json = await response.json();
+    // campData = json.data; // 這裡就是你要的陣列
+    // console.log(campData);
     const response = await fetch("/data/camp.json");
     campData = await response.json();
     console.log("營地資料載入成功:", campData.length, "筆資料");
@@ -42,8 +47,8 @@ function renderCampCards(camps, containerId = "camp-cards") {
 
   container.innerHTML = "";
 
-  camps.forEach((camp) => {
-    const campCard = createCampCard(camp);
+  camps.forEach(async (camp) => {
+    const campCard = await createCampCard(camp);
     container.appendChild(campCard);
   });
 
@@ -63,7 +68,7 @@ function updateSearchResultsCount(count) {
 }
 
 // 建立營地卡片
-function createCampCard(camp) {
+async function createCampCard(camp) {
   const card = document.createElement("div");
   card.className = "camp-card";
 
@@ -74,8 +79,9 @@ function createCampCard(camp) {
   );
   const starsHtml = generateStarsHtml(rating);
 
-  // 生成隨機價格 (2000-5000之間)
-  const randomPrice = Math.floor(Math.random() * (5000 - 2000 + 1)) + 2000;
+  // 載入該營地的房型資料
+  const campsiteTypes = await getCampsiteTypesByCampId(camp.camp_id);
+  const priceListHtml = generatePriceListHtml(campsiteTypes);
 
   // 格式化營地內容，限制長度並美化顯示
   const formattedContent = formatCampContent(camp.camp_content, 80);
@@ -85,9 +91,9 @@ function createCampCard(camp) {
 
   card.innerHTML = `
         <div class="camp-image">
-            <img src="${camp.camp_pic || "images/camp-1.jpg"}" alt="${
-    camp.camp_name
-  }" />
+            <img src="${
+              "data:image/jpeg;base64," + camp.campPic1 || "images/camp-1.jpg"
+            }" alt="${camp.camp_name}" />
             <span class="camp-tag">熱門</span>
         </div>
         <div class="camp-info">
@@ -115,17 +121,64 @@ function createCampCard(camp) {
                 <span><i class="fas fa-utensils"></i> 餐廳</span>
             </div>
             <div class="camp-footer">
-                <div class="camp-price">NT$ ${randomPrice.toLocaleString()} <span>/ 晚</span></div>
-                <div class="camp-actions">
-                    <a href="campsite-detail.html?id=${
-                      camp.camp_id
-                    }" class="btn-view">查看詳情</a>
+                <div class="camp-price-list">
+                    ${priceListHtml}
                 </div>
+            </div>
+            <div class="camp-actions">
+                <a href="campsite-detail.html?id=${camp.camp_id}" class="btn-view btn-view-enhanced btn-view-full">
+                    <i class="fas fa-search-plus"></i> 查看詳情
+                </a>
             </div>
         </div>
     `;
 
   return card;
+}
+
+// 載入營地房型資料
+let campsiteTypesData = null;
+
+async function loadCampsiteTypesData() {
+  if (campsiteTypesData) {
+    return campsiteTypesData;
+  }
+
+  try {
+    const response = await fetch("/data/campsite_type.json");
+    campsiteTypesData = await response.json();
+    return campsiteTypesData;
+  } catch (error) {
+    console.error("載入房型資料失敗:", error);
+    return [];
+  }
+}
+
+// 根據營地ID取得房型資料
+async function getCampsiteTypesByCampId(campId) {
+  const allTypes = await loadCampsiteTypesData();
+  const allTypeFilter = allTypes.filter((type) => type.camp_id == campId);
+  return allTypeFilter;
+}
+
+// 生成價格列表HTML
+function generatePriceListHtml(campsiteTypes) {
+  if (!campsiteTypes || campsiteTypes.length === 0) {
+    return '<div class="price-item">NT$ 2,000 <span>/ 晚</span></div>';
+  }
+
+  return campsiteTypes
+    .map((type) => {
+      return `
+      <div class="price-item">
+        <span class="room-type">${type.campsite_name}</span>
+        <span class="room-people">(${type.campsite_people}人)</span>
+        <span class="room-price">NT$ ${type.campsite_price.toLocaleString()}</span>
+        <span class="price-unit">/ 晚</span>
+      </div>
+    `;
+    })
+    .join("");
 }
 
 // 格式化營地內容，限制長度並美化顯示
@@ -423,6 +476,7 @@ async function initCampData() {
   ) {
     // 首頁顯示前3個營地
     renderCampCards(campData.slice(0, 3));
+    console.log("首頁顯示3個營地卡片");
   } else if (window.location.pathname.includes("campsites.html")) {
     // 營地列表頁顯示所有營地
     renderCampCards(campData);

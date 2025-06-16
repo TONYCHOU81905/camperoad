@@ -1,0 +1,35 @@
+[
+  {
+    "DistName": "北部",
+    "DistNameEng": "North",
+    "County": [
+      "臺北市",
+      "新北市",
+      "基隆市",
+      "桃園市",
+      "新竹市",
+      "新竹縣",
+      "宜蘭縣"
+    ]
+  },
+  {
+    "DistName": "中部",
+    "DistNameEng": "Central",
+    "County": ["臺中市", "苗栗縣", "彰化縣", "南投縣", "雲林縣"]
+  },
+  {
+    "DistName": "南部",
+    "DistNameEng": "Southern",
+    "County": ["臺南市", "高雄市", "嘉義市", "嘉義縣", "屏東縣"]
+  },
+  {
+    "DistName": "東部",
+    "DistNameEng": "Eastern",
+    "County": ["花蓮縣", "臺東縣"]
+  },
+  {
+    "DistName": "離島",
+    "DistNameEng": "Islands",
+    "County": ["澎湖縣", "金門縣", "連江縣"]
+  }
+]

@@ -1,3 +1,4 @@
+/* 營地卡片樣式 */
 /* 搜尋結果頁面樣式 */
 
 /* 搜尋結果頁頭部分 */
@@ -102,162 +103,151 @@
   margin-right: auto;
 }
 
-/* 分頁樣式增強 */
-.pagination {
+/* 結果頭部樣式與卡片間隔 */
+.results-header {
   display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 40px;
-  margin-bottom: 50px; /* 增加與露營小知識的間隔 */
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 0;
+  margin-bottom: 25px;
+  border-bottom: 1px solid #e0d7c7;
 }
 
-.pagination a {
+.results-count {
+  font-size: 1.1rem;
+  color: #666;
+}
+
+.results-count strong {
+  color: #3a5a40;
+  font-weight: 700;
+}
+
+.results-sort {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 4px;
-  background-color: white;
+}
+
+.results-sort label {
+  margin-right: 10px;
+  font-weight: 500;
   color: #3a5a40;
+}
+
+#sort-by {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: #fff;
+  color: #333;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+#sort-by:focus {
+  outline: none;
+  border-color: #3a5a40;
+  box-shadow: 0 0 0 2px rgba(58, 90, 64, 0.2);
+}
+
+/* 營地卡片樣式 */
+.camp-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 30px;
+  margin-bottom: 40px;
+}
+
+/* 改進查看詳情按鈕樣式 */
+.camp-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 15px;
+}
+
+.btn-view {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  border: 1px solid #3a5a40;
+  border-radius: 20px;
+  color: #3a5a40;
+  font-size: 0.95rem;
   font-weight: 500;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 180px;
 }
 
-.pagination a:hover {
-  background-color: #f4f1de;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+.btn-view i {
+  margin-right: 6px;
+  font-size: 0.9rem;
 }
 
-.pagination a.active {
+.btn-view:hover {
   background-color: #3a5a40;
   color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(58, 90, 64, 0.2);
 }
 
-/* 露營小知識區域樣式 */
-.camping-tips {
-  padding-top: 30px; /* 增加與分頁的間隔 */
+/* 增強版查看詳情按鈕 */
+.btn-view-enhanced {
+  background-color: #f8f5f0;
+  border: 2px solid #3a5a40;
+  border-radius: 25px;
+  color: #3a5a40;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  padding: 10px 18px;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
 }
 
-.tips-cards {
-  display: flex;
-  gap: 30px; /* 增加卡片之間的間隔 */
-  margin-top: 30px;
+.btn-view-enhanced i {
+  font-size: 1rem;
+  margin-right: 8px;
+  transition: transform 0.3s ease;
 }
 
-.tip-card {
-  flex: 1;
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  padding: 25px; /* 增加內部間距 */
+.btn-view-enhanced:hover {
+  background-color: #3a5a40;
+  color: white;
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 0 6px 12px rgba(58, 90, 64, 0.25);
+}
+
+.btn-view-enhanced:hover i {
+  transform: scale(1.2);
+}
+
+/* 全寬查看詳情按鈕 */
+.camp-actions {
+  margin-top: 0;
+  width: 100%;
+  margin-top: auto;
+}
+
+.btn-view-full {
+  width: 100%;
+  max-width: 100%;
+  border-radius: 0 0 8px 8px;
+  margin-top: 0;
+  padding: 12px 20px;
+  font-size: 1rem;
+  text-align: center;
+  background-color: #3a5a40;
+  color: white;
+  border: none;
+  box-shadow: none;
   transition: all 0.3s ease;
 }
 
-.tip-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
-}
-
-.tip-icon {
-  font-size: 2rem;
-  color: #3a5a40;
-  margin-bottom: 15px;
-}
-
-.tip-card h3 {
-  color: #3a5a40;
-  margin-bottom: 15px;
-  font-size: 1.2rem;
-}
-
-.tip-card p {
-  color: #666;
-  margin-bottom: 20px;
-  line-height: 1.6;
-}
-
-.btn-more {
-  display: inline-block;
-  color: #a68a64;
-  font-weight: 500;
-  transition: all 0.3s ease;
-}
-
-.btn-more:hover {
-  color: #8a7353;
-  text-decoration: underline;
-}
-
-/* results-sort 下方間隔 */
-.results-sort {
-  margin-bottom: 25px; /* 增加與營地資料的間隔 */
-}
-
-/* 響應式設計 */
-@media (max-width: 992px) {
-  .search-criteria {
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .criteria-item {
-    width: 100%;
-  }
-
-  .tips-cards {
-    gap: 20px; /* 平板上減少間隔 */
-  }
-}
-
-@media (max-width: 768px) {
-  .search-results-header {
-    padding: 20px 0;
-  }
-
-  .results-title h1 {
-    font-size: 1.8rem;
-  }
-
-  .search-summary {
-    font-size: 1rem;
-  }
-
-  .pagination a {
-    width: 35px;
-    height: 35px;
-  }
-
-  .tips-cards {
-    flex-direction: column; /* 手機上改為垂直排列 */
-    gap: 20px;
-  }
-
-  .tip-card {
-    padding: 20px; /* 手機上減少內部間距 */
-  }
-}
-
-@media (max-width: 576px) {
-  .results-header {
-    flex-direction: column;
-    gap: 15px;
-  }
-
-  .results-sort {
-    width: 50%;
-    padding-bottom: 50px;
-  }
-
-  .pagination {
-    gap: 5px;
-  }
-
-  .pagination a {
-    width: 30px;
-    height: 30px;
-    font-size: 0.9rem;
-  }
+.btn-view-full:hover {
+  background-color: #2d4531;
+  transform: translateY(0);
+  box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.1);
 }

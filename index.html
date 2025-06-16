@@ -55,18 +55,15 @@
         <div class="hero-content">
           <h1>探索自然，體驗野趣</h1>
           <p>精選全台優質露營地，一站式預訂服務</p>
-          <div class="search-box">
+          <div class="search-box" >
             <form action="search-results.html" method="get">
-              <!-- <div class="search-group">
+              <div class="search-group">
                 <label for="location">地區</label>
                 <select id="location" name="location">
                   <option value="">選擇地區</option>
-                  <option value="north">北部</option>
-                  <option value="central">中部</option>
-                  <option value="south">南部</option>
-                  <option value="east">東部</option>
+                  <!-- 地區選項將由JavaScript動態載入 -->
                 </select>
-              </div> -->
+              </div>
               <div class="search-group">
                 <label for="county">縣市</label>
                 <select id="county" name="county">
@@ -128,21 +125,21 @@
     <div class="container">
       <h2 class="section-title">露營裝備商城</h2>
       <div class="shop-categories">
-        <a href="#" class="shop-category">
+        <a href="shop.html?type=rent" class="shop-category">
           <div class="category-icon">
             <i class="fas fa-exchange-alt"></i>
           </div>
           <h3>裝備租借</h3>
           <p>短期露營的最佳選擇</p>
         </a>
-        <a href="#" class="shop-category">
+        <a href="shop.html?type=buy" class="shop-category">
           <div class="category-icon">
             <i class="fas fa-tag"></i>
           </div>
           <h3>全新商品</h3>
           <p>優質露營裝備一次購足</p>
         </a>
-        <a href="#" class="shop-category">
+        <a href="shop.html?type=used" class="shop-category">
           <div class="category-icon">
             <i class="fas fa-sync-alt"></i>
           </div>
@@ -281,9 +278,9 @@
           <div class="footer-column">
             <h3>商城服務</h3>
             <ul>
-              <li><a href="#">裝備租借</a></li>
+              <!-- <li><a href="#">裝備租借</a></li> -->
               <li><a href="#">全新商品</a></li>
-              <li><a href="#">二手市集</a></li>
+              <!-- <li><a href="#">二手市集</a></li> -->
               <li><a href="#">配送說明</a></li>
             </ul>
           </div>
