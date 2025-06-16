@@ -154,5 +154,29 @@
     "campsite_pic2": null,
     "campsite_pic3": null,
     "campsite_pic4": null
+  },
+  {
+    "campsite_type_id": 2014,
+    "camp_id": 1010,
+    "campsite_name": "豪華帳棚金門",
+    "campsite_people": 4,
+    "campsite_num": 1,
+    "campsite_price": 6000,
+    "campsite_pic1": "FFD8FFE000104A4649460001",
+    "campsite_pic2": null,
+    "campsite_pic3": null,
+    "campsite_pic4": null
+  },
+  {
+    "campsite_type_id": 2015,
+    "camp_id": 1010,
+    "campsite_name": "豪華帳棚金門烏坵",
+    "campsite_people": 4,
+    "campsite_num": 1,
+    "campsite_price": 8000,
+    "campsite_pic1": "FFD8FFE000104A4649460001",
+    "campsite_pic2": null,
+    "campsite_pic3": null,
+    "campsite_pic4": null
   }
 ]
