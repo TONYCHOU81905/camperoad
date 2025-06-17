@@ -1,0 +1,57 @@
+[
+  {
+    "shop_order_id": 1001,
+    "prod_id": 1,
+    "shop_order_qty": 2,
+    "prod_order_price": 1700,
+    "comment_satis": 5,
+    "comment_content": "非常好用，輕便又耐用。",
+    "comment_date": "2025-04-20 10:00:00",
+    "prod_color_id": 3,
+    "prod_spec_id": 3
+  },
+  {
+    "shop_order_id": 1001,
+    "prod_id": 3,
+    "shop_order_qty": 1,
+    "prod_order_price": 1080,
+    "comment_satis": 4,
+    "comment_content": "五千萬個讚",
+    "comment_date": "2025-04-22 15:30:00",
+    "prod_color_id": 2,
+    "prod_spec_id": 1
+  },
+  {
+    "shop_order_id": 1008,
+    "prod_id": 1,
+    "shop_order_qty": 1,
+    "prod_order_price": 1700,
+    "comment_satis": 4,
+    "comment_content": "陳柏瑋也說好用",
+    "comment_date": "2025-04-12 14:00:00",
+    "prod_color_id": 3,
+    "prod_spec_id": 3
+  },
+  {
+    "shop_order_id": 1008,
+    "prod_id": 2,
+    "shop_order_qty": 1,
+    "prod_order_price": 5600,
+    "comment_satis": 5,
+    "comment_content": "讚讚讚讚讚讚讚讚讚讚讚讚",
+    "comment_date": "2025-04-13 09:00:00",
+    "prod_color_id": 1,
+    "prod_spec_id": 2
+  },
+  {
+    "shop_order_id": 1010,
+    "prod_id": 2,
+    "shop_order_qty": 1,
+    "prod_order_price": 1700,
+    "comment_satis": 5,
+    "comment_content": "住對面李太也說很喜歡",
+    "comment_date": "2025-04-27 11:00:00",
+    "prod_color_id": 1,
+    "prod_spec_id": 2
+  }
+]
