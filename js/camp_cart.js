@@ -158,6 +158,27 @@ class CartManager {
       });
     }
 
+    // 同時更新bundleItems的localStorage
+    let bundleItemsStorage = JSON.parse(localStorage.getItem("bundleItems")) || [];
+    const existingBundleIndex = bundleItemsStorage.findIndex(
+      (item) => item.bundle_id === bundleItem.bundle_id
+    );
+
+    if (existingBundleIndex > -1) {
+      // 更新數量
+      bundleItemsStorage[existingBundleIndex].quantity =
+        (bundleItemsStorage[existingBundleIndex].quantity || 1) + 1;
+    } else {
+      // 添加新項目
+      bundleItemsStorage.push({
+        ...bundleItem,
+        quantity: 1,
+        isBundle: true,
+        addedAt: new Date().toISOString(),
+      });
+    }
+    localStorage.setItem("bundleItems", JSON.stringify(bundleItemsStorage));
+
     this.saveCart();
     this.updateCartCount();
     this.showAddToCartMessage();
@@ -166,6 +187,21 @@ class CartManager {
 
   // 移除購物車項目
   removeItem(index) {
+    const item = this.cart[index];
+    
+    // 如果是加購商品，同時從bundleItems的localStorage中移除
+    if (item && item.isBundle) {
+      let bundleItemsStorage = JSON.parse(localStorage.getItem("bundleItems")) || [];
+      const bundleIndex = bundleItemsStorage.findIndex(
+        (bundleItem) => bundleItem.bundle_id === item.bundle_id
+      );
+      
+      if (bundleIndex > -1) {
+        bundleItemsStorage.splice(bundleIndex, 1);
+        localStorage.setItem("bundleItems", JSON.stringify(bundleItemsStorage));
+      }
+    }
+    
     this.cart.splice(index, 1);
     this.saveCart();
     this.updateCartCount();
@@ -176,6 +212,9 @@ class CartManager {
     this.cart = [];
     this.saveCart();
     this.updateCartCount();
+    
+    // 同時清空bundleItems的localStorage
+    localStorage.removeItem("bundleItems");
   }
 
   // 獲取購物車項目
@@ -192,7 +231,11 @@ class CartManager {
       } else {
         // 營地房型價格
         const nights = this.calculateNights(item.checkIn, item.checkOut);
-        let itemPrice = item.price * nights;
+
+        // 從campsiteTypes中獲取房型價格
+        const campsiteType = this.getCampsiteTypeById(item.campsite_type_id);
+        console.log("campsiteType:" + campsiteType);
+        let itemPrice = campsiteType.campsite_price * nights;
 
         // 添加帳篷租借費用
         if (item.tentType && item.tentType.includes("rent")) {

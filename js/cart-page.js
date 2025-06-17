@@ -131,7 +131,9 @@ class CartPageManager {
             <div class="cart-item-info">
               <div class="info-row">
                 <span class="info-label">人數：</span>
-                <span class="info-value">${item.guests}人</span>
+                <span class="info-value">${
+                  campsiteType.campsite_people
+                }人</span>
               </div>
               ${
                 item.tentType
