@@ -95,15 +95,21 @@ async function filterCampsBySearchCriteria() {
 
     // 篩選出有符合人數條件房型的營地
     filteredCamps = filteredCamps.filter(async (camp) => {
-      console.log("camp_id:" + camp.camp_id);
+      console.log("camp_id1:" + camp.camp_id);
 
-      const campsiteTypes = await getCampsiteTypesByCampId(camp.camp_id);
+      const campsiteTypes = await getCampsiteTypesByCampId(
+        camp.camp_id,
+        guestCount
+      );
 
       // 檢查是否有房型可容納指定人數或更多
-      return campsiteTypes.some((type) => type.campsite_people >= guestCount);
+
+      return campsiteTypes.filter(
+        (type) => parseInt(type.campsite_people) >= parseInt(guestCount)
+      );
     });
 
-    console.log("人數篩選後的營地數量:" + filteredCamps.length);
+    // console.log("人數篩選後的營地數量:" + filteredCamps[0]);
   }
 
   return filteredCamps;
@@ -572,17 +578,17 @@ function updateCampsiteLinks() {
   const checkIn = urlParams.get("check-in");
   const checkOut = urlParams.get("check-out");
   const guests = urlParams.get("guests");
-  
+
   console.log("updateCampsiteLinks - 當前URL參數:", {
     checkIn,
     checkOut,
-    guests
+    guests,
   });
 
   // 更新所有營地卡片的連結
   const campLinks = document.querySelectorAll(".btn-view");
   console.log(`找到 ${campLinks.length} 個營地卡片連結`);
-  
+
   campLinks.forEach((link, index) => {
     // 獲取原始連結
     const originalHref = link.getAttribute("href");
@@ -621,7 +627,7 @@ function updateCampsiteLinks() {
     link.addEventListener("click", function (e) {
       // 阻止默認行為，以便在控制台查看參數（僅用於調試，實際使用時應移除）
       // e.preventDefault();
-      
+
       console.log(
         `點擊查看詳情，前往營地ID: ${campsiteId}，日期: ${checkIn} 至 ${checkOut}，人數: ${
           guests || "2"

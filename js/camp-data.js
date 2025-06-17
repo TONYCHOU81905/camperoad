@@ -79,8 +79,14 @@ async function createCampCard(camp) {
   );
   const starsHtml = generateStarsHtml(rating);
 
+  //確認URL夾帶資料
+  const urlParams = new URLSearchParams(window.location.search);
+  const guests = urlParams.get("guests");
+  const checkIn = urlParams.get("check-in");
+  const checkOut = urlParams.get("check-out");
+
   // 載入該營地的房型資料
-  const campsiteTypes = await getCampsiteTypesByCampId(camp.camp_id);
+  const campsiteTypes = await getCampsiteTypesByCampId(camp.camp_id, guests);
   const priceListHtml = generatePriceListHtml(campsiteTypes);
 
   // 格式化營地內容，限制長度並美化顯示
@@ -126,7 +132,9 @@ async function createCampCard(camp) {
                 </div>
             </div>
             <div class="camp-actions">
-                <a href="campsite-detail.html?id=${camp.camp_id}" class="btn-view btn-view-enhanced btn-view-full">
+                <a href="campsite-detail.html?id=${
+                  camp.camp_id
+                }&guests=${guests}&check-in=${checkIn}&check-out=${checkOut}" class="btn-view btn-view-enhanced btn-view-full">
                     <i class="fas fa-search-plus"></i> 查看詳情
                 </a>
             </div>
@@ -155,9 +163,14 @@ async function loadCampsiteTypesData() {
 }
 
 // 根據營地ID取得房型資料
-async function getCampsiteTypesByCampId(campId) {
+async function getCampsiteTypesByCampId(campId, guestCount) {
   const allTypes = await loadCampsiteTypesData();
-  const allTypeFilter = allTypes.filter((type) => type.camp_id == campId);
+  console.log("getCampsiteTypesByCampId:" + guestCount);
+
+  const allTypeFilter = allTypes.filter(
+    (type) =>
+      type.camp_id == campId && parseInt(type.campsite_people) >= guestCount
+  );
   return allTypeFilter;
 }
 
@@ -470,14 +483,15 @@ async function initCampData() {
   initCartFunctions();
 
   // 根據頁面渲染營地資料
-  if (
-    window.location.pathname.includes("index.html") ||
-    window.location.pathname === "/"
-  ) {
-    // 首頁顯示前3個營地
+  const currentPath = window.location.pathname;
+
+  if (currentPath.includes("index.html") || currentPath === "/") {
+    // 首頁始終只顯示前3個營地，無論URL是否帶有參數
     renderCampCards(campData.slice(0, 3));
     console.log("首頁顯示3個營地卡片");
-  } else if (window.location.pathname.includes("campsites.html")) {
+  } else if (currentPath.includes("campsites.html")) {
+    console.log("營地列表頁");
+
     // 營地列表頁顯示所有營地
     renderCampCards(campData);
   }
