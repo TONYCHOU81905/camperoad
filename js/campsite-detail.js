@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", function () {
     loadCampDetails();
 
     // 更新購物車數量顯示
-    const cart = JSON.parse(localStorage.getItem("cart")) || [];
+    const cart = JSON.parse(localStorage.getItem("campingCart")) || [];
     updateCartCount(cart.length);
   });
 });
@@ -134,12 +134,14 @@ function initBookingButton() {
   const bookButton = document.getElementById("btn-book");
 
   if (bookButton) {
+    // 修改按鈕文字為「查詢空房」
+    bookButton.innerHTML = '<i class="fas fa-search"></i> 查詢空房';
+
     bookButton.addEventListener("click", function () {
       // 獲取表單數據
       const checkInDate = document.getElementById("check-in-date").value;
       const checkOutDate = document.getElementById("check-out-date").value;
       const guests = document.getElementById("guests").value;
-      const tentType = document.getElementById("tent-type").value;
 
       // 驗證日期
       if (!checkInDate || !checkOutDate) {
@@ -148,14 +150,10 @@ function initBookingButton() {
       }
 
       // 獲取營地ID (從URL參數)
-      const urlParams = new URLSearchParams(window.location.search);
-      const campsiteId = urlParams.get("id") || "1";
+      const campsiteId = getCurrentCampsiteId();
 
-      // 構建預訂頁面URL
-      const bookingUrl = `campsite-booking.html?id=${campsiteId}&checkin=${checkInDate}&checkout=${checkOutDate}&guests=${guests}&tent=${tentType}`;
-
-      // 導航到預訂頁面
-      window.location.href = bookingUrl;
+      // 查詢並顯示符合條件的房型
+      loadCampsiteTypesByGuestCount();
     });
   }
 }
@@ -348,44 +346,53 @@ function addRoomTypesStyles() {
 
 /**
  * 添加到購物車
- * @param {string} typeId - 房型ID
+ * @param {string} campsite_type_id - 房型ID
  */
-function addToCart(typeId) {
+function addToCart(campsite_type_id) {
   // 獲取營地ID
-  const campsiteId = getCurrentCampsiteId();
+  const campId = getCurrentCampsiteId();
 
   // 獲取營地名稱
-  const campsiteName = document.querySelector(".campsite-title h1").textContent;
+  // const campsiteName = document.querySelector(".campsite-title h1").textContent;
 
   // 獲取入住和退房日期
   const checkInDate = document.getElementById("check-in-date").value;
   const checkOutDate = document.getElementById("check-out-date").value;
 
   // 獲取人數
-  const guestsInput = document.getElementById("guests");
-  const guests = guestsInput ? parseInt(guestsInput.value) : 2;
+  // const guestsInput = document.getElementById("guests");
+  // const guests = guestsInput ? parseInt(guestsInput.value) : 2;
+
+  console.log(
+    campsite_type_id,
+    // campsiteName,
+    checkInDate,
+    checkOutDate
+    // guestsInput,
+    // guests
+  );
 
   // 獲取帳篷類型（如果提供了typeId，則使用該typeId對應的房型名稱）
-  let tentType = document.getElementById("tent-type").value;
-  let price = 0;
+  // let tentType = document.getElementById("tent-type").value;
+  // let price = 0;
 
   // 如果提供了typeId，則從房型數據中獲取對應的房型名稱和價格
-  if (typeId) {
-    // 從全局變量中獲取房型數據
-    const selectedType = window.campsiteTypes.find(
-      (type) => type.campsite_type_id === typeId
-    );
-    if (selectedType) {
-      tentType = selectedType.campsite_name;
-      price = parseInt(selectedType.campsite_price);
-    }
-  } else {
-    // 獲取價格
-    const priceElement = document.querySelector(".price-value");
-    price = priceElement
-      ? parseInt(priceElement.textContent.replace(/[^0-9]/g, ""))
-      : 2000;
-  }
+  // if (campsite_type_id) {
+  //   // 從全局變量中獲取房型數據
+  //   const selectedType = window.campsiteTypes.find(
+  //     (type) => type.campsite_type_id === campsite_type_id
+  //   );
+  //   if (selectedType) {
+  //     tentType = selectedType.campsite_name;
+  //     price = parseInt(selectedType.campsite_price);
+  //   }
+  // } else {
+  //   // 獲取價格
+  //   const priceElement = document.querySelector(".price-value");
+  //   price = priceElement
+  //     ? parseInt(priceElement.textContent.replace(/[^0-9]/g, ""))
+  //     : 2000;
+  // }
 
   // 驗證日期
   if (!checkInDate || !checkOutDate) {
@@ -415,30 +422,32 @@ function addToCart(typeId) {
 
   // 創建購物車項目
   const cartItem = {
-    id: campsiteId,
-    typeId: typeId || "1", // 添加房型ID
-    name: campsiteName,
+    campId: campId,
+    campsite_type_id: campsite_type_id || "1", // 添加房型ID
+    campsite_num: 1,
+    // name: campsiteName,
     checkIn: checkInDate,
     checkOut: checkOutDate,
-    guests: guests,
-    tentType: tentType,
+
+    // guests: guests,
+    // tentType: tentType,
     days: days,
-    price: price,
-    total: price * days,
+    // price: price,
+    // total: price * days,
   };
 
   // 檢查本地存儲中是否已有購物車
-  let cart = JSON.parse(localStorage.getItem("cart")) || [];
+  let cart = JSON.parse(localStorage.getItem("campingCart")) || [];
 
   // 檢查是否已有不同營地或日期的項目
   const hasDifferentCampsite = cart.some(
     (item) =>
-      item.id !== campsiteId ||
+      item.campId !== campId ||
       item.checkIn !== checkInDate ||
       item.checkOut !== checkOutDate
   );
 
-  if (hasDifferentCampsite && cart.length > 0) {
+  if (hasDifferentCampsite) {
     // 詢問用戶是否要清空購物車
     if (
       confirm("購物車中已有不同營地或日期的項目，是否清空購物車並添加新項目？")
@@ -453,13 +462,14 @@ function addToCart(typeId) {
   cart.push(cartItem);
 
   // 保存到本地存儲
-  localStorage.setItem("cart", JSON.stringify(cart));
+  localStorage.setItem("campingCart", JSON.stringify(cart));
 
   // 更新購物車數量顯示
   updateCartCount(cart.length);
 
   // 顯示添加成功消息
   showAddToCartMessage();
+  console.log("已添加到購物車");
 }
 
 function getCurrentCampsiteId() {
@@ -940,6 +950,9 @@ async function loadCampDetails() {
 
       // 載入房型資料並根據人數篩選
       await loadCampsiteTypesByGuestCount();
+
+      // 更新顯示最低房價
+      await updateLowestPrice(campId);
     } else {
       console.error("找不到對應ID的營地:", campId);
     }
@@ -1030,4 +1043,37 @@ function generateStarsHtml(rating) {
   }
 
   return starsHtml;
+}
+
+/**
+ * 更新顯示最低房價
+ */
+async function updateLowestPrice(campId) {
+  try {
+    // 從JSON文件載入房型資料
+    const response = await fetch("/data/campsite_type.json");
+    if (!response.ok) {
+      throw new Error("Failed to fetch campsite types");
+    }
+
+    const data = await response.json();
+
+    // 篩選當前營地的房型
+    const campsiteTypes = data.filter((type) => type.camp_id == campId);
+
+    if (campsiteTypes.length > 0) {
+      // 找出最低房價
+      const lowestPrice = Math.min(
+        ...campsiteTypes.map((type) => type.campsite_price)
+      );
+
+      // 更新顯示
+      const priceElement = document.querySelector(".current-price");
+      if (priceElement) {
+        priceElement.textContent = `NT$ ${lowestPrice}`;
+      }
+    }
+  } catch (error) {
+    console.error("更新最低房價失敗:", error);
+  }
 }

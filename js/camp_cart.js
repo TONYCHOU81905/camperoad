@@ -2,13 +2,79 @@
 class CartManager {
   constructor() {
     this.cart = JSON.parse(localStorage.getItem("campingCart")) || [];
+    this.bundleItems = []; // 加購商品
+    this.campsiteTypes = []; // 營地房型資料
+    this.initialized = false; // 初始化完成標誌
     this.updateCartCount();
+    this.init(); // 初始化資料
+  }
+
+  // 初始化資料
+  async init() {
+    try {
+      await Promise.all([this.loadCampsiteTypes(), this.loadBundleItems()]);
+      this.initialized = true;
+      console.log("購物車資料初始化完成");
+      // 觸發初始化完成事件
+      const event = new CustomEvent("cartManagerInitialized");
+      document.dispatchEvent(event);
+    } catch (error) {
+      console.error("購物車資料初始化失敗:", error);
+    }
+  }
+
+  // 檢查初始化狀態
+  isInitialized() {
+    return this.initialized;
+  }
+
+  // 載入房型資料
+  async loadCampsiteTypes() {
+    try {
+      const response = await fetch("/data/campsite_type.json");
+      if (!response.ok) {
+        throw new Error("Failed to fetch campsite types");
+      }
+      this.campsiteTypes = await response.json();
+      console.log("房型資料載入成功", this.campsiteTypes.length);
+      return this.campsiteTypes;
+    } catch (error) {
+      console.error("載入房型資料失敗:", error);
+      this.campsiteTypes = [];
+      throw error;
+    }
+  }
+
+  // 載入加購商品資料
+  async loadBundleItems() {
+    try {
+      const response = await fetch("/data/bundle_item.json");
+      if (!response.ok) {
+        throw new Error("Failed to fetch bundle items");
+      }
+      this.bundleItems = await response.json();
+      console.log("加購商品資料載入成功", this.bundleItems.length);
+      return this.bundleItems;
+    } catch (error) {
+      console.error("載入加購商品資料失敗:", error);
+      this.bundleItems = [];
+      throw error;
+    }
   }
 
   // 添加營地到購物車
   addCampsite(campsiteData) {
-    const { id, name, price, checkIn, checkOut, guests, tentType, image } =
-      campsiteData;
+    const {
+      id,
+      name,
+      price,
+      checkIn,
+      checkOut,
+      guests,
+      tentType,
+      image,
+      campsite_type_id,
+    } = campsiteData;
 
     // 檢查是否有不同營地或不同日期的項目
     if (this.cart.length > 0) {
@@ -34,10 +100,10 @@ class CartManager {
     // 檢查是否已存在相同的項目
     const existingIndex = this.cart.findIndex(
       (item) =>
-        item.id === id &&
+        item.campId === id &&
         item.checkIn === checkIn &&
         item.checkOut === checkOut &&
-        item.tentType === tentType
+        item.campsite_type_id === campsite_type_id
     );
 
     if (existingIndex > -1) {
@@ -54,6 +120,40 @@ class CartManager {
         guests,
         tentType,
         image,
+        campsite_type_id,
+        addedAt: new Date().toISOString(),
+      });
+    }
+
+    this.saveCart();
+    this.updateCartCount();
+    this.showAddToCartMessage();
+    return true;
+  }
+
+  // 添加加購商品到購物車
+  addBundleItem(bundleItem) {
+    // 檢查購物車是否為空
+    if (this.cart.length === 0) {
+      alert("請先選擇營地房型再加購商品");
+      return false;
+    }
+
+    // 檢查是否已存在相同的加購商品
+    const existingIndex = this.cart.findIndex(
+      (item) => item.bundle_id === bundleItem.bundle_id
+    );
+
+    if (existingIndex > -1) {
+      // 更新數量
+      this.cart[existingIndex].quantity =
+        (this.cart[existingIndex].quantity || 1) + 1;
+    } else {
+      // 添加新項目
+      this.cart.push({
+        ...bundleItem,
+        quantity: 1,
+        isBundle: true,
         addedAt: new Date().toISOString(),
       });
     }
@@ -86,16 +186,22 @@ class CartManager {
   // 計算總價
   getTotalPrice() {
     return this.cart.reduce((total, item) => {
-      const nights = this.calculateNights(item.checkIn, item.checkOut);
-      let itemPrice = item.price * nights;
+      if (item.isBundle) {
+        // 加購商品價格
+        return total + item.bundle_price * (item.quantity || 1);
+      } else {
+        // 營地房型價格
+        const nights = this.calculateNights(item.checkIn, item.checkOut);
+        let itemPrice = item.price * nights;
 
-      // 添加帳篷租借費用
-      if (item.tentType.includes("rent")) {
-        const tentPrice = this.getTentPrice(item.tentType);
-        itemPrice += tentPrice * nights;
+        // 添加帳篷租借費用
+        if (item.tentType && item.tentType.includes("rent")) {
+          const tentPrice = this.getTentPrice(item.tentType);
+          itemPrice += tentPrice * nights;
+        }
+
+        return total + itemPrice;
       }
-
-      return total + itemPrice;
     }, 0);
   }
 
@@ -170,6 +276,45 @@ class CartManager {
         }
       }, 300);
     }, 3000);
+  }
+
+  // 獲取特定營地的加購商品
+  getBundleItemsByCampId(campId) {
+    console.log("bundleItems_length:" + this.bundleItems.length);
+
+    return this.bundleItems.filter((item) => item.camp_id == campId);
+  }
+
+  // 根據ID獲取房型資料
+  getCampsiteTypeById(id) {
+    // 檢查campsiteTypes是否已載入
+    if (!this.campsiteTypes || this.campsiteTypes.length === 0) {
+      console.warn("房型資料尚未載入完成，返回預設值");
+      return {
+        id: id,
+        name: "載入中...",
+        price: 0,
+        image: "/images/campsite/default.jpg",
+        description: "資料載入中，請稍候...",
+      };
+    }
+
+    console.log("a" + this.campsiteTypes);
+
+    const campsiteType = this.campsiteTypes.find(
+      (type) => type.campsite_type_id == id
+    );
+    if (!campsiteType) {
+      console.warn(`找不到ID為${id}的房型資料`);
+      return {
+        id: id,
+        name: "未知房型",
+        price: 0,
+        image: "/images/campsite/default.jpg",
+        description: "找不到此房型資料",
+      };
+    }
+    return campsiteType;
   }
 }
 
