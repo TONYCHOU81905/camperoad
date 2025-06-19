@@ -1,86 +1,109 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
-
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>露途 - 多角色露營預訂平台</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono&display=swap"
-    rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <link rel="stylesheet" href="css/style.css" />
-  <link rel="stylesheet" href="css/role-system.css" />
-</head>
-
-<body>
-  <header class="site-header">
-    <div class="container">
-      <div class="logo">
-        <a href="index.html">
-          <img src="images/logo.svg" alt="露途 Logo" />
-          <span>露途</span>
-        </a>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>露途 - 多角色露營預訂平台</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/role-system.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container">
+        <div class="logo">
+          <a href="index.html">
+            <img src="images/logo.svg" alt="露途 Logo" />
+            <!-- <span>露途</span> -->
+          </a>
+        </div>
+        <nav class="main-nav">
+          <ul>
+            <li><a href="index.html">營地預訂</a></li>
+            <li><a href="shop.html">裝備商城</a></li>
+            <li><a href="camp-guides.html">論壇攻略</a></li>
+            <li><a href="user-profile.html">關於我們</a></li>
+          </ul>
+        </nav>
+        <div class="user-actions">
+          <a href="#" class="btn-search"><i class="fas fa-search"></i></a>
+          <a href="cart.html" class="btn-cart"
+            ><i class="fas fa-shopping-cart"></i
+            ><span class="cart-count">0</span></a
+          >
+          <a href="login.html" class="btn-login">登入 / 註冊</a>
+        </div>
+        <button class="mobile-menu-toggle">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
       </div>
-      <nav class="main-nav">
-        <ul>
-          <li><a href="campsites.html">營地預訂</a></li>
-          <li><a href="shop.html">裝備商城</a></li>
-          <li><a href="camp-guides.html">露營攻略</a></li>
-          <li><a href="user-profile.html">關於我們</a></li>
-        </ul>
-      </nav>
-      <div class="user-actions">
-        <a href="#" class="btn-search"><i class="fas fa-search"></i></a>
-        <a href="cart.html" class="btn-cart"><i class="fas fa-shopping-cart"></i><span class="cart-count">0</span></a>
-        <a href="login.html" class="btn-login">登入 / 註冊</a>
-      </div>
-      <button class="mobile-menu-toggle">
-        <span></span>
-        <span></span>
-        <span></span>
-      </button>
-    </div>
   </header>
 
-  <section class="hero">
-    <div class="container">
-      <div class="hero-content">
-        <h1>探索自然，體驗野趣</h1>
-        <p>精選全台優質露營地，一站式預訂服務</p>
-        <div class="search-box">
-          <form action="#" method="get">
-            <div class="search-group">
-              <label for="location">地區</label>
-              <select id="location" name="location">
-                <option value="">選擇地區</option>
-                <option value="north">北部</option>
-                <option value="central">中部</option>
-                <option value="south">南部</option>
-                <option value="east">東部</option>
-              </select>
-            </div>
-            <div class="search-group">
-              <label for="check-in">入住日期</label>
-              <input type="date" id="check-in" name="check-in" />
-            </div>
-            <div class="search-group">
-              <label for="check-out">退房日期</label>
-              <input type="date" id="check-out" name="check-out" />
-            </div>
-            <div class="search-group">
-              <label for="guests">人數</label>
-              <select id="guests" name="guests">
-                <option value="1">1人</option>
-                <option value="2">2人</option>
-                <option value="3">3人</option>
-                <option value="4">4人</option>
-                <option value="5+">5人以上</option>
-              </select>
-            </div>
-            <button type="submit" class="btn-search-submit">搜尋營地</button>
-          </form>
+    <section class="hero">
+      <div class="container">
+        <div class="hero-content">
+          <h1>探索自然，體驗野趣</h1>
+          <p>精選全台優質露營地，一站式預訂服務</p>
+          <div class="search-box" >
+            <form action="search-results.html" method="get">
+              <div class="search-group">
+                <label for="location">地區</label>
+                <select id="location" name="location">
+                  <option value="">選擇地區</option>
+                  <!-- 地區選項將由JavaScript動態載入 -->
+                </select>
+              </div>
+              <div class="search-group">
+                <label for="county">縣市</label>
+                <select id="county" name="county">
+                  <option value="">選擇縣市</option>
+                </select>
+              </div>
+              <div class="search-group">
+                <label for="district">鄉鎮市區</label>
+                <select id="district" name="district">
+                  <option value="">請先選擇縣市</option>
+                </select>
+              </div>
+              <div class="search-group">
+                <label for="check-in">入住日期</label>
+                <input type="date" id="check-in" name="check-in" />
+              </div>
+              <div class="search-group">
+                <label for="check-out">退房日期</label>
+                <input type="date" id="check-out" name="check-out" />
+              </div>
+              <div class="search-group">
+                <label for="guests">人數</label>
+                <select id="guests" name="guests">
+                  <option value="1">1人</option>
+                  <option value="2">2人</option>
+                  <option value="3">3人</option>
+                  <option value="4">4人</option>
+                  <option value="5">5人</option>
+                  <option value="6">6人以上</option>
+                </select>
+              </div>
+              <button
+                type="submit"
+                class="btn-search-submit"
+                id="room_search_btn"
+              >
+                搜尋營地
+              </button>
+            </form>
+          </div>
         </div>
       </div>
     </div>
@@ -89,73 +112,11 @@
   <section class="featured-camps">
     <div class="container">
       <h2 class="section-title">熱門營地推薦</h2>
-      <div class="camp-cards">
-        <div class="camp-card">
-          <div class="camp-image">
-            <img src="images/camp-1.jpg" alt="山林星空營地" />
-            <span class="camp-tag">人氣王</span>
-          </div>
-          <div class="camp-info">
-            <h3>山林星空營地</h3>
-            <p class="camp-location">
-              <i class="fas fa-map-marker-alt"></i> 新北市三峽區
-            </p>
-            <div class="camp-features">
-              <span><i class="fas fa-mountain"></i> 山景</span>
-              <span><i class="fas fa-shower"></i> 衛浴</span>
-              <span><i class="fas fa-utensils"></i> 餐廳</span>
-            </div>
-            <div class="camp-footer">
-              <div class="camp-price">NT$ 2,800 <span>/ 晚</span></div>
-              <a href="#" class="btn-view">查看詳情</a>
-            </div>
-          </div>
-        </div>
-        <div class="camp-card">
-          <div class="camp-image">
-            <img src="images/camp-2.jpg" alt="森林溪畔營地" />
-            <span class="camp-tag">新上架</span>
-          </div>
-          <div class="camp-info">
-            <h3>森林溪畔營地</h3>
-            <p class="camp-location">
-              <i class="fas fa-map-marker-alt"></i> 宜蘭縣大同鄉
-            </p>
-            <div class="camp-features">
-              <span><i class="fas fa-tint"></i> 溪流</span>
-              <span><i class="fas fa-campground"></i> 搭棚</span>
-              <span><i class="fas fa-fire"></i> 營火</span>
-            </div>
-            <div class="camp-footer">
-              <div class="camp-price">NT$ 3,200 <span>/ 晚</span></div>
-              <a href="#" class="btn-view">查看詳情</a>
-            </div>
-          </div>
-        </div>
-        <div class="camp-card">
-          <div class="camp-image">
-            <img src="images/camp-3.jpg" alt="高原草地營地" />
-            <span class="camp-tag">促銷中</span>
-          </div>
-          <div class="camp-info">
-            <h3>高原草地營地</h3>
-            <p class="camp-location">
-              <i class="fas fa-map-marker-alt"></i> 南投縣仁愛鄉
-            </p>
-            <div class="camp-features">
-              <span><i class="fas fa-cloud"></i> 雲海</span>
-              <span><i class="fas fa-bed"></i> 帳篷</span>
-              <span><i class="fas fa-wifi"></i> 網路</span>
-            </div>
-            <div class="camp-footer">
-              <div class="camp-price">NT$ 2,500 <span>/ 晚</span></div>
-              <a href="#" class="btn-view">查看詳情</a>
-            </div>
-          </div>
-        </div>
+      <div class="camp-cards" id="camp-cards">
+        <!-- 營地卡片將由JavaScript動態載入 -->
       </div>
       <div class="view-more">
-        <a href="#" class="btn-more">查看更多營地</a>
+        <a href="search-results.html" class="btn-more">查看更多營地</a>
       </div>
     </div>
   </section>
@@ -164,21 +125,21 @@
     <div class="container">
       <h2 class="section-title">露營裝備商城</h2>
       <div class="shop-categories">
-        <a href="#" class="shop-category">
+        <a href="shop.html?type=rent" class="shop-category">
           <div class="category-icon">
             <i class="fas fa-exchange-alt"></i>
           </div>
           <h3>裝備租借</h3>
           <p>短期露營的最佳選擇</p>
         </a>
-        <a href="#" class="shop-category">
+        <a href="shop.html?type=buy" class="shop-category">
           <div class="category-icon">
             <i class="fas fa-tag"></i>
           </div>
           <h3>全新商品</h3>
           <p>優質露營裝備一次購足</p>
         </a>
-        <a href="#" class="shop-category">
+        <a href="shop.html?type=used" class="shop-category">
           <div class="category-icon">
             <i class="fas fa-sync-alt"></i>
           </div>
@@ -186,96 +147,8 @@
           <p>環保經濟的實用選擇</p>
         </a>
       </div>
-      <div class="product-preview">
-        <div class="product-card">
-          <div class="product-image">
-            <img src="images/product-1.jpg" alt="四人帳篷" />
-            <span class="product-tag">熱銷</span>
-          </div>
-          <div class="product-info">
-            <h3>四季型四人帳篷</h3>
-            <div class="product-rating">
-              <i class="fas fa-star"></i>
-              <i class="fas fa-star"></i>
-              <i class="fas fa-star"></i>
-              <i class="fas fa-star"></i>
-              <i class="fas fa-star-half-alt"></i>
-              <span>(32)</span>
-            </div>
-            <div class="product-price">
-              <span class="current-price">NT$ 4,500</span>
-              <span class="original-price">NT$ 5,200</span>
-            </div>
-            <button class="btn-add-cart">加入購物車</button>
-          </div>
-        </div>
-        <div class="product-card">
-          <div class="product-image">
-            <img src="images/product-2.jpg" alt="睡袋" />
-          </div>
-          <div class="product-info">
-            <h3>輕量保暖睡袋</h3>
-            <div class="product-rating">
-              <i class="fas fa-star"></i>
-              <i class="fas fa-star"></i>
-              <i class="fas fa-star"></i>
-              <i class="fas fa-star"></i>
-              <i class="far fa-star"></i>
-              <span>(18)</span>
-            </div>
-            <div class="product-price">
-              <span class="current-price">NT$ 2,800</span>
-            </div>
-            <button class="btn-add-cart">加入購物車</button>
-          </div>
-        </div>
-        <div class="product-card">
-          <div class="product-image">
-            <img src="images/product-3.jpg" alt="摺疊桌椅組" />
-            <span class="product-tag product-tag-rent">可租借</span>
-          </div>
-          <div class="product-info">
-            <h3>戶外摺疊桌椅組</h3>
-            <div class="product-rating">
-              <i class="fas fa-star"></i>
-              <i class="fas fa-star"></i>
-              <i class="fas fa-star"></i>
-              <i class="fas fa-star"></i>
-              <i class="fas fa-star"></i>
-              <span>(47)</span>
-            </div>
-            <div class="product-price">
-              <span class="current-price">NT$ 3,600</span>
-              <span class="rent-price">租借: NT$ 600/天</span>
-            </div>
-            <button class="btn-add-cart">加入購物車</button>
-          </div>
-        </div>
-        <div class="product-card">
-          <div class="product-image">
-            <img src="images/product-4.jpg" alt="登山背包" />
-            <span class="product-tag product-tag-used">二手</span>
-          </div>
-          <div class="product-info">
-            <h3>專業登山背包 45L</h3>
-            <div class="product-rating">
-              <i class="fas fa-star"></i>
-              <i class="fas fa-star"></i>
-              <i class="fas fa-star"></i>
-              <i class="fas fa-star-half-alt"></i>
-              <i class="far fa-star"></i>
-              <span>(8)</span>
-            </div>
-            <div class="product-price">
-              <span class="current-price">NT$ 2,100</span>
-              <span class="original-price">NT$ 4,200</span>
-            </div>
-            <button class="btn-add-cart">加入購物車</button>
-          </div>
-        </div>
-      </div>
       <div class="view-more">
-        <a href="#" class="btn-more">前往商城</a>
+        <a href="shop.html" class="btn-more">前往商城</a>
       </div>
     </div>
   </section>
@@ -371,7 +244,7 @@
       <div class="cta-content">
         <h2>準備好開始您的露營冒險了嗎？</h2>
         <p>立即註冊，獲得新會員專屬優惠券！</p>
-        <a href="#" class="btn-cta">立即註冊</a>
+        <a href="login.html" class="btn-cta">立即註冊</a>
       </div>
     </div>
   </section>
@@ -405,14 +278,14 @@
           <div class="footer-column">
             <h3>商城服務</h3>
             <ul>
-              <li><a href="#">裝備租借</a></li>
+              <!-- <li><a href="#">裝備租借</a></li> -->
               <li><a href="#">全新商品</a></li>
-              <li><a href="#">二手市集</a></li>
+              <!-- <li><a href="#">二手市集</a></li> -->
               <li><a href="#">配送說明</a></li>
             </ul>
           </div>
           <div class="footer-column">
-            <h3>幫助中心1</h3>
+            <h3>幫助中心</h3>
             <ul>
               <li><a href="#">常見問題</a></li>
               <li><a href="#">預訂指南</a></li>
@@ -447,6 +320,7 @@
   </div>
 
   <script src="js/main.js"></script>
+  <script src="js/camp-data.js"></script>
+  <script src="js/header-auth.js"></script>
 </body>
-
 </html>

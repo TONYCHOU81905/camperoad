@@ -3,7 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>露營攻略 - 露途andychen</title>
+
+    <title>論壇攻略 - 露途</title>
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -16,7 +18,361 @@
     />
     <link rel="stylesheet" href="css/style.css" />
     <link rel="stylesheet" href="css/role-system.css" />
+    <style>
+      /* 論壇攻略頁面專用樣式 */
+      .guide-categories {
+        background-color: white;
+        padding: 20px 0;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 30px;
+      }
+
+      .category-tabs {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      .category-tab {
+        padding: 12px 24px;
+        border: 2px solid #3a5a40;
+        background-color: white;
+        color: #3a5a40;
+        border-radius: 25px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.95rem;
+      }
+
+      .category-tab:hover {
+        background-color: #f0f8f0;
+        transform: translateY(-2px);
+      }
+
+      .category-tab.active {
+        background-color: #3a5a40;
+        color: white;
+        box-shadow: 0 4px 8px rgba(58, 90, 64, 0.3);
+      }
+
+      .guide-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 25px;
+        margin-bottom: 40px;
+      }
+
+      .guide-card {
+        background-color: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        border: 1px solid #f0f0f0;
+      }
+
+      .guide-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+      }
+
+      .guide-image {
+        position: relative;
+        height: 220px;
+        overflow: hidden;
+      }
+
+      .guide-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+      }
+
+      .guide-card:hover .guide-image img {
+        transform: scale(1.05);
+      }
+
+      .guide-tag {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background-color: #e76f51;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      .guide-info {
+        padding: 20px;
+      }
+
+      .guide-info h3 {
+        margin-bottom: 12px;
+        font-size: 1.2rem;
+        line-height: 1.4;
+      }
+
+      .guide-info h3 a {
+        color: #333;
+        transition: color 0.3s ease;
+      }
+
+      .guide-info h3 a:hover {
+        color: #3a5a40;
+      }
+
+      .guide-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        font-size: 0.9rem;
+        color: #666;
+      }
+
+      .guide-author {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .guide-author img {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        object-fit: cover;
+      }
+
+      .guide-excerpt {
+        color: #666;
+        line-height: 1.6;
+        margin-bottom: 15px;
+        font-size: 0.95rem;
+      }
+
+      .guide-stats {
+        display: flex;
+        gap: 15px;
+        font-size: 0.85rem;
+        color: #999;
+      }
+
+      .guide-stats span {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .guide-stats i {
+        font-size: 0.8rem;
+      }
+
+      .guide-layout {
+        display: grid;
+        grid-template-columns: 1fr 300px;
+        gap: 40px;
+      }
+
+      .guide-filter {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        padding: 15px 20px;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      }
+
+      .guide-count {
+        color: #666;
+        font-size: 0.9rem;
+      }
+
+      .guide-count span {
+        font-weight: 600;
+        color: #3a5a40;
+      }
+
+      @media (max-width: 992px) {
+        .guide-layout {
+          grid-template-columns: 1fr;
+          gap: 30px;
+        }
+
+        .guide-cards {
+          grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        }
+
+        .category-tabs {
+          gap: 8px;
+        }
+
+        .category-tab {
+          padding: 10px 18px;
+          font-size: 0.9rem;
+        }
+      }
+
+      /* 搜尋欄樣式改進 */
+      .guide-search-box {
+        margin-top: 30px;
+      }
+
+      .search-form {
+        max-width: 500px;
+        margin: 0 auto;
+      }
+
+      .search-input-wrapper {
+        position: relative;
+        display: flex;
+        background: white;
+        border-radius: 50px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+        transition: all 0.3s ease;
+      }
+
+      .search-input-wrapper:hover {
+        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2);
+        transform: translateY(-2px);
+      }
+
+      .search-input-wrapper:focus-within {
+        box-shadow: 0 12px 35px rgba(58, 90, 64, 0.3);
+        transform: translateY(-2px);
+      }
+
+      #searchInput {
+        flex: 1;
+        padding: 18px 25px;
+        border: none;
+        outline: none;
+        font-size: 1rem;
+        background: transparent;
+        color: #333;
+      }
+
+      #searchInput::placeholder {
+        color: #999;
+        font-weight: 400;
+      }
+
+      .btn-search-submit {
+        padding: 18px 25px;
+        background: linear-gradient(135deg, #3a5a40, #588157);
+        border: none;
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 60px;
+      }
+
+      .btn-search-submit:hover {
+        background: linear-gradient(135deg, #2d4a33, #4a6b4a);
+        transform: scale(1.05);
+      }
+
+      .btn-search-submit i {
+        font-size: 1.1rem;
+      }
+
+      /* 會員顯示區域樣式 */
+      .user-profile-info {
+        display: flex;
+        align-items: center;
+      }
+
+      .user-profile-link {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 15px;
+        border-radius: 25px;
+        background: rgba(255, 255, 255, 0.1);
+        transition: all 0.3s ease;
+        text-decoration: none;
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .user-profile-link:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      .user-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+      }
+
+      .user-name {
+        font-size: 0.9rem;
+        font-weight: 500;
+        white-space: nowrap;
+      }
+
+      @media (max-width: 768px) {
+        .guide-cards {
+          grid-template-columns: 1fr;
+        }
+
+        .guide-filter {
+          flex-direction: column;
+          gap: 10px;
+          align-items: stretch;
+        }
+
+        .category-tabs {
+          justify-content: flex-start;
+          overflow-x: auto;
+          padding-bottom: 10px;
+        }
+
+        .category-tab {
+          flex-shrink: 0;
+        }
+
+        .search-input-wrapper {
+          border-radius: 25px;
+        }
+
+        #searchInput {
+          padding: 15px 20px;
+          font-size: 0.9rem;
+        }
+
+        .btn-search-submit {
+          padding: 15px 20px;
+          min-width: 50px;
+        }
+
+        .user-name {
+          display: none;
+        }
+
+        .user-profile-link {
+          padding: 8px;
+          gap: 0;
+        }
+      }
+    </style>
   </head>
+
   <body>
     <header class="site-header">
       <div class="container">
@@ -30,13 +386,12 @@
           <ul>
             <li><a href="campsites.html">營地預訂</a></li>
             <li><a href="shop.html">裝備商城</a></li>
-            <li><a href="camp-guides.html" class="active">露營攻略</a></li>
+            <li><a href="camp-guides.html" class="active">論壇攻略</a></li>
             <li><a href="#">關於我們</a></li>
           </ul>
         </nav>
         <div class="user-actions">
-          <a href="#" class="btn-search"><i class="fas fa-search"></i></a>
-          <a href="#" class="btn-cart"
+          <a href="cart.html" class="btn-cart"
             ><i class="fas fa-shopping-cart"></i
             ><span class="cart-count">0</span></a
           >
@@ -53,14 +408,21 @@
     <section class="guide-hero">
       <div class="container">
         <div class="guide-hero-content">
-          <h1>露營攻略</h1>
+          <h1>論壇攻略</h1>
           <p>分享露營知識、經驗與技巧，讓每次露營都成為美好回憶</p>
           <div class="guide-search-box">
-            <form action="#" method="get">
-              <input type="text" placeholder="搜尋攻略文章..." name="search" />
-              <button type="submit" class="btn-search-submit">
-                <i class="fas fa-search"></i>
-              </button>
+            <form action="#" method="get" class="search-form">
+              <div class="search-input-wrapper">
+                <input
+                  type="text"
+                  placeholder="搜尋攻略文章..."
+                  name="search"
+                  id="searchInput"
+                />
+                <button type="submit" class="btn-search-submit" id="searchBtn">
+                  <i class="fas fa-search"></i>
+                </button>
+              </div>
             </form>
           </div>
         </div>
@@ -146,7 +508,11 @@
                   <span class="guide-tag">裝備選擇</span>
                 </div>
                 <div class="guide-info">
-                  <h3><a href="#">四季帳篷選購指南：如何選擇適合的帳篷</a></h3>
+                  <h3>
+                    <a href="guide-detail.html"
+                      >四季帳篷選購指南：如何選擇適合的帳篷</a
+                    >
+                  </h3>
                   <div class="guide-meta">
                     <span class="guide-author">
                       <img src="images/user-2.jpg" alt="作者頭像" />
@@ -173,7 +539,9 @@
                   <span class="guide-tag">野炊料理</span>
                 </div>
                 <div class="guide-info">
-                  <h3><a href="#">10道簡單美味的露營料理食譜</a></h3>
+                  <h3>
+                    <a href="guide-detail.html">10道簡單美味的露營料理食譜</a>
+                  </h3>
                   <div class="guide-meta">
                     <span class="guide-author">
                       <img src="images/user-3.jpg" alt="作者頭像" />
@@ -200,7 +568,11 @@
                   <span class="guide-tag">露營經驗</span>
                 </div>
                 <div class="guide-info">
-                  <h3><a href="#">親子露營：如何讓孩子愛上大自然</a></h3>
+                  <h3>
+                    <a href="guide-detail.html"
+                      >親子露營：如何讓孩子愛上大自然</a
+                    >
+                  </h3>
                   <div class="guide-meta">
                     <span class="guide-author">
                       <img src="images/user-1.jpg" alt="作者頭像" />
@@ -227,7 +599,11 @@
                   <span class="guide-tag">營地推薦</span>
                 </div>
                 <div class="guide-info">
-                  <h3><a href="#">北部五大秘境營地：遠離人群的寧靜天堂</a></h3>
+                  <h3>
+                    <a href="guide-detail.html"
+                      >北部五大秘境營地：遠離人群的寧靜天堂</a
+                    >
+                  </h3>
                   <div class="guide-meta">
                     <span class="guide-author">
                       <img src="images/user-2.jpg" alt="作者頭像" />
@@ -254,7 +630,11 @@
                   <span class="guide-tag">新手指南</span>
                 </div>
                 <div class="guide-info">
-                  <h3><a href="#">露營安全指南：戶外活動的注意事項</a></h3>
+                  <h3>
+                    <a href="guide-detail.html"
+                      >露營安全指南：戶外活動的注意事項</a
+                    >
+                  </h3>
                   <div class="guide-meta">
                     <span class="guide-author">
                       <img src="images/user-3.jpg" alt="作者頭像" />
@@ -423,6 +803,14 @@
         // 分類標籤切換功能
         const categoryTabs = document.querySelectorAll(".category-tab");
         const guideCards = document.querySelectorAll(".guide-card");
+        const guideCount = document.querySelector(".guide-count span");
+
+        function updateGuideCount() {
+          const visibleCards = document.querySelectorAll(
+            ".guide-card[style*='block'], .guide-card:not([style*='none'])"
+          );
+          guideCount.textContent = visibleCards.length;
+        }
 
         categoryTabs.forEach((tab) => {
           tab.addEventListener("click", function () {
@@ -441,9 +829,80 @@
                 card.style.display = "none";
               }
             });
+
+            updateGuideCount();
           });
         });
+
+        // 搜尋功能
+        const searchInput = document.getElementById("searchInput");
+        const searchForm = document.querySelector(".search-form");
+
+        function performSearch(searchTerm) {
+          const term = searchTerm.toLowerCase().trim();
+          let visibleCount = 0;
+
+          guideCards.forEach((card) => {
+            const title = card.querySelector("h3 a").textContent.toLowerCase();
+            const excerpt = card
+              .querySelector(".guide-excerpt")
+              .textContent.toLowerCase();
+            const author = card
+              .querySelector(".guide-author span")
+              .textContent.toLowerCase();
+
+            if (
+              term === "" ||
+              title.includes(term) ||
+              excerpt.includes(term) ||
+              author.includes(term)
+            ) {
+              card.style.display = "block";
+              visibleCount++;
+            } else {
+              card.style.display = "none";
+            }
+          });
+
+          guideCount.textContent = visibleCount;
+
+          // 重置分類標籤
+          if (term !== "") {
+            categoryTabs.forEach((t) => t.classList.remove("active"));
+          }
+        }
+
+        // 即時搜尋
+        searchInput.addEventListener("input", function () {
+          performSearch(this.value);
+        });
+
+        // 表單提交處理
+        searchForm.addEventListener("submit", function (e) {
+          e.preventDefault();
+          performSearch(searchInput.value);
+        });
+
+        // 搜尋按鈕點擊效果
+        const searchBtn = document.getElementById("searchBtn");
+        searchBtn.addEventListener("click", function (e) {
+          e.preventDefault();
+          performSearch(searchInput.value);
+
+          // 添加點擊動畫效果
+          this.style.transform = "scale(0.95)";
+          setTimeout(() => {
+            this.style.transform = "scale(1.05)";
+          }, 100);
+          setTimeout(() => {
+            this.style.transform = "scale(1)";
+          }, 200);
+        });
+
+        // 初始化計數
+        updateGuideCount();
       });
     </script>
+    <script src="js/camp-data.js"></script>
   </body>
 </html>

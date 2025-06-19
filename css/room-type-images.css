@@ -1,0 +1,171 @@
+/* 房型圖片管理樣式 */
+.image-cell {
+  width: 120px;
+  padding: 8px !important;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.image-container {
+  position: relative;
+  display: inline-block;
+  width: 100px;
+  height: 80px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f8f9fa;
+}
+
+.image-container:hover {
+  border-color: #007bff;
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.2);
+}
+
+.thumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.thumbnail:hover {
+  transform: scale(1.05);
+}
+
+.image-actions {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.image-container:hover .image-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.image-actions .btn {
+  padding: 4px 6px;
+  font-size: 12px;
+  border-radius: 4px;
+}
+
+.image-placeholder {
+  width: 100px;
+  height: 80px;
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: #f8f9fa;
+  color: #6c757d;
+  transition: all 0.2s ease;
+}
+
+.image-placeholder:hover {
+  border-color: #007bff;
+  background: #e3f2fd;
+  color: #007bff;
+}
+
+.image-placeholder i {
+  font-size: 20px;
+  margin-bottom: 4px;
+}
+
+.image-placeholder span {
+  font-size: 10px;
+  font-weight: 500;
+}
+
+/* 圖片預覽模態框樣式 */
+#imageModal .modal-body {
+  padding: 20px;
+}
+
+#imageModal .modal-body img {
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* 營地照片上傳區域樣式 */
+.camp-images-container {
+  margin-top: 10px;
+}
+
+.image-upload-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 15px;
+  max-width: 600px;
+}
+
+.image-upload-item {
+  text-align: center;
+}
+
+.image-upload-item label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: #666;
+  margin-bottom: 5px;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+  .image-cell {
+    width: 80px;
+  }
+
+  .image-container,
+  .image-placeholder {
+    width: 70px;
+    height: 60px;
+  }
+
+  .image-placeholder i {
+    font-size: 16px;
+  }
+
+  .image-placeholder span {
+    font-size: 8px;
+  }
+
+  .image-upload-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+}
+
+/* 表格樣式優化 */
+.room-types-table-container {
+  overflow-x: auto;
+}
+
+.room-types-table-container table {
+  min-width: 1000px;
+}
+
+.room-types-table-container th,
+.room-types-table-container td {
+  white-space: nowrap;
+}
+
+.room-types-table-container .image-cell {
+  white-space: normal;
+}

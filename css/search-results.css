@@ -1,0 +1,254 @@
+/* 營地卡片樣式 */
+/* 搜尋結果頁面樣式 */
+
+/* 搜尋結果頁頭部分 */
+.search-results-header {
+  background-color: #f4f1de;
+  padding: 30px 0;
+  margin-bottom: 30px;
+  border-bottom: 1px solid #e0d7c7;
+}
+
+.results-title {
+  margin-bottom: 20px;
+}
+
+.results-title h1 {
+  margin-bottom: 10px;
+  color: #3a5a40;
+}
+
+.search-summary {
+  font-size: 1.1rem;
+  color: #666;
+}
+
+.search-summary strong {
+  color: #3a5a40;
+  font-weight: 700;
+}
+
+.search-criteria {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 20px;
+  padding: 15px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.criteria-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: #f8f5f0;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.criteria-label {
+  font-weight: 500;
+  color: #3a5a40;
+  margin-right: 5px;
+}
+
+.criteria-value {
+  color: #666;
+}
+
+.btn-modify-search {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #a68a64;
+  color: white;
+  border-radius: 4px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-modify-search:hover {
+  background-color: #8a7353;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(166, 138, 100, 0.2);
+}
+
+/* 無搜尋結果樣式 */
+.no-results {
+  text-align: center;
+  padding: 60px 20px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  margin: 30px 0;
+}
+
+.no-results-icon {
+  font-size: 3rem;
+  color: #a68a64;
+  margin-bottom: 20px;
+}
+
+.no-results h2 {
+  color: #3a5a40;
+  margin-bottom: 15px;
+}
+
+.no-results p {
+  color: #666;
+  margin-bottom: 25px;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* 結果頭部樣式與卡片間隔 */
+.results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 0;
+  margin-bottom: 25px;
+  border-bottom: 1px solid #e0d7c7;
+}
+
+.results-count {
+  font-size: 1.1rem;
+  color: #666;
+}
+
+.results-count strong {
+  color: #3a5a40;
+  font-weight: 700;
+}
+
+.results-sort {
+  display: flex;
+  align-items: center;
+}
+
+.results-sort label {
+  margin-right: 10px;
+  font-weight: 500;
+  color: #3a5a40;
+  width: 150px;
+}
+
+#sort-by {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: #fff;
+  color: #333;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+#sort-by:focus {
+  outline: none;
+  border-color: #3a5a40;
+  box-shadow: 0 0 0 2px rgba(58, 90, 64, 0.2);
+}
+
+/* 營地卡片樣式 */
+.camp-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 30px;
+  margin-bottom: 40px;
+}
+
+/* 改進查看詳情按鈕樣式 */
+.camp-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 15px;
+}
+
+.btn-view {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  border: 1px solid #3a5a40;
+  border-radius: 20px;
+  color: #3a5a40;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 180px;
+}
+
+.btn-view i {
+  margin-right: 6px;
+  font-size: 0.9rem;
+}
+
+.btn-view:hover {
+  background-color: #3a5a40;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(58, 90, 64, 0.2);
+}
+
+/* 增強版查看詳情按鈕 */
+.btn-view-enhanced {
+  background-color: #f8f5f0;
+  border: 2px solid #3a5a40;
+  border-radius: 25px;
+  color: #3a5a40;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  padding: 10px 18px;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+}
+
+.btn-view-enhanced i {
+  font-size: 1rem;
+  margin-right: 8px;
+  transition: transform 0.3s ease;
+}
+
+.btn-view-enhanced:hover {
+  background-color: #3a5a40;
+  color: white;
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 0 6px 12px rgba(58, 90, 64, 0.25);
+}
+
+.btn-view-enhanced:hover i {
+  transform: scale(1.2);
+}
+
+/* 全寬查看詳情按鈕 */
+.camp-actions {
+  margin-top: 0;
+  width: 100%;
+  margin-top: auto;
+}
+
+.btn-view-full {
+  width: 100%;
+  max-width: 100%;
+  border-radius: 0 0 8px 8px;
+  margin-top: 0;
+  padding: 12px 20px;
+  font-size: 1rem;
+  text-align: center;
+  background-color: #3a5a40;
+  color: white;
+  border: none;
+  box-shadow: none;
+  transition: all 0.3s ease;
+}
+
+.btn-view-full:hover {
+  background-color: #2d4531;
+  transform: translateY(0);
+  box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.1);
+}

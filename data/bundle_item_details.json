@@ -1,0 +1,30 @@
+[
+  {
+    "bundle_details_id": 8001,
+    "campsite_details_id": 1000000007,
+    "bundle_id": 4,
+    "bundle_buy_num": 4,
+    "bundle_buy_amount": 1120
+  },
+  {
+    "bundle_details_id": 8002,
+    "campsite_details_id": 1000000008,
+    "bundle_id": 5,
+    "bundle_buy_num": 1,
+    "bundle_buy_amount": 0
+  },
+  {
+    "bundle_details_id": 8003,
+    "campsite_details_id": 1000000010,
+    "bundle_id": 5,
+    "bundle_buy_num": 1,
+    "bundle_buy_amount": 0
+  },
+  {
+    "bundle_details_id": 8004,
+    "campsite_details_id": 1000000011,
+    "bundle_id": 3,
+    "bundle_buy_num": 2,
+    "bundle_buy_amount": 3000
+  }
+]

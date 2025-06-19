@@ -1,0 +1,107 @@
+[
+  {
+    "campsite_id": 3001,
+    "camp_id": 1001,
+    "campsite_type_id": 2001,
+    "campsite_id_name": "四人小木屋A",
+    "camper_name": null
+  },
+  {
+    "campsite_id": 3002,
+    "camp_id": 1001,
+    "campsite_type_id": 2002,
+    "campsite_id_name": "雙人小木屋A",
+    "camper_name": null
+  },
+  {
+    "campsite_id": 3003,
+    "camp_id": 1002,
+    "campsite_type_id": 2003,
+    "campsite_id_name": "營位1",
+    "camper_name": null
+  },
+  {
+    "campsite_id": 3004,
+    "camp_id": 1002,
+    "campsite_type_id": 2003,
+    "campsite_id_name": "營位2",
+    "camper_name": null
+  },
+  {
+    "campsite_id": 3005,
+    "camp_id": 1002,
+    "campsite_type_id": 2004,
+    "campsite_id_name": "豪華帳1",
+    "camper_name": null
+  },
+  {
+    "campsite_id": 3006,
+    "camp_id": 1002,
+    "campsite_type_id": 2004,
+    "campsite_id_name": "豪華帳2",
+    "camper_name": null
+  },
+  {
+    "campsite_id": 3007,
+    "camp_id": 1003,
+    "campsite_type_id": 2005,
+    "campsite_id_name": "營位1",
+    "camper_name": null
+  },
+  {
+    "campsite_id": 3008,
+    "camp_id": 1004,
+    "campsite_type_id": 2006,
+    "campsite_id_name": "四人小木屋A",
+    "camper_name": null
+  },
+  {
+    "campsite_id": 3009,
+    "camp_id": 1004,
+    "campsite_type_id": 2007,
+    "campsite_id_name": "雙人小木屋A",
+    "camper_name": null
+  },
+  {
+    "campsite_id": 3010,
+    "camp_id": 1005,
+    "campsite_type_id": 2008,
+    "campsite_id_name": "營位1",
+    "camper_name": null
+  },
+  {
+    "campsite_id": 3011,
+    "camp_id": 1005,
+    "campsite_type_id": 2009,
+    "campsite_id_name": "豪華帳1",
+    "camper_name": null
+  },
+  {
+    "campsite_id": 3012,
+    "camp_id": 1006,
+    "campsite_type_id": 2010,
+    "campsite_id_name": "營位1",
+    "camper_name": null
+  },
+  {
+    "campsite_id": 3013,
+    "camp_id": 1006,
+    "campsite_type_id": 2011,
+    "campsite_id_name": "四人小木屋A",
+    "camper_name": null
+  },
+  {
+    "campsite_id": 3014,
+    "camp_id": 1007,
+    "campsite_type_id": 2012,
+    "campsite_id_name": "豪華帳1",
+    "camper_name": null
+  },
+  {
+    "campsite_id": 3015,
+    "camp_id": 1008,
+    "campsite_type_id": 2013,
+    "campsite_id_name": "豪華帳1",
+    "camper_name": null
+  }
+]

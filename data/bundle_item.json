@@ -1,0 +1,72 @@
+[
+  {
+    "bundle_id": 1,
+    "camp_id": 1001,
+    "bundle_name": "4人烤肉組合(含食物及基本用具)",
+    "bundle_add_date": "2024-07-05",
+    "bundle_price": 3500
+  },
+  {
+    "bundle_id": 2,
+    "camp_id": 1001,
+    "bundle_name": "2人烤肉組合(含食物及基本用具)",
+    "bundle_add_date": "2024-07-05",
+    "bundle_price": 2200
+  },
+  {
+    "bundle_id": 3,
+    "camp_id": 1002,
+    "bundle_name": "4人烤肉組合(含食物及基本用具)",
+    "bundle_add_date": "2024-08-15",
+    "bundle_price": 3000
+  },
+  {
+    "bundle_id": 4,
+    "camp_id": 1002,
+    "bundle_name": "精油擴香石DIY",
+    "bundle_add_date": "2024-08-15",
+    "bundle_price": 280
+  },
+  {
+    "bundle_id": 5,
+    "camp_id": 1002,
+    "bundle_name": "桌遊/運動遊戲免費租借",
+    "bundle_add_date": "2024-08-15",
+    "bundle_price": 0
+  },
+  {
+    "bundle_id": 6,
+    "camp_id": 1010,
+    "bundle_name": "4人烤肉組合(含食物及基本用具)",
+    "bundle_add_date": "2024-08-15",
+    "bundle_price": 280
+  },
+  {
+    "bundle_id": 7,
+    "camp_id": 1010,
+    "bundle_name": "精油擴香石DIY1",
+    "bundle_add_date": "2024-08-15",
+    "bundle_price": 280
+  },
+  {
+    "bundle_id": 8,
+    "camp_id": 1010,
+    "bundle_name": "精油擴香石DIY2",
+    "bundle_add_date": "2024-08-15",
+    "bundle_price": 280
+  },
+  {
+    "bundle_id": 9,
+    "camp_id": 1010,
+    "bundle_name": "精油擴香石DIY3",
+    "bundle_add_date": "2024-08-15",
+    "bundle_price": 280
+  },
+  {
+    "bundle_id": 10,
+    "camp_id": 1010,
+    "bundle_name": "UNO",
+    "bundle_add_date": "2024-08-15",
+    "bundle_price": 280
+  }
+]

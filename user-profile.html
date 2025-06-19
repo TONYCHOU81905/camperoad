@@ -1,649 +1,430 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>個人資料設定 - 露途1</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/role-system.css" />
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>個人資料設定 - 露途1</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono&display=swap"
-    rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <link rel="stylesheet" href="css/style.css" />
-  <link rel="stylesheet" href="css/role-system.css" />
-</head>
-
-<body class="profile-page">
-  <header class="dashboard-header">
-    <div class="container">
-      <div class="logo">
-        <a href="index.html">
-          <img src="images/logo.svg" alt="露途 Logo" />
-          <span>露途</span>
-        </a>
-      </div>
-      <div class="user-panel">
-        <div class="notifications">
-          <a href="#" class="notification-icon">
-            <i class="fas fa-bell"></i>
-            <span class="notification-count">2</span>
+  <body class="profile-page">
+    <header class="site-header">
+      <div class="container">
+        <div class="logo">
+          <a href="index.html">
+            <img src="images/logo.svg" alt="露途 Logo" />
+            <span>露途</span>
           </a>
         </div>
-        <div class="user-info">
-          <img src="images/user-3.jpg" alt="使用者頭像" class="user-avatar" />
-          <div class="user-details">
-            <span class="user-name">林露營</span>
-            <span class="user-role">露營者</span>
-          </div>
-          <div class="user-dropdown">
-            <a href="#" class="active"><i class="fas fa-user-cog"></i> 帳號設定</a>
-            <a href="#"><i class="fas fa-sign-out-alt"></i> 登出</a>
-          </div>
+        <nav class="main-nav">
+          <ul>
+            <li><a href="campsites.html">營地預訂</a></li>
+            <li><a href="shop.html">裝備商城</a></li>
+            <li><a href="camp-guides.html">論壇攻略</a></li>
+            <li><a href="user-profile.html">關於我們</a></li>
+          </ul>
+        </nav>
+        <div class="user-actions">
+          <a href="#" class="btn-search"><i class="fas fa-search"></i></a>
+          <a href="cart.html" class="btn-cart"
+            ><i class="fas fa-shopping-cart"></i
+            ><span class="cart-count">0</span></a
+          >
+          <a href="login.html" class="btn-login">登入 / 註冊</a>
         </div>
+        <button class="mobile-menu-toggle">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
       </div>
-    </div>
-  </header>
+    </header>
 
-  <div class="dashboard-container">
-    <aside class="dashboard-sidebar">
-      <nav class="dashboard-nav">
-        <ul>
-          <li>
-            <a href="camper-dashboard.html">
-              <i class="fas fa-tachometer-alt"></i>
-              <span>儀表板</span>
-            </a>
-          </li>
-          <li>
-            <a href="#">
-              <i class="fas fa-calendar-alt"></i>
-              <span>我的預訂</span>
-            </a>
-            <ul class="sub-menu">
-              <li><a href="#">即將到來</a></li>
-              <li><a href="#">歷史預訂</a></li>
-              <li><a href="#">已取消</a></li>
-            </ul>
-          </li>
-          <li>
-            <a href="#">
-              <i class="fas fa-shopping-bag"></i>
-              <span>我的訂單</span>
-            </a>
-            <ul class="sub-menu">
-              <li><a href="#">購買商品</a></li>
-              <li><a href="#">租借商品</a></li>
-              <li><a href="#">二手交易</a></li>
-            </ul>
-          </li>
-          <li>
-            <a href="#">
-              <i class="fas fa-heart"></i>
-              <span>我的收藏</span>
-            </a>
-            <ul class="sub-menu">
-              <li><a href="favorite-camps.html">收藏營地</a></li>
-              <li><a href="#">收藏商品</a></li>
-            </ul>
-          </li>
-          <li>
-            <a href="#">
-              <i class="fas fa-comment-alt"></i>
-              <span>訊息中心</span>
-            </a>
-          </li>
-          <li>
-            <a href="#">
-              <i class="fas fa-star"></i>
-              <span>我的評價</span>
-            </a>
-          </li>
-          <li class="active">
-            <a href="user-profile.html">
-              <i class="fas fa-cog"></i>
-              <span>設定</span>
-            </a>
-          </li>
-        </ul>
-      </nav>
-    </aside>
-
-    <main class="dashboard-content">
-      <div class="dashboard-header-bar">
-        <h1>個人資料設定</h1>
-        <div class="breadcrumb-nav">
-          <a href="camper-dashboard.html">儀表板</a> / <span>個人資料設定</span>
-        </div>
-      </div>
-
-      <div class="profile-container">
-        <div class="profile-sidebar">
-          <div class="profile-menu">
-            <a href="#profile-basic" class="profile-menu-item active" data-tab="profile-basic">
-              <i class="fas fa-user"></i> 基本資料
-            </a>
-            <a href="#profile-security" class="profile-menu-item" data-tab="profile-security">
-              <i class="fas fa-lock"></i> 帳號安全
-            </a>
-            <a href="#profile-notification" class="profile-menu-item" data-tab="profile-notification">
-              <i class="fas fa-bell"></i> 通知設定
-            </a>
-            <a href="#profile-payment" class="profile-menu-item" data-tab="profile-payment">
-              <i class="fas fa-credit-card"></i> 付款方式
-            </a>
-            <a href="#profile-roles" class="profile-menu-item" data-tab="profile-roles">
-              <i class="fas fa-user-tag"></i> 角色管理
-            </a>
-            <a href="#profile-privacy" class="profile-menu-item" data-tab="profile-privacy">
-              <i class="fas fa-shield-alt"></i> 隱私設定
-            </a>
-          </div>
-        </div>
-
-        <div class="profile-content">
-          <!-- 基本資料 -->
-          <div class="profile-section active" id="profile-basic">
-            <h2>基本資料</h2>
-            <form class="profile-form">
-              <div class="avatar-upload">
-                <div class="avatar-preview">
-                  <img src="images/user-3.jpg" alt="使用者頭像" />
-                </div>
-                <div class="avatar-edit">
-                  <label for="avatar-input" class="btn-upload">更換頭像</label>
-                  <input type="file" id="avatar-input" accept="image/*" />
-                  <p class="upload-hint">建議使用 1:1 比例的圖片，檔案大小不超過 2MB</p>
-                </div>
-              </div>
-
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="profile-name">姓名</label>
-                  <input type="text" id="profile-name" value="林露營" />
-                </div>
-                <div class="form-group">
-                  <label for="profile-nickname">暱稱</label>
-                  <input type="text" id="profile-nickname" value="露營達人" />
-                </div>
-              </div>
-
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="profile-email">電子郵件</label>
-                  <input type="email" id="profile-email" value="camper@example.com" disabled />
-                  <p class="form-hint">電子郵件為您的登入帳號，無法修改</p>
-                </div>
-                <div class="form-group">
-                  <label for="profile-phone">手機號碼</label>
-                  <input type="tel" id="profile-phone" value="0912-345-678" />
-                </div>
-              </div>
-
-              <div class="form-group">
-                <label for="profile-birthday">生日</label>
-                <input type="date" id="profile-birthday" value="1990-01-01" />
-              </div>
-
-              <div class="form-group">
-                <label for="profile-address">地址</label>
-                <input type="text" id="profile-address" value="台北市信義區信義路五段7號" />
-              </div>
-
-              <div class="form-group">
-                <label for="profile-bio">個人簡介</label>
-                <textarea id="profile-bio" rows="4">熱愛大自然，喜歡探索各種特色營地。擅長搭建帳篷和野外料理，歡迎交流露營心得！</textarea>
-              </div>
-
-              <div class="form-actions">
-                <button type="submit" class="btn-save">儲存變更</button>
-                <button type="reset" class="btn-cancel">取消</button>
-              </div>
-            </form>
+    <div class="dashboard-container">
+      <main class="dashboard-content">
+        <div class="profile-container">
+          <div class="profile-sidebar">
+            <div class="profile-menu">
+              <a
+                href="#profile-basic"
+                class="profile-menu-item active"
+                data-tab="profile-basic"
+              >
+                <i class="fas fa-user"></i> 基本資料
+              </a>
+              <a
+                href="#campsite-orders"
+                class="profile-menu-item"
+                data-tab="campsite-orders"
+              >
+                <i class="fas fa-campground"></i> 營地訂單管理
+              </a>
+              <a
+                href="#favorite-camps"
+                class="profile-menu-item"
+                data-tab="favorite-camps"
+              >
+                <i class="fas fa-heart"></i> 營地收藏
+              </a>
+              <a
+                href="#shop-orders"
+                class="profile-menu-item"
+                data-tab="shop-orders"
+              >
+                <i class="fas fa-shopping-bag"></i> 商城訂單管理
+              </a>
+              <a
+                href="#favorite-products"
+                class="profile-menu-item"
+                data-tab="favorite-products"
+              >
+                <i class="fas fa-star"></i> 商品收藏
+              </a>
+              <a href="#coupons" class="profile-menu-item" data-tab="coupons">
+                <i class="fas fa-ticket-alt"></i> 折價券管理
+              </a>
+              <a href="#payment" class="profile-menu-item" data-tab="payment">
+                <i class="fas fa-credit-card"></i> 付款方式
+              </a>
+              <div class="menu-divider"></div>
+              <a href="#" class="profile-menu-item logout-btn" id="logoutBtn">
+                <i class="fas fa-sign-out-alt"></i> 登出
+              </a>
+            </div>
           </div>
 
-          <!-- 帳號安全 -->
-          <div class="profile-section" id="profile-security">
-            <h2>帳號安全</h2>
-            <div class="security-section">
-              <h3>變更密碼</h3>
+          <div class="profile-content">
+            <!-- 基本資料 -->
+            <div class="profile-section active" id="profile-basic">
+              <h2>基本資料</h2>
               <form class="profile-form">
-                <div class="form-group">
-                  <label for="current-password">目前密碼</label>
-                  <div class="password-input">
-                    <input type="password" id="current-password" />
-                    <button type="button" class="toggle-password">
-                      <i class="fas fa-eye"></i>
-                    </button>
+                <div class="avatar-upload">
+                  <div class="avatar-preview">
+                    <img src="images/user-3.jpg" alt="使用者頭像" />
+                  </div>
+                  <div class="avatar-edit">
+                    <label for="avatar-input" class="btn-upload"
+                      >更換頭像</label
+                    >
+                    <input type="file" id="avatar-input" accept="image/*" />
+                    <p class="upload-hint">
+                      建議使用 1:1 比例的圖片，檔案大小不超過 2MB
+                    </p>
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="profile-name">姓名</label>
+                    <input type="text" id="profile-name" value="" />
+                  </div>
+                  <div class="form-group">
+                    <label for="profile-nickname">暱稱</label>
+                    <input type="text" id="profile-nickname" value="" />
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="profile-email">電子郵件</label>
+                    <input type="email" id="profile-email" value="" disabled />
+                    <p class="form-hint">電子郵件為您的登入帳號，無法修改</p>
+                  </div>
+                  <div class="form-group">
+                    <label for="profile-phone">手機號碼</label>
+                    <input type="tel" id="profile-phone" value="" />
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="profile-birthday">生日</label>
+                    <input type="date" id="profile-birthday" value="" />
+                  </div>
+                  <div class="form-group">
+                    <label for="profile-gender">性別</label>
+                    <select id="profile-gender">
+                      <option value="">請選擇</option>
+                      <option value="1">男性</option>
+                      <option value="2">女性</option>
+                      <option value="0">其他</option>
+                    </select>
                   </div>
                 </div>
 
                 <div class="form-group">
-                  <label for="new-password">新密碼</label>
-                  <div class="password-input">
-                    <input type="password" id="new-password" />
-                    <button type="button" class="toggle-password">
-                      <i class="fas fa-eye"></i>
-                    </button>
-                  </div>
-                  <div class="password-strength">
-                    <div class="strength-bar">
-                      <div class="strength-fill" style="width: 0%"></div>
-                    </div>
-                    <span class="strength-text">密碼強度: 尚未輸入</span>
-                  </div>
+                  <label for="profile-address">地址</label>
+                  <input type="text" id="profile-address" value="" />
                 </div>
 
                 <div class="form-group">
-                  <label for="confirm-password">確認新密碼</label>
-                  <div class="password-input">
-                    <input type="password" id="confirm-password" />
-                    <button type="button" class="toggle-password">
-                      <i class="fas fa-eye"></i>
-                    </button>
-                  </div>
+                  <label for="profile-bio">個人簡介</label>
+                  <textarea
+                    id="profile-bio"
+                    rows="4"
+                    placeholder="分享您的露營經驗或興趣..."
+                  ></textarea>
                 </div>
 
                 <div class="form-actions">
-                  <button type="submit" class="btn-save">更新密碼</button>
+                  <button type="submit" class="btn-save">儲存變更</button>
+                  <button type="reset" class="btn-cancel">取消</button>
                 </div>
               </form>
             </div>
 
-            <div class="security-section">
-              <h3>雙重驗證</h3>
-              <div class="two-factor-auth">
-                <div class="two-factor-status">
-                  <div class="status-icon enabled">
-                    <i class="fas fa-shield-alt"></i>
-                  </div>
-                  <div class="status-info">
-                    <h4>已啟用雙重驗證</h4>
-                    <p>您的帳號已受到額外的安全保護</p>
-                  </div>
-                  <button class="btn-disable-2fa">停用</button>
+            <!-- 營地訂單管理 -->
+            <div class="profile-section" id="campsite-orders">
+              <h2>營地訂單管理</h2>
+              <div class="orders-container">
+                <div class="orders-filter">
+                  <select id="order-status-filter">
+                    <option value="">所有狀態</option>
+                    <option value="1">待付款</option>
+                    <option value="2">已付款</option>
+                    <option value="3">已完成</option>
+                    <option value="4">已取消</option>
+                  </select>
                 </div>
-                <div class="two-factor-methods">
-                  <div class="method-item active">
-                    <input type="radio" name="2fa-method" id="2fa-sms" checked />
-                    <label for="2fa-sms">
-                      <i class="fas fa-mobile-alt"></i>
-                      <span>簡訊驗證</span>
-                    </label>
-                  </div>
-                  <div class="method-item">
-                    <input type="radio" name="2fa-method" id="2fa-app" />
-                    <label for="2fa-app">
-                      <i class="fas fa-key"></i>
-                      <span>驗證應用程式</span>
-                    </label>
-                  </div>
-                  <div class="method-item">
-                    <input type="radio" name="2fa-method" id="2fa-email" />
-                    <label for="2fa-email">
-                      <i class="fas fa-envelope"></i>
-                      <span>電子郵件驗證</span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="security-section">
-              <h3>連結的社群帳號</h3>
-              <div class="linked-accounts">
-                <div class="linked-account-item">
-                  <div class="account-icon google">
-                    <i class="fab fa-google"></i>
-                  </div>
-                  <div class="account-info">
-                    <h4>Google</h4>
-                    <p>已連結至 camper@gmail.com</p>
-                  </div>
-                  <button class="btn-unlink">解除連結</button>
-                </div>
-                <div class="linked-account-item">
-                  <div class="account-icon facebook">
-                    <i class="fab fa-facebook-f"></i>
-                  </div>
-                  <div class="account-info">
-                    <h4>Facebook</h4>
-                    <p>尚未連結</p>
-                  </div>
-                  <button class="btn-link">連結帳號</button>
-                </div>
-                <div class="linked-account-item">
-                  <div class="account-icon line">
-                    <i class="fab fa-line"></i>
-                  </div>
-                  <div class="account-info">
-                    <h4>Line</h4>
-                    <p>已連結</p>
-                  </div>
-                  <button class="btn-unlink">解除連結</button>
-                </div>
-              </div>
-            </div>
-
-            <div class="security-section">
-              <h3>登入活動</h3>
-              <div class="login-activity">
-                <div class="activity-item">
-                  <div class="activity-device">
-                    <i class="fas fa-laptop"></i>
-                    <span>Windows PC - Chrome</span>
-                  </div>
-                  <div class="activity-details">
-                    <div class="activity-location">台北市, 台灣</div>
-                    <div class="activity-time">今天 14:32</div>
-                  </div>
-                  <div class="activity-status current">
-                    <span>目前使用中</span>
-                  </div>
-                </div>
-                <div class="activity-item">
-                  <div class="activity-device">
-                    <i class="fas fa-mobile-alt"></i>
-                    <span>iPhone - Safari</span>
-                  </div>
-                  <div class="activity-details">
-                    <div class="activity-location">台北市, 台灣</div>
-                    <div class="activity-time">昨天 19:45</div>
-                  </div>
-                  <div class="activity-status">
-                    <button class="btn-logout-device">登出</button>
-                  </div>
-                </div>
-                <div class="activity-item">
-                  <div class="activity-device">
-                    <i class="fas fa-tablet-alt"></i>
-                    <span>iPad - Safari</span>
-                  </div>
-                  <div class="activity-details">
-                    <div class="activity-location">台中市, 台灣</div>
-                    <div class="activity-time">2023/06/01 10:15</div>
-                  </div>
-                  <div class="activity-status">
-                    <button class="btn-logout-device">登出</button>
-                  </div>
-                </div>
-              </div>
-              <div class="login-activity-actions">
-                <button class="btn-logout-all">登出所有其他裝置</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- 通知設定 -->
-          <div class="profile-section" id="profile-notification">
-            <h2>通知設定</h2>
-            <div class="notification-settings">
-              <div class="notification-group">
-                <h3>電子郵件通知</h3>
-                <div class="notification-item">
-                  <div class="notification-info">
-                    <h4>預訂確認與更新</h4>
-                    <p>當您的預訂狀態有變更時收到通知</p>
-                  </div>
-                  <label class="toggle-switch">
-                    <input type="checkbox" checked />
-                    <span class="toggle-slider"></span>
-                  </label>
-                </div>
-                <div class="notification-item">
-                  <div class="notification-info">
-                    <h4>訂單狀態更新</h4>
-                    <p>當您的訂單狀態有變更時收到通知</p>
-                  </div>
-                  <label class="toggle-switch">
-                    <input type="checkbox" checked />
-                    <span class="toggle-slider"></span>
-                  </label>
-                </div>
-                <div class="notification-item">
-                  <div class="notification-info">
-                    <h4>促銷與優惠</h4>
-                    <p>接收最新的促銷活動與優惠資訊</p>
-                  </div>
-                  <label class="toggle-switch">
-                    <input type="checkbox" />
-                    <span class="toggle-slider"></span>
-                  </label>
-                </div>
-                <div class="notification-item">
-                  <div class="notification-info">
-                    <h4>系統公告</h4>
-                    <p>接收平台重要更新與公告</p>
-                  </div>
-                  <label class="toggle-switch">
-                    <input type="checkbox" checked />
-                    <span class="toggle-slider"></span>
-                  </label>
-                </div>
-              </div>
-
-              <div class="notification-group">
-                <h3>應用程式通知</h3>
-                <div class="notification-item">
-                  <div class="notification-info">
-                    <h4>即時訊息</h4>
-                    <p>當有新訊息時收到通知</p>
-                  </div>
-                  <label class="toggle-switch">
-                    <input type="checkbox" checked />
-                    <span class="toggle-slider"></span>
-                  </label>
-                </div>
-                <div class="notification-item">
-                  <div class="notification-info">
-                    <h4>預訂提醒</h4>
-                    <p>在預訂日期前收到提醒</p>
-                  </div>
-                  <label class="toggle-switch">
-                    <input type="checkbox" checked />
-                    <span class="toggle-slider"></span>
-                  </label>
-                </div>
-                <div class="notification-item">
-                  <div class="notification-info">
-                    <h4>評價提醒</h4>
-                    <p>在行程結束後提醒您留下評價</p>
-                  </div>
-                  <label class="toggle-switch">
-                    <input type="checkbox" checked />
-                    <span class="toggle-slider"></span>
-                  </label>
-                </div>
-              </div>
-
-              <div class="notification-group">
-                <h3>簡訊通知</h3>
-                <div class="notification-item">
-                  <div class="notification-info">
-                    <h4>安全驗證</h4>
-                    <p>接收帳號安全相關的驗證碼</p>
-                  </div>
-                  <label class="toggle-switch">
-                    <input type="checkbox" checked />
-                    <span class="toggle-slider"></span>
-                  </label>
-                </div>
-                <div class="notification-item">
-                  <div class="notification-info">
-                    <h4>預訂確認</h4>
-                    <p>當預訂成功時收到簡訊確認</p>
-                  </div>
-                  <label class="toggle-switch">
-                    <input type="checkbox" />
-                    <span class="toggle-slider"></span>
-                  </label>
-                </div>
-              </div>
-
-              <div class="form-actions">
-                <button type="submit" class="btn-save">儲存設定</button>
-                <button type="button" class="btn-reset">重設為預設值</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- 付款方式 -->
-          <div class="profile-section" id="profile-payment">
-            <h2>付款方式</h2>
-            <div class="payment-methods">
-              <div class="payment-method-list">
-                <div class="payment-method-item">
-                  <div class="payment-method-icon credit-card">
-                    <i class="far fa-credit-card"></i>
-                  </div>
-                  <div class="payment-method-info">
-                    <h4>信用卡</h4>
-                    <p>**** **** **** 5678</p>
-                    <span class="expiry-date">到期日: 06/25</span>
-                  </div>
-                  <div class="payment-method-actions">
-                    <span class="default-badge">預設</span>
-                    <button class="btn-edit-payment"><i class="fas fa-pen"></i></button>
-                    <button class="btn-delete-payment"><i class="fas fa-trash-alt"></i></button>
-                  </div>
-                </div>
-                <div class="payment-method-item">
-                  <div class="payment-method-icon line-pay">
-                    <i class="fab fa-line"></i>
-                  </div>
-                  <div class="payment-method-info">
-                    <h4>Line Pay</h4>
-                    <p>已連結</p>
-                  </div>
-                  <div class="payment-method-actions">
-                    <button class="btn-set-default">設為預設</button>
-                    <button class="btn-delete-payment"><i class="fas fa-trash-alt"></i></button>
-                  </div>
-                </div>
-              </div>
-
-              <button class="btn-add-payment">
-                <i class="fas fa-plus"></i> 新增付款方式
-              </button>
-
-              <div class="payment-history">
-                <h3>付款紀錄</h3>
-                <table class="payment-history-table">
-                  <thead>
-                    <tr>
-                      <th>日期</th>
-                      <th>說明</th>
-                      <th>金額</th>
-                      <th>狀態</th>
-                      <th>發票</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>2023/06/01</td>
-                      <td>森林溪畔營地預訂</td>
-                      <td>NT$ 3,200</td>
-                      <td><span class="status-completed">已完成</span></td>
-                      <td><a href="#" class="btn-invoice"><i class="fas fa-file-invoice"></i></a></td>
-                    </tr>
-                    <tr>
-                      <td>2023/05/15</td>
-                      <td>登山睡袋 - 輕量型</td>
-                      <td>NT$ 2,800</td>
-                      <td><span class="status-completed">已完成</span></td>
-                      <td><a href="#" class="btn-invoice"><i class="fas fa-file-invoice"></i></a></td>
-                    </tr>
-                    <tr>
-                      <td>2023/05/15</td>
-                      <td>四人帳篷 - 星空系列 (租借)</td>
-                      <td>NT$ 1,200</td>
-                      <td><span class="status-completed">已完成</span></td>
-                      <td><a href="#" class="btn-invoice"><i class="fas fa-file-invoice"></i></a></td>
-                    </tr>
-                    <tr>
-                      <td>2023/04/20</td>
-                      <td>山頂雲霧營地預訂</td>
-                      <td>NT$ 4,500</td>
-                      <td><span class="status-completed">已完成</span></td>
-                      <td><a href="#" class="btn-invoice"><i class="fas fa-file-invoice"></i></a></td>
-                    </tr>
-                  </tbody>
-                </table>
-                <div class="payment-history-actions">
-                  <a href="#" class="btn-view-all">查看所有交易紀錄</a>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 角色管理 -->
-          <div class="profile-section" id="profile-roles">
-            <h2>角色管理</h2>
-            <div class="roles-management">
-              <div class="current-role">
-                <h3>目前角色</h3>
-                <div class="role-card active">
-                  <div class="role-icon">
+                <div class="orders-list" id="campsite-orders-list">
+                  <div class="empty-state">
                     <i class="fas fa-campground"></i>
-                  </div>
-                  <div class="role-info">
-                    <h4>露營者</h4>
-                    <p>您目前以露營者身份使用平台</p>
-                  </div>
-                  <div class="role-status">
-                    <span class="status-active">使用中</span>
+                    <h3>載入中...</h3>
+                    <p>正在載入您的訂單資料</p>
                   </div>
                 </div>
               </div>
+            </div>
 
-              <div class="available-roles">
-                <h3>可申請的角色</h3>
-                <div class="role-cards">
-                  <div class="role-card">
-                    <div class="role-icon">
-                      <i class="fas fa-home"></i>
-                    </div>
-                    <div class="role-info">
-                      <h4>營地主</h4>
-                      <p>管理您的營地並接收預訂</p>
-                      <ul class="role-benefits">
-                        <li>刊登您的營地</li>
-                        <li>管理預訂與日曆</li>
-                        <li>設定價格與規則</li>
-                      </ul>
-                    </div>
-                    <div class="role-actions">
-                      <button class="btn-apply-role">申請成為營地主</button>
-                    </div>
+            <!-- 營地收藏 -->
+            <div class="profile-section" id="favorite-camps">
+              <h2>營地收藏</h2>
+              <div class="favorites-container">
+                <div class="favorites-grid" id="favorite-camps-grid">
+                  <div class="empty-state">
+                    <i class="fas fa-heart"></i>
+                    <h3>載入中...</h3>
+                    <p>正在載入您的收藏營地</p>
                   </div>
-
-                  <div class="role-card">
-                    <div class="role-icon">
-                      <i class="fas fa-store"></i>
-                    </div>
-                    <div class="role-info">
-                      <h4>裝備商家</h4>
-                      <p>銷售或出租您的露營裝備</p>
-                      <ul class="role-benefits">
-                        <li>上架銷售商品</li>
-                        <li>提供裝備租借服務</li>
-                        <li>管理庫存與訂單</li>
-                      </ul>
-                    </div>
-                    <div class="role-actions">
-                      <button class="btn-apply-role">申請成為裝備商家</button>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="role-application-note">
-                  <p><i class="fas fa-info-circle"></i> 角色申請需經過平台審核，審核時間約為1-3個工作天</p>
                 </div>
               </div>
+            </div>
 
-              <div class="role-switch">
-                <h3>角色切換</h3>
-                <p class="role-switch-note">若您已擁有多個角色，可在此快速切換</p>
-                <div class="role-switch-buttons">
-                  <button class="btn-switch-role active">露營者</button>
-                  <button class="btn-switch-role disabled" disable
+            <!-- 商城訂單管理 -->
+            <div class="profile-section" id="shop-orders">
+              <h2>商城訂單管理</h2>
+              <div class="orders-container">
+                <div class="orders-filter">
+                  <select id="shop-order-status-filter">
+                    <option value="">所有狀態</option>
+                    <option value="pending">待付款</option>
+                    <option value="paid">已付款</option>
+                    <option value="shipped">已出貨</option>
+                    <option value="delivered">已送達</option>
+                    <option value="cancelled">已取消</option>
+                  </select>
+                </div>
+                <div class="orders-list" id="shop-orders-list">
+                  <div class="empty-state">
+                    <i class="fas fa-shopping-bag"></i>
+                    <h3>尚無商城訂單</h3>
+                    <p>您還沒有購買任何商品</p>
+                    <a href="shop.html" class="btn-primary">前往商城</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 商品收藏 -->
+            <div class="profile-section" id="favorite-products">
+              <h2>商品收藏</h2>
+              <div class="favorites-container">
+                <div class="favorites-grid" id="favorite-products-grid">
+                  <div class="empty-state">
+                    <i class="fas fa-heart"></i>
+                    <h3>尚無收藏商品</h3>
+                    <p>您還沒有收藏任何商品</p>
+                    <a href="shop.html" class="btn-primary">前往商城</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 折價券管理 -->
+            <div class="profile-section" id="coupons">
+              <h2>折價券管理</h2>
+              <div class="coupons-filter">
+                <div class="filter-tabs">
+                  <button class="filter-tab active" data-status="all">
+                    全部券種
+                  </button>
+                  <button class="filter-tab" data-status="available">
+                    可使用
+                  </button>
+                  <button class="filter-tab" data-status="used">已使用</button>
+                  <button class="filter-tab" data-status="expired">
+                    已過期
+                  </button>
+                </div>
+              </div>
+              <div class="coupons-grid">
+                <!-- 示範折價券 -->
+                <div class="coupon-card available">
+                  <div class="coupon-header">
+                    <div class="coupon-type">營地折價券</div>
+                    <div class="coupon-status">可使用</div>
+                  </div>
+                  <div class="coupon-content">
+                    <div class="coupon-title">新會員專享</div>
+                    <div class="coupon-discount">9折優惠</div>
+                    <div class="coupon-description">
+                      適用於所有營地預訂，單筆消費滿NT$2,000可用
+                    </div>
+                  </div>
+                  <div class="coupon-footer">
+                    <div class="coupon-code">優惠碼: NEWBIE90</div>
+                    <div class="coupon-expiry">有效期限: 2024/12/31</div>
+                  </div>
+                  <div class="coupon-actions">
+                    <button class="btn-use-coupon">立即使用</button>
+                    <button class="btn-copy-code">複製代碼</button>
+                  </div>
+                </div>
+
+                <div class="coupon-card available">
+                  <div class="coupon-header">
+                    <div class="coupon-type">商城折價券</div>
+                    <div class="coupon-status">可使用</div>
+                  </div>
+                  <div class="coupon-content">
+                    <div class="coupon-title">裝備特惠</div>
+                    <div class="coupon-discount">NT$200</div>
+                    <div class="coupon-description">
+                      購買露營裝備滿NT$1,500立減NT$200
+                    </div>
+                  </div>
+                  <div class="coupon-footer">
+                    <div class="coupon-code">優惠碼: GEAR200</div>
+                    <div class="coupon-expiry">有效期限: 2024/11/30</div>
+                  </div>
+                  <div class="coupon-actions">
+                    <button class="btn-use-coupon">立即使用</button>
+                    <button class="btn-copy-code">複製代碼</button>
+                  </div>
+                </div>
+
+                <div class="coupon-card used">
+                  <div class="coupon-header">
+                    <div class="coupon-type">營地折價券</div>
+                    <div class="coupon-status">已使用</div>
+                  </div>
+                  <div class="coupon-content">
+                    <div class="coupon-title">週末特惠</div>
+                    <div class="coupon-discount">85折優惠</div>
+                    <div class="coupon-description">週末營地預訂專用優惠券</div>
+                  </div>
+                  <div class="coupon-footer">
+                    <div class="coupon-code">優惠碼: WEEKEND85</div>
+                    <div class="coupon-used-date">使用日期: 2024/10/15</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 付款方式 -->
+            <div class="profile-section" id="payment">
+              <h2>付款方式</h2>
+              <div class="payment-section">
+                <div class="add-payment-method">
+                  <button class="btn-add-payment">
+                    <i class="fas fa-plus"></i>
+                    新增付款方式
+                  </button>
+                </div>
+
+                <div class="payment-methods-list">
+                  <!-- 示範信用卡 -->
+                  <div class="payment-method-card">
+                    <div class="payment-card-header">
+                      <div class="card-type">
+                        <i class="fab fa-cc-visa"></i>
+                        <span>VISA</span>
+                      </div>
+                      <div class="card-actions">
+                        <button class="btn-edit">
+                          <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-delete">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="payment-card-content">
+                      <div class="card-number">**** **** **** 1234</div>
+                      <div class="card-holder">王小明</div>
+                      <div class="card-expiry">有效期限: 12/26</div>
+                    </div>
+                    <div class="payment-card-footer">
+                      <span class="default-badge">預設付款方式</span>
+                    </div>
+                  </div>
+
+                  <!-- 示範LINE PAY -->
+                  <div class="payment-method-card">
+                    <div class="payment-card-header">
+                      <div class="card-type">
+                        <i class="fab fa-line"></i>
+                        <span>LINE PAY</span>
+                      </div>
+                      <div class="card-actions">
+                        <button class="btn-edit">
+                          <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-delete">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="payment-card-content">
+                      <div class="card-number">已綁定 LINE 帳號</div>
+                      <div class="card-holder">wang.xiaoming@email.com</div>
+                      <div class="card-status">狀態: 已驗證</div>
+                    </div>
+                    <div class="payment-card-footer">
+                      <button class="btn-set-default">設為預設</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="payment-security">
+                  <div class="security-info">
+                    <h4><i class="fas fa-shield-alt"></i> 安全保障</h4>
+                    <ul>
+                      <li>所有付款資訊均採用SSL加密傳輸</li>
+                      <li>信用卡資訊不會儲存在我們的伺服器上</li>
+                      <li>支援3D驗證確保交易安全</li>
+                      <li>24小時交易監控系統</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+    <script src="js/camp-data.js"></script>
+    <script src="js/user-profile.js"></script>
+  </body>
+</html>

@@ -1,0 +1,32 @@
+[
+  {
+    "campsite_report_id": 1,
+    "campsite_order_id": "ORD20250124001",
+    "mem_id": 10000001,
+    "admin_id": 30000001,
+    "campsite_report_content": "床上都是蟑螂",
+    "campsite_report_reply": "營地主回覆會在注意衛生，並賠償顧客100元折價券",
+    "campsite_report_date": "2025-03-05",
+    "campsite_report_status": 1
+  },
+  {
+    "campsite_report_id": 2,
+    "campsite_order_id": "ORD20250224001",
+    "mem_id": 10000003,
+    "admin_id": 30000002,
+    "campsite_report_content": "冷氣會漏水",
+    "campsite_report_reply": "營地主回覆會在維修",
+    "campsite_report_date": "2025-03-26",
+    "campsite_report_status": 1
+  },
+  {
+    "campsite_report_id": 3,
+    "campsite_order_id": "ORD20250224001",
+    "mem_id": 10000004,
+    "admin_id": 30000003,
+    "campsite_report_content": "房間很潮燒",
+    "campsite_report_reply": null,
+    "campsite_report_date": "2025-03-26",
+    "campsite_report_status": 0
+  }
+]

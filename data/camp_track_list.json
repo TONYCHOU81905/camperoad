@@ -1,0 +1,37 @@
+[
+  {
+    "camp_id": 1001,
+    "mem_id": 10000001,
+    "mem_track_date": "2025-05-15"
+  },
+  {
+    "camp_id": 1001,
+    "mem_id": 10000002,
+    "mem_track_date": "2025-05-15"
+  },
+  {
+    "camp_id": 1002,
+    "mem_id": 10000005,
+    "mem_track_date": "2025-05-16"
+  },
+  {
+    "camp_id": 1004,
+    "mem_id": 10000003,
+    "mem_track_date": "2025-05-20"
+  },
+  {
+    "camp_id": 1002,
+    "mem_id": 10000004,
+    "mem_track_date": "2025-05-18"
+  },
+  {
+    "camp_id": 1002,
+    "mem_id": 10000001,
+    "mem_track_date": "2025-05-18"
+  },
+  {
+    "camp_id": 1006,
+    "mem_id": 10000001,
+    "mem_track_date": "2025-05-18"
+  }
+]
