@@ -72,16 +72,19 @@ async function loadAllData() {
 
     // 載入商品訂單資料
     try {
-      const shopOrderResponse = await fetch("data/shop_order.json");
+      const shopOrderResponse = await fetch("http://localhost:8081/CJA101G02/api/getAllShopOrders");  //data/shop_order.json
       shopOrdersData = await shopOrderResponse.json();
+      shopOrdersData = shopOrdersData.data;
+      console.log(shopOrdersData); // Add this line to log the data t
     } catch (error) {
+      
       console.log("商品訂單資料載入失敗，使用空陣列");
       shopOrdersData = [];
     }
 
     // 載入商品訂單詳細資料
     try {
-      const shopOrderDetailsResponse = await fetch("data/shop_order_details.json");
+      const shopOrderDetailsResponse = await fetch("http://localhost:8081/CJA101G02/api/getAllShopOrdersDetails"); //data/shop_order_details.json
       shopOrderDetailsData = await shopOrderDetailsResponse.json();
     } catch (error) {
       console.log("商品訂單詳細資料載入失敗，使用空陣列");
@@ -757,7 +760,7 @@ function loadForumManagement() {
   }, 1000);
 }
 
-// 載入訂單管理
+// 載入商品訂單管理
 function loadOrderManagement() {
   const content = document.getElementById("order-management-content");
   content.innerHTML = `
@@ -798,39 +801,50 @@ function loadOrderManagement() {
   // 生成訂單表格
   let tableRows = '';
   
-  // 按訂單日期排序（最新的在前面）
+  // 按訂單編號排序
   const sortedOrders = [...shopOrdersData].sort((a, b) => {
-    return new Date(b.shop_order_date) - new Date(a.shop_order_date);
+    return a.shopOrderId - b.shopOrderId;
   });
+  
+  // 分頁設置
+  const itemsPerPage = 5;
+  let currentPage = 1;
+  const totalPages = Math.ceil(sortedOrders.length / itemsPerPage);
+  
+  // 獲取當前頁的數據
+  const currentPageData = sortedOrders.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
-  sortedOrders.forEach(order => {
+  currentPageData.forEach(order => {
     // 查找會員資料
-    const member = membersData.find(m => m.mem_id === order.mem_id) || { mem_name: '未知會員' };
+    const member = membersData.find(m => m.memId === order.memId) || { memName: '未知會員' };
     
     // 訂單狀態文字和樣式
-    const statusInfo = getShopOrderStatusInfo(order.shop_order_status);
+    const statusInfo = getShopOrderStatusInfo(order.shopOrderStatus);
     
     // 付款方式文字
-    const paymentMethod = getPaymentMethodText(order.shop_order_payment);
+    const paymentMethod = getPaymentMethodText(order.shopOrderPayment);
     
     // 格式化日期
-    const orderDate = new Date(order.shop_order_date).toLocaleDateString('zh-TW');
+    const orderDate = new Date(order.shopOrderDate).toLocaleDateString('zh-TW');
     
     // 生成表格行
     tableRows += `
       <tr>
-        <td>${order.shop_order_id}</td>
-        <td>${order.order_name}</td>
+        <td>${order.shopOrderId}</td>
+        <td>${order.orderName}</td>
         <td>${orderDate}</td>
-        <td>NT$ ${order.after_discount_amount.toLocaleString()}</td>
+        <td>NT$ ${order.afterDiscountAmount}</td>
         <td>${paymentMethod}</td>
         <td><span class="status-badge ${statusInfo.class}">${statusInfo.text}</span></td>
         <td>
-          <button class="action-btn btn-view" onclick="viewShopOrderDetails(${order.shop_order_id})">查看詳情</button>
-          ${order.shop_order_status === 0 ? `<button class="action-btn btn-activate" onclick="updateShopOrderStatus(${order.shop_order_id}, 1)">確認訂單</button>` : ''}
-          ${order.shop_order_status === 1 ? `<button class="action-btn btn-activate" onclick="updateShopOrderStatus(${order.shop_order_id}, 2)">出貨</button>` : ''}
-          ${order.shop_order_status === 2 ? `<button class="action-btn btn-activate" onclick="updateShopOrderStatus(${order.shop_order_id}, 3)">已送達</button>` : ''}
-          ${order.shop_return_apply === 1 && order.shop_order_status !== 5 ? `<button class="action-btn btn-deactivate" onclick="updateShopOrderStatus(${order.shop_order_id}, 5)">處理退貨</button>` : ''}
+          <button class="action-btn btn-view" onclick="viewShopOrderDetails(${order.shopOrderId})">查看詳情</button>
+          ${order.shopOrderStatus === 0 ? `<button class="action-btn btn-activate" onclick="updateShopOrderStatus(${order.shopOrderId}, 1)">待確認</button>` : ''}
+          ${order.shopOrderStatus === 1 ? `<button class="action-btn btn-activate" onclick="updateShopOrderStatus(${order.shopOrderId}, 2)">出貨</button>` : ''}
+          ${order.shopOrderStatus === 2 ? `<button class="action-btn btn-activate" onclick="updateShopOrderStatus(${order.shopOrderId}, 3)">已送達</button>` : ''}
+          ${order.shopRetyurnApply === 1 && order.shopOrderStatus !== 5 ? `<button class="action-btn btn-deactivate" onclick="updateShopOrderStatus(${order.shopOrderId}, 5)">處理退貨</button>` : ''}
         </td>
       </tr>
     `;
@@ -844,11 +858,13 @@ function loadOrderManagement() {
         <select id="status-filter" onchange="filterShopOrders()">
           <option value="all">全部</option>
           <option value="0">待確認</option>
-          <option value="1">已確認</option>
-          <option value="2">已出貨</option>
-          <option value="3">已送達</option>
-          <option value="4">已完成</option>
-          <option value="5">已退貨</option>
+          <option value="1">已取消</option>
+          <option value="2">等待賣家確認中</option>
+          <option value="3">準備出貨中</option>
+          <option value="4">已出貨</option>
+          <option value="5"> 已取貨，完成訂單</option>
+          <option value="6"> 未取貨，退回賣家 </option>
+
         </select>
       </div>
       <div class="filter-group">
@@ -877,24 +893,34 @@ function loadOrderManagement() {
         </tbody>
       </table>
     </div>
+    <div class="pagination">
+      <button id="prev-page" class="page-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">上一頁</button>
+      <span class="page-info">第 ${currentPage} 頁，共 ${totalPages} 頁</span>
+      <button id="next-page" class="page-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">下一頁</button>
+    </div>
   `;
+  
+  // 將當前頁碼保存到全局變量
+  window.currentOrderPage = currentPage;
 }
 
 // 獲取商品訂單狀態資訊
 function getShopOrderStatusInfo(status) {
   switch (parseInt(status)) {
     case 0:
-      return { text: '待確認', class: 'status-pending' };
+      return { text: '等待付款中', class: 'status-pending' };
     case 1:
-      return { text: '已確認', class: 'status-confirmed' };
+      return { text: '已取消', class: 'status-canceled' };
     case 2:
-      return { text: '已出貨', class: 'status-shipped' };
+      return { text: '等待賣家確認中', class: 'status-confirmed' };
     case 3:
-      return { text: '已送達', class: 'status-delivered' };
+      return { text: '準備出貨中', class: 'status-shipped' };
     case 4:
-      return { text: '已完成', class: 'status-completed' };
+      return { text: '已出貨', class: 'status-delivered' };
     case 5:
-      return { text: '已退貨', class: 'status-returned' };
+      return { text: '已取貨，完成訂單', class: 'status-completed' };
+    case 6:
+      return { text: '未取貨，退回賣家 ', class: 'status-returned' };
     default:
       return { text: '未知狀態', class: 'status-unknown' };
   }
@@ -939,26 +965,26 @@ function filterShopOrders() {
   
   // 按狀態篩選
   if (statusFilter !== 'all') {
-    filteredOrders = filteredOrders.filter(order => order.shop_order_status.toString() === statusFilter);
+    filteredOrders = filteredOrders.filter(order => order.shopOrderStatus.toString() === statusFilter);
   }
   
   // 按日期範圍篩選
   if (dateFrom) {
     const fromDate = new Date(dateFrom);
-    filteredOrders = filteredOrders.filter(order => new Date(order.shop_order_date) >= fromDate);
+    filteredOrders = filteredOrders.filter(order => new Date(order.shopOrderDate) >= fromDate);
   }
   
   if (dateTo) {
     const toDate = new Date(dateTo);
     toDate.setHours(23, 59, 59); // 設置為當天的最後一刻
-    filteredOrders = filteredOrders.filter(order => new Date(order.shop_order_date) <= toDate);
+    filteredOrders = filteredOrders.filter(order => new Date(order.shopOrderDate) <= toDate);
   }
   
-  // 按訂單日期排序（最新的在前面）
-  filteredOrders.sort((a, b) => new Date(b.shop_order_date) - new Date(a.shop_order_date));
+  // 按訂單編號排序
+  filteredOrders.sort((a, b) => a.shopOrderId - b.shopOrderId);
   
-  // 更新表格
-  updateShopOrdersTable(filteredOrders);
+  // 更新表格，重置為第一頁
+  updateShopOrdersTable(filteredOrders, 1);
 }
 
 // 重置商品訂單篩選
@@ -967,13 +993,45 @@ function resetShopOrderFilters() {
   document.getElementById('date-from').value = '';
   document.getElementById('date-to').value = '';
   
-  // 重新載入所有訂單
-  updateShopOrdersTable(shopOrdersData);
+  // 重新載入所有訂單，重置為第一頁
+  updateShopOrdersTable(shopOrdersData, 1);
+}
+
+// 切換頁面
+function changePage(pageNumber) {
+  // 獲取當前篩選條件
+  const statusFilter = document.getElementById('status-filter').value;
+  const dateFrom = document.getElementById('date-from').value;
+  const dateTo = document.getElementById('date-to').value;
+  
+  // 篩選訂單
+  let filteredOrders = [...shopOrdersData];
+  
+  // 按狀態篩選
+  if (statusFilter !== 'all') {
+    filteredOrders = filteredOrders.filter(order => order.shopOrderStatus.toString() === statusFilter);
+  }
+  
+  // 按日期範圍篩選
+  if (dateFrom) {
+    const fromDate = new Date(dateFrom);
+    filteredOrders = filteredOrders.filter(order => new Date(order.shopOrderDate) >= fromDate);
+  }
+  
+  if (dateTo) {
+    const toDate = new Date(dateTo);
+    toDate.setHours(23, 59, 59);
+    filteredOrders = filteredOrders.filter(order => new Date(order.shopOrderDate) <= toDate);
+  }
+  
+  // 更新表格，指定頁碼
+  updateShopOrdersTable(filteredOrders, pageNumber);
 }
 
 // 更新商品訂單表格
-function updateShopOrdersTable(orders) {
+function updateShopOrdersTable(orders, pageNumber = 1) {
   const tbody = document.querySelector('#shop-orders-table tbody');
+  const paginationDiv = document.querySelector('.pagination');
   
   if (!tbody) return;
   
@@ -987,45 +1045,87 @@ function updateShopOrdersTable(orders) {
         </td>
       </tr>
     `;
+    
+    // 隱藏分頁控制
+    if (paginationDiv) {
+      paginationDiv.style.display = 'none';
+    }
+    
     return;
   }
   
+  // 分頁設置
+  const itemsPerPage = 5;
+  const currentPage = pageNumber;
+  const totalPages = Math.ceil(orders.length / itemsPerPage);
+  
+  // 獲取當前頁的數據
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, orders.length);
+  const currentPageData = orders.slice(startIndex, endIndex);
+  
   let tableRows = '';
   
-  orders.forEach(order => {
+  currentPageData.forEach(order => {
     // 查找會員資料
-    const member = membersData.find(m => m.mem_id === order.mem_id) || { mem_name: '未知會員' };
+    const member = membersData.find(m => m.memId === order.memId) || { memName: '未知會員' };
     
     // 訂單狀態文字和樣式
-    const statusInfo = getShopOrderStatusInfo(order.shop_order_status);
+    const statusInfo = getShopOrderStatusInfo(order.shopOrderStatus);
     
     // 付款方式文字
-    const paymentMethod = getPaymentMethodText(order.shop_order_payment);
+    const paymentMethod = getPaymentMethodText(order.shopOrderPayment);
     
     // 格式化日期
-    const orderDate = new Date(order.shop_order_date).toLocaleDateString('zh-TW');
+    const orderDate = new Date(order.shopOrderDate).toLocaleDateString('zh-TW');
     
     // 生成表格行
     tableRows += `
       <tr>
-        <td>${order.shop_order_id}</td>
-        <td>${order.order_name}</td>
+        <td>${order.shopOrderId}</td>
+        <td>${order.orderName}</td>
         <td>${orderDate}</td>
-        <td>NT$ ${order.after_discount_amount.toLocaleString()}</td>
+        <td>NT$ ${order.afterDiscountAmount}</td>
         <td>${paymentMethod}</td>
         <td><span class="status-badge ${statusInfo.class}">${statusInfo.text}</span></td>
         <td>
-          <button class="action-btn btn-view" onclick="viewShopOrderDetails(${order.shop_order_id})">查看詳情</button>
-          ${order.shop_order_status === 0 ? `<button class="action-btn btn-activate" onclick="updateShopOrderStatus(${order.shop_order_id}, 1)">確認訂單</button>` : ''}
-          ${order.shop_order_status === 1 ? `<button class="action-btn btn-activate" onclick="updateShopOrderStatus(${order.shop_order_id}, 2)">出貨</button>` : ''}
-          ${order.shop_order_status === 2 ? `<button class="action-btn btn-activate" onclick="updateShopOrderStatus(${order.shop_order_id}, 3)">已送達</button>` : ''}
-          ${order.shop_return_apply === 1 && order.shop_order_status !== 5 ? `<button class="action-btn btn-deactivate" onclick="updateShopOrderStatus(${order.shop_order_id}, 5)">處理退貨</button>` : ''}
+          <button class="action-btn btn-view" onclick="viewShopOrderDetails(${order.shopOrderId})">查看詳情</button>
+          ${order.shopOrderStatus === 0 ? `<button class="action-btn btn-activate" onclick="updateShopOrderStatus(${order.shopOrderId}, 1)">確認訂單</button>` : ''}
+          ${order.shopOrderStatus === 1 ? `<button class="action-btn btn-activate" onclick="updateShopOrderStatus(${order.shopOrderId}, 2)">出貨</button>` : ''}
+          ${order.shopOrderStatus === 2 ? `<button class="action-btn btn-activate" onclick="updateShopOrderStatus(${order.shopOrderId}, 3)">已送達</button>` : ''}
+          ${order.shopReturnApply === 1 && order.shopOrderStatus !== 5 ? `<button class="action-btn btn-deactivate" onclick="updateShopOrderStatus(${order.shopOrderId}, 5)">處理退貨</button>` : ''}
         </td>
       </tr>
     `;
   });
   
   tbody.innerHTML = tableRows;
+  
+  // 更新分頁控制
+  if (paginationDiv) {
+    paginationDiv.style.display = 'flex';
+    paginationDiv.innerHTML = `
+      <button id="prev-page" class="page-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">上一頁</button>
+      <span class="page-info">第 ${currentPage} 頁，共 ${totalPages} 頁</span>
+      <button id="next-page" class="page-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">下一頁</button>
+    `;
+  } else {
+    // 如果分頁控制不存在，創建一個
+    const content = document.getElementById("order-management-content");
+    if (content) {
+      const paginationElement = document.createElement('div');
+      paginationElement.className = 'pagination';
+      paginationElement.innerHTML = `
+        <button id="prev-page" class="page-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">上一頁</button>
+        <span class="page-info">第 ${currentPage} 頁，共 ${totalPages} 頁</span>
+        <button id="next-page" class="page-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">下一頁</button>
+      `;
+      content.appendChild(paginationElement);
+    }
+  }
+  
+  // 保存當前頁碼到全局變量
+  window.currentOrderPage = currentPage;
 }
 
 // 載入折價券管理
@@ -1337,14 +1437,15 @@ function logout() {
 // 查看商品訂單詳情
 function viewShopOrderDetails(orderId) {
   // 查找訂單資料
-  const order = shopOrdersData.find(o => o.shop_order_id === orderId);
+  const order = shopOrdersData.find(o => o.shopOrderId === orderId);
   if (!order) {
-    alert('找不到訂單資料');
+    alert('找不到訂單資料'); 
     return;
   }
+
   
   // 查找訂單詳情
-  const orderDetails = shopOrderDetailsData.filter(d => d.shop_order_id === orderId);
+  const orderDetails = shopOrderDetailsData.data.filter(d => d.shopOrderId === orderId);
   
   // 建立模態框
   const modal = document.createElement('div');
@@ -1352,44 +1453,44 @@ function viewShopOrderDetails(orderId) {
   modal.id = 'shop-order-detail-modal';
   
   // 訂單狀態資訊
-  const statusInfo = getShopOrderStatusInfo(order.shop_order_status);
+  const statusInfo = getShopOrderStatusInfo(order.shopOrderStatus);
   
   // 付款方式文字
-  const paymentMethod = getPaymentMethodText(order.shop_order_payment);
+  const paymentMethod = getPaymentMethodText(order.shopOrderPayment);
   
   // 配送方式文字
-  const shipmentMethod = getShipmentMethodText(order.shop_order_shipment);
+  const shipmentMethod = getShipmentMethodText(order.shopOrderShipment);
   
   // 格式化日期
-  const orderDate = new Date(order.shop_order_date).toLocaleDateString('zh-TW');
+  const orderDate = new Date(order.shopOrderDate).toLocaleDateString('zh-TW');
   
   // 計算商品總數
-  const totalItems = orderDetails.reduce((sum, item) => sum + item.shop_order_qty, 0);
+  const totalItems = orderDetails.reduce((sum, item) => sum + item.shopOrderQty, 0);
   
   // 生成商品列表
   let productRows = '';
   orderDetails.forEach(detail => {
     // 由於沒有商品資料，直接使用商品ID
-    const productName = `商品 #${detail.prod_id}`;
+    const productName = `商品 #${detail.prodId}`; // 從商品資料中獲取名稱
     
     // 顏色和規格ID
-    const colorId = detail.prod_color_id || '無';
-    const specId = detail.prod_spec_id || '無';
+    const colorId = detail.prodColorId || '無'; // 從商品顏色資料表格中獲取名稱
+    const specId = detail.prodSpecId || '無'; // 從商品規格資料表格中獲取名稱 
     
     // 計算小計
-    const subtotal = detail.shop_order_qty * detail.prod_order_price;
+    const subtotal = detail.shopOrderQty * detail.prodOrderPrice;
     
     productRows += `
       <tr>
         <td>${productName}</td>
         <td>顏色 #${colorId}</td>
         <td>規格 #${specId}</td>
-        <td>${detail.shop_order_qty}</td>
-        <td>NT$ ${detail.prod_order_price.toLocaleString()}</td>
+        <td>${detail.shopOrderQty}</td>
+        <td>NT$ ${detail.prodOrderPrice}</td>
         <td>NT$ ${subtotal.toLocaleString()}</td>
         <td>
-          ${detail.comment_content ? 
-            `<button class="action-btn btn-view" onclick="viewProductComment(${detail.prod_id}, ${orderId})">查看評論</button>` : 
+          ${detail.commentContent ? 
+            `<button class="action-btn btn-view" onclick="viewProductComment(${detail.prodId}, ${orderId})">查看評論</button>` : 
             '尚未評論'}
         </td>
       </tr>
@@ -1400,7 +1501,7 @@ function viewShopOrderDetails(orderId) {
   modal.innerHTML = `
     <div class="modal-content order-detail-modal">
       <div class="modal-header">
-        <h3>訂單詳情 #${order.shop_order_id}</h3>
+        <h3>訂單詳情 #${order.shopOrderId}</h3>
         <button class="close-btn" onclick="closeShopOrderDetailModal()">×</button>
       </div>
       
@@ -1409,7 +1510,7 @@ function viewShopOrderDetails(orderId) {
         <div class="info-grid">
           <div class="info-item">
             <span class="info-label">訂單編號:</span>
-            <span class="info-value">${order.shop_order_id}</span>
+            <span class="info-value">${order.shopOrderId}</span>
           </div>
           <div class="info-item">
             <span class="info-label">訂單日期:</span>
@@ -1439,19 +1540,19 @@ function viewShopOrderDetails(orderId) {
         <div class="info-grid">
           <div class="info-item">
             <span class="info-label">姓名:</span>
-            <span class="info-value">${order.order_name}</span>
+            <span class="info-value">${order.orderName}</span>
           </div>
           <div class="info-item">
             <span class="info-label">電話:</span>
-            <span class="info-value">${order.order_phone}</span>
+            <span class="info-value">${order.orderPhone}</span>
           </div>
           <div class="info-item">
             <span class="info-label">Email:</span>
-            <span class="info-value">${order.order_email}</span>
+            <span class="info-value">${order.orderEmail}</span>
           </div>
           <div class="info-item">
             <span class="info-label">收件地址:</span>
-            <span class="info-value">${order.order_shipping_address}</span>
+            <span class="info-value">${order.orderShippingAddress}</span>
           </div>
         </div>
       </div>
@@ -1483,29 +1584,29 @@ function viewShopOrderDetails(orderId) {
         <div class="amount-breakdown">
           <div class="amount-item">
             <span class="amount-label">商品總額:</span>
-            <span class="amount-value">NT$ ${order.before_discount_amount.toLocaleString()}</span>
+            <span class="amount-value">NT$ ${order.beforeDiscountAmount}</span>
           </div>
           <div class="amount-item">
             <span class="amount-label">運費:</span>
-            <span class="amount-value">NT$ ${order.shop_order_ship_fee.toLocaleString()}</span>
+            <span class="amount-value">NT$ ${order.shopOrderShipFee}</span>
           </div>
           <div class="amount-item discount">
             <span class="amount-label">折扣金額:</span>
-            <span class="amount-value">- NT$ ${(order.before_discount_amount - order.after_discount_amount).toLocaleString()}</span>
+            <span class="amount-value">- NT$ ${(order.BeforeDiscountAmount - order.afterDiscountAmount).toLocaleString()}</span>
           </div>
           <div class="amount-item total">
             <span class="amount-label">訂單總額:</span>
-            <span class="amount-value">NT$ ${order.after_discount_amount.toLocaleString()}</span>
+            <span class="amount-value">NT$ ${order.afterDiscountAmount}</span>
           </div>
         </div>
       </div>
       
       <div class="modal-actions">
         <button class="action-btn btn-close" onclick="closeShopOrderDetailModal()">關閉</button>
-        ${order.shop_order_status === 0 ? `<button class="action-btn btn-activate" onclick="updateShopOrderStatus(${order.shop_order_id}, 1); closeShopOrderDetailModal();">確認訂單</button>` : ''}
-        ${order.shop_order_status === 1 ? `<button class="action-btn btn-activate" onclick="updateShopOrderStatus(${order.shop_order_id}, 2); closeShopOrderDetailModal();">出貨</button>` : ''}
-        ${order.shop_order_status === 2 ? `<button class="action-btn btn-activate" onclick="updateShopOrderStatus(${order.shop_order_id}, 3); closeShopOrderDetailModal();">已送達</button>` : ''}
-        ${order.shop_return_apply === 1 && order.shop_order_status !== 5 ? `<button class="action-btn btn-deactivate" onclick="updateShopOrderStatus(${order.shop_order_id}, 5); closeShopOrderDetailModal();">處理退貨</button>` : ''}
+        ${order.shopOrderStatus === 0 ? `<button class="action-btn btn-activate" onclick="updateShopOrderStatus(${order.shopOrderId}, 1); closeShopOrderDetailModal();">確認訂單</button>` : ''}
+        ${order.shopOrderStatus === 1 ? `<button class="action-btn btn-activate" onclick="updateShopOrderStatus(${order.shopOrderId}, 2); closeShopOrderDetailModal();">出貨</button>` : ''}
+        ${order.shopOrderStatus === 2 ? `<button class="action-btn btn-activate" onclick="updateShopOrderStatus(${order.shopOrderId}, 3); closeShopOrderDetailModal();">已送達</button>` : ''}
+        ${order.shopReturnApply === 1 && order.shopOrderStatus !== 5 ? `<button class="action-btn btn-deactivate" onclick="updateShopOrderStatus(${order.shopOrderId}, 5); closeShopOrderDetailModal();">處理退貨</button>` : ''}
       </div>
     </div>
   `;
@@ -1525,9 +1626,9 @@ function closeShopOrderDetailModal() {
 // 查看商品評論
 function viewProductComment(productId, orderId) {
   // 查找訂單詳情
-  const orderDetail = shopOrderDetailsData.find(d => d.prod_id === productId && d.shop_order_id === orderId);
+  const orderDetail = shopOrderDetailsData.data.find(d => d.prodId === productId && d.shopOrderId === orderId);
   
-  if (!orderDetail || !orderDetail.comment_content) {
+  if (!orderDetail || !orderDetail.commentContent) {
     alert('找不到評論資料');
     return;
   }
@@ -1541,12 +1642,12 @@ function viewProductComment(productId, orderId) {
   modal.id = 'product-comment-modal';
   
   // 格式化日期
-  const commentDate = orderDetail.comment_date ? new Date(orderDetail.comment_date).toLocaleDateString('zh-TW') : '未知日期';
+  const commentDate = orderDetail.commentDate ? new Date(orderDetail.commentDate).toLocaleDateString('zh-TW') : '未知日期';
   
   // 評分星星
   let stars = '';
   for (let i = 1; i <= 5; i++) {
-    stars += `<i class="fas fa-star ${i <= orderDetail.comment_satis ? 'active' : ''}"></i>`;
+    stars += `<i class="fas fa-star ${i <= orderDetail.commentSatis ? 'active' : ''}"></i>`;
   }
   
   // 模態框內容
@@ -1564,7 +1665,7 @@ function viewProductComment(productId, orderId) {
           <div class="rating">
             <span class="rating-label">評分:</span>
             <span class="rating-stars">${stars}</span>
-            <span class="rating-value">${orderDetail.comment_satis}/5</span>
+            <span class="rating-value">${orderDetail.commentSatis}/5</span>
           </div>
           
           <div class="comment-date">
@@ -1574,7 +1675,7 @@ function viewProductComment(productId, orderId) {
         </div>
         
         <div class="comment-text">
-          <p>${orderDetail.comment_content}</p>
+          <p>${orderDetail.commentContent}</p>
         </div>
       </div>
       
@@ -1599,7 +1700,7 @@ function closeProductCommentModal() {
 // 更新商品訂單狀態
 function updateShopOrderStatus(orderId, newStatus) {
   // 查找訂單
-  const order = shopOrdersData.find(o => o.shop_order_id === orderId);
+  const order = shopOrdersData.find(o => o.shopOrderId === orderId);
   if (!order) {
     alert('找不到訂單資料');
     return;
@@ -1618,16 +1719,16 @@ function updateShopOrderStatus(orderId, newStatus) {
   // 確認更新
   if (confirm(`確定要將訂單 #${orderId} 狀態更新為「${statusText[newStatus]}」嗎？`)) {
     // 更新狀態
-    order.shop_order_status = newStatus;
+    order.shopOrderStatus = newStatus;
     
     // 如果是標記為已完成，同時更新相關欄位
-    if (newStatus === 4) {
+    if (newStatus === 5) {
       // 可以在這裡添加其他需要更新的欄位
     }
     
-    // 如果是標記為已退貨，重置退貨申請狀態
-    if (newStatus === 5) {
-      order.shop_return_apply = 0;
+    // 如果是標記為已取消，重置退貨申請狀態
+    if (newStatus === 1) {
+     
     }
     
     // 重新載入訂單表格
