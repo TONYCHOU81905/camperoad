@@ -139,27 +139,9 @@ class CartManager {
       return false;
     }
 
-    // 檢查是否已存在相同的加購商品
-    const existingIndex = this.cart.findIndex(
-      (item) => item.bundle_id === bundleItem.bundle_id
-    );
-
-    if (existingIndex > -1) {
-      // 更新數量
-      this.cart[existingIndex].quantity =
-        (this.cart[existingIndex].quantity || 1) + 1;
-    } else {
-      // 添加新項目
-      this.cart.push({
-        ...bundleItem,
-        quantity: 1,
-        isBundle: true,
-        addedAt: new Date().toISOString(),
-      });
-    }
-
-    // 同時更新bundleItems的localStorage
-    let bundleItemsStorage = JSON.parse(localStorage.getItem("bundleItems")) || [];
+    // 只更新bundleItems的localStorage
+    let bundleItemsStorage =
+      JSON.parse(localStorage.getItem("bundleItems")) || [];
     const existingBundleIndex = bundleItemsStorage.findIndex(
       (item) => item.bundle_id === bundleItem.bundle_id
     );
@@ -179,32 +161,29 @@ class CartManager {
     }
     localStorage.setItem("bundleItems", JSON.stringify(bundleItemsStorage));
 
-    this.saveCart();
-    this.updateCartCount();
     this.showAddToCartMessage();
     return true;
   }
 
   // 移除購物車項目
   removeItem(index) {
-    const item = this.cart[index];
-    
-    // 如果是加購商品，同時從bundleItems的localStorage中移除
-    if (item && item.isBundle) {
-      let bundleItemsStorage = JSON.parse(localStorage.getItem("bundleItems")) || [];
-      const bundleIndex = bundleItemsStorage.findIndex(
-        (bundleItem) => bundleItem.bundle_id === item.bundle_id
-      );
-      
-      if (bundleIndex > -1) {
-        bundleItemsStorage.splice(bundleIndex, 1);
-        localStorage.setItem("bundleItems", JSON.stringify(bundleItemsStorage));
-      }
-    }
-    
     this.cart.splice(index, 1);
     this.saveCart();
     this.updateCartCount();
+  }
+
+  // 移除加購商品
+  removeBundleItem(bundleId) {
+    let bundleItemsStorage =
+      JSON.parse(localStorage.getItem("bundleItems")) || [];
+    const bundleIndex = bundleItemsStorage.findIndex(
+      (bundleItem) => bundleItem.bundle_id === bundleId
+    );
+
+    if (bundleIndex > -1) {
+      bundleItemsStorage.splice(bundleIndex, 1);
+      localStorage.setItem("bundleItems", JSON.stringify(bundleItemsStorage));
+    }
   }
 
   // 清空購物車
@@ -212,9 +191,17 @@ class CartManager {
     this.cart = [];
     this.saveCart();
     this.updateCartCount();
-    
-    // 同時清空bundleItems的localStorage
+  }
+
+  // 清空加購商品
+  clearBundleItems() {
     localStorage.removeItem("bundleItems");
+  }
+
+  // 清空所有購物資料
+  clearAll() {
+    this.clearCart();
+    this.clearBundleItems();
   }
 
   // 獲取購物車項目
@@ -222,30 +209,39 @@ class CartManager {
     return this.cart;
   }
 
+  // 獲取加購商品
+  getBundleItems() {
+    return JSON.parse(localStorage.getItem("bundleItems")) || [];
+  }
+
   // 計算總價
   getTotalPrice() {
-    return this.cart.reduce((total, item) => {
-      if (item.isBundle) {
-        // 加購商品價格
-        return total + item.bundle_price * (item.quantity || 1);
-      } else {
-        // 營地房型價格
-        const nights = this.calculateNights(item.checkIn, item.checkOut);
+    // 計算營地價格
+    const campsiteTotal = this.cart.reduce((total, item) => {
+      // 營地房型價格
+      const nights = this.calculateNights(item.checkIn, item.checkOut);
 
-        // 從campsiteTypes中獲取房型價格
-        const campsiteType = this.getCampsiteTypeById(item.campsite_type_id);
-        console.log("campsiteType:" + campsiteType);
-        let itemPrice = campsiteType.campsite_price * nights;
+      // 從campsiteTypes中獲取房型價格
+      const campsiteType = this.getCampsiteTypeById(item.campsite_type_id);
+      let itemPrice = campsiteType.campsite_price * nights;
 
-        // 添加帳篷租借費用
-        if (item.tentType && item.tentType.includes("rent")) {
-          const tentPrice = this.getTentPrice(item.tentType);
-          itemPrice += tentPrice * nights;
-        }
-
-        return total + itemPrice;
+      // 添加帳篷租借費用
+      if (item.tentType && item.tentType.includes("rent")) {
+        const tentPrice = this.getTentPrice(item.tentType);
+        itemPrice += tentPrice * nights;
       }
+
+      return total + itemPrice;
     }, 0);
+
+    // 計算加購商品價格
+    const bundleItemsStorage =
+      JSON.parse(localStorage.getItem("bundleItems")) || [];
+    const bundleTotal = bundleItemsStorage.reduce((total, item) => {
+      return total + item.bundle_price * (item.quantity || 1);
+    }, 0);
+
+    return campsiteTotal + bundleTotal;
   }
 
   // 計算住宿天數
@@ -268,15 +264,20 @@ class CartManager {
 
   // 保存購物車到本地存儲
   saveCart() {
+    console.log("saveCart" + JSON.stringify(this.cart));
+
     localStorage.setItem("campingCart", JSON.stringify(this.cart));
   }
 
   // 更新購物車數量顯示
   updateCartCount() {
+    const bundleItems = this.getBundleItems();
+    const totalCount = this.cart.length + bundleItems.length;
+
     const cartCountElements = document.querySelectorAll(".cart-count");
     cartCountElements.forEach((element) => {
-      element.textContent = this.cart.length;
-      element.style.display = this.cart.length > 0 ? "inline" : "none";
+      element.textContent = totalCount;
+      element.style.display = totalCount > 0 ? "inline" : "none";
     });
   }
 
@@ -341,8 +342,6 @@ class CartManager {
         description: "資料載入中，請稍候...",
       };
     }
-
-    console.log("a" + this.campsiteTypes);
 
     const campsiteType = this.campsiteTypes.find(
       (type) => type.campsite_type_id == id
