@@ -22,6 +22,7 @@ class CartPageManager {
   // 渲染購物車
   renderCart() {
     const cartItems = cartManager.getCartItems();
+    const bundleItems = cartManager.getBundleItems();
     const cartItemsContainer = document.getElementById("cart-items-container");
     const cartEmptyMessage = document.getElementById("cart-empty");
     const orderSummary = document.getElementById("order-summary");
@@ -34,7 +35,7 @@ class CartPageManager {
     bundleItemsContainer.innerHTML = "";
 
     // 顯示或隱藏空購物車消息和訂單摘要
-    if (cartItems.length === 0) {
+    if (cartItems.length === 0 && bundleItems.length === 0) {
       cartEmptyMessage.style.display = "block";
       orderSummary.style.display = "none";
       bundleItemsContainer.style.display = "none";
@@ -204,18 +205,15 @@ class CartPageManager {
     });
 
     // 渲染已加購的商品
-    const bundleItems = cartItems.filter((item) => item.isBundle);
-    bundleItems.forEach((item, index) => {
-      const realIndex = campItems.length + index;
+    const storedBundleItems = cartManager.getBundleItems();
+    storedBundleItems.forEach((item) => {
       const cartItemElement = document.createElement("div");
       cartItemElement.className = "cart-item bundle-item";
-      cartItemElement.dataset.index = realIndex;
+      cartItemElement.dataset.bundleId = item.bundle_id;
 
       cartItemElement.innerHTML = `
         <div class="cart-item-image">
-          <img src="/images/bundles/bundle-${item.bundle_id}.jpg" alt="${
-        item.bundle_name
-      }">
+          <img src="/images/bundles/bundle-${item.bundle_id}.jpg" alt="${item.bundle_name}">
         </div>
         <div class="cart-item-details">
           <h3 class="cart-item-title">${item.bundle_name}</h3>
@@ -236,24 +234,20 @@ class CartPageManager {
               <span class="price-label">數量：</span>
               <span class="price-value">
                 <div class="quantity-selector">
-                  <button class="quantity-btn minus" data-index="${realIndex}">-</button>
-                  <input type="number" class="quantity-input" value="${
-                    item.quantity || 1
-                  }" min="1" max="10" data-index="${realIndex}">
-                  <button class="quantity-btn plus" data-index="${realIndex}">+</button>
+                  <button class="quantity-btn minus" data-bundle-id="${item.bundle_id}">-</button>
+                  <input type="number" class="quantity-input" value="${item.quantity || 1}" min="1" max="10" data-bundle-id="${item.bundle_id}">
+                  <button class="quantity-btn plus" data-bundle-id="${item.bundle_id}">+</button>
                 </div>
               </span>
             </div>
             <div class="price-row total">
               <span class="price-label">小計：</span>
-              <span class="price-value">NT$ ${(
-                item.bundle_price * (item.quantity || 1)
-              ).toLocaleString()}</span>
+              <span class="price-value">NT$ ${(item.bundle_price * (item.quantity || 1)).toLocaleString()}</span>
             </div>
           </div>
         </div>
         <div class="cart-item-remove">
-          <button class="remove-btn" data-index="${realIndex}">
+          <button class="remove-btn" data-bundle-id="${item.bundle_id}">
             <i class="fas fa-trash-alt"></i>
           </button>
         </div>
@@ -319,15 +313,16 @@ class CartPageManager {
   }
 
   // 更新購物車項目數量
-  updateCartItemCount(index, newCount) {
-    const cartItems = cartManager.getCartItems();
-    if (index >= 0 && index < cartItems.length) {
-      // 只有加購商品才能更新數量
-      if (cartItems[index].isBundle) {
-        cartItems[index].quantity = newCount;
-        cartManager.saveCart();
-        this.renderCart();
-      }
+  updateCartItemCount(bundleId, newCount) {
+    let bundleItemsStorage = cartManager.getBundleItems();
+    const bundleIndex = bundleItemsStorage.findIndex(
+      (item) => item.bundle_id === bundleId
+    );
+
+    if (bundleIndex > -1) {
+      bundleItemsStorage[bundleIndex].quantity = newCount;
+      localStorage.setItem("bundleItems", JSON.stringify(bundleItemsStorage));
+      this.renderCart();
     }
   }
 
@@ -337,10 +332,17 @@ class CartPageManager {
     this.renderCart();
   }
 
+  // 移除加購商品
+  removeBundleItem(bundleId) {
+    cartManager.removeBundleItem(bundleId);
+    this.renderCart();
+  }
+
   // 清空購物車
   clearCart() {
     if (confirm("確定要清空購物車嗎？")) {
       cartManager.clearCart();
+      cartManager.clearBundleItems();
       this.renderCart();
     }
   }
@@ -372,42 +374,75 @@ class CartPageManager {
     // 移除按鈕
     document.addEventListener("click", (e) => {
       if (e.target.closest(".remove-btn")) {
-        const index = parseInt(e.target.closest(".remove-btn").dataset.index);
-        this.removeItem(index);
+        const btn = e.target.closest(".remove-btn");
+        if (btn.dataset.index) {
+          const index = parseInt(btn.dataset.index);
+          this.removeItem(index);
+        } else if (btn.dataset.bundleId) {
+          const bundleId = btn.dataset.bundleId;
+          this.removeBundleItem(bundleId);
+        }
       }
     });
 
     // 數量選擇器
     document.addEventListener("click", (e) => {
       if (e.target.classList.contains("quantity-btn")) {
-        const index = parseInt(e.target.dataset.index);
-        const input = document.querySelector(
-          `.quantity-input[data-index="${index}"]`
-        );
-        let value = parseInt(input.value);
+        const btn = e.target;
+        let input;
+        let value;
 
-        if (e.target.classList.contains("plus")) {
-          value = Math.min(value + 1, 10);
-        } else if (e.target.classList.contains("minus")) {
-          value = Math.max(value - 1, 1);
+        if (btn.dataset.index) {
+          const index = parseInt(btn.dataset.index);
+          input = document.querySelector(
+            `.quantity-input[data-index="${index}"]`
+          );
+          value = parseInt(input.value);
+
+          if (btn.classList.contains("plus")) {
+            value = Math.min(value + 1, 10);
+          } else if (btn.classList.contains("minus")) {
+            value = Math.max(value - 1, 1);
+          }
+
+          input.value = value;
+          this.updateCartItemCount(index, value);
+        } else if (btn.dataset.bundleId) {
+          const bundleId = btn.dataset.bundleId;
+          input = document.querySelector(
+            `.quantity-input[data-bundle-id="${bundleId}"]`
+          );
+          value = parseInt(input.value);
+
+          if (btn.classList.contains("plus")) {
+            value = Math.min(value + 1, 10);
+          } else if (btn.classList.contains("minus")) {
+            value = Math.max(value - 1, 1);
+          }
+
+          input.value = value;
+          this.updateCartItemCount(bundleId, value);
         }
-
-        input.value = value;
-        this.updateCartItemCount(index, value);
       }
     });
 
     // 數量輸入框
     document.addEventListener("change", (e) => {
       if (e.target.classList.contains("quantity-input")) {
-        const index = parseInt(e.target.dataset.index);
-        let value = parseInt(e.target.value);
+        const input = e.target;
+        let value = parseInt(input.value);
 
         // 限制數量範圍
         value = Math.max(1, Math.min(value, 10));
-        e.target.value = value;
+        input.value = value;
 
-        this.updateCartItemCount(index, value);
+        if (input.dataset.index) {
+          const index = parseInt(input.dataset.index);
+          this.updateCartItemCount(index, value);
+        } else if (input.dataset.bundleId) {
+          const bundleId = input.dataset.bundleId;
+          this.updateCartItemCount(bundleId, value);
+        }
       }
     });
 
@@ -443,7 +478,8 @@ class CartPageManager {
     const checkoutBtn = document.getElementById("checkout-btn");
     if (checkoutBtn) {
       const cartItems = cartManager.getCartItems();
-      checkoutBtn.disabled = cartItems.length === 0;
+      const bundleItems = cartManager.getBundleItems();
+      checkoutBtn.disabled = cartItems.length === 0 && bundleItems.length === 0;
     }
   }
 

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>付款取消 - 露營地預訂系統</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/checkout.css">
+  <style>
+    .cancel-container {
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 30px;
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    .cancel-icon {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 20px;
+      background-color: #f44336;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .cancel-icon svg {
+      width: 40px;
+      height: 40px;
+      fill: white;
+    }
+
+    .cancel-title {
+      font-size: 24px;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    .cancel-message {
+      margin: 30px 0;
+      padding: 20px;
+      border: 1px solid #eee;
+      border-radius: 5px;
+      background-color: #f9f9f9;
+    }
+
+    .action-buttons {
+      margin-top: 30px;
+    }
+
+    .action-buttons .btn {
+      margin: 0 10px;
+      padding: 12px 25px;
+    }
+  </style>
+</head>
+<body>
+  <!-- 頁頭 -->
+  <header class="site-header">
+    <div class="container">
+      <div class="header-content">
+        <div class="logo">
+          <a href="index.html">
+            <img src="images/logo.svg" alt="露營地預訂系統">
+          </a>
+        </div>
+        <nav class="main-nav">
+          <ul>
+            <li><a href="campsites.html">營地</a></li>
+            <li><a href="shop.html">商店</a></li>
+            <li><a href="camp-guides.html">露營指南</a></li>
+            <li><a href="camp_cart.html" class="cart-link">購物車 <span class="cart-count">0</span></a></li>
+            <li><a href="login.html" class="login-link">登入</a></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主要內容 -->
+  <main>
+    <div class="cancel-container">
+      <div class="cancel-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+          <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/>
+        </svg>
+      </div>
+      <h1 class="cancel-title">付款已取消</h1>
+      <p>您的 LINE Pay 付款已取消或未完成。</p>
+      
+      <div class="cancel-message">
+        <p>您可以返回結帳頁面重新嘗試付款，或返回購物車修改您的訂單。</p>
+        <p>如果您遇到任何問題，請聯絡我們的客戶服務。</p>
+      </div>
+      
+      <div class="action-buttons">
+        <a href="checkout.html" class="btn primary-btn">返回結帳</a>
+        <a href="camp_cart.html" class="btn secondary-btn">返回購物車</a>
+      </div>
+    </div>
+  </main>
+
+  <!-- 頁尾 -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-logo">
+          <img src="images/logo-white.svg" alt="露營地預訂系統">
+        </div>
+        <div class="footer-links">
+          <div class="footer-column">
+            <h3>關於我們</h3>
+            <ul>
+              <li><a href="#">公司簡介</a></li>
+              <li><a href="#">最新消息</a></li>
+              <li><a href="#">聯絡我們</a></li>
+            </ul>
+          </div>
+          <div class="footer-column">
+            <h3>客戶服務</h3>
+            <ul>
+              <li><a href="#">常見問題</a></li>
+              <li><a href="#">訂購須知</a></li>
+              <li><a href="#">隱私政策</a></li>
+            </ul>
+          </div>
+          <div class="footer-column">
+            <h3>追蹤我們</h3>
+            <div class="social-links">
+              <a href="#" class="social-link">FB</a>
+              <a href="#" class="social-link">IG</a>
+              <a href="#" class="social-link">LINE</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="copyright">
+        &copy; 2023 露營地預訂系統. 版權所有.
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/camp_cart.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // 更新購物車數量
+      if (window.cartManager && cartManager.isInitialized()) {
+        cartManager.updateCartCount();
+      } else {
+        document.addEventListener("cartManagerInitialized", () => {
+          cartManager.updateCartCount();
+        });
+      }
+      
+      // 清除 localStorage 中的訂單資訊
+      localStorage.removeItem('pendingOrder');
+    });
+  </script>
+</body>
+</html>
