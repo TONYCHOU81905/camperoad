@@ -8,20 +8,141 @@ class UserProfileManager {
     this.init();
   }
 
+  // 更新登入按鈕顯示
+  updateLoginButton() {
+    const btnLogin = document.querySelector(".btn-login");
+    if (!btnLogin) return;
+
+    // 已登入狀態 - 確保樣式一致
+    btnLogin.href = "user-profile.html";
+    btnLogin.innerHTML = `<i class="fas fa-user"></i> ${this.currentMember.mem_name}`;
+    btnLogin.title = `會員：${this.currentMember.mem_name}`;
+    btnLogin.classList.add("logged-in");
+
+    // 添加登出功能
+    this.addLogoutMenu(btnLogin);
+  }
+
+  // 添加登出選單
+  addLogoutMenu(btnLogin) {
+    // 檢查是否已存在登出選單
+    let logoutMenu = document.querySelector(".logout-menu");
+
+    if (!logoutMenu) {
+      // 創建登出選單
+      logoutMenu = document.createElement("div");
+      logoutMenu.className = "logout-menu";
+      logoutMenu.innerHTML = `<a href="#" class="logout-link"><i class="fas fa-sign-out-alt"></i> 登出</a>`;
+
+      // 插入到登入按鈕後面
+      btnLogin.parentNode.insertBefore(logoutMenu, btnLogin.nextSibling);
+
+      // 添加登出事件
+      const logoutLink = logoutMenu.querySelector(".logout-link");
+      logoutLink.addEventListener("click", (e) => {
+        e.preventDefault();
+        this.logout();
+      });
+
+      // 顯示/隱藏登出選單
+      btnLogin.addEventListener("click", (e) => {
+        e.preventDefault();
+        logoutMenu.classList.toggle("show");
+      });
+    }
+  }
+
+  // 登出功能
+  logout() {
+    // 清除localStorage和sessionStorage中的會員資訊
+    localStorage.removeItem("currentMember");
+    sessionStorage.removeItem("currentMember");
+
+    // 重定向到首頁
+    window.location.href = "index.html";
+  }
+
   async init() {
     await this.loadData();
     this.initTabs();
     this.loadMemberData();
     this.loadCampsiteOrders();
     this.loadFavoriteCamps();
+    this.loadMemberAvatar();
+  }
+  
+  // 載入會員頭像
+  loadMemberAvatar() {
+    if (!this.currentMember || !this.currentMember.mem_id) return;
+    
+    // 添加頁面載入遮罩
+    const loadingOverlay = document.createElement('div');
+    loadingOverlay.className = 'loading-overlay';
+    loadingOverlay.innerHTML = '<div class="loading-spinner"></div>';
+    document.body.appendChild(loadingOverlay);
+    
+    const memId = this.currentMember.mem_id;
+    const avatarPreview = document.querySelector('.avatar-preview img');
+    
+    if (avatarPreview) {
+      // 設置預設圖片作為備用
+      const defaultAvatar = 'images/user-1.jpg';
+      
+      // 添加時間戳參數避免緩存
+      const timestamp = new Date().getTime();
+      
+      // 嘗試從API獲取頭像
+      fetch(`http://localhost:8081/CJA101G02/member/${memId}/pic?t=${timestamp}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('頭像載入失敗');
+          }
+          return response.blob();
+        })
+        .then(blob => {
+          // 成功獲取頭像，設置為預覽圖片
+          const imageUrl = URL.createObjectURL(blob);
+          
+          // 使用Image對象預加載圖片
+          const img = new Image();
+          img.onload = function() {
+            // 圖片加載完成後，設置到頭像預覽並移除遮罩
+            avatarPreview.src = imageUrl;
+            document.body.removeChild(loadingOverlay);
+          };
+          img.onerror = function() {
+            // 圖片加載失敗，使用預設圖片
+            avatarPreview.src = defaultAvatar;
+            document.body.removeChild(loadingOverlay);
+          };
+          img.src = imageUrl;
+        })
+        .catch(error => {
+          console.error('頭像載入錯誤:', error);
+          // 載入失敗時使用預設圖片
+          avatarPreview.src = defaultAvatar;
+          document.body.removeChild(loadingOverlay);
+        });
+    }
   }
 
   async loadData() {
     try {
-      // 載入會員資料
-      const memResponse = await fetch("data/mem.json");
-      const memData = await memResponse.json();
-      this.currentMember = memData[0]; // 使用第一個會員作為當前登入會員
+      // 檢查localStorage和sessionStorage是否有currentMember的資訊
+      const memberData =
+        localStorage.getItem("currentMember") ||
+        sessionStorage.getItem("currentMember");
+
+      if (memberData) {
+        // 如果有會員資料，解析並設定為當前會員
+        this.currentMember = JSON.parse(memberData);
+        // 更新登入按鈕顯示
+        this.updateLoginButton();
+      } else {
+        // 如果沒有會員資料，重定向到登入頁面
+        window.location.href = "login.html";
+        return;
+      }
 
       // 載入營地訂單
       const ordersResponse = await fetch("data/campsite_order.json");
@@ -400,33 +521,246 @@ class UserProfileManager {
 document.addEventListener("DOMContentLoaded", () => {
   new UserProfileManager();
 
-  // 登出按鈕事件監聽
-  const logoutBtn = document.getElementById("logoutBtn");
-  if (logoutBtn) {
-    logoutBtn.addEventListener("click", function (e) {
-      e.preventDefault();
+  // 頭像上傳功能
+  const avatarInput = document.getElementById("avatar-input");
+  const avatarPreview = document.querySelector(".avatar-preview img");
+  const uploadBtn = document.querySelector(".btn-upload");
+  const uploadProgress = document.createElement("div");
+  uploadProgress.className = "upload-progress";
+  uploadProgress.innerHTML = `<div class="progress-bar"></div>`;
 
-      // 顯示確認對話框
-      if (confirm("確定要登出嗎？")) {
-        // 清除本地儲存的會員資料
-        // 清除所有相關的儲存資料
-        localStorage.removeItem("currentMember");
-        sessionStorage.removeItem("currentMember");
-        // 也清除可能的其他相關資料
-        localStorage.removeItem("memberRememberMe");
-        sessionStorage.removeItem("memberRememberMe");
+  // 初始化上傳進度條
+  const avatarEdit = document.querySelector(".avatar-edit");
+  if (avatarEdit) {
+    avatarEdit.appendChild(uploadProgress);
+  }
 
-        // 顯示登出成功訊息
-        showMessage("已成功登出", "success");
+  // 預覽選擇的圖片
+  function previewImage(file) {
+    if (!avatarPreview) return;
 
-        // 延遲跳轉到首頁
-        setTimeout(() => {
-          window.location.href = "index.html";
-        }, 1500);
+    // 立即使用 URL.createObjectURL 顯示預覽，提供即時反饋
+    const objectUrl = URL.createObjectURL(file);
+    avatarPreview.src = objectUrl;
+    
+    // 添加動畫效果
+    avatarPreview.classList.add("preview-updated");
+    setTimeout(() => {
+      avatarPreview.classList.remove("preview-updated");
+    }, 1000);
+    
+    // 同時使用 FileReader 讀取完整數據（作為備份方法）
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      // 如果 URL.createObjectURL 失敗，這將作為備份
+      if (!avatarPreview.src || avatarPreview.src === 'about:blank') {
+        avatarPreview.src = e.target.result;
       }
+      // 釋放 objectURL 以避免內存洩漏
+      URL.revokeObjectURL(objectUrl);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // 更新上傳進度
+  function updateProgress(percent) {
+    const progressBar = uploadProgress.querySelector(".progress-bar");
+    if (progressBar) {
+      progressBar.style.width = `${percent}%`;
+      if (percent === 100) {
+        setTimeout(() => {
+          progressBar.style.width = "0%";
+        }, 1000);
+      }
+    }
+  }
+
+  if (avatarInput && uploadBtn) {
+    // 添加懸停效果
+    uploadBtn.addEventListener("mouseover", function () {
+      if (avatarPreview) {
+        avatarPreview.classList.add("hover");
+      }
+    });
+
+    uploadBtn.addEventListener("mouseout", function () {
+      if (avatarPreview) {
+        avatarPreview.classList.remove("hover");
+      }
+    });
+
+    // 處理檔案選擇
+    avatarInput.addEventListener("change", function (e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      // 檢查檔案類型
+      if (!file.type.match("image.*")) {
+        showMessage("請選擇圖片檔案", "error");
+        return;
+      }
+
+      // 檢查檔案大小 (2MB = 2 * 1024 * 1024 bytes)
+      if (file.size > 2 * 1024 * 1024) {
+        showMessage("檔案大小不能超過 2MB", "error");
+        return;
+      }
+
+      // 立即預覽圖片
+      previewImage(file);
+
+      // 顯示上傳中訊息
+      showMessage("上傳中...", "info");
+
+      // 獲取會員ID
+      const userProfileManager = new UserProfileManager();
+      const memId = userProfileManager.currentMember?.mem_id;
+
+      if (!memId) {
+        showMessage("無法獲取會員ID，請重新登入", "error");
+        return;
+      }
+
+      // 建立 FormData 物件
+      const formData = new FormData();
+      formData.append("file", file);
+
+      // 模擬上傳進度
+      let progress = 0;
+      const progressInterval = setInterval(() => {
+        progress += 5;
+        if (progress > 90) clearInterval(progressInterval);
+        updateProgress(progress);
+      }, 100);
+
+      // 發送 AJAX 請求
+      fetch(`http://localhost:8081/CJA101G02/member/${memId}/picture`, {
+        method: "POST",
+        body: formData,
+        // 不需要設定 Content-Type，fetch 會自動設定正確的 multipart/form-data 格式
+      })
+        .then((response) => {
+          console.log("response:" + response.status);
+
+          // if (response.status === 200) {
+          //   throw new Error("網路回應不正常1");
+          // }
+
+          if (response.status !== 200) {
+            throw new Error("網路回應不正常");
+          }
+          // 保存原始圖片URL，以便上傳失敗時恢復
+          const originalImageSrc = avatarPreview.src;
+          return response.json().then(data => {
+            // 返回包含原始圖片URL的對象
+            return { data, originalImageSrc };
+          });
+        })
+        .then((response) => {
+          // 清除進度條計時器
+          clearInterval(progressInterval);
+          // 設置進度為100%
+          updateProgress(100);
+
+          // 從回應中獲取數據和原始圖片URL
+          const { data, originalImageSrc } = response;
+          
+          // 檢查回傳的資料格式，可能是 {data: 'ok'} 或直接是 'ok'
+          if (data === "ok" || (data && data.data === "ok")) {
+            // 上傳成功後，重新載入頭像（添加時間戳避免緩存）
+            const timestamp = new Date().getTime();
+            const memId = userProfileManager.currentMember?.mem_id;
+            
+            // 添加載入指示器
+            const loadingIndicator = document.createElement('div');
+            loadingIndicator.className = 'avatar-loading';
+            const avatarPreviewContainer = document.querySelector('.avatar-preview');
+            if (avatarPreviewContainer) {
+              avatarPreviewContainer.appendChild(loadingIndicator);
+            }
+            
+            // 從服務器獲取最新頭像
+            fetch(`http://localhost:8081/CJA101G02/member/${memId}/pic?t=${timestamp}`)
+              .then(response => {
+                if (!response.ok) {
+                  throw new Error('更新頭像載入失敗');
+                }
+                return response.blob();
+              })
+              .then(blob => {
+                // 移除載入指示器
+                if (loadingIndicator && loadingIndicator.parentNode) {
+                  loadingIndicator.parentNode.removeChild(loadingIndicator);
+                }
+                
+                // 更新頭像預覽
+                const imageUrl = URL.createObjectURL(blob);
+                const avatarPreview = document.querySelector('.avatar-preview img');
+                if (avatarPreview) {
+                  avatarPreview.src = imageUrl;
+                  // 添加更新動畫
+                  avatarPreview.classList.add('preview-updated');
+                  setTimeout(() => {
+                    avatarPreview.classList.remove('preview-updated');
+                  }, 1000);
+                }
+                
+                showMessage("頭像上傳成功", "success");
+              })
+              .catch(error => {
+                console.error('更新頭像載入錯誤:', error);
+                // 移除載入指示器
+                if (loadingIndicator && loadingIndicator.parentNode) {
+                  loadingIndicator.parentNode.removeChild(loadingIndicator);
+                }
+                // 上傳成功但無法載入新頭像時，保留已上傳的圖片
+                showMessage("頭像上傳成功，但無法載入新頭像", "warning");
+              });
+          } else {
+            // 上傳失敗，恢復原始圖片
+            avatarPreview.src = originalImageSrc;
+            throw new Error("上傳失敗");
+          }
+        })
+        .catch((error) => {
+          // 清除進度條計時器
+          clearInterval(progressInterval);
+          // 重置進度條
+          updateProgress(0);
+
+          console.error("上傳錯誤:", error);
+          showMessage("上傳失敗，請稍後再試", "error");
+        });
     });
   }
 });
+
+// 登出按鈕事件監聽
+const logoutBtn = document.getElementById("logoutBtn");
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", function (e) {
+    e.preventDefault();
+
+    // 顯示確認對話框
+    if (confirm("確定要登出嗎？")) {
+      // 清除本地儲存的會員資料
+      // 清除所有相關的儲存資料
+      localStorage.removeItem("currentMember");
+      sessionStorage.removeItem("currentMember");
+      // 也清除可能的其他相關資料
+      localStorage.removeItem("memberRememberMe");
+      sessionStorage.removeItem("memberRememberMe");
+
+      // 顯示登出成功訊息
+      showMessage("已成功登出", "success");
+
+      // 延遲跳轉到首頁
+      setTimeout(() => {
+        window.location.href = "index.html";
+      }, 1500);
+    }
+  });
+}
 
 // 顯示訊息函數
 function showMessage(message, type = "info") {
