@@ -168,17 +168,50 @@ class OwnerDashboard {
     this.renderCampImages();
   }
 
-  renderCampImages() {
+  // 檢查圖片是否存在的輔助函數
+  checkImageExists(url) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve(true);
+      img.onerror = () => resolve(false);
+      img.src = url;
+    });
+  }
+
+  async renderCampImages() {
+    if (!this.campData || !this.campData.camp_id) {
+      console.warn("無法渲染營地圖片：缺少營地ID");
+      return;
+    }
+
+    const campId = this.campData.camp_id;
+    const defaultImagePath = "images/camp-1.jpg";
+
     for (let i = 1; i <= 4; i++) {
       const container = document.getElementById(`campImage${i}Container`);
       if (!container) continue;
 
-      const imageUrl = this.campData[`camp_pic${i}`];
+      // 檢查是否有圖片數據
+      // const hasImageData = this.campData[`camp_pic${i}`];
+      const hasImageData = true;
+      if (hasImageData) {
+        // 構建API圖片URL
+        const apiImageUrl = `http://localhost:8081/CJA101G02/api/camps/${campId}/${i}`;
+        console.log("apiImageUrl:" + apiImageUrl);
 
-      if (imageUrl) {
+        // 檢查API圖片是否可訪問
+        const apiImageExists = await this.checkImageExists(apiImageUrl);
+        console.log(i + ":" + apiImageExists);
+
+        // 決定使用哪個圖片URL
+        const imageUrl = apiImageExists ? apiImageUrl : defaultImagePath;
+        const imageSource = apiImageExists
+          ? apiImageUrl
+          : this.campData[`camp_pic${i}`] || defaultImagePath;
+
         container.innerHTML = `
           <div class="image-container">
-            <img src="${imageUrl}" class="thumbnail" onclick="ownerDashboard.showCampImageModal('${imageUrl}', ${i})" />
+            <img src="${imageUrl}" class="thumbnail" onclick="ownerDashboard.showCampImageModal('${imageSource}', ${i})" />
             <div class="image-actions">
               <button class="btn btn-sm btn-camping" onclick="ownerDashboard.uploadCampImage(${i})"><i class="fas fa-upload"></i></button>
               <button class="btn btn-sm btn-danger" onclick="ownerDashboard.deleteCampImage(${i})"><i class="fas fa-trash"></i></button>
@@ -1036,17 +1069,152 @@ class OwnerDashboard {
     e.preventDefault();
     const formData = new FormData(e.target);
 
-    // 模擬更新營地資料
-    const updatedData = {
-      ...this.campData,
-      camp_name: formData.get("camp_name"),
-      camp_location: formData.get("camp_location"),
-      camp_status: formData.get("camp_status"),
-      camp_description: formData.get("camp_description"),
-    };
+    // 顯示載入中訊息，設置為不自動消失，並指定一個ID
+    const messageId = "updating-camp-info";
+    this.showMessage("正在更新營地資料...", "info", false, messageId);
 
-    console.log("更新營地資料：", updatedData);
-    this.showMessage("營地資料更新成功！", "success");
+    // 從表單獲取基本資料
+    const campName = formData.get("camp_name");
+    const campLocation = formData.get("camp_location");
+    const campReleaseStatus = formData.get("camp_status");
+    const campContent = formData.get("camp_description");
+
+    // 解析地址為城市、區域和詳細地址
+    // 假設格式為：城市區域詳細地址
+    let campCity = "";
+    let campDist = "";
+    let campAddr = "";
+
+    if (campLocation) {
+      // 簡單的地址解析邏輯，實際應用可能需要更複雜的處理
+      if (campLocation.length >= 3) {
+        campCity = campLocation.substring(0, 3); // 假設前3個字是城市
+        if (campLocation.length >= 6) {
+          campDist = campLocation.substring(3, 6); // 假設接下來3個字是區域
+          campAddr = campLocation.substring(6); // 剩餘部分是詳細地址
+        } else {
+          campAddr = campLocation.substring(3);
+        }
+      } else {
+        campAddr = campLocation;
+      }
+    }
+
+    // 獲取營地評分相關數據
+    const campCommentNumberCount = this.campData
+      ? this.campData.camp_comment_number_count || 0
+      : 0;
+    const campCommentSumScore = this.campData
+      ? this.campData.camp_comment_sun_score || 0
+      : 0;
+
+    // 獲取營地註冊日期，如果沒有則使用當前日期
+    const today = new Date();
+    const campRegDate =
+      this.campData && this.campData.camp_reg_date
+        ? this.campData.camp_reg_date
+        : `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(
+            2,
+            "0"
+          )}-${String(today.getDate()).padStart(2, "0")}`;
+
+    // 獲取營地主ID
+    const ownerId = this.currentOwner.owner_id;
+
+    // 創建FormData對象用於API請求
+    const apiFormData = new FormData();
+    apiFormData.append("campId", this.campData.camp_id);
+    apiFormData.append("ownerId", ownerId);
+    apiFormData.append("campName", campName);
+    apiFormData.append("campContent", campContent);
+    apiFormData.append("campCity", campCity);
+    apiFormData.append("campDist", campDist);
+    apiFormData.append("campAddr", campAddr);
+    apiFormData.append("campReleaseStatus", campReleaseStatus);
+    apiFormData.append("campCommentNumberCount", campCommentNumberCount);
+    apiFormData.append("campCommentSumScore", campCommentSumScore);
+    apiFormData.append("campRegDate", campRegDate);
+
+    console.log("campId", this.campData.camp_id);
+    console.log("ownerId", ownerId);
+
+    // 獲取營地圖片
+    // 檢查是否有圖片1和圖片2（必須的）
+    if (!this.campData || !this.campData.campPic1 || !this.campData.campPic2) {
+      this.showMessage("請上傳必要的營地圖片（至少需要圖片1和圖片2）", "error");
+      return;
+    }
+
+    // 添加圖片到FormData
+    apiFormData.append("campPic1", this.campData.campPic1);
+    apiFormData.append("campPic2", this.campData.campPic2);
+
+    // 添加可選圖片
+    if (this.campData.campPic3) {
+      apiFormData.append("campPic3", this.campData.campPic3);
+    }
+
+    if (this.campData.campPic4) {
+      apiFormData.append("campPic4", this.campData.campPic4);
+    }
+
+    // 發送API請求
+    fetch(
+      //create
+      // "http://localhost:8081/CJA101G02/api/camps/createonecamp?withOrders=false",
+
+      //update
+      "http://localhost:8081/CJA101G02/api/camps/updateonecamp?withOrders=false",
+      {
+        method: "POST",
+        body: apiFormData,
+      }
+    )
+      .then((response) => response.json())
+      .then((data) => {
+        // 移除更新中的提示語
+        const updatingMessage = document.getElementById("updating-camp-info");
+        if (updatingMessage) {
+          updatingMessage.remove();
+        }
+
+        if (data && data.status === "success") {
+          // 更新成功
+          console.log("營地資料更新成功：", data);
+          this.showMessage("營地資料更新成功！", "success");
+
+          // 更新本地數據
+          if (data.data) {
+            this.campData = {
+              ...this.campData,
+              ...data.data,
+            };
+          }
+
+          // 重新渲染營地圖片
+          this.renderCampImages();
+        } else {
+          // 更新失敗
+          console.error("營地資料更新失敗：", data);
+          this.showMessage(
+            `營地資料更新失敗：${data.message || "未知錯誤"}`,
+            "error"
+          );
+        }
+      })
+      .catch((error) => {
+        // 移除更新中的提示語
+        const updatingMessage = document.getElementById("updating-camp-info");
+        if (updatingMessage) {
+          updatingMessage.remove();
+        }
+
+        console.error("API請求錯誤：", error);
+        this.showMessage(
+          `API請求錯誤：${error.message || "未知錯誤"}`,
+          "error"
+        );
+      });
   }
 
   handleAddRoomType(e) {
@@ -1660,6 +1828,14 @@ class OwnerDashboard {
       existingModal.remove();
     }
 
+    // 檢查圖片URL是否為API URL
+    const isApiUrl = imageUrl.includes("/api/camps/");
+
+    // 如果是API URL，添加錯誤處理
+    const imgHtml = isApiUrl
+      ? `<img src="${imageUrl}" class="img-fluid" style="max-height: 500px;" onerror="this.onerror=null; this.src='images/camp-1.jpg';" />`
+      : `<img src="${imageUrl}" class="img-fluid" style="max-height: 500px;" />`;
+
     const modalHtml = `
       <div class="modal fade" id="campImageModal" tabindex="-1">
         <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -1669,7 +1845,7 @@ class OwnerDashboard {
               <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body text-center">
-              <img src="${imageUrl}" class="img-fluid" style="max-height: 500px;" />
+              ${imgHtml}
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-camping" onclick="ownerDashboard.uploadCampImage(${imageIndex})">
@@ -1719,16 +1895,33 @@ class OwnerDashboard {
         }
 
         // 檢查文件大小（限制5MB）
-        if (file.size > 5 * 1024 * 1024) {
-          this.showMessage("圖片大小不能超過5MB", "error");
+        if (file.size > 2 * 1024 * 1024) {
+          this.showMessage("圖片大小不能超過2MB", "error");
           return;
         }
 
-        // 使用FileReader讀取文件
+        // 直接使用文件對象更新營地圖片
+        this.updateCampImage(imageIndex, file);
+
+        // 同時使用FileReader讀取文件以顯示預覽
         const reader = new FileReader();
         reader.onload = (event) => {
           const imageUrl = event.target.result;
-          this.updateCampImage(imageIndex, imageUrl);
+          // 更新UI顯示
+          const container = document.getElementById(
+            `campImage${imageIndex}Container`
+          );
+          if (container) {
+            container.innerHTML = `
+              <div class="image-container">
+                <img src="${imageUrl}" class="thumbnail" onclick="ownerDashboard.showCampImageModal('${imageUrl}', ${imageIndex})" />
+                <div class="image-actions">
+                  <button class="btn btn-sm btn-camping" onclick="ownerDashboard.uploadCampImage(${imageIndex})"><i class="fas fa-upload"></i></button>
+                  <button class="btn btn-sm btn-danger" onclick="ownerDashboard.deleteCampImage(${imageIndex})"><i class="fas fa-trash"></i></button>
+                </div>
+              </div>
+            `;
+          }
         };
         reader.readAsDataURL(file);
       }
@@ -1740,17 +1933,20 @@ class OwnerDashboard {
     document.body.removeChild(fileInput);
   }
 
-  updateCampImage(imageIndex, imageUrl) {
+  updateCampImage(imageIndex, file) {
     if (!this.campData) {
       this.showMessage("找不到營地資料", "error");
       return;
     }
 
-    // 更新圖片URL
-    const fieldName = `camp_pic${imageIndex}`;
-    this.campData[fieldName] = imageUrl;
+    // 更新圖片文件對象
+    const fieldName = `campPic${imageIndex}`;
+    this.campData[fieldName] = file;
 
-    console.log(`更新營地圖片${imageIndex}:`, imageUrl);
+    // 同時更新圖片URL用於顯示
+    // 這裡不需要額外處理，因為在uploadCampImage中已經使用FileReader更新了UI
+
+    console.log(`更新營地圖片${imageIndex}:`, file);
     this.showMessage(`圖片${imageIndex}更新成功！`, "success");
 
     // 關閉圖片模態框（如果存在）
@@ -1761,8 +1957,8 @@ class OwnerDashboard {
       imageModal.hide();
     }
 
-    // 重新渲染營地照片
-    this.renderCampImages();
+    // 不需要重新渲染營地照片，因為在uploadCampImage中已經更新了UI
+    // this.renderCampImages();
   }
 
   deleteCampImage(imageIndex) {
@@ -1799,17 +1995,30 @@ class OwnerDashboard {
     return Math.random().toString(36).substr(2, 9);
   }
 
-  showMessage(message, type = "info") {
-    // 移除現有訊息
-    const existingMessage = document.querySelector(".dashboard-message");
-    if (existingMessage) {
-      existingMessage.remove();
+  showMessage(message, type = "info", autoHide = true, messageId = null) {
+    // 如果提供了messageId，先嘗試移除該ID的訊息
+    if (messageId) {
+      const specificMessage = document.getElementById(messageId);
+      if (specificMessage) {
+        specificMessage.remove();
+      }
+    } else {
+      // 否則移除所有現有訊息
+      const existingMessage = document.querySelector(".dashboard-message");
+      if (existingMessage) {
+        existingMessage.remove();
+      }
     }
 
     // 建立新訊息
     const messageDiv = document.createElement("div");
     messageDiv.className = `dashboard-message ${type}`;
     messageDiv.textContent = message;
+
+    // 如果提供了messageId，設置元素ID
+    if (messageId) {
+      messageDiv.id = messageId;
+    }
 
     // 設定樣式
     const colors = {
@@ -1835,10 +2044,15 @@ class OwnerDashboard {
 
     document.body.appendChild(messageDiv);
 
-    // 3秒後移除訊息
-    setTimeout(() => {
-      messageDiv.remove();
-    }, 3000);
+    // 如果autoHide為true，則設定自動消失
+    if (autoHide) {
+      setTimeout(() => {
+        messageDiv.remove();
+      }, 3000);
+    }
+
+    // 返回訊息元素，以便後續操作
+    return messageDiv;
   }
 }
 

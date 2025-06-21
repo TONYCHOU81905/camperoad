@@ -16,6 +16,218 @@
     />
     <link rel="stylesheet" href="css/style.css" />
     <link rel="stylesheet" href="css/role-system.css" />
+    <style>
+      /* 登出選單樣式 */
+      .logout-menu {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background-color: #fff;
+        border-radius: 4px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        padding: 8px 0;
+        min-width: 120px;
+        z-index: 100;
+        display: none;
+      }
+
+      .logout-menu.show {
+        display: block;
+      }
+
+      .logout-menu .logout-link {
+        display: block;
+        padding: 8px 16px;
+        color: #333;
+        text-decoration: none;
+        transition: background-color 0.2s;
+      }
+
+      .logout-menu .logout-link:hover {
+        background-color: #f5f5f5;
+        color: #ff6b35;
+      }
+
+      .user-actions {
+        position: relative;
+      }
+
+      .btn-login {
+        cursor: pointer;
+      }
+
+      /* 確保登入按鈕樣式一致 */
+      .btn-login.logged-in {
+        color: #333;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .btn-login.logged-in i {
+        color: #333;
+      }
+
+      /* 頁面載入遮罩 */
+      .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+      }
+      
+      .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 5px solid #f3f3f3;
+        border-top: 5px solid #ff6b35;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      
+      /* 頭像上傳相關樣式 */
+      .avatar-upload {
+        display: flex;
+        align-items: center;
+        margin-bottom: 24px;
+        gap: 20px;
+      }
+      
+      .avatar-preview {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 3px solid #f0f0f0;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        position: relative;
+      }
+      
+      .avatar-preview:before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 107, 53, 0);
+        transition: all 0.3s ease;
+        z-index: 1;
+      }
+      
+      .avatar-preview.hover:before {
+        background: rgba(255, 107, 53, 0.2);
+      }
+      
+      .avatar-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: all 0.3s ease;
+      }
+      
+      /* 頭像更新動畫 */
+      .avatar-preview.preview-updated img {
+        transform: scale(1.1);
+      }
+      
+      /* 頭像載入指示器 */
+      .avatar-loading {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 50%;
+        z-index: 2;
+      }
+      
+      .avatar-loading:after {
+        content: '';
+        width: 30px;
+        height: 30px;
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #ff6b35;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      
+      .avatar-edit {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        width: 100%;
+        max-width: 300px;
+      }
+      
+      .btn-upload {
+        display: inline-block;
+        background-color: #ff6b35;
+        color: white;
+        padding: 10px 18px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(255, 107, 53, 0.3);
+      }
+      
+      .btn-upload:hover {
+        background-color: #e85a2a;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(255, 107, 53, 0.4);
+      }
+      
+      .btn-upload:active {
+        transform: translateY(0);
+        box-shadow: 0 1px 2px rgba(255, 107, 53, 0.4);
+      }
+      
+      #avatar-input {
+        display: none;
+      }
+      
+      .upload-hint {
+        font-size: 12px;
+        color: #666;
+        margin: 0;
+      }
+      
+      /* 上傳進度條 */
+      .upload-progress {
+        width: 100%;
+        height: 6px;
+        background-color: #f0f0f0;
+        border-radius: 3px;
+        overflow: hidden;
+        margin-top: 5px;
+      }
+      
+      .progress-bar {
+        height: 100%;
+        width: 0%;
+        background-color: #ff6b35;
+        transition: width 0.3s ease;
+      }
+    </style>
   </head>
 
   <body class="profile-page">
