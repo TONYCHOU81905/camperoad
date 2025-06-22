@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>裝備商城 - 露途12</title>
+    <title>裝備商城 - 露途</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -108,9 +108,11 @@
     <section class="shop-products">
       <div class="container">
         <h2 class="section-title">熱門商品</h2>
+
         <div class="product-grid">
           <!-- 產品將由 JavaScript 動態生成 -->
         </div>
+        
       </div>
     </section>
 
@@ -248,3 +250,15 @@
     <script src="js/shop-prod.js"></script>
   </body>
 </html>
+
+  <div class="loading-overlay">
+    <div class="loading-animation">
+      <svg class="pine-cone" width="60" height="60" viewBox="0 0 60 60">
+        <!-- 松果動畫將在CSS中實現 -->
+        <circle cx="30" cy="30" r="25" fill="#3A5A40" />
+        <path class="pine-cone-scale" d="M30,5 L35,15 L25,15 Z" fill="#A68A64" />
+        <!-- 更多松果鱗片將在JavaScript中動態生成 -->
+      </svg>
+    </div>
+    <p>商品載入中，請稍候...</p>
+  </div>
