@@ -23,17 +23,17 @@ document.addEventListener("DOMContentLoaded", function () {
     fetchProducts();
   });
 
-  // ⭐ 補上這段讓分類選單一變動就查詢
-  categorySelect.addEventListener("change", function () {
-    showLoadingOverlay();
-    fetchProducts();
-  });
+  // 移除這段讓分類選單一變動就查詢的代碼
+  // categorySelect.addEventListener("change", function () {
+  //   showLoadingOverlay();
+  //   fetchProducts();
+  // });
 
-  // 排序變更時重新查詢
-  sortSelect.addEventListener("change", function () {
-    showLoadingOverlay();
-    fetchProducts();
-  });
+  // 移除排序變更時重新查詢的代碼
+  // sortSelect.addEventListener("change", function () {
+  //   showLoadingOverlay();
+  //   fetchProducts();
+  // });
 
   // 顯示載入畫面
   function showLoadingOverlay() {
@@ -139,20 +139,37 @@ document.addEventListener("DOMContentLoaded", function () {
 
         products.forEach((prod) => {
           const hasDiscount = prod.prodDiscount !== null && prod.prodDiscount !== undefined;
-          const discountedPrice = hasDiscount ? prod.prodDiscount : prod.prodPrice;
           const prodDate = prod.prodDate ? formatDate(prod.prodDate) : formatDate(new Date());
           const featuresHtml = generateProductFeatures(prod);
 
           const specs = prod.prodSpecList || [];
           let specSelectHtml = '';
+          let prodSpecPrice = null;
           
           if (specs.length > 0) {
+            // 獲取第一個規格的價格作為 prodSpecPrice
+            prodSpecPrice = specs[0].prodSpecPrice;
+            
             specSelectHtml += `<select class="prod-spec-select" data-prod-id="${prod.prodId}">`;
             specs.forEach(spec => {
-              specSelectHtml += `<option value="${spec.prodSpecPrice}">規格 ${spec.prodSpecId} - NT$${spec.prodSpecPrice}</option>`;
+              // 修改这里，只显示规格名称
+              specSelectHtml += `<option value="${spec.prodSpecPrice}">${spec.prodSpecName || `規格 ${spec.prodSpecId}`}</option>`;
             });
             specSelectHtml += `</select>`;
           }
+          
+          // 使用 prodSpecPrice 或 prodPrice 作為原始價格
+          const originalPrice = prodSpecPrice || prod.prodPrice;
+          
+          // 計算折扣率（如果有折扣）
+          let discountRate = 1; // 默認無折扣
+          if (hasDiscount && prod.prodDiscount > 0 && prod.prodPrice > 0) {
+            // 確保不會除以零，並限制折扣率在合理範圍內
+            discountRate = Math.min(Math.max(prod.prodDiscount / prod.prodPrice, 0.1), 1);
+          }
+          
+          // 計算折扣後價格
+          const discountedPrice = Math.round(originalPrice * discountRate);
           
           const html = `
             <div class="product-card">
@@ -173,8 +190,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 <div class="product-features">${featuresHtml}</div>
 
                 <div class="product-price">
-                  <span class="current-price" data-base-price="${discountedPrice}">NT$ ${discountedPrice}</span>
-                  ${hasDiscount ? `<span class="original-price">NT$ ${prod.prodPrice}</span>` : ''}
+                  <span class="current-price" data-base-price="${discountedPrice}" data-discount-rate="${discountRate}">NT$ ${discountedPrice}</span>
+                  <span class="original-price">NT$ ${originalPrice}</span>
                   ${specSelectHtml}
                 </div>             
 
@@ -185,7 +202,7 @@ document.addEventListener("DOMContentLoaded", function () {
               </div>
             </div>
           `;
-        
+
           container.innerHTML += html;
         });
         
@@ -252,12 +269,24 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function bindButtons() {
-    
     document.querySelectorAll(".prod-spec-select").forEach((select) => {
       select.addEventListener("change", function () {
-        const selectedPrice = this.value;
-        const priceSpan = this.closest(".product-price").querySelector(".current-price");
-        priceSpan.textContent = `NT$ ${selectedPrice}`;
+        const selectedPrice = parseFloat(this.value) || 0;
+        const priceContainer = this.closest(".product-price");
+        const priceSpan = priceContainer.querySelector(".current-price");
+        const originalPriceSpan = priceContainer.querySelector(".original-price");
+        
+        // 獲取折扣率，確保是有效數字
+        let discountRate = parseFloat(priceSpan.dataset.discountRate) || 1;
+        // 限制折扣率在合理範圍內
+        discountRate = Math.min(Math.max(discountRate, 0.1), 1);
+        
+        // 更新原始價格
+        originalPriceSpan.textContent = `NT$ ${selectedPrice}`;
+        
+        // 計算並更新折扣後價格
+        const discountedPrice = Math.round(selectedPrice * discountRate);
+        priceSpan.textContent = `NT$ ${discountedPrice}`;
       });
     });
 
