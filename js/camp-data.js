@@ -1,5 +1,5 @@
 // 營地資料管理和購物車功能
-let campData = [];
+window.campData = [];
 let cartItems = [];
 let memberData = [];
 let currentMember = null;
@@ -10,14 +10,15 @@ async function loadCampData() {
     // const response = await fetch("http://localhost:8081/CJA101G02/api/camps");
     // console.log("response:", response);
     // const json = await response.json();
-    // campData = json.data; // 這裡就是你要的陣列
-    // console.log(campData);
+    // window.campData = json.data; // 這裡就是你要的陣列
+    // console.log(window.campData);
     const response = await fetch("/data/camp.json");
-    campData = await response.json();
-    console.log("營地資料載入成功:", campData.length, "筆資料");
-    return campData;
+    window.campData = await response.json();
+    console.log("營地資料載入成功:", window.campData.length, "筆資料");
+    return window.campData;
   } catch (error) {
     console.error("載入營地資料失敗:", error);
+    window.campData = [];
     return [];
   }
 }
