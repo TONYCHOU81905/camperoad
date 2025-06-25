@@ -412,8 +412,11 @@ class CheckoutManager {
       // 計算總金額
       const totalAmount = cartManager.getTotalPrice();
 
+      //confirmURL
+      const confirm_url = "http://127.0.0.1:5501/linepay-success.html";
+
       // 構建付款請求參數
-      const requestBody = {
+      const linepay_body = {
         amount: totalAmount,
         currency: "TWD",
         orderId: orderId,
@@ -426,17 +429,114 @@ class CheckoutManager {
         ],
 
         redirectUrls: {
-          confirmUrl: "http://127.0.0.1:5501/linepay-success.html",
+          confirmUrl:
+            "http://localhost:8081/CJA101G02/api/confirmpayment/" +
+            orderId +
+            "/true",
           cancelUrl: "http://127.0.0.1:5501/linepay-cancel.html",
         },
       };
 
+      // 計算各種金額
+      const campsiteAmount = this.cartItems.reduce((total, item) => {
+        const campsiteType = cartManager.getCampsiteTypeById(
+          item.campsite_type_id
+        );
+        const nights = cartManager.calculateNights(item.checkIn, item.checkOut);
+        const tentPrice =
+          item.tentType && item.tentType.includes("rent")
+            ? cartManager.getTentPrice(item.tentType)
+            : 0;
+        return total + (campsiteType.campsite_price + tentPrice) * nights;
+      }, 0);
+
+      const bundleAmount = this.bundleItems.reduce((total, item) => {
+        return total + item.bundle_price * (item.quantity || 1);
+      }, 0);
+
+      const befAmount = campsiteAmount + bundleAmount;
+
+      // 折扣金額，這裡可以根據實際情況計算
+      const disAmount = 0; // 預設為0，如果有折扣碼可以計算實際折扣
+
+      const aftAmount = befAmount - disAmount;
+
+      // 獲取第一個訂單項目的營地資訊（如果有）
+      const firstItem = this.cartItems[0] || {};
+      const campInfo = firstItem.campInfo || {
+        campId: firstItem.campId || 0,
+        campName: firstItem.name || "未知營地",
+      };
+
+      // 獲取當前日期時間作為訂單日期
+      const now = new Date();
+      const orderDate = now.toISOString();
+
+      // 從localStorage獲取會員ID
+      const memId = localStorage.getItem("memId") || 10000001; // 預設會員ID
+
+      const linepay_order_body = {
+        orderId: orderId,
+        orderDate: orderDate,
+        orderStatus: 0, // 0: 待付款
+        payMethod: this.selectedPaymentMethod === "credit-card" ? 1 : 2, // 1: 信用卡, 2: LINE Pay
+
+        bundleAmount: bundleAmount,
+        campsiteAmount: campsiteAmount,
+        befAmount: befAmount,
+        disAmount: disAmount,
+        aftAmount: aftAmount,
+
+        checkIn: firstItem.checkIn || "",
+        checkOut: firstItem.checkOut || "",
+
+        satisfaction: 0, // 初始評分
+        content: "", // 初始評論
+        date: "", // 評論日期
+
+        campId: campInfo.campId,
+        campName: campInfo.campName,
+
+        memId: memId,
+
+        discountCodeId: "", // 如果有折扣碼可以設置
+        details: this.cartItems.map((item) => {
+          // 獲取房型資料
+          const campsiteType = cartManager.getCampsiteTypeById(
+            item.campsite_type_id
+          );
+          // 計算住宿天數
+          const nights = cartManager.calculateNights(
+            item.checkIn,
+            item.checkOut
+          );
+          // 計算帳篷租借費用
+          const tentPrice =
+            item.tentType && item.tentType.includes("rent")
+              ? cartManager.getTentPrice(item.tentType)
+              : 0;
+          // 計算總金額
+          const totalAmount =
+            (campsiteType.campsite_price + tentPrice) * nights;
+
+          return {
+            campsiteTypeId: item.campsite_type_id,
+            campsiteNum: 1, // 預設為1，如果需要可以從item中獲取
+            campsiteAmount: totalAmount,
+          };
+        }),
+      };
+
+      const requestBody = {
+        linepayBody: linepay_body,
+        linepayOrder: linepay_order_body,
+      };
+
       console.log("付款請求參數:", requestBody);
+      console.log("order_details:", linepay_order_body);
 
       // 發送請求到伺服器
       const paymentUrl = await this.sendPaymentRequest(requestBody);
-      console.log("paymentUrl:" + paymentUrl);
-
       console.log("paymentUrl:" + paymentUrl);
 
       if (paymentUrl) {
@@ -506,7 +606,7 @@ class CheckoutManager {
   async sendPaymentRequest(requestBody) {
     try {
       const response = await fetch(
-        "http://localhost:8081/CJA101G02/api/linepay",
+        "http://localhost:8081/CJA101G02/api/linepay/true",
         {
           method: "POST",
           headers: {

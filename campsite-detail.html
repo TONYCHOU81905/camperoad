@@ -731,16 +731,7 @@
           </button>
         </div>
         <div class="chat-body" id="chat-messages">
-          <div class="chat-message other">
-            <div class="chat-user">
-              <img src="images/user-1.jpg" alt="客服" />
-              <span>客服小露</span>
-            </div>
-            <div class="message-content">
-              您好！歡迎來到山林星空營地，有什麼可以為您服務的嗎？
-            </div>
-            <div class="message-info">剛剛</div>
-          </div>
+          <!-- 聊天訊息將在這裡動態生成 -->
         </div>
         <div class="chat-footer">
           <div class="chat-input-container">
@@ -757,14 +748,31 @@
         </div>
       </div>
     </div>
+    
+    <!-- 隱藏的會員ID和營地主ID輸入框 -->
+    <input type="hidden" id="memId" value="" />
+    <input type="hidden" id="ownerId" value="" />
 
     <script>
       function changeImage(src) {
         document.getElementById("main-image").src = src;
       }
     </script>
+    <!-- WebSocket相關庫 -->
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    
     <script src="js/main.js"></script>
     <script src="js/camp-data.js"></script>
+    <script>
+      // 立即加載營地資料，不等待 DOMContentLoaded 事件
+      console.log("立即加載營地資料");
+      loadCampData().then(data => {
+        console.log("營地資料預加載完成:", data.length, "筆資料");
+        // 確保 window.campData 已設置
+        window.campData = data;
+      });
+    </script>
     <script src="js/campsite-detail.js"></script>
     <script src="js/chat.js"></script>
     <script src="js/cart.js"></script>
