@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="css/style.css" />
     <link rel="stylesheet" href="css/role-system.css" />
     <link rel="stylesheet" href="css/admin-dashboard.css" />
+    <!-- 移除商品管理CSS文件 -->
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
@@ -25,9 +26,9 @@
             <img src="images/logo.svg" alt="露營趣 Logo" />
             <span>露營趣 - 管理員後台</span>
           </div>
-          <div class="user-actions">
+          <div class="user-actions" style="position: absolute; right: 20px; display: flex; align-items: center; gap: 10px;">
             <span id="adminName">管理員</span>
-            <button class="logout-btn" onclick="logout()">登出</button>
+            <!-- 登出按钮已移除 -->
           </div>
         </div>
       </div>
@@ -35,6 +36,11 @@
 
     <!-- Dashboard Container -->
     <div class="dashboard-container">
+      <!-- Sidebar Toggle Button -->
+      <button id="sidebarToggle" class="sidebar-toggle">
+        <i class="fas fa-chevron-left" id="toggleIcon"></i>
+      </button>
+      
       <!-- Sidebar -->
       <aside class="sidebar">
         <nav class="sidebar-nav">
@@ -44,31 +50,17 @@
                 href="#"
                 onclick="showSection('account-management')"
                 class="nav-link active"
-                ><i class="fas fa-users"></i> 帳號管理</a
+                data-title="帳號管理"
+                ><i class="fas fa-users"></i> <span>帳號管理</span></a
               >
             </li>
             <li>
               <a
                 href="#"
-                onclick="showSection('campsite-orders')"
+                onclick="showSection('product-management')"
                 class="nav-link"
-                ><i class="fas fa-clipboard-list"></i> 營地訂單管理</a
-              >
-            </li>
-            <li>
-              <a
-                href="#"
-                onclick="showSection('customer-service')"
-                class="nav-link"
-                ><i class="fas fa-headset"></i> 客服管理</a
-              >
-            </li>
-            <li>
-              <a
-                href="#"
-                onclick="showSection('forum-management')"
-                class="nav-link"
-                ><i class="fas fa-comments"></i> 論壇管理</a
+                data-title="商品管理"
+                ><i class="fas fa-box"></i> <span>商品管理</span></a
               >
             </li>
             <li>
@@ -76,20 +68,52 @@
                 href="#"
                 onclick="showSection('order-management')"
                 class="nav-link"
-                ><i class="fas fa-shopping-cart"></i> 商品訂單管理</a
+                data-title="商品訂單管理"
+                ><i class="fas fa-shopping-cart"></i> <span>商品訂單管理</span></a
               >
             </li>
             <li>
               <a
                 href="#"
-                onclick="showSection('discount-management')"
+                onclick="showSection('campsite-orders')"
                 class="nav-link"
-                ><i class="fas fa-tags"></i> 折價券管理</a
+                data-title="營地訂單管理"
+                ><i class="fas fa-clipboard-list"></i> <span>營地訂單管理</span></a
               >
             </li>
             <li>
-              <a href="#" onclick="logout()" class="nav-link logout"
-                ><i class="fas fa-sign-out-alt"></i> 登出</a
+              <a
+                href="#"
+                onclick="showSection('customer-service')"
+                class="nav-link"
+                data-title="客服管理"
+                ><i class="fas fa-headset"></i> <span>客服管理</span></a
+              >
+            </li>
+            <li>
+              <a
+                href="#"
+                onclick="showSection('forum-management')"
+                class="nav-link"
+                data-title="論壇管理"
+                ><i class="fas fa-comments"></i> <span>論壇管理</span></a
+              >
+            </li>
+            <li>
+              <!-- 折价券管理按钮 - 修正 data-title 属性值 -->
+              <a
+                href="#"
+                onclick="showSection('discount-management')"
+                class="nav-link"
+                data-title="折價券管理"
+                ><i class="fas fa-tags"></i> <span>折價券管理</span></a
+              >
+              
+              <!-- 登出按钮 - 添加 data-title 属性 -->
+              <a href="#" onclick="logout()" 
+                  class="nav-link logout"
+                  data-title="登出"
+                ><i class="fas fa-sign-out-alt"></i> <span>登出</span></a
               >
             </li>
           </ul>
@@ -235,6 +259,24 @@
           </div>
           <div id="discount-management-content">
             <!-- 動態載入折價券管理內容 -->
+          </div>
+        </section>
+        
+        <!-- 商品管理 -->
+        <section id="product-management" class="content-section">
+          <div class="section-header">
+            <h2><i class="fas fa-box"></i> 商品管理</h2>
+            <p>管理所有商品信息及庫存</p>
+          </div>
+          <div class="action-bar">
+            <button class="action-btn btn-add" onclick="showAddProductModal()"><i class="fas fa-plus"></i> 添加新商品</button>
+            <div class="search-box">
+              <input type="text" id="product-search" placeholder="搜索商品..." onkeyup="searchProducts()">
+              <i class="fas fa-search"></i>
+            </div>
+          </div>
+          <div id="product-management-content">
+            <!-- 動態加載商品管內容 -->
           </div>
         </section>
       </main>

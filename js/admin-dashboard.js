@@ -15,11 +15,39 @@ let campReportsData = [];
 let shopOrdersData = [];
 let shopOrderDetailsData = [];
 
+
+// 初始化區段狀態追蹤器
+let sectionInitialized = {
+  productManagement: false
+};
+
 // 頁面載入時初始化
 document.addEventListener("DOMContentLoaded", function () {
   checkAdminAuth();
   loadAllData();
+  
+  // 初始化侧边栏切换功能
+  initSidebarToggle();
 });
+
+// 初始化侧边栏切换功能
+function initSidebarToggle() {
+  const sidebarToggle = document.getElementById('sidebarToggle');
+  const sidebar = document.querySelector('.sidebar');
+  const mainContent = document.querySelector('.main-content');
+  
+  // 隐藏切换按钮
+  if (sidebarToggle) {
+    sidebarToggle.style.display = 'none';
+  }
+  
+  // 始终应用收缩样式
+  sidebar.classList.add('collapsed');
+  mainContent.classList.add('expanded');
+  
+  // 将收缩状态保存到本地存储
+  localStorage.setItem('sidebarCollapsed', 'true');
+}
 
 // 檢查管理員身份驗證
 function checkAdminAuth() {
@@ -157,6 +185,9 @@ function showSection(sectionId) {
       break;
     case "discount-management":
       loadDiscountManagement();
+      break;
+    case "product-management":
+      loadProductManagement();
       break;
   }
 }
@@ -2134,3 +2165,700 @@ const modalStyles = `
 
 // 將樣式加入頁面
 document.head.insertAdjacentHTML("beforeend", modalStyles);
+
+// ... existing code ...
+
+// 商品管理相關變量
+let productsData = [];
+let productTypesData = [];
+let currentPage = 1;
+let itemsPerPage = 10;
+let filteredProducts = [];
+
+// 載入商品管理功能
+function loadProductManagement() {
+  if (sectionInitialized.productManagement) return;
+  
+  // 載入商品數據
+  loadProductsData();
+  
+  // 標記為已初始化
+  sectionInitialized.productManagement = true;
+}
+
+// 載入商品數據
+async function loadProductsData() {
+  try {
+    // 顯示載入中提示
+    const content = document.getElementById("product-management-content");
+    content.innerHTML = `<div class="loading">載入商品數據中...</div>`;
+    
+    // 模擬從API獲取數據
+    // 實際項目中應該使用 fetch 從後端 API 獲取數據
+    setTimeout(() => {
+      // 生成模擬數據
+      productsData = generateMockProducts(30);
+      productTypesData = [
+        { id: 1, name: "帳篷" },
+        { id: 2, name: "睡袋" },
+        { id: 3, name: "炊具" },
+        { id: 4, name: "燈具" },
+        { id: 5, name: "戶外家具" }
+      ];
+      
+      // 初始化篩選後的商品為所有商品
+      filteredProducts = [...productsData];
+      
+      // 顯示商品數據
+      displayProducts();
+      
+      // 初始化商品類型篩選器
+      initProductTypeFilter();
+    }, 500);
+  } catch (error) {
+    console.error("載入商品數據失敗:", error);
+    document.getElementById("product-management-content").innerHTML = 
+      `<div class="error-message">載入商品數據失敗，請稍後再試</div>`;
+  }
+}
+
+// 生成模擬商品數據
+function generateMockProducts(count) {
+  const products = [];
+  const statuses = ["上架中", "已下架"];
+  
+  for (let i = 1; i <= count; i++) {
+    const typeId = Math.floor(Math.random() * 5) + 1;
+    const price = Math.floor(Math.random() * 10000) + 500;
+    const stock = Math.floor(Math.random() * 100);
+    
+    products.push({
+      id: i,
+      name: `露營商品 ${i}`,
+      typeId: typeId,
+      price: price,
+      stock: stock,
+      imageUrl: `images/product-${(i % 4) + 1}.jpg`,
+      description: `這是商品 ${i} 的詳細描述，包含了商品的特點和使用方法。`,
+      status: statuses[Math.floor(Math.random() * 2)],
+      createdAt: new Date(Date.now() - Math.floor(Math.random() * 10000000000))
+    });
+  }
+  
+  return products;
+}
+
+// 顯示商品數據
+function displayProducts() {
+  const content = document.getElementById("product-management-content");
+  
+  // 計算分頁
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, filteredProducts.length);
+  const currentProducts = filteredProducts.slice(startIndex, endIndex);
+  
+  // 如果沒有商品數據
+  if (currentProducts.length === 0) {
+    content.innerHTML = `
+      <div class="empty-state">
+        <i class="fas fa-box-open"></i>
+        <h3>沒有商品數據</h3>
+        <p>目前沒有符合條件的商品，請嘗試調整篩選條件或添加新商品</p>
+      </div>
+    `;
+    return;
+  }
+  
+  // 生成商品表格
+  let html = `
+    <div class="filter-section">
+      <select id="product-type-filter" class="filter-select">
+        <option value="all">所有類型</option>
+        <!-- 動態添加商品類型選項 -->
+      </select>
+      <select id="product-status-filter" class="filter-select">
+        <option value="all">所有狀態</option>
+        <option value="上架中">上架中</option>
+        <option value="已下架">已下架</option>
+      </select>
+    </div>
+    
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>商品ID</th>
+            <th>商品圖片</th>
+            <th>商品名稱</th>
+            <th>類型</th>
+            <th>價格</th>
+            <th>庫存</th>
+            <th>狀態</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+  `;
+  
+  // 添加商品行
+  currentProducts.forEach(product => {
+    html += `
+      <tr>
+        <td>${product.id}</td>
+        <td><img src="${product.imageUrl}" alt="${product.name}" class="product-thumbnail" /></td>
+        <td>${product.name}</td>
+        <td>${getProductTypeName(product.typeId)}</td>
+        <td>NT$ ${product.price.toLocaleString()}</td>
+        <td>${product.stock}</td>
+        <td>
+          <span class="status-badge ${product.status === '上架中' ? 'active' : 'inactive'}">
+            ${product.status}
+          </span>
+        </td>
+        <td>
+          <button class="action-btn btn-view" onclick="viewProductDetail(${product.id})">
+            <i class="fas fa-eye"></i>
+          </button>
+          <button class="action-btn btn-edit" onclick="showEditProductModal(${product.id})">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button class="action-btn ${product.status === '上架中' ? 'btn-deactivate' : 'btn-activate'}" 
+                  onclick="toggleProductStatus(${product.id})">
+            <i class="fas ${product.status === '上架中' ? 'fa-toggle-off' : 'fa-toggle-on'}"></i>
+          </button>
+        </td>
+      </tr>
+    `;
+  });
+  
+  html += `
+        </tbody>
+      </table>
+    </div>
+  `;
+  
+  // 添加分頁控件
+  if (totalPages > 1) {
+    html += `
+      <div class="pagination">
+        <button class="page-btn" onclick="changePage(1)" ${currentPage === 1 ? 'disabled' : ''}>
+          <i class="fas fa-angle-double-left"></i>
+        </button>
+        <button class="page-btn" onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
+          <i class="fas fa-angle-left"></i>
+        </button>
+        <span class="page-info">第 ${currentPage} 頁，共 ${totalPages} 頁</span>
+        <button class="page-btn" onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>
+          <i class="fas fa-angle-right"></i>
+        </button>
+        <button class="page-btn" onclick="changePage(${totalPages})" ${currentPage === totalPages ? 'disabled' : ''}>
+          <i class="fas fa-angle-double-right"></i>
+        </button>
+      </div>
+    `;
+  }
+  
+  content.innerHTML = html;
+  
+  // 初始化篩選器事件
+  document.getElementById("product-status-filter").addEventListener("change", filterProducts);
+  document.getElementById("product-type-filter").addEventListener("change", filterProducts);
+}
+
+// 初始化商品類型篩選器
+function initProductTypeFilter() {
+  const typeFilter = document.getElementById("product-type-filter");
+  if (!typeFilter) return;
+  
+  // 清空現有選項（保留「所有類型」選項）
+  while (typeFilter.options.length > 1) {
+    typeFilter.remove(1);
+  }
+  
+  // 添加商品類型選項
+  productTypesData.forEach(type => {
+    const option = document.createElement("option");
+    option.value = type.id;
+    option.textContent = type.name;
+    typeFilter.appendChild(option);
+  });
+}
+
+// 獲取商品類型名稱
+function getProductTypeName(typeId) {
+  const type = productTypesData.find(t => t.id === typeId);
+  return type ? type.name : "未知類型";
+}
+
+// 篩選商品
+function filterProducts() {
+  const typeFilter = document.getElementById("product-type-filter").value;
+  const statusFilter = document.getElementById("product-status-filter").value;
+  
+  // 重置為第一頁
+  currentPage = 1;
+  
+  // 篩選商品
+  filteredProducts = productsData.filter(product => {
+    // 類型篩選
+    if (typeFilter !== "all" && product.typeId !== parseInt(typeFilter)) {
+      return false;
+    }
+    
+    // 狀態篩選
+    if (statusFilter !== "all" && product.status !== statusFilter) {
+      return false;
+    }
+    
+    return true;
+  });
+  
+  // 重新顯示商品
+  displayProducts();
+}
+
+// 搜索商品
+function searchProducts() {
+  const searchInput = document.getElementById("product-search").value.toLowerCase();
+  
+  // 如果搜索框為空，顯示所有商品
+  if (!searchInput.trim()) {
+    filteredProducts = [...productsData];
+    currentPage = 1;
+    displayProducts();
+    return;
+  }
+  
+  // 篩選符合搜索條件的商品
+  filteredProducts = productsData.filter(product => {
+    return (
+      product.name.toLowerCase().includes(searchInput) ||
+      product.id.toString().includes(searchInput) ||
+      getProductTypeName(product.typeId).toLowerCase().includes(searchInput)
+    );
+  });
+  
+  // 重置為第一頁並顯示結果
+  currentPage = 1;
+  displayProducts();
+}
+
+// 切換頁面
+function changePage(page) {
+  currentPage = page;
+  displayProducts();
+}
+
+// 查看商品詳情
+function viewProductDetail(productId) {
+  const product = productsData.find(p => p.id === productId);
+  if (!product) {
+    alert("找不到商品資料");
+    return;
+  }
+  
+  // 創建模態框
+  const modal = document.createElement("div");
+  modal.className = "modal";
+  modal.innerHTML = `
+    <div class="modal-content product-detail-modal">
+      <div class="modal-header">
+        <h3>商品詳情</h3>
+        <button class="close-btn" onclick="closeModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="product-detail-container">
+          <div class="product-detail-image">
+            <img src="${product.imageUrl}" alt="${product.name}" />
+          </div>
+          <div class="product-detail-info">
+            <h4>${product.name}</h4>
+            <p><strong>商品ID:</strong> ${product.id}</p>
+            <p><strong>類型:</strong> ${getProductTypeName(product.typeId)}</p>
+            <p><strong>價格:</strong> NT$ ${product.price.toLocaleString()}</p>
+            <p><strong>庫存:</strong> ${product.stock}</p>
+            <p><strong>狀態:</strong> ${product.status}</p>
+            <p><strong>建立日期:</strong> ${product.createdAt.toLocaleDateString()}</p>
+          </div>
+        </div>
+        <div class="product-description">
+          <h5>商品描述</h5>
+          <p>${product.description}</p>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  // 添加到頁面
+  document.body.appendChild(modal);
+}
+
+// 顯示編輯商品模態框
+function showEditProductModal(productId) {
+  const product = productsData.find(p => p.id === productId);
+  if (!product) {
+    alert("找不到商品資料");
+    return;
+  }
+  
+  // 創建模態框
+  const modal = document.createElement("div");
+  modal.className = "modal";
+  
+  // 生成商品類型選項
+  let typeOptions = '';
+  productTypesData.forEach(type => {
+    typeOptions += `<option value="${type.id}" ${product.typeId === type.id ? 'selected' : ''}>${type.name}</option>`;
+  });
+  
+  modal.innerHTML = `
+    <div class="modal-content product-form-modal">
+      <div class="modal-header">
+        <h3>編輯商品</h3>
+        <button class="close-btn" onclick="closeModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <form id="edit-product-form">
+          <input type="hidden" id="product-id" value="${product.id}">
+          
+          <div class="form-group">
+            <label for="product-name">商品名稱</label>
+            <input type="text" id="product-name" value="${product.name}" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="product-type">商品類型</label>
+            <select id="product-type" required>
+              ${typeOptions}
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="product-price">價格 (NT$)</label>
+            <input type="number" id="product-price" value="${product.price}" min="0" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="product-stock">庫存</label>
+            <input type="number" id="product-stock" value="${product.stock}" min="0" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="product-image">商品圖片URL</label>
+            <input type="text" id="product-image" value="${product.imageUrl}">
+          </div>
+          
+          <div class="form-group">
+            <label for="product-description">商品描述</label>
+            <textarea id="product-description" rows="4">${product.description}</textarea>
+          </div>
+          
+          <div class="form-group">
+            <label for="product-status">商品狀態</label>
+            <select id="product-status" required>
+              <option value="上架中" ${product.status === '上架中' ? 'selected' : ''}>上架中</option>
+              <option value="已下架" ${product.status === '已下架' ? 'selected' : ''}>已下架</option>
+            </select>
+          </div>
+          
+          <div class="form-actions">
+            <button type="button" class="btn-cancel" onclick="closeModal()">取消</button>
+            <button type="submit" class="btn-save">保存更改</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  `;
+  
+  // 添加到頁面
+  document.body.appendChild(modal);
+  
+  // 綁定表單提交事件
+  document.getElementById("edit-product-form").addEventListener("submit", function(e) {
+    e.preventDefault();
+    saveProductChanges();
+  });
+}
+
+// 保存商品更改
+async function saveProductChanges() {
+  const productId = parseInt(document.getElementById("product-id").value);
+  const productName = document.getElementById("product-name").value;
+  const productType = parseInt(document.getElementById("product-type").value);
+  const productPrice = parseInt(document.getElementById("product-price").value);
+  const productStock = parseInt(document.getElementById("product-stock").value);
+  const productImage = document.getElementById("product-image").value;
+  const productDescription = document.getElementById("product-description").value;
+  const productStatus = document.getElementById("product-status").value;
+  
+  // 表單驗證
+  if (!productName || isNaN(productType) || isNaN(productPrice) || isNaN(productStock)) {
+    alert("請填寫所有必填欄位");
+    return;
+  }
+  
+  try {
+    // 在實際應用中，這裡應該發送 PUT 請求到 API
+    // 模擬 API 請求
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // 更新本地數據
+    const productIndex = productsData.findIndex(p => p.id === productId);
+    if (productIndex !== -1) {
+      productsData[productIndex] = {
+        ...productsData[productIndex],
+        name: productName,
+        typeId: productType,
+        price: productPrice,
+        stock: productStock,
+        imageUrl: productImage,
+        description: productDescription,
+        status: productStatus
+      };
+      
+      // 更新篩選後的商品
+      const filteredIndex = filteredProducts.findIndex(p => p.id === productId);
+      if (filteredIndex !== -1) {
+        filteredProducts[filteredIndex] = productsData[productIndex];
+      }
+      
+      // 關閉模態框
+      closeModal();
+      
+      // 重新顯示商品
+      displayProducts();
+      
+      // 顯示成功消息
+      showNotification("商品更新成功", "success");
+    }
+  } catch (error) {
+    console.error("更新商品失敗:", error);
+    showNotification("更新商品失敗，請稍後再試", "error");
+  }
+}
+
+// 切換商品狀態
+async function toggleProductStatus(productId) {
+  const product = productsData.find(p => p.id === productId);
+  if (!product) {
+    alert("找不到商品資料");
+    return;
+  }
+  
+  const newStatus = product.status === "上架中" ? "已下架" : "上架中";
+  const confirmMessage = `確定要將商品「${product.name}」${newStatus === "上架中" ? "上架" : "下架"}嗎？`;
+  
+  if (!confirm(confirmMessage)) {
+    return;
+  }
+  
+  try {
+    // 在實際應用中，這裡應該發送 PATCH 請求到 API
+    // 模擬 API 請求
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // 更新本地數據
+    product.status = newStatus;
+    
+    // 重新顯示商品
+    displayProducts();
+    
+    // 顯示成功消息
+    showNotification(`商品已${newStatus === "上架中" ? "上架" : "下架"}`, "success");
+  } catch (error) {
+    console.error("更新商品狀態失敗:", error);
+    showNotification("更新商品狀態失敗，請稍後再試", "error");
+  }
+}
+
+// 顯示添加商品模態框
+function showAddProductModal() {
+  // 創建模態框
+  const modal = document.createElement("div");
+  modal.className = "modal";
+  
+  // 生成商品類型選項
+  let typeOptions = '';
+  productTypesData.forEach(type => {
+    typeOptions += `<option value="${type.id}">${type.name}</option>`;
+  });
+  
+  modal.innerHTML = `
+    <div class="modal-content product-form-modal">
+      <div class="modal-header">
+        <h3>添加新商品</h3>
+        <button class="close-btn" onclick="closeModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <form id="add-product-form">
+          <div class="form-group">
+            <label for="product-name">商品名稱</label>
+            <input type="text" id="product-name" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="product-type">商品類型</label>
+            <select id="product-type" required>
+              ${typeOptions}
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="product-price">價格 (NT$)</label>
+            <input type="number" id="product-price" min="0" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="product-stock">庫存</label>
+            <input type="number" id="product-stock" min="0" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="product-image">商品圖片URL</label>
+            <input type="text" id="product-image" value="images/product-1.jpg">
+          </div>
+          
+          <div class="form-group">
+            <label for="product-description">商品描述</label>
+            <textarea id="product-description" rows="4"></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label for="product-status">商品狀態</label>
+            <select id="product-status" required>
+              <option value="上架中">上架中</option>
+              <option value="已下架">已下架</option>
+            </select>
+          </div>
+          
+          <div class="form-actions">
+            <button type="button" class="btn-cancel" onclick="closeModal()">取消</button>
+            <button type="submit" class="btn-save">添加商品</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  `;
+  
+  // 添加到頁面
+  document.body.appendChild(modal);
+  
+  // 綁定表單提交事件
+  document.getElementById("add-product-form").addEventListener("submit", function(e) {
+    e.preventDefault();
+    addNewProduct();
+  });
+}
+
+// 添加新商品
+async function addNewProduct() {
+  const productName = document.getElementById("product-name").value;
+  const productType = parseInt(document.getElementById("product-type").value);
+  const productPrice = parseInt(document.getElementById("product-price").value);
+  const productStock = parseInt(document.getElementById("product-stock").value);
+  const productImage = document.getElementById("product-image").value;
+  const productDescription = document.getElementById("product-description").value;
+  const productStatus = document.getElementById("product-status").value;
+  
+  // 表單驗證
+  if (!productName || isNaN(productType) || isNaN(productPrice) || isNaN(productStock)) {
+    alert("請填寫所有必填欄位");
+    return;
+  }
+  
+  try {
+    // 在實際應用中，這裡應該發送 POST 請求到 API
+    // 模擬 API 請求
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // 生成新商品ID
+    const newId = productsData.length > 0 ? Math.max(...productsData.map(p => p.id)) + 1 : 1;
+    
+    // 創建新商品對象
+    const newProduct = {
+      id: newId,
+      name: productName,
+      typeId: productType,
+      price: productPrice,
+      stock: productStock,
+      imageUrl: productImage || "images/product-1.jpg",
+      description: productDescription,
+      status: productStatus,
+      createdAt: new Date()
+    };
+    
+    // 添加到本地數據
+    productsData.push(newProduct);
+    
+    // 更新篩選後的商品
+    if (shouldIncludeInFiltered(newProduct)) {
+      filteredProducts.push(newProduct);
+    }
+    
+    // 關閉模態框
+    closeModal();
+    
+    // 重新顯示商品
+    displayProducts();
+    
+    // 顯示成功消息
+    showNotification("商品添加成功", "success");
+  } catch (error) {
+    console.error("添加商品失敗:", error);
+    showNotification("添加商品失敗，請稍後再試", "error");
+  }
+}
+
+// 檢查商品是否應該包含在篩選結果中
+function shouldIncludeInFiltered(product) {
+  const typeFilter = document.getElementById("product-type-filter").value;
+  const statusFilter = document.getElementById("product-status-filter").value;
+  
+  // 類型篩選
+  if (typeFilter !== "all" && product.typeId !== parseInt(typeFilter)) {
+    return false;
+  }
+  
+  // 狀態篩選
+  if (statusFilter !== "all" && product.status !== statusFilter) {
+    return false;
+  }
+  
+  return true;
+}
+
+// 關閉模態框
+function closeModal() {
+  const modal = document.querySelector(".modal");
+  if (modal) {
+    modal.remove();
+  }
+}
+
+// 顯示通知消息
+function showNotification(message, type = "success") {
+  // 創建通知元素
+  const notification = document.createElement("div");
+  notification.className = `notification ${type}`;
+  notification.innerHTML = `
+    <i class="fas ${type === "success" ? "fa-check-circle" : "fa-exclamation-circle"}"></i>
+    <span>${message}</span>
+  `;
+  
+  // 添加到頁面
+  document.body.appendChild(notification);
+  
+  // 設置自動消失
+  setTimeout(() => {
+    notification.classList.add("fade-out");
+    setTimeout(() => {
+      notification.remove();
+    }, 500);
+  }, 3000);
+}
+
+// 初始化區段標記
+if (!sectionInitialized.productManagement) {
+  sectionInitialized.productManagement = false;
+}

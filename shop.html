@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>裝備商城 - 露途12</title>
+    <title>裝備商城 - 露途</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -77,14 +77,8 @@
             <div class="filter-group">
               <label for="category">商品分類</label>
               <select id="category" name="category">
-                <option value="">全部分類</option>
-                <option value="tent">帳篷</option>
-                <option value="sleeping">睡袋/睡墊</option>
-                <option value="cooking">炊具/餐具</option>
-                <option value="lighting">照明設備</option>
-                <option value="furniture">露營家具</option>
-                <option value="accessories">露營配件</option>
-              </select>
+                <!-- 選項將由 JS 動態插入 -->
+              </select>                       
             </div>
             <div class="filter-group">
               <label for="price">價格範圍</label>
@@ -94,15 +88,6 @@
                 <option value="1000-3000">NT$ 1,000 - 3,000</option>
                 <option value="3000-5000">NT$ 3,000 - 5,000</option>
                 <option value="5000+">NT$ 5,000 以上</option>
-              </select>
-            </div>
-            <div class="filter-group">
-              <label for="type">商品類型</label>
-              <select id="type" name="type">
-                <option value="">全部類型</option>
-                <option value="buy">購買商品</option>
-                <option value="rent">租借商品</option>
-                <option value="used">二手商品</option>
               </select>
             </div>
             <div class="filter-group">
@@ -123,193 +108,11 @@
     <section class="shop-products">
       <div class="container">
         <h2 class="section-title">熱門商品</h2>
+
         <div class="product-grid">
-          <div class="product-card">
-            <div class="product-image">
-              <img src="images/product-1.jpg" alt="四人帳篷 - 星空系列" />
-              <span class="product-tag">熱銷</span>
-            </div>
-            <div class="product-info">
-              <h3><a href="product-detail.html">四人帳篷 - 星空系列</a></h3>
-              <div class="product-rating">
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star-half-alt"></i>
-                <span>(32)</span>
-              </div>
-              <div class="product-price">
-                <span class="current-price">NT$ 4,500</span>
-                <span class="original-price">NT$ 5,200</span>
-                <span class="rent-price">租借價：NT$ 800 / 天</span>
-              </div>
-              <div class="product-actions">
-                <button class="btn-favorite"><i class="far fa-heart"></i> 加入收藏</button>
-                <button class="btn-add-cart"><i class="fas fa-shopping-cart"></i> 加入購物車</button>
-              </div>
-            </div>
-          </div>
-          <div class="product-card">
-            <div class="product-image">
-              <img src="images/product-2.jpg" alt="登山睡袋 - 輕量型" />
-              <span class="product-tag product-tag-rent">可租借</span>
-            </div>
-            <div class="product-info">
-              <h3><a href="product-detail.html">登山睡袋 - 輕量型</a></h3>
-              <div class="product-rating">
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <span>(18)</span>
-              </div>
-              <div class="product-price">
-                <span class="current-price">NT$ 2,800</span>
-                <span class="rent-price">租借價：NT$ 400 / 天</span>
-              </div>
-              <button class="btn-add-cart">加入購物車</button>
-            </div>
-          </div>
-          <div class="product-card">
-            <div class="product-image">
-              <img src="images/product-3.jpg" alt="露營燈 - 太陽能充電" />
-              <span class="product-tag">促銷</span>
-            </div>
-            <div class="product-info">
-              <h3><a href="product-detail.html">露營燈 - 太陽能充電</a></h3>
-              <div class="product-rating">
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="far fa-star"></i>
-                <span>(24)</span>
-              </div>
-              <div class="product-price">
-                <span class="current-price">NT$ 950</span>
-                <span class="original-price">NT$ 1,200</span>
-              </div>
-              <button class="btn-add-cart">加入購物車</button>
-            </div>
-          </div>
-          <div class="product-card">
-            <div class="product-image">
-              <img src="images/product-4.jpg" alt="摺疊椅 - 戶外系列" />
-              <span class="product-tag product-tag-used">二手</span>
-            </div>
-            <div class="product-info">
-              <h3><a href="product-detail.html">摺疊椅 - 戶外系列</a></h3>
-              <div class="product-rating">
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star-half-alt"></i>
-                <i class="far fa-star"></i>
-                <span>(9)</span>
-              </div>
-              <div class="product-price">
-                <span class="current-price">NT$ 650</span>
-                <span class="original-price">NT$ 1,200</span>
-              </div>
-              <button class="btn-add-cart">加入購物車</button>
-            </div>
-          </div>
-          <div class="product-card">
-            <div class="product-image">
-              <img src="images/product-1.jpg" alt="便攜式烤肉爐" />
-            </div>
-            <div class="product-info">
-              <h3><a href="product-detail.html">便攜式烤肉爐</a></h3>
-              <div class="product-rating">
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="far fa-star"></i>
-                <span>(15)</span>
-              </div>
-              <div class="product-price">
-                <span class="current-price">NT$ 1,800</span>
-              </div>
-              <button class="btn-add-cart">加入購物車</button>
-            </div>
-          </div>
-          <div class="product-card">
-            <div class="product-image">
-              <img src="images/product-2.jpg" alt="多功能露營刀具" />
-              <span class="product-tag">熱銷</span>
-            </div>
-            <div class="product-info">
-              <h3><a href="product-detail.html">多功能露營刀具</a></h3>
-              <div class="product-rating">
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star-half-alt"></i>
-                <span>(28)</span>
-              </div>
-              <div class="product-price">
-                <span class="current-price">NT$ 750</span>
-                <span class="original-price">NT$ 900</span>
-              </div>
-              <button class="btn-add-cart">加入購物車</button>
-            </div>
-          </div>
-          <div class="product-card">
-            <div class="product-image">
-              <img src="images/product-3.jpg" alt="防水帳篷地墊" />
-              <span class="product-tag product-tag-rent">可租借</span>
-            </div>
-            <div class="product-info">
-              <h3><a href="product-detail.html">防水帳篷地墊</a></h3>
-              <div class="product-rating">
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="far fa-star"></i>
-                <span>(12)</span>
-              </div>
-              <div class="product-price">
-                <span class="current-price">NT$ 580</span>
-                <span class="rent-price">租借價：NT$ 100 / 天</span>
-              </div>
-              <button class="btn-add-cart">加入購物車</button>
-            </div>
-          </div>
-          <div class="product-card">
-            <div class="product-image">
-              <img src="images/product-4.jpg" alt="戶外保溫水壺" />
-            </div>
-            <div class="product-info">
-              <h3><a href="product-detail.html">戶外保溫水壺</a></h3>
-              <div class="product-rating">
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="far fa-star"></i>
-                <span>(20)</span>
-              </div>
-              <div class="product-price">
-                <span class="current-price">NT$ 450</span>
-              </div>
-              <button class="btn-add-cart">加入購物車</button>
-            </div>
-          </div>
+          <!-- 產品將由 JavaScript 動態生成 -->
         </div>
-        <div class="pagination">
-          <a href="#" class="page-prev"><i class="fas fa-chevron-left"></i></a>
-          <a href="#" class="page-number active">1</a>
-          <a href="#" class="page-number">2</a>
-          <a href="#" class="page-number">3</a>
-          <span class="page-dots">...</span>
-          <a href="#" class="page-number">8</a>
-          <a href="#" class="page-next"><i class="fas fa-chevron-right"></i></a>
-        </div>
+        
       </div>
     </section>
 
@@ -444,6 +247,18 @@
 
     <script src="js/main.js"></script>
     <script src="js/header-auth.js"></script>
-    <script src="js/shop_prod.js"></script>
+    <script src="js/shop-prod.js"></script>
   </body>
 </html>
+
+  <div class="loading-overlay">
+    <div class="loading-animation">
+      <svg class="pine-cone" width="60" height="60" viewBox="0 0 60 60">
+        <!-- 松果動畫將在CSS中實現 -->
+        <circle cx="30" cy="30" r="25" fill="#3A5A40" />
+        <path class="pine-cone-scale" d="M30,5 L35,15 L25,15 Z" fill="#A68A64" />
+        <!-- 更多松果鱗片將在JavaScript中動態生成 -->
+      </svg>
+    </div>
+    <p>載入中，請稍候...</p>
+  </div>
