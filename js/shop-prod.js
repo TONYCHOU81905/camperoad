@@ -145,6 +145,7 @@ document.addEventListener("DOMContentLoaded", function () {
     fetch(url)
       .then((res) => res.json())
       .then((data) => {
+
         const products = data.data;
         container.innerHTML = "";
 
@@ -182,16 +183,35 @@ document.addEventListener("DOMContentLoaded", function () {
           // 計算折扣後價格
           const discountedPrice = Math.round(originalPrice * discountRate);
           
+          // 動態取得商品圖片（取第一張為主圖）
+          // 動態取得商品圖片（取第一張為主圖）
+          let productImageHtml = '';
+          if (prod.prodPicList && prod.prodPicList.length > 0) {
+            const firstPicId = prod.prodPicList[0].prodPicId;
+            // 添加錯誤處理
+            productImageHtml = `<img src="http://localhost:8081/CJA101G02/api/products/prodpic/${firstPicId}" alt="${prod.prodName}" onerror="this.onerror=null; this.src='images/default-product.jpg';" />`;
+          } else {
+            productImageHtml = `<img src="images/default-product.jpg" alt="無圖片" />`;
+          }
+          
+          // 添加調試信息
+          console.log("商品圖片信息:", {
+            prodId: prod.prodId,
+            prodName: prod.prodName,
+            hasPicList: !!prod.prodPicList,
+            picListLength: prod.prodPicList ? prod.prodPicList.length : 0,
+            firstPicId: prod.prodPicList && prod.prodPicList.length > 0 ? prod.prodPicList[0].prodPicId : null
+          });
           const html = `
             <div class="product-card">
               <div class="product-image">
-                <img src="images/default-product.jpg" alt="${prod.prodName}" />
+                ${productImageHtml}
                 <span class="product-tag">${prod.prodTag || '熱銷'}</span>
               </div>
               <div class="product-info">
                 <h3><a href="product-detail.html?id=${prod.prodId}">${prod.prodName}</a></h3>
                 <p class="product-category">
-                  <i class="fas fa-tag"></i> ${prod.prodTypeName || '露營裝備'}
+                  <i class="fas fa-tag"></i> ${prod.prodTypeName}
                 </p>
 
                 <div class="product-rating">
