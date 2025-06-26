@@ -227,6 +227,110 @@
         background-color: #ff6b35;
         transition: width 0.3s ease;
       }
+      
+      /* 聊天管理樣式 */
+      .chat-management-container {
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        padding: 20px;
+      }
+      
+      .chat-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      
+      .chat-item {
+        display: flex;
+        align-items: center;
+        padding: 15px;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+      
+      .chat-item:hover {
+        background-color: #f0f0f0;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+      }
+      
+      .chat-item-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        overflow: hidden;
+        margin-right: 15px;
+        border: 2px solid #e0e0e0;
+      }
+      
+      .chat-item-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      
+      .chat-item-info {
+        flex: 1;
+      }
+      
+      .chat-item-name {
+        font-weight: 500;
+        font-size: 16px;
+        margin-bottom: 5px;
+        color: #333;
+      }
+      
+      .chat-item-preview {
+        font-size: 14px;
+        color: #666;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 250px;
+      }
+      
+      .chat-item-time {
+        font-size: 12px;
+        color: #999;
+        margin-left: auto;
+        padding-left: 10px;
+      }
+      
+      .chat-item.unread .chat-item-name::after {
+        content: '';
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        background-color: #ff6b35;
+        border-radius: 50%;
+        margin-left: 8px;
+      }
+      
+      .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+      }
+      
+      .empty-state i {
+        font-size: 48px;
+        color: #ccc;
+        margin-bottom: 15px;
+      }
+      
+      .empty-state h3 {
+        font-size: 18px;
+        color: #666;
+        margin-bottom: 10px;
+      }
+      
+      .empty-state p {
+        font-size: 14px;
+        color: #999;
+      }
     </style>
   </head>
 
@@ -308,6 +412,9 @@
               </a>
               <a href="#payment" class="profile-menu-item" data-tab="payment">
                 <i class="fas fa-credit-card"></i> 付款方式
+              </a>
+              <a href="#chat-management" class="profile-menu-item" data-tab="chat-management">
+                <i class="fas fa-comments"></i> 聊天管理
               </a>
               <div class="menu-divider"></div>
               <a href="#" class="profile-menu-item logout-btn" id="logoutBtn">
@@ -632,11 +739,66 @@
                 </div>
               </div>
             </div>
+
+            <!-- 聊天管理 -->
+            <div class="profile-section" id="chat-management">
+              <h2>聊天管理</h2>
+              <div class="chat-management-container">
+                <div class="chat-list" id="chat-list">
+                  <div class="empty-state">
+                    <i class="fas fa-comments"></i>
+                    <h3>載入中...</h3>
+                    <p>正在載入您的聊天記錄</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </main>
     </div>
+
+    <!-- 懸浮聊天室 -->
+    <div class="chat-widget" style="display: none;">
+      <div class="chat-window" id="chat-window">
+        <div class="chat-header">
+          <div class="chat-title">
+            <i class="fas fa-comments"></i>
+            <span id="chat-title-text">營地客服</span>
+          </div>
+          <button class="btn-close-chat" id="btn-close-chat">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="chat-body" id="chat-messages">
+          <!-- 聊天訊息將在這裡動態生成 -->
+        </div>
+        <div class="chat-footer">
+          <div class="chat-input-container">
+            <input
+              type="text"
+              class="chat-input"
+              id="chat-message-input"
+              placeholder="輸入訊息..."
+            />
+            <button class="chat-send" id="btn-send-message">
+              <i class="fas fa-paper-plane"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 隱藏的會員ID和營地主ID輸入框 -->
+    <input type="hidden" id="memId" value="" />
+    <input type="hidden" id="ownerId" value="" />
+    <!-- WebSocket相關庫 -->
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    
     <script src="js/camp-data.js"></script>
     <script src="js/user-profile.js"></script>
+    <script src="js/chat-management.js"></script>
+    <link rel="stylesheet" href="css/chat.css" />
   </body>
 </html>

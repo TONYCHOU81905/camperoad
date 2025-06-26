@@ -58,6 +58,9 @@
             <a href="#discount-codes" class="profile-menu-item" data-tab="discount-codes">
               <i class="fas fa-tags"></i> 折價券管理
             </a>
+            <a href="#chat-management" class="profile-menu-item" data-tab="chat-management">
+              <i class="fas fa-comments"></i> 聊天管理
+            </a>
             <div class="menu-divider"></div>
             <a href="#" class="profile-menu-item logout-btn" id="logoutBtn">
               <i class="fas fa-sign-out-alt"></i> 登出
@@ -334,10 +337,61 @@
               </table>
             </div>
           </div>
+
+          <!-- 聊天管理 -->
+          <div class="profile-section" id="chat-management">
+            <div class="section-header">
+              <h2>聊天管理</h2>
+            </div>
+            <div class="chat-management-container">
+              <div class="chat-list" id="chat-list">
+                <div class="empty-state">
+                  <i class="fas fa-comments"></i>
+                  <h3>載入中...</h3>
+                  <p>正在載入您的聊天記錄</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </main>
   </div>
+
+  <!-- 懸浮聊天室 -->
+  <div class="chat-widget" style="display: none;">
+    <div class="chat-window" id="chat-window">
+      <div class="chat-header">
+        <div class="chat-title">
+          <i class="fas fa-comments"></i>
+          <span id="chat-title-text">會員客服</span>
+        </div>
+        <button class="btn-close-chat" id="btn-close-chat">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="chat-body" id="chat-messages">
+        <!-- 聊天訊息將在這裡動態生成 -->
+      </div>
+      <div class="chat-footer">
+        <div class="chat-input-container">
+          <input
+            type="text"
+            class="chat-input"
+            id="chat-message-input"
+            placeholder="輸入訊息..."
+          />
+          <button class="chat-send" id="btn-send-message">
+            <i class="fas fa-paper-plane"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 隱藏的營地主ID和會員ID輸入框 -->
+  <input type="hidden" id="ownerId" value="" />
+  <input type="hidden" id="memId" value="" />
 
   <!-- 新增房型模態框 -->
   <div class="modal fade" id="addRoomTypeModal" tabindex="-1" aria-labelledby="addRoomTypeLabel" aria-hidden="true">
@@ -571,11 +625,17 @@
     </div>
   </footer>
 
+  <!-- WebSocket相關庫 -->
+  <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+  
   <!-- JavaScript -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="js/main.js"></script>
   <script src="js/camp-data.js"></script>
   <script src="js/owner-dashboard.js"></script>
+  <script src="js/chat-management.js"></script>
+  <link rel="stylesheet" href="css/chat.css" />
 </body>
 
 </html>
