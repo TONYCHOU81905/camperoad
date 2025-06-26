@@ -1,111 +1,101 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>露途 - 多角色露營預訂平台</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
-    <link rel="stylesheet" href="css/style.css" />
-    <link rel="stylesheet" href="css/role-system.css" />
-  </head>
-  <body>
-    <header class="site-header">
-      <div class="container">
-        <div class="logo">
-          <a href="index.html">
-            <img src="images/logo.svg" alt="露途 Logo" />
-            <!-- <span>露途</span> -->
-          </a>
-        </div>
-        <nav class="main-nav">
-          <ul>
-            <li><a href="index.html">營地預訂</a></li>
-            <li><a href="shop.html">裝備商城</a></li>
-            <li><a href="camp-guides.html">論壇攻略</a></li>
-            <li><a href="user-profile.html">關於我們</a></li>
-          </ul>
-        </nav>
-        <div class="user-actions">
-          <a href="#" class="btn-search"><i class="fas fa-search"></i></a>
-          <a href="cart.html" class="btn-cart"
-            ><i class="fas fa-shopping-cart"></i
-            ><span class="cart-count">0</span></a
-          >
-          <a href="login.html" class="btn-login">登入 / 註冊</a>
-        </div>
-        <button class="mobile-menu-toggle">
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>露途 - 多角色露營預訂平台</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/role-system.css" />
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="container">
+      <div class="logo">
+        <a href="index.html">
+          <img src="http://localhost:8081/CJA101G02/member/10000004/pic" alt="露途 Logo" />
+          <!-- <span>露途</span> -->
+        </a>
       </div>
+      <nav class="main-nav">
+        <ul>
+          <li><a href="index.html">營地預訂</a></li>
+          <li><a href="shop.html">裝備商城</a></li>
+          <li><a href="camp-guides.html">論壇攻略</a></li>
+          <li><a href="user-profile.html">關於我們</a></li>
+        </ul>
+      </nav>
+      <div class="user-actions">
+        <a href="#" class="btn-search"><i class="fas fa-search"></i></a>
+        <a href="cart.html" class="btn-cart"><i class="fas fa-shopping-cart"></i><span class="cart-count">0</span></a>
+        <a href="login.html" class="btn-login">登入 / 註冊</a>
+      </div>
+      <button class="mobile-menu-toggle">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
   </header>
 
-    <section class="hero">
-      <div class="container">
-        <div class="hero-content">
-          <h1>探索自然，體驗野趣</h1>
-          <p>精選全台優質露營地，一站式預訂服務</p>
-          <div class="search-box" >
-            <form action="search-results.html" method="get">
-              <div class="search-group">
-                <label for="location">地區</label>
-                <select id="location" name="location">
-                  <option value="">選擇地區</option>
-                  <!-- 地區選項將由JavaScript動態載入 -->
-                </select>
-              </div>
-              <div class="search-group">
-                <label for="county">縣市</label>
-                <select id="county" name="county">
-                  <option value="">選擇縣市</option>
-                </select>
-              </div>
-              <div class="search-group">
-                <label for="district">鄉鎮市區</label>
-                <select id="district" name="district">
-                  <option value="">請先選擇縣市</option>
-                </select>
-              </div>
-              <div class="search-group">
-                <label for="check-in">入住日期</label>
-                <input type="date" id="check-in" name="check-in" />
-              </div>
-              <div class="search-group">
-                <label for="check-out">退房日期</label>
-                <input type="date" id="check-out" name="check-out" />
-              </div>
-              <div class="search-group">
-                <label for="guests">人數</label>
-                <select id="guests" name="guests">
-                  <option value="1">1人</option>
-                  <option value="2">2人</option>
-                  <option value="3">3人</option>
-                  <option value="4">4人</option>
-                  <option value="5">5人</option>
-                  <option value="6">6人以上</option>
-                </select>
-              </div>
-              <button
-                type="submit"
-                class="btn-search-submit"
-                id="room_search_btn"
-              >
-                搜尋營地
-              </button>
-            </form>
-          </div>
+  <section class="hero">
+    <div class="container">
+      <div class="hero-content">
+        <h1>探索自然，體驗野趣</h1>
+        <p>精選全台優質露營地，一站式預訂服務</p>
+        <div class="search-box">
+          <form action="search-results.html" method="get">
+            <div class="search-group">
+              <label for="location">地區</label>
+              <select id="location" name="location">
+                <option value="">選擇地區</option>
+                <!-- 地區選項將由JavaScript動態載入 -->
+              </select>
+            </div>
+            <div class="search-group">
+              <label for="county">縣市</label>
+              <select id="county" name="county">
+                <option value="">選擇縣市</option>
+              </select>
+            </div>
+            <div class="search-group">
+              <label for="district">鄉鎮市區</label>
+              <select id="district" name="district">
+                <option value="">請先選擇縣市</option>
+              </select>
+            </div>
+            <div class="search-group">
+              <label for="check-in">入住日期</label>
+              <input type="date" id="check-in" name="check-in" />
+            </div>
+            <div class="search-group">
+              <label for="check-out">退房日期</label>
+              <input type="date" id="check-out" name="check-out" />
+            </div>
+            <div class="search-group">
+              <label for="guests">人數</label>
+              <select id="guests" name="guests">
+                <option value="1">1人</option>
+                <option value="2">2人</option>
+                <option value="3">3人</option>
+                <option value="4">4人</option>
+                <option value="5">5人</option>
+                <option value="6">6人以上</option>
+              </select>
+            </div>
+            <button type="submit" class="btn-search-submit" id="room_search_btn">
+              搜尋營地
+            </button>
+          </form>
         </div>
       </div>
+    </div>
     </div>
   </section>
 
@@ -323,4 +313,5 @@
   <script src="js/camp-data.js"></script>
   <script src="js/header-auth.js"></script>
 </body>
+
 </html>
