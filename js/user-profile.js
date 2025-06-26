@@ -70,55 +70,56 @@ class UserProfileManager {
     this.loadFavoriteCamps();
     this.loadMemberAvatar();
   }
-  
+
   // 載入會員頭像
   loadMemberAvatar() {
     if (!this.currentMember || !this.currentMember.mem_id) return;
-    
+
     // 添加頁面載入遮罩
-    const loadingOverlay = document.createElement('div');
-    loadingOverlay.className = 'loading-overlay';
+    const loadingOverlay = document.createElement("div");
+    loadingOverlay.className = "loading-overlay";
     loadingOverlay.innerHTML = '<div class="loading-spinner"></div>';
     document.body.appendChild(loadingOverlay);
-    
+
     const memId = this.currentMember.mem_id;
-    const avatarPreview = document.querySelector('.avatar-preview img');
-    
+    const avatarPreview = document.querySelector(".avatar-preview img");
+
     if (avatarPreview) {
       // 設置預設圖片作為備用
-      const defaultAvatar = 'images/user-1.jpg';
-      
+      const defaultAvatar = "images/user-1.jpg";
+
       // 添加時間戳參數避免緩存
       const timestamp = new Date().getTime();
-      
+      const api_url = `${window.api_prefix}/member/${memId}/pic?t=${timestamp}`;
+      console.log("api_url:" + api_url);
       // 嘗試從API獲取頭像
-      fetch(`http://localhost:8081/CJA101G02/member/${memId}/pic?t=${timestamp}`)
-        .then(response => {
+      fetch(`${window.api_prefix}/member/${memId}/pic?t=${timestamp}`)
+        .then((response) => {
           if (!response.ok) {
-            throw new Error('頭像載入失敗');
+            throw new Error("頭像載入失敗");
           }
           return response.blob();
         })
-        .then(blob => {
+        .then((blob) => {
           // 成功獲取頭像，設置為預覽圖片
           const imageUrl = URL.createObjectURL(blob);
-          
+
           // 使用Image對象預加載圖片
           const img = new Image();
-          img.onload = function() {
+          img.onload = function () {
             // 圖片加載完成後，設置到頭像預覽並移除遮罩
             avatarPreview.src = imageUrl;
             document.body.removeChild(loadingOverlay);
           };
-          img.onerror = function() {
+          img.onerror = function () {
             // 圖片加載失敗，使用預設圖片
             avatarPreview.src = defaultAvatar;
             document.body.removeChild(loadingOverlay);
           };
           img.src = imageUrl;
         })
-        .catch(error => {
-          console.error('頭像載入錯誤:', error);
+        .catch((error) => {
+          console.error("頭像載入錯誤:", error);
           // 載入失敗時使用預設圖片
           avatarPreview.src = defaultAvatar;
           document.body.removeChild(loadingOverlay);
@@ -542,18 +543,18 @@ document.addEventListener("DOMContentLoaded", () => {
     // 立即使用 URL.createObjectURL 顯示預覽，提供即時反饋
     const objectUrl = URL.createObjectURL(file);
     avatarPreview.src = objectUrl;
-    
+
     // 添加動畫效果
     avatarPreview.classList.add("preview-updated");
     setTimeout(() => {
       avatarPreview.classList.remove("preview-updated");
     }, 1000);
-    
+
     // 同時使用 FileReader 讀取完整數據（作為備份方法）
     const reader = new FileReader();
     reader.onload = function (e) {
       // 如果 URL.createObjectURL 失敗，這將作為備份
-      if (!avatarPreview.src || avatarPreview.src === 'about:blank') {
+      if (!avatarPreview.src || avatarPreview.src === "about:blank") {
         avatarPreview.src = e.target.result;
       }
       // 釋放 objectURL 以避免內存洩漏
@@ -651,7 +652,7 @@ document.addEventListener("DOMContentLoaded", () => {
           }
           // 保存原始圖片URL，以便上傳失敗時恢復
           const originalImageSrc = avatarPreview.src;
-          return response.json().then(data => {
+          return response.json().then((data) => {
             // 返回包含原始圖片URL的對象
             return { data, originalImageSrc };
           });
@@ -664,51 +665,56 @@ document.addEventListener("DOMContentLoaded", () => {
 
           // 從回應中獲取數據和原始圖片URL
           const { data, originalImageSrc } = response;
-          
+
           // 檢查回傳的資料格式，可能是 {data: 'ok'} 或直接是 'ok'
           if (data === "ok" || (data && data.data === "ok")) {
             // 上傳成功後，重新載入頭像（添加時間戳避免緩存）
             const timestamp = new Date().getTime();
             const memId = userProfileManager.currentMember?.mem_id;
-            
+
             // 添加載入指示器
-            const loadingIndicator = document.createElement('div');
-            loadingIndicator.className = 'avatar-loading';
-            const avatarPreviewContainer = document.querySelector('.avatar-preview');
+            const loadingIndicator = document.createElement("div");
+            loadingIndicator.className = "avatar-loading";
+            const avatarPreviewContainer =
+              document.querySelector(".avatar-preview");
             if (avatarPreviewContainer) {
               avatarPreviewContainer.appendChild(loadingIndicator);
             }
-            
+
             // 從服務器獲取最新頭像
-            fetch(`http://localhost:8081/CJA101G02/member/${memId}/pic?t=${timestamp}`)
-              .then(response => {
+            fetch(
+              `http://localhost:8081/CJA101G02/member/${memId}/pic?t=${timestamp}`
+            )
+              .then((response) => {
                 if (!response.ok) {
-                  throw new Error('更新頭像載入失敗');
+                  throw new Error("更新頭像載入失敗");
                 }
                 return response.blob();
               })
-              .then(blob => {
+              .then((blob) => {
                 // 移除載入指示器
                 if (loadingIndicator && loadingIndicator.parentNode) {
                   loadingIndicator.parentNode.removeChild(loadingIndicator);
                 }
-                
+
                 // 更新頭像預覽
                 const imageUrl = URL.createObjectURL(blob);
-                const avatarPreview = document.querySelector('.avatar-preview img');
+                const avatarPreview = document.querySelector(
+                  ".avatar-preview img"
+                );
                 if (avatarPreview) {
                   avatarPreview.src = imageUrl;
                   // 添加更新動畫
-                  avatarPreview.classList.add('preview-updated');
+                  avatarPreview.classList.add("preview-updated");
                   setTimeout(() => {
-                    avatarPreview.classList.remove('preview-updated');
+                    avatarPreview.classList.remove("preview-updated");
                   }, 1000);
                 }
-                
+
                 showMessage("頭像上傳成功", "success");
               })
-              .catch(error => {
-                console.error('更新頭像載入錯誤:', error);
+              .catch((error) => {
+                console.error("更新頭像載入錯誤:", error);
                 // 移除載入指示器
                 if (loadingIndicator && loadingIndicator.parentNode) {
                   loadingIndicator.parentNode.removeChild(loadingIndicator);

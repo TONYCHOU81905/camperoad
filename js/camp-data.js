@@ -1,5 +1,6 @@
 // 營地資料管理和購物車功能
 window.campData = [];
+window.api_prefix = "http://localhost:8081/CJA101G02";
 let cartItems = [];
 let memberData = [];
 let currentMember = null;
