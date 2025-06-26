@@ -168,7 +168,7 @@
 .room-types-table-container td {
   /* 允許文字換行 */
   white-space: normal;
-  font-size: 14px;
+  font-size: 1rem;
 }
 
 /* 保持圖片單元格的樣式不變 */
