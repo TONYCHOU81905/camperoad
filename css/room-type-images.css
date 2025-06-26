@@ -154,18 +154,24 @@
 
 /* 表格樣式優化 */
 .room-types-table-container {
-  overflow-x: auto;
+  /* 移除 overflow-x: auto; 以消除橫向滾動軸 */
+  width: 100%;
 }
 
 .room-types-table-container table {
-  min-width: 1000px;
+  /* 移除固定最小寬度，改為使用百分比寬度 */
+  width: 100%;
+  min-width: auto;
 }
 
 .room-types-table-container th,
 .room-types-table-container td {
-  white-space: nowrap;
+  /* 允許文字換行 */
+  white-space: normal;
+  font-size: 14px;
 }
 
+/* 保持圖片單元格的樣式不變 */
 .room-types-table-container .image-cell {
   white-space: normal;
 }
