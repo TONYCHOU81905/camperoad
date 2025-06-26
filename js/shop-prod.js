@@ -23,18 +23,6 @@ document.addEventListener("DOMContentLoaded", function () {
     fetchProducts();
   });
 
-  // 移除這段讓分類選單一變動就查詢的代碼
-  // categorySelect.addEventListener("change", function () {
-  //   showLoadingOverlay();
-  //   fetchProducts();
-  // });
-
-  // 移除排序變更時重新查詢的代碼
-  // sortSelect.addEventListener("change", function () {
-  //   showLoadingOverlay();
-  //   fetchProducts();
-  // });
-
   // 顯示載入畫面
   function showLoadingOverlay() {
     if (loadingOverlay) {
@@ -153,11 +141,29 @@ document.addEventListener("DOMContentLoaded", function () {
           const hasDiscount = prod.prodDiscount !== null && prod.prodDiscount !== undefined;
           const prodDate = prod.prodDate ? formatDate(prod.prodDate) : formatDate(new Date());
           const featuresHtml = generateProductFeatures(prod);
+          
+          const colors = prod.prodColorList || [];
+          let colorSelectHtml = '';
+          // 生成顏色選擇按鈕
+          if (colors.length > 0) {
+            colorSelectHtml += `<div class="product-color-select"><span class="label"></span>`;
+            colors.forEach((color, index) => {
+              const colorId = color.prodColorId;
+              const imgUrl = `http://localhost:8081/CJA101G02/api/prod-colors/colorpic/${prod.prodId}/${colorId}`;
+              
+              colorSelectHtml += `
+                <button class="color-box${index === 0 ? ' active' : ''}" data-color-id="${colorId}">
+                  <img src="${imgUrl}" alt="${color.colorName}" class="color-thumbnail" />
+                  <span>${color.colorName || `顏色${colorId}`}</span>
+                </button>`;
+            });
+            colorSelectHtml += `</div>`;
+          }
 
           const specs = prod.prodSpecList || [];
           let specSelectHtml = '';
           let prodSpecPrice = null;
-          
+          // 生成規格選擇下拉式選單
           if (specs.length > 0) {
             // 獲取第一個規格的價格作為 prodSpecPrice
             prodSpecPrice = specs[0].prodSpecPrice;
@@ -220,10 +226,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 </div>
                 <div class="product-features">${featuresHtml}</div>
 
+                ${colorSelectHtml} <!-- 顏色區 -->
+                ${specSelectHtml}  <!-- 規格區 -->
                 <div class="product-price">
                   <span class="current-price" data-base-price="${discountedPrice}" data-discount-rate="${discountRate}">NT$ ${discountedPrice}</span>
                   <span class="original-price">NT$ ${originalPrice}</span>
-                  ${specSelectHtml}
                 </div>             
 
                 <div class="product-actions">
@@ -300,6 +307,20 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function bindButtons() {
+    // 顏色按鈕點選事件
+    document.querySelectorAll(".product-color-select").forEach((colorGroup) => {
+      const buttons = colorGroup.querySelectorAll(".color-box");
+      buttons.forEach((btn) => {
+        btn.addEventListener("click", function () {
+          // 取消所有 .active
+          buttons.forEach((b) => b.classList.remove("active"));
+          // 設定被點選的為 .active
+          this.classList.add("active");
+        });
+      });
+    });
+
+    // 規格選擇下拉式選單變更事件
     document.querySelectorAll(".prod-spec-select").forEach((select) => {
       select.addEventListener("change", function () {
         const selectedPrice = parseFloat(this.value) || 0;
@@ -321,6 +342,7 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     });
 
+    // 加入收藏按鈕點選事件
     document.querySelectorAll(".btn-favorite").forEach((btn) => {
       btn.addEventListener("click", function () {
         const prodId = this.dataset.id;
@@ -328,6 +350,7 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     });
 
+    // 加入購物車按鈕點選事件
     document.querySelectorAll(".btn-add-cart").forEach((btn) => {
       btn.addEventListener("click", function () {
         const prodId = this.dataset.id;
@@ -337,6 +360,9 @@ document.addEventListener("DOMContentLoaded", function () {
         const productCard = this.closest('.product-card');
         const productName = productCard.querySelector('h3 a').textContent;
         const productPrice = productCard.querySelector('.current-price').textContent.replace('NT$ ', '');
+        // 找出選中的顏色
+        const selectedColorBtn = productCard.querySelector('.product-color-select .color-box.active');
+        const selectedColor = selectedColorBtn ? selectedColorBtn.textContent.trim() : null;
         
         // 準備要發送的數據
         const cartData = {
@@ -344,7 +370,7 @@ document.addEventListener("DOMContentLoaded", function () {
           prodName: productName,
           prodPrice: parseFloat(productPrice),
           quantity: 1,  // 預設數量為1
-          color: null,  // 在列表頁沒有顏色選擇
+          color: selectedColor,  // 傳入選中的顏色名稱
           purchaseType: 'buy',  // 預設為購買
           rentDays: null
         };
