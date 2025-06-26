@@ -28,7 +28,8 @@ class OwnerDashboard {
       this.bindEvents();
 
       // 從 localStorage 獲取上次訪問的頁面，如果沒有則顯示房型管理頁面
-      const lastTab = localStorage.getItem('ownerDashboardLastTab') || "room-types";
+      const lastTab =
+        localStorage.getItem("ownerDashboardLastTab") || "room-types";
       this.showTabContent(lastTab);
 
       // 更新選單狀態
@@ -59,7 +60,7 @@ class OwnerDashboard {
       }
 
       this.currentOwner = JSON.parse(savedOwner);
-      
+
       if (!this.currentOwner || !this.currentOwner.owner_id) {
         alert("營地主登入資料無效，請重新登入");
         localStorage.removeItem("currentOwner");
@@ -82,6 +83,7 @@ class OwnerDashboard {
         throw new Error("無法更新營地主資訊：缺少營地主資料");
       }
 
+
       // 右上角下拉選單
       const ownerProfileSelect = document.getElementById("ownerProfileSelect");
       if (ownerProfileSelect) {
@@ -100,6 +102,7 @@ class OwnerDashboard {
           if (campsiteResponse.ok) {
             const allCampsites = await campsiteResponse.json();
             this.campsiteData = allCampsites.filter(campsite => campsite.camp_id == campId);
+
           }
           const bundleResponse = await fetch("data/bundle_item.json");
           if (bundleResponse.ok) {
@@ -142,17 +145,19 @@ class OwnerDashboard {
         throw new Error(`載入營地資料失敗：${campResponse.status}`);
       }
       const allCamps = await campResponse.json();
-      
+
       // 根據登入的營地主ID篩選營地
+
       this.allCamps = allCamps.filter(camp => String(camp.owner_id) == String(this.currentOwner.owner_id));
       
+
       // 如果該營地主沒有營地，顯示提示訊息
       if (this.allCamps.length === 0) {
         this.showMessage("您目前沒有營地資料，請先新增營地", "warning");
         // 不要呼叫 this.initUI();
         return;
       }
-      
+
       // 預設選擇第一個營地
       this.campData = this.allCamps[0];
 
@@ -252,8 +257,11 @@ class OwnerDashboard {
           this.campData.camp_addr,
         "camp-status": this.campData.camp_release_status,
         "camp-score":
-          this.campData.camp_comment_number_count > 0 
-            ? (this.campData.camp_comment_sun_score / this.campData.camp_comment_number_count).toFixed(1)
+          this.campData.camp_comment_number_count > 0
+            ? (
+                this.campData.camp_comment_sun_score /
+                this.campData.camp_comment_number_count
+              ).toFixed(1)
             : "0.0",
         "camp-description": this.campData.camp_content || "",
       };
@@ -415,7 +423,7 @@ class OwnerDashboard {
         const roomTypeData = {
           id: {
             campId: parseInt(formData.get("campId")),
-            campsiteTypeId: parseInt(formData.get("campsiteTypeId"))
+            campsiteTypeId: parseInt(formData.get("campsiteTypeId")),
           },
           campsiteName: formData.get("campsiteName"),
           campsitePeople: parseInt(formData.get("campsitePeople")),
@@ -424,23 +432,31 @@ class OwnerDashboard {
           campsitePic1: formData.get("campsitePic1") || null,
           campsitePic2: formData.get("campsitePic2") || null,
           campsitePic3: formData.get("campsitePic3") || null,
-          campsitePic4: formData.get("campsitePic4") || null
+          campsitePic4: formData.get("campsitePic4") || null,
         };
         // 呼叫 API
-        const response = await fetch("http://localhost:8081/CJA101G02/campsitetype/updateCampsiteType", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(roomTypeData)
-        });
+        const response = await fetch(
+          "http://localhost:8081/CJA101G02/campsitetype/updateCampsiteType",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(roomTypeData),
+          }
+        );
         const result = await response.json();
         if (result.status === "success") {
           // 關閉 modal
-          bootstrap.Modal.getInstance(document.getElementById("editRoomTypeModal")).hide();
+          bootstrap.Modal.getInstance(
+            document.getElementById("editRoomTypeModal")
+          ).hide();
           this.showMessage("房型修改成功！", "success");
           // 重新載入房型資料
           await this.loadCampsiteTypesByCampId(roomTypeData.id.campId);
         } else {
-          this.showMessage("房型修改失敗：" + (result.message || "未知錯誤"), "error");
+          this.showMessage(
+            "房型修改失敗：" + (result.message || "未知錯誤"),
+            "error"
+          );
         }
       };
     }
@@ -451,8 +467,10 @@ class OwnerDashboard {
       addRoomForm.onsubmit = async (e) => {
         e.preventDefault();
         const formData = new FormData(addRoomForm);
+
         const data = {
           campsiteIdName: formData.get("campsiteIdName"),
+
           camperName: null,
           campId: parseInt(formData.get("campId")),
           campsiteTypeId: parseInt(formData.get("campsiteTypeId"))
@@ -465,17 +483,23 @@ class OwnerDashboard {
           });
           if (!response.ok) throw new Error(`新增房間失敗：${response.status}`);
           const result = await response.json();
+
           if (result.status === "success") {
             // 改用標準bootstrap.Modal關閉modal，避免抖動
             const modal = bootstrap.Modal.getInstance(document.getElementById("addRoomModal"));
             if (modal) modal.hide();
             this.showMessage("房間新增成功！", "success");
+
             await this.showRoomDetails(data.campsiteTypeId);
             this.renderRoomTypes().catch(error => {
+
               console.error("重新渲染房型列表失敗：", error);
             });
           } else {
-            this.showMessage("房間新增失敗：" + (result.message || "未知錯誤"), "error");
+            this.showMessage(
+              "房間新增失敗：" + (result.message || "未知錯誤"),
+              "error"
+            );
           }
         } catch (error) {
           this.showMessage(`新增房間失敗：${error.message}`, "error");
@@ -528,13 +552,13 @@ class OwnerDashboard {
     if (roomDetailModal) {
       roomDetailModal.addEventListener("hidden.bs.modal", () => {
         // 當modal關閉時，確保清除背景遮罩
-        const backdrop = document.querySelector('.modal-backdrop');
+        const backdrop = document.querySelector(".modal-backdrop");
         if (backdrop) {
           backdrop.remove();
         }
-        document.body.classList.remove('modal-open');
-        document.body.style.overflow = '';
-        document.body.style.paddingRight = '';
+        document.body.classList.remove("modal-open");
+        document.body.style.overflow = "";
+        document.body.style.paddingRight = "";
       });
     }
   }
@@ -688,12 +712,12 @@ class OwnerDashboard {
     }
 
     // 保存當前頁面到 localStorage
-    localStorage.setItem('ownerDashboardLastTab', tabName);
+    localStorage.setItem("ownerDashboardLastTab", tabName);
 
     // 根據不同頁面載入對應資料
     switch (tabName) {
       case "room-types":
-        this.renderRoomTypes().catch(error => {
+        this.renderRoomTypes().catch((error) => {
           console.error("載入房型資料失敗：", error);
         });
         break;
@@ -706,10 +730,15 @@ class OwnerDashboard {
       case "discount-codes":
         this.renderDiscountCodes();
         break;
+      case "chat-management":
+        this.initChatManagement();
+        console.log("初始化聊天管理");
+        break;
     }
   }
   async renderRoomTypes() {
     console.log("renderRoomTypes called");
+
     const tableBody = document.getElementById("roomTypesTableBody");
     if (!tableBody) {
       console.error("找不到房型表格主體元素");
@@ -728,6 +757,7 @@ class OwnerDashboard {
       tableBody.innerHTML = '<tr><td colspan="9" class="text-center">無法取得營地ID，請先選擇營地</td></tr>';
       return;
     }
+
     // 直接呼叫API取得房型資料
     try {
       const apiUrl = `http://localhost:8081/CJA101G02/campsitetype/${campId}/getCampsiteTypes`;
@@ -796,6 +826,7 @@ class OwnerDashboard {
       </tr>
     `).join("");
     tableBody.innerHTML = html;
+
   }
 
   renderBundleItems() {
@@ -855,8 +886,8 @@ class OwnerDashboard {
         // 獲取該訂單的詳細資料
         const orderDetails = this.orderDetails
           ? this.orderDetails.filter(
-            (detail) => detail.campsite_order_id === order.campsite_order_id
-          )
+              (detail) => detail.campsite_order_id === order.campsite_order_id
+            )
           : [];
         console.log("orderDetails:" + orderDetails);
         // 獲取會員姓名
@@ -899,13 +930,14 @@ class OwnerDashboard {
         <td>${order.check_out.split(" ")[0]}</td>
         <td>NT$ ${order.aft_amount.toLocaleString()}</td>
         <td>
-          <span class="badge bg-${order.campsite_order_status === "1"
-            ? "warning"
-            : order.campsite_order_status === "2"
+          <span class="badge bg-${
+            order.campsite_order_status === "1"
+              ? "warning"
+              : order.campsite_order_status === "2"
               ? "info"
               : order.campsite_order_status === "3"
-                ? "success"
-                : "danger"
+              ? "success"
+              : "danger"
           }">
             ${this.getOrderStatusText(order.campsite_order_status)}
           </span>
@@ -939,15 +971,17 @@ class OwnerDashboard {
         <td><strong>${code.discount_code}</strong></td>
         <td>${code.discount_explain || "折價券"}</td>
         <td>
-          <span class="badge bg-${code.discount_type === 1 ? "success" : "primary"
+          <span class="badge bg-${
+            code.discount_type === 1 ? "success" : "primary"
           }">
             ${code.discount_type === 1 ? "百分比折扣" : "固定金額折扣"}
           </span>
         </td>
         <td>
-          ${code.discount_type === 1
-            ? code.discount_value * 100 + "%"
-            : "NT$ " + code.discount_value
+          ${
+            code.discount_type === 1
+              ? code.discount_value * 100 + "%"
+              : "NT$ " + code.discount_value
           }
         </td>
         <td>NT$ ${code.min_order_amount}</td>
@@ -955,7 +989,8 @@ class OwnerDashboard {
           ${code.start_date.split(" ")[0]} ~ ${code.end_date.split(" ")[0]}
         </td>
         <td>
-          <button class="btn btn-sm btn-danger" onclick="ownerDashboard.deleteDiscountCode('${code.discount_code_id
+          <button class="btn btn-sm btn-danger" onclick="ownerDashboard.deleteDiscountCode('${
+            code.discount_code_id
           }')">
             <i class="fas fa-trash"></i>
           </button>
@@ -1048,12 +1083,14 @@ class OwnerDashboard {
           <div class="campsite-info">
             <h6>${campsiteType ? campsiteType.campsite_name : "未知房型"}</h6>
             <p class="text-muted">房型ID: ${detail.campsite_type_id}</p>
-            <p class="text-muted">可住人數: ${campsiteType ? campsiteType.campsite_people : "N/A"
-          }人</p>
-            <p class="text-muted">單價: NT$ ${campsiteType
-            ? campsiteType.campsite_price.toLocaleString()
-            : "N/A"
-          }</p>
+            <p class="text-muted">可住人數: ${
+              campsiteType ? campsiteType.campsite_people : "N/A"
+            }人</p>
+            <p class="text-muted">單價: NT$ ${
+              campsiteType
+                ? campsiteType.campsite_price.toLocaleString()
+                : "N/A"
+            }</p>
           </div>
           <div class="campsite-booking">
             <p><strong>預訂數量:</strong> ${detail.campsite_num} 間</p>
@@ -1080,10 +1117,10 @@ class OwnerDashboard {
       order.campsite_order_status === "1"
         ? "warning"
         : order.campsite_order_status === "2"
-          ? "info"
-          : order.campsite_order_status === "3"
-            ? "success"
-            : "danger";
+        ? "info"
+        : order.campsite_order_status === "3"
+        ? "success"
+        : "danger";
 
     const modalHtml = `
       <div class="modal fade" id="orderDetailsModal" tabindex="-1">
@@ -1105,10 +1142,12 @@ class OwnerDashboard {
                   </div>
                   <div class="col-md-6">
                     <h6>住宿資訊</h6>
-                    <p><strong>入住日期:</strong> ${order.check_in.split(" ")[0]
-      }</p>
-                    <p><strong>退房日期:</strong> ${order.check_out.split(" ")[0]
-      }</p>
+                    <p><strong>入住日期:</strong> ${
+                      order.check_in.split(" ")[0]
+                    }</p>
+                    <p><strong>退房日期:</strong> ${
+                      order.check_out.split(" ")[0]
+                    }</p>
                     <p><strong>訂單狀態:</strong> <span class="badge bg-${statusClass}">${statusText}</span></p>
                   </div>
                 </div>
@@ -1137,29 +1176,32 @@ class OwnerDashboard {
                       <span>營地費用:</span>
                       <span>NT$ ${order.camp_amount.toLocaleString()}</span>
                     </div>
-                    ${order.bundle_amount > 0
-        ? `
+                    ${
+                      order.bundle_amount > 0
+                        ? `
                     <div class="amount-item">
                       <span>加購項目:</span>
                       <span>NT$ ${order.bundle_amount.toLocaleString()}</span>
                     </div>
                     `
-        : ""
-      }
+                        : ""
+                    }
                     <div class="amount-item">
                       <span>小計:</span>
                       <span>NT$ ${order.bef_amount.toLocaleString()}</span>
                     </div>
                   </div>
                   <div class="col-md-6">
-                    ${order.dis_amount > 0
-        ? `
+                    ${
+                      order.dis_amount > 0
+                        ? `
                     <div class="amount-item discount">
                       <span>折扣:</span>
                       <span class="text-success">-NT$ ${order.dis_amount.toLocaleString()}</span>
                     </div>
-                    ${discountInfo
-          ? `
+                    ${
+                      discountInfo
+                        ? `
                     <div class="amount-item discount-info">
                       <span>折價券:</span>
                       <span class="text-info">${discountInfo.discount_code}</span>
@@ -1169,11 +1211,11 @@ class OwnerDashboard {
                       <span class="text-muted">${discountInfo.discount_explain}</span>
                     </div>
                     `
-          : ""
-        }
+                        : ""
+                    }
                     `
-        : ""
-      }
+                        : ""
+                    }
                     <div class="amount-item total">
                       <span><strong>實付金額:</strong></span>
                       <span><strong class="text-primary">NT$ ${order.aft_amount.toLocaleString()}</strong></span>
@@ -1335,9 +1377,9 @@ class OwnerDashboard {
       this.campData && this.campData.camp_reg_date
         ? this.campData.camp_reg_date
         : `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(
-          2,
-          "0"
-        )}-${String(today.getDate()).padStart(2, "0")}`;
+            2,
+            "0"
+          )}-${String(today.getDate()).padStart(2, "0")}`;
 
     // 獲取營地主ID
     const ownerId = this.currentOwner.owner_id;
@@ -1452,7 +1494,7 @@ class OwnerDashboard {
     const roomTypeData = {
       id: {
         campId: this.campData.camp_id,
-        campsiteTypeId: null
+        campsiteTypeId: null,
       },
       campsiteName: formData.get("campsite_name"),
       campsitePeople: parseInt(formData.get("campsite_people")),
@@ -1471,13 +1513,13 @@ class OwnerDashboard {
       },
       body: JSON.stringify(roomTypeData),
     })
-      .then(response => {
+      .then((response) => {
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
         return response.json();
       })
-      .then(data => {
+      .then((data) => {
         // 處理成功響應
         console.log("新增房型成功：", data);
         console.log("API回應狀態：", data.status);
@@ -1498,19 +1540,21 @@ class OwnerDashboard {
         // 重新載入房型資料
         if (this.campData && this.campData.camp_id) {
           console.log("開始重新載入房型資料，營地ID：", this.campData.camp_id);
-          this.loadCampsiteTypesByCampId(this.campData.camp_id).then(() => {
-            console.log("房型資料重新載入完成，開始渲染");
-            this.renderRoomTypes().catch(error => {
-              console.error("重新渲染房型列表失敗：", error);
+          this.loadCampsiteTypesByCampId(this.campData.camp_id)
+            .then(() => {
+              console.log("房型資料重新載入完成，開始渲染");
+              this.renderRoomTypes().catch((error) => {
+                console.error("重新渲染房型列表失敗：", error);
+              });
+            })
+            .catch((error) => {
+              console.error("重新載入房型資料失敗：", error);
             });
-          }).catch(error => {
-            console.error("重新載入房型資料失敗：", error);
-          });
         } else {
           console.error("無法重新載入房型資料：缺少營地資料");
         }
       })
-      .catch(error => {
+      .catch((error) => {
         console.error("API請求錯誤：", error);
         this.showMessage(
           `新增房型失敗：${error.message || "未知錯誤"}`,
@@ -1521,10 +1565,14 @@ class OwnerDashboard {
 
   editRoomType(campsiteTypeId) {
     console.log("編輯房型，ID:", campsiteTypeId);
-    
+
     // 找到房型資料，支援多種可能的欄位名稱
     const roomType = this.campsiteTypeData.find((type) => {
-      const typeId = type.campsiteTypeId || type.id?.campsiteTypeId || type.campsite_type_id || type.id;
+      const typeId =
+        type.campsiteTypeId ||
+        type.id?.campsiteTypeId ||
+        type.campsite_type_id ||
+        type.id;
       return typeId == campsiteTypeId;
     });
 
@@ -1539,22 +1587,33 @@ class OwnerDashboard {
     const editForm = document.getElementById("editRoomTypeForm");
     if (editForm) {
       // 設定隱藏欄位
-      editForm.querySelector('[name="campId"]').value = roomType.camp_id || roomType.campId;
+      editForm.querySelector('[name="campId"]').value =
+        roomType.camp_id || roomType.campId;
       editForm.querySelector('[name="campsiteTypeId"]').value = campsiteTypeId;
-      
+
       // 設定表單欄位
-      editForm.querySelector('[name="campsiteName"]').value = roomType.campsiteName || roomType.campsite_name || "";
-      editForm.querySelector('[name="campsitePeople"]').value = roomType.campsitePeople || roomType.campsite_people || "";
-      editForm.querySelector('[name="campsiteNum"]').value = roomType.campsiteNum || roomType.campsite_num || "";
-      editForm.querySelector('[name="campsitePrice"]').value = roomType.campsitePrice || roomType.campsite_price || "";
-      editForm.querySelector('[name="campsitePic1"]').value = roomType.campsitePic1 || roomType.campsite_pic1 || "";
-      editForm.querySelector('[name="campsitePic2"]').value = roomType.campsitePic2 || roomType.campsite_pic2 || "";
-      editForm.querySelector('[name="campsitePic3"]').value = roomType.campsitePic3 || roomType.campsite_pic3 || "";
-      editForm.querySelector('[name="campsitePic4"]').value = roomType.campsitePic4 || roomType.campsite_pic4 || "";
+      editForm.querySelector('[name="campsiteName"]').value =
+        roomType.campsiteName || roomType.campsite_name || "";
+      editForm.querySelector('[name="campsitePeople"]').value =
+        roomType.campsitePeople || roomType.campsite_people || "";
+      editForm.querySelector('[name="campsiteNum"]').value =
+        roomType.campsiteNum || roomType.campsite_num || "";
+      editForm.querySelector('[name="campsitePrice"]').value =
+        roomType.campsitePrice || roomType.campsite_price || "";
+      editForm.querySelector('[name="campsitePic1"]').value =
+        roomType.campsitePic1 || roomType.campsite_pic1 || "";
+      editForm.querySelector('[name="campsitePic2"]').value =
+        roomType.campsitePic2 || roomType.campsite_pic2 || "";
+      editForm.querySelector('[name="campsitePic3"]').value =
+        roomType.campsitePic3 || roomType.campsite_pic3 || "";
+      editForm.querySelector('[name="campsitePic4"]').value =
+        roomType.campsitePic4 || roomType.campsite_pic4 || "";
     }
 
     // 顯示編輯modal
-    const editModal = new bootstrap.Modal(document.getElementById("editRoomTypeModal"));
+    const editModal = new bootstrap.Modal(
+      document.getElementById("editRoomTypeModal")
+    );
     editModal.show();
   }
 
@@ -1617,7 +1676,7 @@ class OwnerDashboard {
 
     // 重新載入房型資料
     setTimeout(() => {
-      this.renderRoomTypes().catch(error => {
+      this.renderRoomTypes().catch((error) => {
         console.error("重新渲染房型列表失敗：", error);
       });
     }, 500);
@@ -1840,47 +1899,55 @@ class OwnerDashboard {
     try {
       // 獲取當前選中的營地ID
       let campId;
+
       const ownerProfileSelect = document.getElementById("ownerProfileSelect");
       if (ownerProfileSelect) {
         campId = ownerProfileSelect.value;
+
       } else {
         campId = this.campData ? this.campData.camp_id : null;
       }
-      
+
       if (!campId) {
         throw new Error("無法獲取營地ID");
       }
+
       
       // 強制轉換ID型別
       campsiteTypeId = Number(campsiteTypeId);
       
+
       console.log(`載入房型 ${campsiteTypeId} 的房間資料，營地ID: ${campId}`);
-      
-      const response = await fetch(`http://localhost:8081/CJA101G02/campsitetype/${campsiteTypeId}/${campId}/getcampsites`);
-      
+
+      const response = await fetch(
+        `http://localhost:8081/CJA101G02/campsitetype/${campsiteTypeId}/${campId}/getcampsites`
+      );
+
       if (!response.ok) {
         throw new Error(`載入房間資料失敗：${response.status}`);
       }
-      
+
       const result = await response.json();
       const roomList = Array.isArray(result.data) ? result.data : [];
-      
+
       console.log("房間資料：", roomList);
-      
+
       // 檢查第一個房間的資料結構
       if (roomList.length > 0) {
         console.log("第一個房間的完整資料結構：", roomList[0]);
         console.log("房間ID欄位檢查：", {
           campsite_id: roomList[0].campsite_id,
           id: roomList[0].id,
-          campsiteId: roomList[0].campsiteId
+          campsiteId: roomList[0].campsiteId,
         });
       }
-      
+
       this.renderRoomDetailModal(roomList, campsiteTypeId, campId);
-      
+
       // 顯示 modal
-      const modal = new bootstrap.Modal(document.getElementById("roomDetailModal"));
+      const modal = new bootstrap.Modal(
+        document.getElementById("roomDetailModal")
+      );
       modal.show();
     } catch (error) {
       console.error("顯示房間詳情失敗：", error);
@@ -1892,25 +1959,38 @@ class OwnerDashboard {
     try {
       window._latestRoomList = roomList;
       const tableBody = document.getElementById("roomDetailTableBody");
+
       if (!tableBody) {
         throw new Error("找不到房間明細表格");
       }
+
       // 將當前房型ID保存到modal的data屬性中，方便後續使用
       const roomDetailModal = document.getElementById("roomDetailModal");
       if (roomDetailModal) {
-        roomDetailModal.setAttribute("data-current-campsite-type-id", campsiteTypeId);
+        roomDetailModal.setAttribute(
+          "data-current-campsite-type-id",
+          campsiteTypeId
+        );
       }
+
       // 更新modal標題
       const modalTitle = document.getElementById("roomDetailModalLabel");
       if (modalTitle) {
         // 嘗試獲取房型名稱，支援多種可能的欄位名稱
-        const roomType = this.campsiteTypeData.find(type => {
-          const typeId = type.campsiteTypeId || type.id?.campsiteTypeId || type.campsite_type_id || type.id;
+        const roomType = this.campsiteTypeData.find((type) => {
+          const typeId =
+            type.campsiteTypeId ||
+            type.id?.campsiteTypeId ||
+            type.campsite_type_id ||
+            type.id;
           return typeId == campsiteTypeId;
         });
-        const roomTypeName = roomType ? (roomType.campsiteName || roomType.campsite_name) : `房型${campsiteTypeId}`;
+        const roomTypeName = roomType
+          ? roomType.campsiteName || roomType.campsite_name
+          : `房型${campsiteTypeId}`;
         modalTitle.textContent = `${roomTypeName} - 房間明細`;
       }
+
       // 渲染房間列表（移除入住日、預計退房日）
       if (!roomList || roomList.length === 0) {
         tableBody.innerHTML = '<tr><td colspan="3" class="text-center">此房型目前沒有房間</td></tr>';
@@ -1921,17 +2001,23 @@ class OwnerDashboard {
           <tr>
             <td>${room.campsiteIdName || room.campsite_id_name || `房間${room.campsiteId}`}</td>
             <td>${room.camperName || room.camper_name || '-'}</td>
+
             <td>
               <div class="d-flex">
-                <button class="btn btn-sm btn-secondary" onclick="ownerDashboard.editRoom(${room.campsiteId})">
+                <button class="btn btn-sm btn-secondary" onclick="ownerDashboard.editRoom(${
+                  room.campsiteId
+                })">
                   <i class="fas fa-edit"></i>
                 </button>
-                <button class="btn btn-sm btn-danger ms-2" onclick="ownerDashboard.deleteRoom(${room.campsiteId})">
+                <button class="btn btn-sm btn-danger ms-2" onclick="ownerDashboard.deleteRoom(${
+                  room.campsiteId
+                })">
                   <i class="fas fa-trash"></i>
                 </button>
               </div>
             </td>
           </tr>
+
         `).join("");
         tableBody.innerHTML = html;
       }
@@ -1941,6 +2027,7 @@ class OwnerDashboard {
         addRoomBtn.onclick = () => {
           this.showAddRoomModal(campsiteTypeId, campId);
           // 不再關閉房間明細modal
+
         };
       }
     } catch (error) {
@@ -1962,8 +2049,10 @@ class OwnerDashboard {
 
     // 找到房型信息，支援多種可能的欄位名稱
     const roomType = this.campsiteTypeData.find((type) => {
+
       const typeId = type.campsiteTypeId || type.id?.campsiteTypeId || type.campsite_type_id || type.id;
       return Number(typeId) === roomTypeId;
+
     });
 
     if (!roomType) {
@@ -1972,7 +2061,10 @@ class OwnerDashboard {
     }
 
     // 生成新的房間ID（在實際應用中應由後端生成）
-    const maxId = Math.max(...this.campsiteData.map(room => room.campsite_id), 0);
+    const maxId = Math.max(
+      ...this.campsiteData.map((room) => room.campsite_id),
+      0
+    );
     const newRoomId = maxId + 1;
 
     // 創建新房間對象
@@ -1981,7 +2073,7 @@ class OwnerDashboard {
       camp_id: roomType.camp_id,
       campsite_type_id: parseInt(roomTypeId),
       campsite_id_name: roomName,
-      camper_name: roomGuest || null
+      camper_name: roomGuest || null,
     };
 
     // 添加到數據中
@@ -1991,7 +2083,9 @@ class OwnerDashboard {
     roomType.campsite_num += 1;
 
     // 關閉模態框
-    const modal = bootstrap.Modal.getInstance(document.getElementById("addRoomModal"));
+    const modal = bootstrap.Modal.getInstance(
+      document.getElementById("addRoomModal")
+    );
     if (modal) {
       modal.hide();
     }
@@ -2000,12 +2094,13 @@ class OwnerDashboard {
     this.showMessage("房間新增成功", "success");
 
     // 重新渲染房型列表以更新房間數量
-    this.renderRoomTypes().catch(error => {
+    this.renderRoomTypes().catch((error) => {
       console.error("重新渲染房型列表失敗：", error);
     });
   }
 
   editRoom(roomId) {
+
     // 先從最新房間明細modal的roomList查找
     let room = null;
     // 嘗試從modal的window作用域取得最新roomList
@@ -2019,6 +2114,7 @@ class OwnerDashboard {
     if (!room) {
       this.showMessage("找不到房間資料", "error");
       return;
+
     }
     this.showEditRoomModal(room);
   }
@@ -2026,7 +2122,7 @@ class OwnerDashboard {
   deleteRoom(roomId) {
     try {
       console.log("deleteRoom 被呼叫，roomId:", roomId, "類型:", typeof roomId);
-      
+
       if (!confirm("確定要刪除此房間嗎？此操作無法復原。")) {
         return;
       }
@@ -2041,42 +2137,47 @@ class OwnerDashboard {
       fetch("http://localhost:8081/CJA101G02/campsite/deleteCampsite", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(requestData)
+        body: JSON.stringify(requestData),
       })
-      .then(response => {
-        console.log("API回應狀態:", response.status);
-        return response.json();
-      })
-      .then(result => {
-        console.log("API回應結果:", result);
-        if (result.status === "success") {
-          this.showMessage("房間刪除成功！", "success");
-          
-          // 重新載入房間明細（如果房間明細modal還開著）
-          const roomDetailModal = document.getElementById("roomDetailModal");
-          if (roomDetailModal && roomDetailModal.classList.contains("show")) {
-            // 從modal的data屬性中獲取當前房型ID
-            const currentCampsiteTypeId = roomDetailModal.getAttribute("data-current-campsite-type-id");
-            if (currentCampsiteTypeId) {
-              // 延遲一下再重新載入，確保後端資料已更新
-              setTimeout(() => {
-                this.showRoomDetails(currentCampsiteTypeId);
-              }, 500);
+        .then((response) => {
+          console.log("API回應狀態:", response.status);
+          return response.json();
+        })
+        .then((result) => {
+          console.log("API回應結果:", result);
+          if (result.status === "success") {
+            this.showMessage("房間刪除成功！", "success");
+
+            // 重新載入房間明細（如果房間明細modal還開著）
+            const roomDetailModal = document.getElementById("roomDetailModal");
+            if (roomDetailModal && roomDetailModal.classList.contains("show")) {
+              // 從modal的data屬性中獲取當前房型ID
+              const currentCampsiteTypeId = roomDetailModal.getAttribute(
+                "data-current-campsite-type-id"
+              );
+              if (currentCampsiteTypeId) {
+                // 延遲一下再重新載入，確保後端資料已更新
+                setTimeout(() => {
+                  this.showRoomDetails(currentCampsiteTypeId);
+                }, 500);
+              }
             }
+
+            // 重新渲染房型列表以更新房間數量
+            this.renderRoomTypes().catch((error) => {
+              console.error("重新渲染房型列表失敗：", error);
+            });
+          } else {
+            this.showMessage(
+              "房間刪除失敗：" + (result.message || "未知錯誤"),
+              "error"
+            );
           }
-          
-          // 重新渲染房型列表以更新房間數量
-          this.renderRoomTypes().catch(error => {
-            console.error("重新渲染房型列表失敗：", error);
-          });
-        } else {
-          this.showMessage("房間刪除失敗：" + (result.message || "未知錯誤"), "error");
-        }
-      })
-      .catch(error => {
-        console.error("刪除房間失敗：", error);
-        this.showMessage(`刪除房間失敗：${error.message}`, "error");
-      });
+        })
+        .catch((error) => {
+          console.error("刪除房間失敗：", error);
+          this.showMessage(`刪除房間失敗：${error.message}`, "error");
+        });
     } catch (error) {
       console.error("刪除房間失敗：", error);
       this.showMessage(`刪除房間失敗：${error.message}`, "error");
@@ -2161,22 +2262,25 @@ class OwnerDashboard {
         // 沒有營地資料時直接return，不丟錯誤
         return;
       }
-      
+
       // 如果營地主只有一個營地，隱藏下拉選單
       if (this.allCamps.length === 1) {
         const selectContainer = campIdSelect.parentElement;
         if (selectContainer) {
-          selectContainer.style.display = 'none';
+          selectContainer.style.display = "none";
         }
         // 直接載入該營地的房型
         await this.loadCampsiteTypesByCampId(this.allCamps[0].camp_id);
         return;
       }
-      
+
       // 如果有多個營地，顯示下拉選單
-      campIdSelect.innerHTML = this.allCamps.map(camp =>
-        `<option value="${camp.camp_id}">${camp.camp_id} - ${camp.camp_name}</option>`
-      ).join("");
+      campIdSelect.innerHTML = this.allCamps
+        .map(
+          (camp) =>
+            `<option value="${camp.camp_id}">${camp.camp_id} - ${camp.camp_name}</option>`
+        )
+        .join("");
 
       // 預設載入第一個營地的房型
       if (campIdSelect.value) {
@@ -2186,7 +2290,7 @@ class OwnerDashboard {
       campIdSelect.addEventListener("change", async () => {
         try {
           await this.loadCampsiteTypesByCampId(campIdSelect.value);
-          
+
           // 重新載入該營地的相關資料
           const campsiteResponse = await fetch("data/campsite.json");
           if (!campsiteResponse.ok) {
@@ -2214,15 +2318,15 @@ class OwnerDashboard {
           this.orderData = allOrders.filter(
             (order) => order.camp_id == campIdSelect.value
           );
-          
+
           // 更新營地基本資料表單
           this.initCampInfoForm();
-          
+
           // 更新右上角的營地主資訊
           this.updateOwnerInfo();
-          
+
           // 重新渲染所有頁面資料
-          this.renderRoomTypes().catch(error => {
+          this.renderRoomTypes().catch((error) => {
             console.error("重新渲染房型列表失敗：", error);
           });
           this.renderBundleItems();
@@ -2241,27 +2345,29 @@ class OwnerDashboard {
   async loadCampsiteTypesByCampId(campId) {
     try {
       console.log("loadCampsiteTypesByCampId 被呼叫，營地ID：", campId);
-      
+
       // 更新當前選中的營地資料
-      this.campData = this.allCamps.find(camp => camp.camp_id == campId);
-      
+      this.campData = this.allCamps.find((camp) => camp.camp_id == campId);
+
       if (!this.campData) {
         throw new Error(`找不到營地ID為 ${campId} 的營地資料`);
       }
-      
+
       console.log("開始呼叫API獲取房型資料");
-      const response = await fetch(`http://localhost:8081/CJA101G02/campsitetype/${campId}/getCampsiteTypes`);
+      const response = await fetch(
+        `http://localhost:8081/CJA101G02/campsitetype/${campId}/getCampsiteTypes`
+      );
       if (!response.ok) {
         throw new Error(`載入房型資料失敗：${response.status}`);
       }
       const result = await response.json();
       console.log("API回應結果：", result);
-      
+
       this.campsiteTypeData = Array.isArray(result.data) ? result.data : [];
       console.log("更新後的房型資料：", this.campsiteTypeData);
       console.log("房型資料長度：", this.campsiteTypeData.length);
-      
-      this.renderRoomTypes().catch(error => {
+
+      this.renderRoomTypes().catch((error) => {
         console.error("重新渲染房型列表失敗：", error);
       });
     } catch (error) {
@@ -2272,14 +2378,18 @@ class OwnerDashboard {
 
   deleteRoomType(campsiteTypeId) {
     console.log("刪除房型，ID:", campsiteTypeId);
-    
+
     if (!confirm("確定要刪除此房型嗎？此操作無法復原。")) {
       return;
     }
-    
+
     // 找到房型資料，支援多種可能的欄位名稱
     const roomType = this.campsiteTypeData.find((type) => {
-      const typeId = type.campsiteTypeId || type.id?.campsiteTypeId || type.campsite_type_id || type.id;
+      const typeId =
+        type.campsiteTypeId ||
+        type.id?.campsiteTypeId ||
+        type.campsite_type_id ||
+        type.id;
       return typeId == campsiteTypeId;
     });
 
@@ -2293,29 +2403,32 @@ class OwnerDashboard {
     // 準備刪除資料
     const deleteData = {
       campId: roomType.camp_id || roomType.campId,
-      campsiteTypeId: parseInt(campsiteTypeId)
+      campsiteTypeId: parseInt(campsiteTypeId),
     };
 
     // 呼叫刪除API
     fetch("http://localhost:8081/CJA101G02/campsitetype/deleteCampsiteType", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(deleteData)
+      body: JSON.stringify(deleteData),
     })
-    .then(response => response.json())
-    .then(result => {
-      if (result.status === "success") {
-        this.showMessage("房型刪除成功！", "success");
-        // 重新載入房型資料
-        this.loadCampsiteTypesByCampId(deleteData.campId);
-      } else {
-        this.showMessage("房型刪除失敗：" + (result.message || "未知錯誤"), "error");
-      }
-    })
-    .catch(error => {
-      console.error("刪除房型失敗：", error);
-      this.showMessage(`刪除房型失敗：${error.message}`, "error");
-    });
+      .then((response) => response.json())
+      .then((result) => {
+        if (result.status === "success") {
+          this.showMessage("房型刪除成功！", "success");
+          // 重新載入房型資料
+          this.loadCampsiteTypesByCampId(deleteData.campId);
+        } else {
+          this.showMessage(
+            "房型刪除失敗：" + (result.message || "未知錯誤"),
+            "error"
+          );
+        }
+      })
+      .catch((error) => {
+        console.error("刪除房型失敗：", error);
+        this.showMessage(`刪除房型失敗：${error.message}`, "error");
+      });
   }
 
   // 新增一個方法來正確關閉modal並清除背景遮罩
@@ -2327,17 +2440,79 @@ class OwnerDashboard {
       if (bootstrapModal) {
         bootstrapModal.hide();
       }
-      
+
       // 手動移除背景遮罩
-      const backdrop = document.querySelector('.modal-backdrop');
+      const backdrop = document.querySelector(".modal-backdrop");
       if (backdrop) {
         backdrop.remove();
       }
-      
+
       // 移除body的modal-open類別
-      document.body.classList.remove('modal-open');
-      document.body.style.overflow = '';
-      document.body.style.paddingRight = '';
+      document.body.classList.remove("modal-open");
+      document.body.style.overflow = "";
+      document.body.style.paddingRight = "";
+    }
+  }
+
+  // 初始化聊天管理功能
+  initChatManagement() {
+    console.log("初始化聊天管理功能");
+    console.log("當前營地主資料:", this.currentOwner);
+
+    // 檢查營地主資料是否存在
+    if (!this.currentOwner || !this.currentOwner.owner_id) {
+      console.error("營地主資料不存在，無法初始化聊天管理");
+      // 嘗試重新檢查登入狀態
+      this.checkLoginStatus();
+      if (!this.currentOwner || !this.currentOwner.owner_id) {
+        console.error("重新檢查後仍無法獲取營地主資料");
+        return;
+      }
+    }
+
+    // 設置營地主ID到隱藏輸入框
+    const ownerIdInput = document.getElementById("ownerId");
+    if (ownerIdInput) {
+      ownerIdInput.value = this.currentOwner.owner_id;
+      console.log("設置營地主ID:", this.currentOwner.owner_id);
+    } else {
+      console.error("找不到ownerId輸入框");
+    }
+
+    // 設置會員ID到隱藏輸入框（營地主也是會員）
+    const memIdInput = document.getElementById("memId");
+    if (memIdInput && this.currentOwner.mem_id) {
+      memIdInput.value = this.currentOwner.mem_id;
+      console.log("設置會員ID:", this.currentOwner.mem_id);
+    } else if (memIdInput) {
+      // 如果營地主資料中沒有 mem_id，嘗試從 localStorage 或 sessionStorage 獲取會員資料
+      const memberData =
+        localStorage.getItem("currentMember") ||
+        sessionStorage.getItem("currentMember");
+      if (memberData) {
+        try {
+          const member = JSON.parse(memberData);
+          if (member && member.mem_id) {
+            memIdInput.value = member.mem_id;
+            console.log("從會員資料設置會員ID:", member.mem_id);
+          }
+        } catch (error) {
+          console.error("解析會員資料失敗:", error);
+        }
+      } else {
+        console.warn("無法獲取會員ID，聊天功能可能無法正常運作");
+      }
+    } else {
+      console.error("找不到memId輸入框");
+    }
+
+    // 確保chat-management.js已載入並初始化
+    if (typeof window.initChatManagement === "function") {
+      console.log("調用window.initChatManagement");
+      // 直接調用聊天管理初始化函數
+      window.initChatManagement();
+    } else {
+      console.warn("chat-management.js尚未載入");
     }
   }
 

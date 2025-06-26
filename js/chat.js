@@ -311,16 +311,18 @@ class ChatWidget {
           );
 
           // 發送請求歷史資料
+          const currentMemId = parseInt(this.memId);
+          const currentOwnerId = parseInt(this.ownerId);
           console.log("請求歷史訊息數據:", {
-            memId: parseInt(this.memId),
-            ownerId: parseInt(this.ownerId),
+            memId: currentMemId,
+            ownerId: currentOwnerId,
           });
           this.stompClient.send(
             "/app/chat.history",
             {},
             JSON.stringify({
-              memId: parseInt(this.memId),
-              ownerId: parseInt(this.ownerId),
+              memId: currentMemId,
+              ownerId: currentOwnerId,
             })
           );
         },
@@ -351,9 +353,11 @@ class ChatWidget {
     }
 
     // 創建訊息物件
+    const currentMemId = parseInt(this.memId);
+    const currentOwnerId = parseInt(this.ownerId);
     const msg = {
-      memId: parseInt(this.memId),
-      ownerId: parseInt(this.ownerId),
+      memId: currentMemId,
+      ownerId: currentOwnerId,
       chatMsgContent: content,
       chatMsgDirect: 0, // 0表示會員發送
       chatMsgTime: Date.now(),
