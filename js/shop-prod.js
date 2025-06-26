@@ -98,17 +98,28 @@ document.addEventListener("DOMContentLoaded", function () {
   function loadCategories() {
     return fetch("http://localhost:8081/CJA101G02/api/product-types")
       .then(res => res.json())
-      .then(data => {
+      .then(response => {
+        // 檢查是否有嵌套結構，例如 { data: [...] } 或 { results: [...] }
+        const data = response.data || response.results || response;
+        console.log("處理後的商品類別數據：", data);
+        
         categorySelect.innerHTML = `<option value="">全部分類</option>`;
-        data.forEach(type => {
-          const option = document.createElement("option");
-          option.value = type.prodTypeId;
-          option.textContent = type.prodTypeName;
-          categorySelect.appendChild(option);
-        });
+        
+        if (Array.isArray(data) && data.length > 0) {
+          data.forEach(type => {
+            const option = document.createElement("option");
+            option.value = type.prodTypeId || type.id || "";
+            option.textContent = type.prodTypeName || type.name || "未知類別";
+            categorySelect.appendChild(option);
+          });
+        } else {
+          console.error("API 返回的數據結構不符合預期");
+          throw new Error("無效的數據格式");
+        }
       })
       .catch(err => {
         console.error("載入商品分類失敗：", err);
+        categorySelect.innerHTML = `<option value="">無法載入分類</option>`;
       });
   }
 
