@@ -5,6 +5,11 @@ class UserProfileManager {
     this.campsiteOrders = [];
     this.favoriteCamps = [];
     this.camps = [];
+    // WebSocket 相關屬性
+    this.stompClient = null;
+    this.memId = null;
+    this.ownerId = null;
+    this.currentOwnerId = null; // 記錄當前連接的營地主ID
     this.init();
   }
 
@@ -191,6 +196,15 @@ class UserProfileManager {
         const targetSection = document.getElementById(targetTab);
         if (targetSection) {
           targetSection.classList.add("active");
+
+          // 如果是聊天管理標籤，初始化聊天管理功能
+          if (
+            targetTab === "chat-management" &&
+            typeof initChatManagement === "function"
+          ) {
+            // 確保chat-management.js已加載
+            initChatManagement();
+          }
         }
       });
     });
@@ -516,11 +530,237 @@ class UserProfileManager {
     }
     return stars;
   }
+
+  // WebSocket 連接方法
+  connect() {
+    // 每次連接時都重新獲取最新的ID值
+    this.memId = document.getElementById("memId").value.trim();
+    this.ownerId = document.getElementById("ownerId").value.trim();
+
+    console.log(
+      "準備連接 WebSocket，會員ID:",
+      this.memId,
+      "營地主ID:",
+      this.ownerId,
+      "當前連接的營地主ID:",
+      this.currentOwnerId
+    );
+
+    if (!this.memId || !this.ownerId) {
+      this.log("⚠️ 無法建立聊天連線：缺少會員ID或營地主ID");
+      return;
+    }
+
+    // 如果是訪客，顯示提示訊息
+    if (this.memId === "guest") {
+      this.addMessage("請先登入以使用聊天功能", "system");
+      return;
+    }
+
+    // 如果已經連接且ownerId相同，不要重複連接
+    if (this.stompClient && this.stompClient.connected && this.currentOwnerId === this.ownerId) {
+      return;
+    }
+    
+    // 如果已經連接但ownerId不同，先斷開連接
+    if (this.stompClient && this.stompClient.connected && this.currentOwnerId !== this.ownerId) {
+      console.log("切換到不同的營地主，重新建立連接");
+      this.disconnect();
+    }
+    
+    // 記錄當前的ownerId
+    this.currentOwnerId = this.ownerId;
+
+    try {
+      const socket = new SockJS("http://localhost:8081/CJA101G02/ws-chat");
+      this.stompClient = Stomp.over(socket);
+
+      console.log("嘗試連接 WebSocket...");
+
+      this.stompClient.connect(
+        {},
+        () => {
+          this.log(`🔗 已與伺服器建立連線`);
+
+          // 即時訊息
+          this.stompClient.subscribe("/user/queue/messages", (msg) => {
+            console.log("收到新訊息:", msg.body);
+            const message = JSON.parse(msg.body);
+            const time = this.formatTime(message.chatMsgTime);
+
+            // 根據訊息方向決定顯示方式
+            if (message.chatMsgDirect === 0) {
+              // 會員發送的訊息
+              this.addMessage(message.chatMsgContent, "user", time);
+            } else {
+              // 營地主發送的訊息
+              this.addMessage(message.chatMsgContent, "other", time);
+            }
+          });
+
+          // 一次性歷史訊息接收
+          const historyTopic = "/user/queue/history";
+          console.log("訂閱歷史訊息頻道:", historyTopic);
+
+          this.stompClient.subscribe(historyTopic, (msg) => {
+            console.log("收到歷史訊息:", msg.body);
+            const messageList = JSON.parse(msg.body);
+            if (Array.isArray(messageList)) {
+              // 清空現有訊息
+              const messagesContainer =
+                document.getElementById("chat-messages");
+              if (messagesContainer) {
+                messagesContainer.innerHTML = "";
+              }
+
+              // 顯示歷史訊息
+              messageList.forEach((message) => {
+                const time = this.formatTime(message.chatMsgTime);
+                if (message.chatMsgDirect === 0) {
+                  // 會員發送的訊息
+                  this.addMessage(message.chatMsgContent, "user", time);
+                } else {
+                  // 營地主發送的訊息
+                  this.addMessage(message.chatMsgContent, "other", time);
+                }
+              });
+            } else {
+              this.log("⚠️ 歷史訊息格式錯誤");
+            }
+          });
+
+          // 已讀通知（可選）
+          this.stompClient.subscribe(
+            "/user/" + this.memId + "/queue/read",
+            (msg) => {
+              const message = JSON.parse(msg.body);
+              this.log(`📖 [已讀通知] ${message.chatMsgContent}`);
+            }
+          );
+
+          // 發送請求歷史資料
+          const currentMemId = parseInt(this.memId);
+          const currentOwnerId = parseInt(this.ownerId);
+          console.log("請求歷史訊息數據:", {
+            memId: currentMemId,
+            ownerId: currentOwnerId,
+          });
+          this.stompClient.send(
+            "/app/chat.history",
+            {},
+            JSON.stringify({
+              memId: currentMemId,
+              ownerId: currentOwnerId,
+            })
+          );
+        },
+        (error) => {
+          // 連接錯誤處理
+          console.error("WebSocket連接錯誤:", error);
+          this.addMessage("無法連接到聊天服務，請稍後再試", "system");
+        }
+      );
+    } catch (error) {
+      console.error("WebSocket初始化錯誤:", error);
+      this.addMessage("聊天服務暫時不可用", "system");
+    }
+  }
+
+  // 日誌輔助方法
+  log(message) {
+    console.log(message);
+  }
+
+  // 添加訊息到聊天視窗
+  addMessage(content, type, time) {
+    const messagesContainer = document.getElementById("chat-messages");
+    if (!messagesContainer) return;
+
+    const messageDiv = document.createElement("div");
+    messageDiv.className = `chat-message ${type}`;
+
+    // 如果沒有提供時間，使用當前時間
+    if (!time) {
+      time = new Date().toLocaleTimeString("zh-TW", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    }
+
+    // 檢查是否在營地主後台
+    const isOwnerDashboard = window.location.pathname.includes('owner-dashboard');
+    
+    if (type === "user") {
+      if (isOwnerDashboard) {
+        // 在營地主後台，"user"類型的訊息是營地主發送的，應該顯示在右側
+        messageDiv.innerHTML = `
+          <div class="message-content">${content}</div>
+          <div class="message-info">${time}</div>
+        `;
+      } else {
+        // 在會員頁面，"user"類型的訊息是會員發送的，顯示在右側
+        messageDiv.innerHTML = `
+          <div class="message-content">${content}</div>
+          <div class="message-info">${time}</div>
+        `;
+      }
+    } else if (type === "other") {
+      if (isOwnerDashboard) {
+        // 在營地主後台，"other"類型的訊息是會員發送的，顯示在左側
+        messageDiv.innerHTML = `
+          <div class="chat-user">
+            <img src="images/user-1.jpg" alt="會員">
+            <span>會員</span>
+          </div>
+          <div class="message-content">${content}</div>
+          <div class="message-info">${time}</div>
+        `;
+      } else {
+        // 在會員頁面，"other"類型的訊息是營地主發送的，顯示在左側
+        messageDiv.innerHTML = `
+          <div class="chat-user">
+            <img src="images/user-1.jpg" alt="客服">
+            <span>客服小露</span>
+          </div>
+          <div class="message-content">${content}</div>
+          <div class="message-info">${time}</div>
+        `;
+      }
+    } else if (type === "system") {
+      // 系統訊息
+      messageDiv.innerHTML = `
+        <div class="message-content system-message">${content}</div>
+        <div class="message-info">${time}</div>
+      `;
+      messageDiv.className = `chat-message system`;
+    }
+
+    messagesContainer.appendChild(messageDiv);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  }
+
+  // 格式化時間
+  formatTime(millis) {
+    return new Date(millis).toLocaleString("zh-TW", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }
+
+  // 斷開WebSocket連接
+  disconnect() {
+    if (this.stompClient && this.stompClient.connected) {
+      this.stompClient.disconnect(() => {
+        console.log("WebSocket連接已斷開");
+        this.currentOwnerId = null; // 重置當前營地主ID
+      });
+    }
+  }
 }
 
 // 初始化
 document.addEventListener("DOMContentLoaded", () => {
-  new UserProfileManager();
+  // UserProfileManager實例已在文件末尾創建
 
   // 頭像上傳功能
   const avatarInput = document.getElementById("avatar-input");
@@ -840,4 +1080,14 @@ function showMessage(message, type = "info") {
       }
     }, 300);
   }, 3000);
+}
+
+// WebSocket方法已在UserProfileManager類內部定義
+
+// 創建全局UserProfileManager實例
+window.userProfileManager = new UserProfileManager();
+
+// 導出UserProfileManager類（如果需要）
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = UserProfileManager;
 }
