@@ -124,6 +124,8 @@ document.addEventListener("DOMContentLoaded", function () {
       url = `http://localhost:8081/CJA101G02/api/products/latest`;
     } else if (sort === "popular") {
       url = `http://localhost:8081/CJA101G02/api/products`;
+    } else if (sort === "discount") {
+      url = `http://localhost:8081/CJA101G02/api/products/discount`;
     } else if (sort === "price-asc" || sort === "price-desc") {
       console.warn("尚未支援價格排序");
     }
@@ -139,24 +141,37 @@ document.addEventListener("DOMContentLoaded", function () {
 
         products.forEach((prod) => {
           const hasDiscount = prod.prodDiscount !== null && prod.prodDiscount !== undefined;
-          const prodDate = prod.prodDate ? formatDate(prod.prodDate) : formatDate(new Date());
           const featuresHtml = generateProductFeatures(prod);
           
           const colors = prod.prodColorList || [];
           let colorSelectHtml = '';
-          // 生成顏色選擇按鈕
+
+          // 生成顏色選擇按鈕;若商品有多種顏色，才顯示顏色選擇區塊
           if (colors.length > 0) {
             colorSelectHtml += `<div class="product-color-select"><span class="label"></span>`;
+          
             colors.forEach((color, index) => {
               const colorId = color.prodColorId;
-              const imgUrl = `http://localhost:8081/CJA101G02/api/prod-colors/colorpic/${prod.prodId}/${colorId}`;
-              
+              const colorName = color.colorName || `顏色${colorId}`;
+              const hasImage = color.hasPic === true; // 確認是否有圖片
+          
+              // 預設圖片內容為空
+              let imageHtml = '';
+          
+              // 如果有圖片才組圖片 HTML
+              if (hasImage) {
+                const imgUrl = `http://localhost:8081/CJA101G02/api/prod-colors/colorpic/${prod.prodId}/${colorId}`;
+                imageHtml = `<img src="${imgUrl}" alt="${colorName}" class="color-thumbnail" onerror="this.src='images/default-color.png'" />`;
+              }
+          
+              // 整合顏色按鈕
               colorSelectHtml += `
                 <button class="color-box${index === 0 ? ' active' : ''}" data-color-id="${colorId}">
-                  <img src="${imgUrl}" alt="${color.colorName}" class="color-thumbnail" />
-                  <span>${color.colorName || `顏色${colorId}`}</span>
+                  ${imageHtml}
+                  <span>${colorName}</span>
                 </button>`;
             });
+          
             colorSelectHtml += `</div>`;
           }
 
@@ -176,16 +191,11 @@ document.addEventListener("DOMContentLoaded", function () {
             specSelectHtml += `</select>`;
           }
           
-          // 使用 prodSpecPrice 或 prodPrice 作為原始價格
+          // 計算折扣率（如果有折扣） 使用 prodSpecPrice 或 prodPrice 作為原始價格
           const originalPrice = prodSpecPrice || prod.prodPrice;
-          
-          // 計算折扣率（如果有折扣）
-          let discountRate = 1; // 默認無折扣
-          if (hasDiscount && prod.prodDiscount > 0 && prod.prodPrice > 0) {
-            // 確保不會除以零，並限制折扣率在合理範圍內
-            discountRate = Math.min(Math.max(prod.prodDiscount / prod.prodPrice, 0.1), 1);
-          }
-          
+
+          // prod.prodDiscount 是折扣倍率（例如 0.8 表示 8 折）
+          let discountRate = (hasDiscount && prod.prodDiscount > 0 && prod.prodDiscount < 1) ? prod.prodDiscount : 1;
           // 計算折扣後價格
           const discountedPrice = Math.round(originalPrice * discountRate);
           
@@ -320,18 +330,16 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     });
 
-    // 規格選擇下拉式選單變更事件
+    // 規格選擇下拉式選單
     document.querySelectorAll(".prod-spec-select").forEach((select) => {
-      select.addEventListener("change", function () {
+      select.addEventListener("change", function () { 
         const selectedPrice = parseFloat(this.value) || 0;
-        const priceContainer = this.closest(".product-price");
+        const priceContainer = this.closest(".product-info").querySelector(".product-price");
         const priceSpan = priceContainer.querySelector(".current-price");
         const originalPriceSpan = priceContainer.querySelector(".original-price");
         
-        // 獲取折扣率，確保是有效數字
+        // 獲取折扣率，確保是有效數字 ; 從 HTML 取 discount rate
         let discountRate = parseFloat(priceSpan.dataset.discountRate) || 1;
-        // 限制折扣率在合理範圍內
-        discountRate = Math.min(Math.max(discountRate, 0.1), 1);
         
         // 更新原始價格
         originalPriceSpan.textContent = `NT$ ${selectedPrice}`;
