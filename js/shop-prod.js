@@ -1,3 +1,6 @@
+// 使用全域購物車管理器
+// 移除重複的ShopCartManager類別定義
+
 document.addEventListener("DOMContentLoaded", function () {
   const container = document.querySelector(".product-grid");
   const categorySelect = document.getElementById("category");
@@ -185,8 +188,8 @@ document.addEventListener("DOMContentLoaded", function () {
             
             specSelectHtml += `<select class="prod-spec-select" data-prod-id="${prod.prodId}">`;
             specs.forEach(spec => {
-              // 修改这里，只显示规格名称
-              specSelectHtml += `<option value="${spec.prodSpecPrice}">${spec.prodSpecName || `規格 ${spec.prodSpecId}`}</option>`;
+              // 修改这里，使用规格ID作为value，显示规格名称
+              specSelectHtml += `<option value="${spec.prodSpecId}" data-price="${spec.prodSpecPrice}">${spec.prodSpecName || `規格 ${spec.prodSpecId}`}</option>`;
             });
             specSelectHtml += `</select>`;
           }
@@ -332,9 +335,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // 規格選擇下拉式選單
     document.querySelectorAll(".prod-spec-select").forEach((select) => {
-      select.addEventListener("change", function () { 
-        const selectedPrice = parseFloat(this.value) || 0;
-        const priceContainer = this.closest(".product-info").querySelector(".product-price");
+
+      select.addEventListener("change", function () {
+        const selectedOption = this.options[this.selectedIndex];
+        const selectedPrice = parseFloat(selectedOption.dataset.price) || 0;
+        const priceContainer = this.closest(".product-price");
         const priceSpan = priceContainer.querySelector(".current-price");
         const originalPriceSpan = priceContainer.querySelector(".original-price");
         
@@ -361,26 +366,27 @@ document.addEventListener("DOMContentLoaded", function () {
     // 加入購物車按鈕點選事件
     document.querySelectorAll(".btn-add-cart").forEach((btn) => {
       btn.addEventListener("click", function () {
-        const prodId = this.dataset.id;
+        const prodId = parseInt(this.dataset.id);
         console.log("加入購物車:", prodId);
         
         // 獲取商品資訊
         const productCard = this.closest('.product-card');
-        const productName = productCard.querySelector('h3 a').textContent;
-        const productPrice = productCard.querySelector('.current-price').textContent.replace('NT$ ', '');
-        // 找出選中的顏色
-        const selectedColorBtn = productCard.querySelector('.product-color-select .color-box.active');
-        const selectedColor = selectedColorBtn ? selectedColorBtn.textContent.trim() : null;
         
-        // 準備要發送的數據
+        // 找出選中的顏色ID
+        const selectedColorBtn = productCard.querySelector('.product-color-select .color-box.active');
+        const prodColorId = selectedColorBtn ? parseInt(selectedColorBtn.dataset.colorId) : 1; // 預設為1
+        
+        // 找出選中的規格ID
+        const selectedSpecSelect = productCard.querySelector('.prod-spec-select');
+        const prodSpecId = selectedSpecSelect ? parseInt(selectedSpecSelect.value) : 1; // 現在value是規格ID
+        
+        // 準備要發送的數據（符合後端 CartDTO_req 格式）
         const cartData = {
+          memId: globalCartManager.getMemberId(),  // 使用購物車管理器取得會員ID
           prodId: prodId,
-          prodName: productName,
-          prodPrice: parseFloat(productPrice),
-          quantity: 1,  // 預設數量為1
-          color: selectedColor,  // 傳入選中的顏色名稱
-          purchaseType: 'buy',  // 預設為購買
-          rentDays: null
+          prodColorId: prodColorId,
+          prodSpecId: prodSpecId,
+          cartProdQty: 1  // 預設數量為1
         };
         
         console.log('加入購物車數據:', cartData);
@@ -403,7 +409,9 @@ document.addEventListener("DOMContentLoaded", function () {
           console.log('加入購物車成功:', data);
           
           // 更新購物車數量顯示
-          updateCartCount(data.cartCount);
+          if (data.status === 'success') {
+            globalCartManager.updateCartCount(); // 重新取得購物車數量
+          }
           
           // 顯示成功訊息
           showAddToCartMessage();
@@ -414,15 +422,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
       });
     });
-    
-    // 更新購物車數量顯示
-    function updateCartCount(count) {
-      const cartCountElements = document.querySelectorAll('.cart-count');
-      cartCountElements.forEach(element => {
-        element.textContent = count;
-        element.style.display = count > 0 ? 'inline' : 'none';
-      });
-    }
     
     // 顯示加入購物車成功訊息
     function showAddToCartMessage() {
