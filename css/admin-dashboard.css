@@ -516,6 +516,7 @@
   background: linear-gradient(90deg, #8bc34a 0%, #4a7c59 100%);
 }
 
+
 .data-table tbody tr {
   transition: all 0.3s ease;
 }
@@ -1205,4 +1206,10 @@
   font-size: 14px;
   color: #555;
   font-weight: 500;
+}
+
+#shop-orders-table {
+  width: 100%;
+  height: 788.94px;
+  table-layout: fixed;
 }
