@@ -35,7 +35,7 @@
           </ul>
         </nav>
         <div class="user-actions">
-          <a href="cart.html" class="btn-cart">
+          <a href="shop_cart.html" class="btn-cart">
             <i class="fas fa-shopping-cart"></i>
             <span class="cart-count">0</span>
           </a>
@@ -93,9 +93,10 @@
               <label for="sort">排序方式</label>
               <select id="sort" name="sort">
                 <option value="popular">熱門程度</option>
+                <option value="discount" class="discount-option">折扣商品 SALE</option>
+                <option value="newest">最新上架</option>
                 <option value="price-asc">價格由低至高</option>
                 <option value="price-desc">價格由高至低</option>
-                <option value="newest">最新上架</option>
               </select>
             </div>
             <button type="submit" class="btn-filter-submit">套用篩選</button>
@@ -244,7 +245,7 @@
       </div>
     </footer>
 
-    <script src="js/main.js"></script>
+    <!-- <script src="js/main.js"></script> -->
     <script src="js/header-auth.js"></script>
     <script src="js/shop-prod.js"></script>
   </body>

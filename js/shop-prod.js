@@ -1,3 +1,6 @@
+// 使用全域購物車管理器
+// 移除重複的ShopCartManager類別定義
+
 document.addEventListener("DOMContentLoaded", function () {
   const container = document.querySelector(".product-grid");
   const categorySelect = document.getElementById("category");
@@ -124,6 +127,8 @@ document.addEventListener("DOMContentLoaded", function () {
       url = `http://localhost:8081/CJA101G02/api/products/latest`;
     } else if (sort === "popular") {
       url = `http://localhost:8081/CJA101G02/api/products`;
+    } else if (sort === "discount") {
+      url = `http://localhost:8081/CJA101G02/api/products/discount`;
     } else if (sort === "price-asc" || sort === "price-desc") {
       console.warn("尚未支援價格排序");
     }
@@ -139,24 +144,37 @@ document.addEventListener("DOMContentLoaded", function () {
 
         products.forEach((prod) => {
           const hasDiscount = prod.prodDiscount !== null && prod.prodDiscount !== undefined;
-          const prodDate = prod.prodDate ? formatDate(prod.prodDate) : formatDate(new Date());
           const featuresHtml = generateProductFeatures(prod);
           
           const colors = prod.prodColorList || [];
           let colorSelectHtml = '';
-          // 生成顏色選擇按鈕
+
+          // 生成顏色選擇按鈕;若商品有多種顏色，才顯示顏色選擇區塊
           if (colors.length > 0) {
             colorSelectHtml += `<div class="product-color-select"><span class="label"></span>`;
+          
             colors.forEach((color, index) => {
               const colorId = color.prodColorId;
-              const imgUrl = `http://localhost:8081/CJA101G02/api/prod-colors/colorpic/${prod.prodId}/${colorId}`;
-              
+              const colorName = color.colorName || `顏色${colorId}`;
+              const hasImage = color.hasPic === true; // 確認是否有圖片
+          
+              // 預設圖片內容為空
+              let imageHtml = '';
+          
+              // 如果有圖片才組圖片 HTML
+              if (hasImage) {
+                const imgUrl = `http://localhost:8081/CJA101G02/api/prod-colors/colorpic/${prod.prodId}/${colorId}`;
+                imageHtml = `<img src="${imgUrl}" alt="${colorName}" class="color-thumbnail" onerror="this.src='images/default-color.png'" />`;
+              }
+          
+              // 整合顏色按鈕
               colorSelectHtml += `
                 <button class="color-box${index === 0 ? ' active' : ''}" data-color-id="${colorId}">
-                  <img src="${imgUrl}" alt="${color.colorName}" class="color-thumbnail" />
-                  <span>${color.colorName || `顏色${colorId}`}</span>
+                  ${imageHtml}
+                  <span>${colorName}</span>
                 </button>`;
             });
+          
             colorSelectHtml += `</div>`;
           }
 
@@ -170,22 +188,17 @@ document.addEventListener("DOMContentLoaded", function () {
             
             specSelectHtml += `<select class="prod-spec-select" data-prod-id="${prod.prodId}">`;
             specs.forEach(spec => {
-              // 修改这里，只显示规格名称
-              specSelectHtml += `<option value="${spec.prodSpecPrice}">${spec.prodSpecName || `規格 ${spec.prodSpecId}`}</option>`;
+              // 修改这里，使用规格ID作为value，显示规格名称
+              specSelectHtml += `<option value="${spec.prodSpecId}" data-price="${spec.prodSpecPrice}">${spec.prodSpecName || `規格 ${spec.prodSpecId}`}</option>`;
             });
             specSelectHtml += `</select>`;
           }
           
-          // 使用 prodSpecPrice 或 prodPrice 作為原始價格
+          // 計算折扣率（如果有折扣） 使用 prodSpecPrice 或 prodPrice 作為原始價格
           const originalPrice = prodSpecPrice || prod.prodPrice;
-          
-          // 計算折扣率（如果有折扣）
-          let discountRate = 1; // 默認無折扣
-          if (hasDiscount && prod.prodDiscount > 0 && prod.prodPrice > 0) {
-            // 確保不會除以零，並限制折扣率在合理範圍內
-            discountRate = Math.min(Math.max(prod.prodDiscount / prod.prodPrice, 0.1), 1);
-          }
-          
+
+          // prod.prodDiscount 是折扣倍率（例如 0.8 表示 8 折）
+          let discountRate = (hasDiscount && prod.prodDiscount > 0 && prod.prodDiscount < 1) ? prod.prodDiscount : 1;
           // 計算折扣後價格
           const discountedPrice = Math.round(originalPrice * discountRate);
           
@@ -320,18 +333,18 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     });
 
-    // 規格選擇下拉式選單變更事件
+    // 規格選擇下拉式選單
     document.querySelectorAll(".prod-spec-select").forEach((select) => {
+
       select.addEventListener("change", function () {
-        const selectedPrice = parseFloat(this.value) || 0;
+        const selectedOption = this.options[this.selectedIndex];
+        const selectedPrice = parseFloat(selectedOption.dataset.price) || 0;
         const priceContainer = this.closest(".product-price");
         const priceSpan = priceContainer.querySelector(".current-price");
         const originalPriceSpan = priceContainer.querySelector(".original-price");
         
-        // 獲取折扣率，確保是有效數字
+        // 獲取折扣率，確保是有效數字 ; 從 HTML 取 discount rate
         let discountRate = parseFloat(priceSpan.dataset.discountRate) || 1;
-        // 限制折扣率在合理範圍內
-        discountRate = Math.min(Math.max(discountRate, 0.1), 1);
         
         // 更新原始價格
         originalPriceSpan.textContent = `NT$ ${selectedPrice}`;
@@ -353,26 +366,27 @@ document.addEventListener("DOMContentLoaded", function () {
     // 加入購物車按鈕點選事件
     document.querySelectorAll(".btn-add-cart").forEach((btn) => {
       btn.addEventListener("click", function () {
-        const prodId = this.dataset.id;
+        const prodId = parseInt(this.dataset.id);
         console.log("加入購物車:", prodId);
         
         // 獲取商品資訊
         const productCard = this.closest('.product-card');
-        const productName = productCard.querySelector('h3 a').textContent;
-        const productPrice = productCard.querySelector('.current-price').textContent.replace('NT$ ', '');
-        // 找出選中的顏色
-        const selectedColorBtn = productCard.querySelector('.product-color-select .color-box.active');
-        const selectedColor = selectedColorBtn ? selectedColorBtn.textContent.trim() : null;
         
-        // 準備要發送的數據
+        // 找出選中的顏色ID
+        const selectedColorBtn = productCard.querySelector('.product-color-select .color-box.active');
+        const prodColorId = selectedColorBtn ? parseInt(selectedColorBtn.dataset.colorId) : 1; // 預設為1
+        
+        // 找出選中的規格ID
+        const selectedSpecSelect = productCard.querySelector('.prod-spec-select');
+        const prodSpecId = selectedSpecSelect ? parseInt(selectedSpecSelect.value) : 1; // 現在value是規格ID
+        
+        // 準備要發送的數據（符合後端 CartDTO_req 格式）
         const cartData = {
+          memId: globalCartManager.getMemberId(),  // 使用購物車管理器取得會員ID
           prodId: prodId,
-          prodName: productName,
-          prodPrice: parseFloat(productPrice),
-          quantity: 1,  // 預設數量為1
-          color: selectedColor,  // 傳入選中的顏色名稱
-          purchaseType: 'buy',  // 預設為購買
-          rentDays: null
+          prodColorId: prodColorId,
+          prodSpecId: prodSpecId,
+          cartProdQty: 1  // 預設數量為1
         };
         
         console.log('加入購物車數據:', cartData);
@@ -395,7 +409,9 @@ document.addEventListener("DOMContentLoaded", function () {
           console.log('加入購物車成功:', data);
           
           // 更新購物車數量顯示
-          updateCartCount(data.cartCount);
+          if (data.status === 'success') {
+            globalCartManager.updateCartCount(); // 重新取得購物車數量
+          }
           
           // 顯示成功訊息
           showAddToCartMessage();
@@ -406,15 +422,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
       });
     });
-    
-    // 更新購物車數量顯示
-    function updateCartCount(count) {
-      const cartCountElements = document.querySelectorAll('.cart-count');
-      cartCountElements.forEach(element => {
-        element.textContent = count;
-        element.style.display = count > 0 ? 'inline' : 'none';
-      });
-    }
     
     // 顯示加入購物車成功訊息
     function showAddToCartMessage() {
