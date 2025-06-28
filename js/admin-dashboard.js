@@ -872,11 +872,11 @@ function loadOrderManagement() {
                     <thead>
                         <tr>
                             <th>訂單編號</th>
-                            <th>會員姓名</th>
+                            <th style="min-width: 150px;">會員姓名</th>
                             <th>訂單日期</th>
-                            <th>訂單金額</th>
-                            <th>付款方式</th>
+                            <th style="min-width: 150px;">訂單金額</th>
                             <th>訂單狀態</th>
+                            <th>退貨申請</th>
                             <th>操作</th>
                         </tr>
                     </thead>
@@ -920,35 +920,38 @@ function loadOrderManagement() {
       memName: "未知會員",
     };
 
-    // 訂單狀態文字和樣式
-    const statusInfo = getShopOrderStatusInfo(order.shopOrderStatus);
-
-    // 付款方式文字
-    const paymentMethod = getPaymentMethodText(order.shopOrderPayment);
+    // 使用 DTO 的 str() 方法獲取狀態文字
+    const statusText = order.shopOrderStatusStr || getShopOrderStatusInfo(order.shopOrderStatus).text;
+    const statusClass = getShopOrderStatusInfo(order.shopOrderStatus).class;
+    
+    // 使用 DTO 的 str() 方法獲取付款方式文字
+    const paymentMethod = order.shopOrderPaymentStr || getPaymentMethodText(order.shopOrderPayment);
+    
+    // 使用 DTO 的 str() 方法獲取出貨方式文字
+    const shipmentMethod = order.shopOrderShipmentStr || getShipmentMethodText(order.shopOrderShipment);
+    
+    // 使用 DTO 的 str() 方法獲取退貨申請文字
+    const returnApplyText = order.shopReturnApplyStr || getReturnApplyText(order.shopReturnApply);
 
     // 格式化日期（含時間）
     const orderDate = formatDateTime(order.shopOrderDate);
+
+    // 只有訂單狀態為0(等待賣家確認中)才顯示編輯按鈕
+    const canEdit = order.shopOrderStatus === 0;
 
     // 生成表格行
     tableRows += `
       <tr>
         <td>${order.shopOrderId}</td>
-        <td>${order.orderName}</td>
+        <td style="min-width: 150px;">${order.orderName}</td>
         <td>${orderDate}</td>
-        <td>NT$ ${order.afterDiscountAmount}</td>
-        <td>${paymentMethod}</td>
-        <td><span class="status-badge ${statusInfo.class}">${
-      statusInfo.text
-    }</span></td>
+        <td style="min-width: 150px;">NT$ ${order.afterDiscountAmount}</td>
+        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+        <td><span class="status-badge ${getReturnApplyClass(order.shopReturnApply)}">${returnApplyText}</span></td>
         <td>
-          <button class="action-btn btn-view" onclick="viewShopOrderDetails(${
-            order.shopOrderId
-          })">查看詳情</button>
-          ${order.shopOrderStatus !== 5 ? `<button class="action-btn btn-edit" onclick="showEditShopOrderModal(${order.shopOrderId})">編輯</button>` : ''}
-          ${order.shopOrderStatus === 2 ? `<button class="action-btn btn-activate" onclick="updateShopOrderStatus(${order.shopOrderId}, 3)">確認訂單</button>` : ''}
-          ${order.shopOrderStatus === 3 ? `<button class="action-btn btn-activate" onclick="updateShopOrderStatus(${order.shopOrderId}, 4)">出貨</button>` : ''}
-          ${(order.shopOrderStatus === 5 && order.shopReturnApply && order.shopReturnApply != 0) ? `<button class="action-btn btn-deactivate" onclick="showReturnProcessModal(${order.shopOrderId})">${order.shopReturnApply === 2 ? '退貨成功' : (order.shopReturnApply === 3 ? '退貨失敗' : '處理退貨')}</button>` : ''}
-          ${order.shopReturnApply === 1 && order.shopOrderStatus !== 5 ? `<button class="action-btn btn-deactivate" onclick="showReturnProcessModal(${order.shopOrderId})">處理退貨</button>` : ""}
+          <button class="action-btn btn-view" onclick="viewShopOrderDetails(${order.shopOrderId})">查看詳情</button>
+          <button class="action-btn btn-edit" onclick="showEditShopOrderModal(${order.shopOrderId})">編輯</button>
+          ${(order.shopOrderStatus === 3 && order.shopReturnApply === 1) ? `<button class="action-btn btn-deactivate" onclick="showReturnProcessModal(${order.shopOrderId})">處理退貨</button>` : ''}
         </td>
       </tr>
     `;
@@ -961,14 +964,22 @@ function loadOrderManagement() {
         <label for="status-filter">訂單狀態:</label>
         <select id="status-filter" onchange="filterShopOrders()">
           <option value="all">全部</option>
-          <option value="0">待確認</option>
-          <option value="1">已取消</option>
-          <option value="2">等待賣家確認中</option>
-          <option value="3">準備出貨中</option>
-          <option value="4">已出貨</option>
-          <option value="5"> 已取貨，完成訂單</option>
-          <option value="6"> 未取貨，退回賣家 </option>
-
+          <option value="0">等待賣家確認中</option>
+          <option value="1">準備出貨中</option>
+          <option value="2">已出貨</option>
+          <option value="3">已取貨，完成訂單</option>
+          <option value="4">未取貨，退回賣家</option>
+          <option value="5">已取消</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="return-filter">退貨申請:</label>
+        <select id="return-filter" onchange="filterShopOrders()">
+          <option value="all">全部</option>
+          <option value="0">未申請退貨</option>
+          <option value="1">申請退貨</option>
+          <option value="2">退貨成功</option>
+          <option value="3">退貨失敗</option>
         </select>
       </div>
       <div class="filter-group">
@@ -984,11 +995,11 @@ function loadOrderManagement() {
         <thead>
           <tr>
             <th>訂單編號</th>
-            <th>會員姓名</th>
+            <th style="min-width: 150px;">會員姓名</th>
             <th>訂單日期</th>
-            <th>訂單金額</th>
-            <th>付款方式</th>
+            <th style="min-width: 150px;">訂單金額</th>
             <th>訂單狀態</th>
+            <th>退貨申請</th>
             <th>操作</th>
           </tr>
         </thead>
@@ -1016,21 +1027,19 @@ function loadOrderManagement() {
 function getShopOrderStatusInfo(status) {
   switch (parseInt(status)) {
     case 0:
-      return { text: "等待付款中", class: "status-pending" };
+      return { text: "等待賣家確認中", class: "status-pending" };
     case 1:
-      return { text: "已取消", class: "status-canceled" };
+      return { text: "準備出貨中", class: "status-confirmed" };
     case 2:
-      return { text: "等待賣家確認中", class: "status-confirmed" };
+      return { text: "已出貨", class: "status-shipped" };
     case 3:
-      return { text: "準備出貨中", class: "status-shipped" };
-    case 4:
-      return { text: "已出貨", class: "status-delivered" };
-    case 5:
       return { text: "已取貨，完成訂單", class: "status-completed" };
-    case 6:
+    case 4:
       return { text: "未取貨，退回賣家", class: "status-returned" };
+    case 5:
+      return { text: "已取消", class: "status-canceled" };
     default:
-      return { text: "未知狀態", class: "status-unknown" };
+      return { text: "等待賣家確認中", class: "status-pending" };
   }
 }
 
@@ -1052,17 +1061,50 @@ function getPaymentMethodText(method) {
 function getShipmentMethodText(method) {
   switch (parseInt(method)) {
     case 1:
-      return "宅配";
+      return "賣家宅配";
     case 2:
-      return "超商取貨";
+      return "超商取貨付款";
     default:
-      return "其他";
+      return "尚未選取";
+  }
+}
+
+// 獲取退貨申請文字
+function getReturnApplyText(returnApply) {
+  switch (parseInt(returnApply)) {
+    case 0:
+      return "未申請退貨";
+    case 1:
+      return "申請退貨";
+    case 2:
+      return "退貨成功";
+    case 3:
+      return "退貨失敗";
+    default:
+      return "未申請退貨";
+  }
+}
+
+// 獲取退貨申請樣式類別
+function getReturnApplyClass(returnApply) {
+  switch (parseInt(returnApply)) {
+    case 0:
+      return "status-normal";
+    case 1:
+      return "status-pending";
+    case 2:
+      return "status-success";
+    case 3:
+      return "status-error";
+    default:
+      return "status-normal";
   }
 }
 
 // 篩選商品訂單
 function filterShopOrders() {
   const statusFilter = document.getElementById("status-filter").value;
+  const returnFilter = document.getElementById("return-filter").value;
   const dateFrom = document.getElementById("date-from").value;
   const dateTo = document.getElementById("date-to").value;
 
@@ -1073,6 +1115,13 @@ function filterShopOrders() {
   if (statusFilter !== "all") {
     filteredOrders = filteredOrders.filter(
       (order) => order.shopOrderStatus.toString() === statusFilter
+    );
+  }
+
+  // 按退貨申請篩選
+  if (returnFilter !== "all") {
+    filteredOrders = filteredOrders.filter(
+      (order) => order.shopReturnApply.toString() === returnFilter
     );
   }
 
@@ -1102,17 +1151,17 @@ function filterShopOrders() {
 // 重置商品訂單篩選
 function resetShopOrderFilters() {
   document.getElementById("status-filter").value = "all";
+  document.getElementById("return-filter").value = "all";
   document.getElementById("date-from").value = "";
   document.getElementById("date-to").value = "";
-
-  // 重新載入所有訂單，重置為第一頁
-  updateShopOrdersTable(shopOrdersData, 1);
+  filterShopOrders();
 }
 
 // 切換頁面
 function changePage(pageNumber) {
   // 獲取當前篩選條件
   const statusFilter = document.getElementById("status-filter").value;
+  const returnFilter = document.getElementById("return-filter").value;
   const dateFrom = document.getElementById("date-from").value;
   const dateTo = document.getElementById("date-to").value;
 
@@ -1123,6 +1172,13 @@ function changePage(pageNumber) {
   if (statusFilter !== "all") {
     filteredOrders = filteredOrders.filter(
       (order) => order.shopOrderStatus.toString() === statusFilter
+    );
+  }
+
+  // 按退貨申請篩選
+  if (returnFilter !== "all") {
+    filteredOrders = filteredOrders.filter(
+      (order) => order.shopReturnApply.toString() === returnFilter
     );
   }
 
@@ -1156,7 +1212,7 @@ function updateShopOrdersTable(orders, pageNumber = 1) {
   if (orders.length === 0) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="7" class="empty-state">
+        <td colspan="9" class="empty-state">
           <i class="fas fa-shopping-cart"></i>
           <h3>無符合條件的訂單</h3>
           <p>請調整篩選條件</p>
@@ -1186,35 +1242,38 @@ function updateShopOrdersTable(orders, pageNumber = 1) {
       memName: "未知會員",
     };
 
-    // 訂單狀態文字和樣式
-    const statusInfo = getShopOrderStatusInfo(order.shopOrderStatus);
-
-    // 付款方式文字
-    const paymentMethod = getPaymentMethodText(order.shopOrderPayment);
+    // 使用 DTO 的 str() 方法獲取狀態文字
+    const statusText = order.shopOrderStatusStr || getShopOrderStatusInfo(order.shopOrderStatus).text;
+    const statusClass = getShopOrderStatusInfo(order.shopOrderStatus).class;
+    
+    // 使用 DTO 的 str() 方法獲取付款方式文字
+    const paymentMethod = order.shopOrderPaymentStr || getPaymentMethodText(order.shopOrderPayment);
+    
+    // 使用 DTO 的 str() 方法獲取出貨方式文字
+    const shipmentMethod = order.shopOrderShipmentStr || getShipmentMethodText(order.shopOrderShipment);
+    
+    // 使用 DTO 的 str() 方法獲取退貨申請文字
+    const returnApplyText = order.shopReturnApplyStr || getReturnApplyText(order.shopReturnApply);
 
     // 格式化日期（含時間）
     const orderDate = formatDateTime(order.shopOrderDate);
+
+    // 只有訂單狀態為0(等待賣家確認中)才顯示編輯按鈕
+    const canEdit = order.shopOrderStatus === 0;
 
     // 生成表格行
     tableRows += `
       <tr>
         <td>${order.shopOrderId}</td>
-        <td>${order.orderName}</td>
+        <td style="min-width: 150px;">${order.orderName}</td>
         <td>${orderDate}</td>
-        <td>NT$ ${order.afterDiscountAmount}</td>
-        <td>${paymentMethod}</td>
-        <td><span class="status-badge ${statusInfo.class}">${
-      statusInfo.text
-    }</span></td>
+        <td style="min-width: 150px;">NT$ ${order.afterDiscountAmount}</td>
+        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+        <td><span class="status-badge ${getReturnApplyClass(order.shopReturnApply)}">${returnApplyText}</span></td>
         <td>
-          <button class="action-btn btn-view" onclick="viewShopOrderDetails(${
-            order.shopOrderId
-          })">查看詳情</button>
-          ${order.shopOrderStatus !== 5 ? `<button class="action-btn btn-edit" onclick="showEditShopOrderModal(${order.shopOrderId})">編輯</button>` : ''}
-          ${order.shopOrderStatus === 2 ? `<button class="action-btn btn-activate" onclick="updateShopOrderStatus(${order.shopOrderId}, 3)">準備出貨</button>` : ''}
-          ${order.shopOrderStatus === 3 ? `<button class="action-btn btn-activate" onclick="updateShopOrderStatus(${order.shopOrderId}, 4)">已出貨</button>` : ''}
-          ${(order.shopOrderStatus === 5 && order.shopReturnApply && order.shopReturnApply != 0) ? `<button class="action-btn btn-deactivate" onclick="showReturnProcessModal(${order.shopOrderId})">${order.shopReturnApply === 2 ? '退貨成功' : (order.shopReturnApply === 3 ? '退貨失敗' : '處理退貨')}</button>` : ''}
-          ${order.shopReturnApply === 1 && order.shopOrderStatus !== 5 ? `<button class="action-btn btn-deactivate" onclick="showReturnProcessModal(${order.shopOrderId})">處理退貨</button>` : ""}
+          <button class="action-btn btn-view" onclick="viewShopOrderDetails(${order.shopOrderId})">查看詳情</button>
+          <button class="action-btn btn-edit" onclick="showEditShopOrderModal(${order.shopOrderId})">編輯</button>
+          ${(order.shopOrderStatus === 3 && order.shopReturnApply === 1) ? `<button class="action-btn btn-deactivate" onclick="showReturnProcessModal(${order.shopOrderId})">處理退貨</button>` : ''}
         </td>
       </tr>
     `;
@@ -1588,14 +1647,18 @@ function viewShopOrderDetails(orderId) {
   modal.className = "modal";
   modal.id = "shop-order-detail-modal";
 
-  // 訂單狀態資訊
-  const statusInfo = getShopOrderStatusInfo(order.shopOrderStatus);
+  // 使用 DTO 的 str() 方法獲取狀態文字
+  const statusText = order.shopOrderStatusStr || getShopOrderStatusInfo(order.shopOrderStatus).text;
+  const statusClass = getShopOrderStatusInfo(order.shopOrderStatus).class;
 
-  // 付款方式文字
-  const paymentMethod = getPaymentMethodText(order.shopOrderPayment);
+  // 使用 DTO 的 str() 方法獲取付款方式文字
+  const paymentMethod = order.shopOrderPaymentStr || getPaymentMethodText(order.shopOrderPayment);
 
-  // 配送方式文字
-  const shipmentMethod = getShipmentMethodText(order.shopOrderShipment);
+  // 使用 DTO 的 str() 方法獲取出貨方式文字
+  const shipmentMethod = order.shopOrderShipmentStr || getShipmentMethodText(order.shopOrderShipment);
+
+  // 使用 DTO 的 str() 方法獲取退貨申請文字
+  const returnApplyText = order.shopReturnApplyStr || getReturnApplyText(order.shopReturnApply);
 
   // 格式化日期（含時間）
   const orderDate = formatDateTime(order.shopOrderDate);
@@ -1656,9 +1719,7 @@ function viewShopOrderDetails(orderId) {
           </div>
           <div class="info-item">
             <span class="info-label">訂單狀態:</span>
-            <span class="info-value status-badge ${statusInfo.class}">${
-    statusInfo.text
-  }</span>
+            <span class="info-value status-badge ${statusClass}">${statusText}</span>
           </div>
           <div class="info-item">
             <span class="info-label">付款方式:</span>
@@ -1674,7 +1735,7 @@ function viewShopOrderDetails(orderId) {
           </div>
           <div class="info-item">
             <span class="info-label">退貨申請狀態:</span>
-            <span class="info-value">${order.shopReturnApplyStr || ''}</span>
+            <span class="info-value">${returnApplyText}</span>
           </div>
           <div class="info-item">
             <span class="info-label">出貨日期:</span>
@@ -2823,6 +2884,57 @@ function showEditShopOrderModal(orderId) {
     alert('找不到訂單資料');
     return;
   }
+
+  // 使用 DTO 的 str() 方法獲取選項文字
+  const statusOptions = [
+    { value: 0, text: order.shopOrderStatusStr || '等待賣家確認中' },
+    { value: 1, text: '準備出貨中' },
+    { value: 2, text: '已出貨' },
+    { value: 3, text: '已取貨，完成訂單' },
+    { value: 4, text: '未取貨，退回賣家' },
+    { value: 5, text: '已取消' }
+  ];
+
+  const paymentOptions = [
+    { value: 1, text: order.shopOrderPaymentStr || 'LINEPAY' },
+    { value: 2, text: '宅配取貨付款' },
+    { value: 3, text: '超商取貨付款' }
+  ];
+
+  const shipmentOptions = [
+    { value: 1, text: order.shopOrderShipmentStr || '賣家宅配' },
+    { value: 2, text: '超商取貨付款' }
+  ];
+
+  const returnApplyOptions = [
+    { value: 0, text: order.shopReturnApplyStr || '未申請退貨' },
+    { value: 1, text: '申請退貨' },
+    { value: 2, text: '退貨成功' },
+    { value: 3, text: '退貨失敗' }
+  ];
+
+  // 生成選項 HTML
+  const statusOptionsHtml = statusOptions.map(option => 
+    `<option value="${option.value}" ${order.shopOrderStatus == option.value ? 'selected' : ''}>${option.text}</option>`
+  ).join('');
+
+  const paymentOptionsHtml = paymentOptions.map(option => 
+    `<option value="${option.value}" ${order.shopOrderPayment == option.value ? 'selected' : ''}>${option.text}</option>`
+  ).join('');
+
+  const shipmentOptionsHtml = shipmentOptions.map(option => 
+    `<option value="${option.value}" ${order.shopOrderShipment == option.value ? 'selected' : ''}>${option.text}</option>`
+  ).join('');
+
+  const returnApplyOptionsHtml = returnApplyOptions.map(option => 
+    `<option value="${option.value}" ${order.shopReturnApply == option.value ? 'selected' : ''}>${option.text}</option>`
+  ).join('');
+
+  // 根據後端邏輯決定哪些欄位可以編輯
+  const canEditBasicFields = order.shopOrderStatus === 0; // 只有狀態0可以編輯基本欄位
+  const canEditStatus = true; // 永遠可以修改訂單狀態
+  const canEditReturnApply = order.shopOrderStatus === 3; // 只有狀態3可以編輯退貨申請
+
   // 建立 modal
   const modal = document.createElement('div');
   modal.className = 'modal';
@@ -2845,61 +2957,69 @@ function showEditShopOrderModal(orderId) {
         <div class="form-group">
           <label>訂單狀態</label>
           <select id="edit-order-status" required>
-            <option value="0" ${order.shopOrderStatus == 0 ? 'selected' : ''}>等待付款中</option>
-            <option value="1" ${order.shopOrderStatus == 1 ? 'selected' : ''}>已取消</option>
-            <option value="2" ${order.shopOrderStatus == 2 ? 'selected' : ''}>等待賣家確認中</option>
-            <option value="3" ${order.shopOrderStatus == 3 ? 'selected' : ''}>準備出貨中</option>
-            <option value="4" ${order.shopOrderStatus == 4 ? 'selected' : ''}>已出貨</option>
-            <option value="5" ${order.shopOrderStatus == 5 ? 'selected' : ''}>已取貨，完成訂單</option>
-            <option value="6" ${order.shopOrderStatus == 6 ? 'selected' : ''}>未取貨，退回賣家</option>
+            ${statusOptionsHtml}
           </select>
         </div>
         <div class="form-group">
           <label>付款方式</label>
-          <select id="edit-order-payment">
-            <option value="1" ${order.shopOrderPayment == 1 ? 'selected' : ''}>LINEPAY</option>
-            <option value="2" ${order.shopOrderPayment == 2 ? 'selected' : ''}>宅配取貨付款</option>
-            <option value="3" ${order.shopOrderPayment == 3 ? 'selected' : ''}>超商取貨付款</option>
+          <select id="edit-order-payment" ${canEditBasicFields ? '' : 'disabled'}>
+            ${paymentOptionsHtml}
           </select>
+          ${!canEditBasicFields ? '<small style="color: #666;">只有等待賣家確認中的訂單才能修改此欄位</small>' : ''}
         </div>
         <div class="form-group">
-          <label>運送方式</label>
-          <select id="edit-order-shipment">
-            <option value="1" ${order.shopOrderShipment == 1 ? 'selected' : ''}>賣家宅配</option>
-            <option value="2" ${order.shopOrderShipment == 2 ? 'selected' : ''}>超商取貨付款</option>
+          <label>出貨方式</label>
+          <select id="edit-order-shipment" ${canEditBasicFields ? '' : 'disabled'}>
+            ${shipmentOptionsHtml}
           </select>
+          ${!canEditBasicFields ? '<small style="color: #666;">只有等待賣家確認中的訂單才能修改此欄位</small>' : ''}
         </div>
         <div class="form-group">
           <label>運費</label>
-          <input type="number" id="edit-order-shipfee" value="${order.shopOrderShipFee ?? ''}" />
+          <input type="number" id="edit-order-shipfee" value="${order.shopOrderShipFee ?? ''}" ${canEditBasicFields ? '' : 'disabled'} />
+          ${!canEditBasicFields ? '<small style="color: #666;">只有等待賣家確認中的訂單才能修改此欄位</small>' : ''}
         </div>
         <div class="form-group">
           <label>收件人姓名</label>
-          <input type="text" id="edit-order-name" value="${order.orderName ?? ''}" />
+          <input type="text" id="edit-order-name" value="${order.orderName ?? ''}" ${canEditBasicFields ? '' : 'disabled'} />
+          ${!canEditBasicFields ? '<small style="color: #666;">只有等待賣家確認中的訂單才能修改此欄位</small>' : ''}
         </div>
         <div class="form-group">
           <label>收件人電話</label>
-          <input type="text" id="edit-order-phone" value="${order.orderPhone ?? ''}" />
+          <input type="text" id="edit-order-phone" value="${order.orderPhone ?? ''}" ${canEditBasicFields ? '' : 'disabled'} />
+          ${!canEditBasicFields ? '<small style="color: #666;">只有等待賣家確認中的訂單才能修改此欄位</small>' : ''}
         </div>
         <div class="form-group">
           <label>收件人Email</label>
-          <input type="email" id="edit-order-email" value="${order.orderEmail ?? ''}" />
+          <input type="email" id="edit-order-email" value="${order.orderEmail ?? ''}" ${canEditBasicFields ? '' : 'disabled'} />
+          ${!canEditBasicFields ? '<small style="color: #666;">只有等待賣家確認中的訂單才能修改此欄位</small>' : ''}
         </div>
         <div class="form-group">
           <label>收件人地址</label>
-          <input type="text" id="edit-order-address" value="${order.orderShippingAddress ?? ''}" />
+          <input type="text" id="edit-order-address" value="${order.orderShippingAddress ?? ''}" ${canEditBasicFields ? '' : 'disabled'} />
+          ${!canEditBasicFields ? '<small style="color: #666;">只有等待賣家確認中的訂單才能修改此欄位</small>' : ''}
         </div>
         <div class="form-group">
           <label>備註</label>
-          <input type="text" id="edit-order-note" value="${order.shopOrderNote ?? ''}" />
+          <input type="text" id="edit-order-note" value="${order.shopOrderNote ?? ''}" ${canEditBasicFields ? '' : 'disabled'} />
+          ${!canEditBasicFields ? '<small style="color: #666;">只有等待賣家確認中的訂單才能修改此欄位</small>' : ''}
         </div>
         <div class="form-group">
           <label>出貨日期</label>
-          <input type="date" id="edit-order-shipdate" value="${order.shopOrderShipDate ? order.shopOrderShipDate.split('T')[0] : ''}" />
+          <input type="date" id="edit-order-shipdate" value="${order.shopOrderShipDate ? order.shopOrderShipDate.split('T')[0] : ''}" ${canEditBasicFields ? '' : 'disabled'} />
+          ${!canEditBasicFields ? '<small style="color: #666;">只有等待賣家確認中的訂單才能修改此欄位</small>' : ''}
         </div>
         <div class="form-group">
           <label>折扣碼ID</label>
-          <input type="text" id="edit-discount-code-id" value="${order.discountCodeId ?? ''}" />
+          <input type="text" id="edit-discount-code-id" value="${order.discountCodeId ?? ''}" ${canEditBasicFields ? '' : 'disabled'} />
+          ${!canEditBasicFields ? '<small style="color: #666;">只有等待賣家確認中的訂單才能修改此欄位</small>' : ''}
+        </div>
+        <div class="form-group">
+          <label>退貨申請</label>
+          <select id="edit-order-return-apply" ${canEditReturnApply ? '' : 'disabled'}>
+            ${returnApplyOptionsHtml}
+          </select>
+          ${!canEditReturnApply ? '<small style="color: #666;">只有已取貨完成的訂單才能修改退貨申請</small>' : ''}
         </div>
         <div class="form-actions">
           <button type="button" class="btn-cancel" onclick="closeEditShopOrderModal()">取消</button>
@@ -2932,36 +3052,56 @@ async function submitEditShopOrder(orderId) {
     if (/T/.test(val)) return val;
     return null;
   }
+
+  // 取得原始訂單資料
+  const order = shopOrdersData.find(o => o.shopOrderId === orderId);
+
+  // 取得表單欄位值
   const paymentVal = document.getElementById('edit-order-payment').value;
   const shipFeeVal = document.getElementById('edit-order-shipfee').value;
   const shipmentVal = document.getElementById('edit-order-shipment').value;
   const shipDateVal = document.getElementById('edit-order-shipdate').value;
-  // const returnApplyVal = document.getElementById('edit-order-return-apply').value;
+  const returnApplyVal = document.getElementById('edit-order-return-apply').value;
+
+  // 只送出允許修改的欄位
   const payload = {
     shopOrderId: parseOrNull(orderId),
-    shopOrderStatus: parseOrNull(document.getElementById('edit-order-status').value),
-    shopOrderPayment: paymentVal !== '' ? Number(paymentVal) : null,
-    shopOrderShipment: shipmentVal !== '' ? Number(shipmentVal) : null,
-    shopOrderShipFee: shipFeeVal !== '' ? Number(shipFeeVal) : null,
-    orderName: document.getElementById('edit-order-name').value || null,
-    orderPhone: document.getElementById('edit-order-phone').value || null,
-    orderEmail: document.getElementById('edit-order-email').value || null,
-    orderShippingAddress: document.getElementById('edit-order-address').value || null,
-    shopOrderNote: document.getElementById('edit-order-note').value || null,
-    shopOrderShipDate: parseDateTime(shipDateVal),
-    discountCodeId: document.getElementById('edit-discount-code-id').value || null,
-    // shopReturnApply: returnApplyVal !== '' ? Number(returnApplyVal) : null
+    shopOrderStatus: parseOrNull(document.getElementById('edit-order-status').value)
   };
+
+  // 狀態為0時，允許修改基本欄位
+  if (order.shopOrderStatus === 0) {
+    payload.shopOrderPayment = paymentVal !== '' ? Number(paymentVal) : null;
+    payload.shopOrderShipment = shipmentVal !== '' ? Number(shipmentVal) : null;
+    payload.shopOrderShipFee = shipFeeVal !== '' ? Number(shipFeeVal) : null;
+    payload.orderName = document.getElementById('edit-order-name').value || null;
+    payload.orderPhone = document.getElementById('edit-order-phone').value || null;
+    payload.orderEmail = document.getElementById('edit-order-email').value || null;
+    payload.orderShippingAddress = document.getElementById('edit-order-address').value || null;
+    payload.shopOrderNote = document.getElementById('edit-order-note').value || null;
+    payload.shopOrderShipDate = parseDateTime(shipDateVal);
+    payload.discountCodeId = document.getElementById('edit-discount-code-id').value || null;
+  }
+
+  // 狀態為3時，允許修改退貨申請
+  if (order.shopOrderStatus === 3) {
+    payload.shopReturnApply = returnApplyVal !== '' ? Number(returnApplyVal) : null;
+  }
+
+  // 移除值為 null 或 undefined 的欄位（shopOrderId, shopOrderStatus, shopReturnApply 例外）
   Object.keys(payload).forEach(key => {
-    if ((payload[key] === null || payload[key] === undefined) && key !== 'shopOrderId' && key !== 'shopOrderStatus') delete payload[key];
+    if ((payload[key] === null || payload[key] === undefined) && !['shopOrderId', 'shopOrderStatus', 'shopReturnApply'].includes(key)) {
+      delete payload[key];
+    }
   });
-  console.log('payload', payload);
+
   try {
     const res = await fetch('http://localhost:8081/CJA101G02/api/updateShopOrder', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
+
     const result = await res.json();
     if (result && (result.success || result.status === 'success')) {
       alert('訂單更新成功');
@@ -2969,10 +3109,11 @@ async function submitEditShopOrder(orderId) {
       await loadAllData();
       loadOrderManagement();
     } else {
-      alert('訂單更新失敗');
+      const errorMessage = result?.message || result?.error || result?.exception || '訂單更新失敗';
+      alert(`訂單更新失敗：${errorMessage}`);
     }
   } catch (err) {
-    alert('連線失敗');
+    alert('連線失敗：' + err.message);
   }
 }
 
@@ -2998,6 +3139,27 @@ if (!document.getElementById('order-btn-styles')) {
 
 // 新增 showReturnProcessModal 函數
 function showReturnProcessModal(orderId) {
+  const order = shopOrdersData.find(o => o.shopOrderId === orderId);
+  if (!order) {
+    alert('找不到訂單資料');
+    return;
+  }
+
+  // 檢查訂單狀態是否為3(已取貨，完成訂單)
+  if (order.shopOrderStatus !== 3) {
+    alert('只有已取貨完成的訂單才能進行退貨處理');
+    return;
+  }
+
+  // 檢查退貨申請狀態是否為1(申請退貨)
+  if (order.shopReturnApply !== 1) {
+    alert('只有申請退貨中的訂單才能進行退貨處理');
+    return;
+  }
+
+  // 獲取當前退貨狀態文字
+  const currentReturnStatus = order.shopReturnApplyStr || getReturnApplyText(order.shopReturnApply);
+  
   const modal = document.createElement('div');
   modal.className = 'modal';
   modal.id = 'return-process-modal';
@@ -3008,42 +3170,85 @@ function showReturnProcessModal(orderId) {
         <button class="close-btn" onclick="closeReturnProcessModal()">×</button>
       </div>
       <div class="modal-body">
-        <p>請選擇退貨處理結果：</p>
         <div class="form-group">
-          <button class="action-btn btn-activate" onclick="processReturnApply(${orderId}, 2)">退貨成功</button>
-          <button class="action-btn btn-deactivate" onclick="processReturnApply(${orderId}, 3)">退貨失敗</button>
+          <label>訂單編號：</label>
+          <span>${order.shopOrderId}</span>
+        </div>
+        <div class="form-group">
+          <label>訂單狀態：</label>
+          <span class="status-badge ${getShopOrderStatusInfo(order.shopOrderStatus).class}">${order.shopOrderStatusStr || getShopOrderStatusInfo(order.shopOrderStatus).text}</span>
+        </div>
+        <div class="form-group">
+          <label>當前退貨狀態：</label>
+          <span class="status-badge ${getReturnApplyClass(order.shopReturnApply)}">${currentReturnStatus}</span>
+        </div>
+        <div class="form-group">
+          <label>請選擇退貨處理結果：</label>
+          <div class="button-group" style="margin-top: 10px;">
+            <button class="action-btn btn-activate" onclick="processReturnApply(${orderId}, 2)">退貨成功</button>
+            <button class="action-btn btn-deactivate" onclick="processReturnApply(${orderId}, 3)">退貨失敗</button>
+          </div>
         </div>
       </div>
     </div>
   `;
   document.body.appendChild(modal);
 }
+
 function closeReturnProcessModal() {
   const modal = document.getElementById('return-process-modal');
   if (modal) modal.remove();
 }
+
 async function processReturnApply(orderId, returnStatus) {
   try {
+    // 再次檢查訂單狀態
+    const order = shopOrdersData.find(o => o.shopOrderId === orderId);
+    if (!order) {
+      alert('找不到訂單資料');
+      return;
+    }
+
+    if (order.shopOrderStatus !== 3) {
+      alert('只有已取貨完成的訂單才能進行退貨處理');
+      return;
+    }
+
+    if (order.shopReturnApply !== 1) {
+      alert('只有申請退貨中的訂單才能進行退貨處理');
+      return;
+    }
+
     const payload = {
       shopOrderId: orderId,
       shopReturnApply: returnStatus
     };
+    
+    console.log('處理退貨申請:', payload);
+    
     const res = await fetch('http://localhost:8081/CJA101G02/api/updateShopOrder', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
+    
     const result = await res.json();
+    console.log('退貨處理回應:', result);
+    
     if (result && (result.success || result.status === 'success')) {
-      alert('退貨狀態已更新');
+      const statusText = returnStatus === 2 ? '退貨成功' : '退貨失敗';
+      alert(`退貨狀態已更新為：${statusText}`);
       closeReturnProcessModal();
       await loadAllData();
       loadOrderManagement();
     } else {
-      alert('退貨狀態更新失敗');
+      // 顯示後端返回的詳細錯誤訊息
+      const errorMessage = result?.message || result?.error || result?.exception || '退貨狀態更新失敗';
+      alert(`退貨狀態更新失敗：${errorMessage}`);
     }
   } catch (err) {
-    alert('連線失敗');
+    console.error('退貨處理錯誤:', err);
+    alert('連線失敗：' + err.message);
   }
 }
 
