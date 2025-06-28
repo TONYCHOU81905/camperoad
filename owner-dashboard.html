@@ -159,14 +159,11 @@
               <table class="table table-striped table-hover">
                 <thead class="table-dark">
                   <tr>
+                    <th>圖片</th>
                     <th>名稱</th>
                     <th>間數</th>
                     <th>人數</th>
                     <th>價格</th>
-                    <th>圖片1</th>
-                    <th>圖片2</th>
-                    <th>圖片3</th>
-                    <th>圖片4</th>
                     <th>操作</th>
                   </tr>
                 </thead>
@@ -407,10 +404,6 @@
               <label for="campsite-price">房間價格</label>
               <input type="number" id="campsite-price" name="campsite_price" min="0" required />
             </div>
-            <div class="form-group">
-              <label for="campsite-pic1">房型圖片</label>
-              <input type="file" id="campsite-pic1" name="campsite_pic1" accept="image/*" required />
-            </div>
             <div class="form-actions">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                 取消
@@ -452,20 +445,49 @@
               <input type="number" id="edit-campsite-price" name="campsitePrice" class="form-control" min="0" required />
             </div>
             <div class="form-group mb-2">
-              <label for="edit-campsite-pic1">圖片1（base64）</label>
-              <input type="text" id="edit-campsite-pic1" name="campsitePic1" class="form-control" />
-            </div>
-            <div class="form-group mb-2">
-              <label for="edit-campsite-pic2">圖片2（base64）</label>
-              <input type="text" id="edit-campsite-pic2" name="campsitePic2" class="form-control" />
-            </div>
-            <div class="form-group mb-2">
-              <label for="edit-campsite-pic3">圖片3（base64）</label>
-              <input type="text" id="edit-campsite-pic3" name="campsitePic3" class="form-control" />
-            </div>
-            <div class="form-group mb-2">
-              <label for="edit-campsite-pic4">圖片4（base64）</label>
-              <input type="text" id="edit-campsite-pic4" name="campsitePic4" class="form-control" />
+              <label>房型圖片上傳</label>
+              <div class="d-flex flex-wrap gap-3 mb-2">
+                <div class="image-upload-item text-center">
+                  <div class="image-card" id="preview-campsite-img1" style="cursor:pointer;" onclick="document.getElementById('edit-roomtype-img1').click()">
+                    <img id="edit-roomtype-img-preview1" src="#" style="width:100%;height:100%;object-fit:cover;display:none;border-radius:12px;" />
+                    <div id="upload-hint1" style="display:flex;flex-direction:column;align-items:center;justify-content:center;color:#666;">
+                      <i class="fas fa-plus" style="font-size:20px;margin-bottom:4px;"></i>
+                      <span style="font-size:10px;">上傳圖片</span>
+                    </div>
+                  </div>
+                  <input type="file" id="edit-roomtype-img1" name="roomtypeImg1" accept="image/*" style="display:none;">
+                </div>
+                <div class="image-upload-item text-center">
+                  <div class="image-card" id="preview-campsite-img2" style="cursor:pointer;" onclick="document.getElementById('edit-roomtype-img2').click()">
+                    <img id="edit-roomtype-img-preview2" src="#" style="width:100%;height:100%;object-fit:cover;display:none;border-radius:12px;" />
+                    <div id="upload-hint2" style="display:flex;flex-direction:column;align-items:center;justify-content:center;color:#666;">
+                      <i class="fas fa-plus" style="font-size:20px;margin-bottom:4px;"></i>
+                      <span style="font-size:10px;">上傳圖片</span>
+                    </div>
+                  </div>
+                  <input type="file" id="edit-roomtype-img2" name="roomtypeImg2" accept="image/*" style="display:none;">
+                </div>
+                <div class="image-upload-item text-center">
+                  <div class="image-card" id="preview-campsite-img3" style="cursor:pointer;" onclick="document.getElementById('edit-roomtype-img3').click()">
+                    <img id="edit-roomtype-img-preview3" src="#" style="width:100%;height:100%;object-fit:cover;display:none;border-radius:12px;" />
+                    <div id="upload-hint3" style="display:flex;flex-direction:column;align-items:center;justify-content:center;color:#666;">
+                      <i class="fas fa-plus" style="font-size:20px;margin-bottom:4px;"></i>
+                      <span style="font-size:10px;">上傳圖片</span>
+                    </div>
+                  </div>
+                  <input type="file" id="edit-roomtype-img3" name="roomtypeImg3" accept="image/*" style="display:none;">
+                </div>
+                <div class="image-upload-item text-center">
+                  <div class="image-card" id="preview-campsite-img4" style="cursor:pointer;" onclick="document.getElementById('edit-roomtype-img4').click()">
+                    <img id="edit-roomtype-img-preview4" src="#" style="width:100%;height:100%;object-fit:cover;display:none;border-radius:12px;" />
+                    <div id="upload-hint4" style="display:flex;flex-direction:column;align-items:center;justify-content:center;color:#666;">
+                      <i class="fas fa-plus" style="font-size:20px;margin-bottom:4px;"></i>
+                      <span style="font-size:10px;">上傳圖片</span>
+                    </div>
+                  </div>
+                  <input type="file" id="edit-roomtype-img4" name="roomtypeImg4" accept="image/*" style="display:none;">
+                </div>
+              </div>
             </div>
             <div class="form-actions mt-3">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
