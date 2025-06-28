@@ -268,3 +268,15 @@
   border-radius: 4px;
   object-fit: cover;
 }
+
+/* 折扣商品選項樣式 */
+.discount-option {
+  color: #e57373; /* 柔和的紅色 */
+  font-weight: 500; /* 稍微加粗 */
+}
+
+/* 當選項被選中時保持紅色 */
+#sort option[value="discount"]:checked {
+  color: #e57373;
+  background-color: #fff;
+}
