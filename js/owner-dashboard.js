@@ -802,13 +802,11 @@ class OwnerDashboard {
       // 取得房型ID和營地ID
       const campsiteTypeId = roomType.campsiteTypeId || roomType.campsite_type_id;
       const campId = roomType.campId || roomType.camp_id;
-      
       // 檢查是否有圖片資料（檢查是否有base64資料）
       const hasImages = [1,2,3,4].some(i => {
         const pic = roomType[`campsitePic${i}`] || roomType[`campsite_pic${i}`];
         return pic && pic.length > 0;
       });
-      
       // 輪播 HTML
       let carouselHtml = '';
       if (hasImages && campsiteTypeId && campId) {
@@ -854,7 +852,9 @@ class OwnerDashboard {
       return `
         <tr>
           <td>${carouselHtml}</td>
+          <td>${campsiteTypeId}</td>
           <td>${roomType.campsiteName || roomType.campsite_name || ""}</td>
+          <td>${roomType.campsiteNum || roomType.campsite_num ? (roomType.campsiteNum || roomType.campsite_num) + '間' : ''}</td>
           <td>
             <button class="btn btn-link p-0" onclick="ownerDashboard.showRoomDetails(${roomType.campsiteTypeId || roomType.campsite_type_id})">
               ${actualRoomCount} 間
@@ -2484,8 +2484,6 @@ class OwnerDashboard {
   }
 
   deleteRoomType(campsiteTypeId) {
-    console.log("刪除房型，ID:", campsiteTypeId);
-
     if (!confirm("確定要刪除此房型嗎？此操作無法復原。")) {
       return;
     }
@@ -2505,15 +2503,11 @@ class OwnerDashboard {
       return;
     }
 
-    console.log("要刪除的房型資料：", roomType);
-
-    // 準備刪除資料
     const deleteData = {
       campId: roomType.camp_id || roomType.campId,
       campsiteTypeId: parseInt(campsiteTypeId),
     };
 
-    // 呼叫刪除API
     fetch("http://localhost:8081/CJA101G02/campsitetype/deleteCampsiteType", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -2523,9 +2517,18 @@ class OwnerDashboard {
       .then((result) => {
         if (result.status === "success") {
           this.showMessage("房型刪除成功！", "success");
-          // 重新載入房型資料並立即渲染
-          this.loadCampsiteTypesByCampId(deleteData.campId)
-            .then(() => this.renderRoomTypes().catch((error) => {console.error("重新渲染房型列表失敗：", error);}));
+          // 立即從前端資料移除
+          this.campsiteTypeData = this.campsiteTypeData.filter((type) => {
+            const typeId =
+              type.campsiteTypeId ||
+              type.id?.campsiteTypeId ||
+              type.campsite_type_id ||
+              type.id;
+            return typeId != campsiteTypeId;
+          });
+          this.renderRoomTypes();
+          // 背景同步刷新（可選）
+          this.loadCampsiteTypesByCampId(deleteData.campId);
         } else {
           this.showMessage(
             "房型刪除失敗：" + (result.message || "未知錯誤"),
