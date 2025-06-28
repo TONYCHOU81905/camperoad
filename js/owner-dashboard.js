@@ -7,6 +7,7 @@ class OwnerDashboard {
     this.bundleItemData = [];
     this.orderData = [];
     this.discountCodeData = [];
+    this.justUpdatedRoomTypeId = null; // 新增：記錄剛剛有上傳圖片的房型ID
     this.init();
   }
 
@@ -415,51 +416,55 @@ class OwnerDashboard {
     this.bindModalEvents();
 
     // 綁定編輯房型表單送出
-    const editForm = document.getElementById("editRoomTypeForm");
-    if (editForm) {
-      editForm.onsubmit = async (e) => {
-        e.preventDefault();
-        const formData = new FormData(editForm);
-        const roomTypeData = {
-          id: {
-            campId: parseInt(formData.get("campId")),
-            campsiteTypeId: parseInt(formData.get("campsiteTypeId")),
-          },
-          campsiteName: formData.get("campsiteName"),
-          campsitePeople: parseInt(formData.get("campsitePeople")),
-          campsiteNum: parseInt(formData.get("campsiteNum")),
-          campsitePrice: parseInt(formData.get("campsitePrice")),
-          campsitePic1: formData.get("campsitePic1") || null,
-          campsitePic2: formData.get("campsitePic2") || null,
-          campsitePic3: formData.get("campsitePic3") || null,
-          campsitePic4: formData.get("campsitePic4") || null,
-        };
-        // 呼叫 API
-        const response = await fetch(
-          "http://localhost:8081/CJA101G02/campsitetype/updateCampsiteType",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(roomTypeData),
-          }
-        );
-        const result = await response.json();
-        if (result.status === "success") {
-          // 關閉 modal
-          bootstrap.Modal.getInstance(
-            document.getElementById("editRoomTypeModal")
-          ).hide();
-          this.showMessage("房型修改成功！", "success");
-          // 重新載入房型資料
-          await this.loadCampsiteTypesByCampId(roomTypeData.id.campId);
-        } else {
-          this.showMessage(
-            "房型修改失敗：" + (result.message || "未知錯誤"),
-            "error"
-          );
-        }
-      };
-    }
+    // const editForm = document.getElementById("editRoomTypeForm");
+    // if (editForm) {
+    //   editForm.onsubmit = async (e) => {
+    //     e.preventDefault();
+    //     const formData = new FormData(editForm);
+    //     // 取得現有房型資料
+    //     const roomType = this.campsiteTypeData.find(
+    //       (type) => (type.campsiteTypeId || type.campsite_type_id) == formData.get("campsiteTypeId")
+    //     );
+    //     const roomTypeData = {
+    //       id: {
+    //         campId: parseInt(formData.get("campId")),
+    //         campsiteTypeId: parseInt(formData.get("campsiteTypeId")),
+    //       },
+    //       campsiteName: formData.get("campsiteName"),
+    //       campsitePeople: parseInt(formData.get("campsitePeople")),
+    //       campsiteNum: parseInt(formData.get("campsiteNum")),
+    //       campsitePrice: parseInt(formData.get("campsitePrice")),
+    //       campsitePic1: roomType?.campsitePic1 || roomType?.campsite_pic1 || null,
+    //       campsitePic2: roomType?.campsitePic2 || roomType?.campsite_pic2 || null,
+    //       campsitePic3: roomType?.campsitePic3 || roomType?.campsite_pic3 || null,
+    //       campsitePic4: roomType?.campsitePic4 || roomType?.campsite_pic4 || null,
+    //     };
+    //     // 呼叫 API
+    //     const response = await fetch(
+    //       "http://localhost:8081/CJA101G02/campsitetype/updateCampsiteType",
+    //       {
+    //         method: "POST",
+    //         headers: { "Content-Type": "application/json" },
+    //         body: JSON.stringify(roomTypeData),
+    //       }
+    //     );
+    //     const result = await response.json();
+    //     if (result.status === "success") {
+    //       // 關閉 modal
+    //       bootstrap.Modal.getInstance(
+    //         document.getElementById("editRoomTypeModal")
+    //       ).hide();
+    //       this.showMessage("房型更改成功", "success");
+    //       // 重新載入房型資料
+    //       await this.loadCampsiteTypesByCampId(roomTypeData.id.campId);
+    //     } else {
+    //       this.showMessage(
+    //         "房型修改失敗：" + (result.message || "未知錯誤"),
+    //         "error"
+    //       );
+    //     }
+    //   };
+    // }
 
     // 綁定新增房間表單送出
     const addRoomForm = document.getElementById("addRoomForm");
@@ -793,40 +798,87 @@ class OwnerDashboard {
       return { roomType, actualRoomCount };
     });
     const roomTypeData = await Promise.all(roomTypePromises);
-    const html = roomTypeData.map(({ roomType, actualRoomCount }) => `
-      <tr>
-        <td>${roomType.campsiteName || ""}</td>
-        <td>
-          <button class="btn btn-link p-0" onclick="ownerDashboard.showRoomDetails(${roomType.campsiteTypeId})">
-            ${actualRoomCount} 間
-          </button>
-        </td>
-        <td>${roomType.campsitePeople || ""} 人</td>
-        <td>NT$ ${roomType.campsitePrice !== undefined ? roomType.campsitePrice : ""}</td>
-        ${[1,2,3,4].map(i => `
-        <td>
-          <div style="display:flex;align-items:center;gap:4px;">
-            ${roomType[`campsitePic${i}`]
-              ? `<img src=\"data:image/jpeg;base64,${roomType[`campsitePic${i}`]}\" style=\"width:48px;height:36px;object-fit:cover;border-radius:4px;cursor:pointer;\" onclick=\"document.getElementById('upload-pic-${roomType.campsiteTypeId}-${i}').click()\">`
-              : `<div style=\"width:48px;height:36px;display:flex;align-items:center;justify-content:center;background:rgba(128,128,128,0.12);border-radius:4px;cursor:pointer;\" onclick=\"document.getElementById('upload-pic-${roomType.campsiteTypeId}-${i}').click()\"><i class=\"fas fa-plus\" style=\"color:#888;font-size:20px;\"></i></div>`}
-            <input type="file" accept="image/*" style="display:none;" id="upload-pic-${roomType.campsiteTypeId}-${i}" onchange="ownerDashboard.handleRoomTypeImageChange(event, ${roomType.campsiteTypeId}, ${i})">
-          </div>
-        </td>
-        `).join('')}
-        <td>
-          <div class="d-flex">
-            <button class="btn btn-sm btn-secondary" onclick="ownerDashboard.editRoomType(${roomType.campsiteTypeId})">
-              <i class="fas fa-edit"></i>
+    const html = roomTypeData.map(({ roomType, actualRoomCount }) => {
+      // 取得房型ID和營地ID
+      const campsiteTypeId = roomType.campsiteTypeId || roomType.campsite_type_id;
+      const campId = roomType.campId || roomType.camp_id;
+      
+      // 檢查是否有圖片資料（檢查是否有base64資料）
+      const hasImages = [1,2,3,4].some(i => {
+        const pic = roomType[`campsitePic${i}`] || roomType[`campsite_pic${i}`];
+        return pic && pic.length > 0;
+      });
+      
+      // 輪播 HTML
+      let carouselHtml = '';
+      if (hasImages && campsiteTypeId && campId) {
+        const carouselId = `carousel-${campsiteTypeId}`;
+        const isJustUpdated = this.justUpdatedRoomTypeId === (roomType.campsiteTypeId || roomType.campsite_type_id);
+        const tsParam = isJustUpdated ? `?t=${Date.now()}` : '';
+        carouselHtml = `
+          <div id="${carouselId}" class="carousel slide" style="width:200px;height:160px;border-radius:12px;overflow:hidden;">
+            <div class="carousel-inner" style="width:200px;height:160px;">
+              ${[1,2,3,4].map((index, idx) => {
+                const pic = roomType[`campsitePic${index}`] || roomType[`campsite_pic${index}`];
+                if (pic && pic.length > 0) {
+                  return `
+                    <div class="carousel-item${idx === 0 ? ' active' : ''}">
+                      <img src="http://localhost:8081/CJA101G02/campsitetype/${campsiteTypeId}/${campId}/images/${index}${tsParam}" 
+                           class="d-block w-100 roomtype-carousel-img" 
+                           style="width:100%;height:100%;object-fit:cover;" 
+                           onerror="this.style.display='none'; this.parentElement.style.display='none';" />
+                    </div>
+                  `;
+                }
+                return '';
+              }).filter(Boolean).join('')}
+            </div>
+            ${[1,2,3,4].filter(index => {
+              const pic = roomType[`campsitePic${index}`] || roomType[`campsite_pic${index}`];
+              return pic && pic.length > 0;
+            }).length > 1 ? `
+            <button class="carousel-control-prev" type="button" data-bs-target="#${carouselId}" data-bs-slide="prev" style="width:24px;height:160px;">
+              <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+              <span class="visually-hidden">Previous</span>
             </button>
-            <button class="btn btn-sm btn-danger ms-2" onclick="ownerDashboard.deleteRoomType(${roomType.campsiteTypeId})">
-              <i class="fas fa-trash"></i>
+            <button class="carousel-control-next" type="button" data-bs-target="#${carouselId}" data-bs-slide="next" style="width:24px;height:160px;">
+              <span class="carousel-control-next-icon" aria-hidden="true"></span>
+              <span class="visually-hidden">Next</span>
             </button>
+            ` : ''}
           </div>
-        </td>
-      </tr>
-    `).join("");
+        `;
+      } else {
+        carouselHtml = '<div style="width:80px;height:60px;display:flex;align-items:center;justify-content:center;background:rgba(128,128,128,0.12);border-radius:4px;">無圖片</div>';
+      }
+      return `
+        <tr>
+          <td>${carouselHtml}</td>
+          <td>${roomType.campsiteName || roomType.campsite_name || ""}</td>
+          <td>
+            <button class="btn btn-link p-0" onclick="ownerDashboard.showRoomDetails(${roomType.campsiteTypeId || roomType.campsite_type_id})">
+              ${actualRoomCount} 間
+            </button>
+          </td>
+          <td>${roomType.campsitePeople || roomType.campsite_people || ""} 人</td>
+          <td>NT$ ${roomType.campsitePrice !== undefined ? roomType.campsitePrice : (roomType.campsite_price !== undefined ? roomType.campsite_price : "")}</td>
+          <td>
+            <div class="d-flex">
+              <button class="btn btn-sm btn-secondary" onclick="ownerDashboard.editRoomType(${roomType.campsiteTypeId || roomType.campsite_type_id})">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn btn-sm btn-danger ms-2" onclick="ownerDashboard.deleteRoomType(${roomType.campsiteTypeId || roomType.campsite_type_id})">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join("");
     tableBody.innerHTML = html;
 
+    // 在 renderRoomTypes 結尾清空 justUpdatedRoomTypeId
+    this.justUpdatedRoomTypeId = null;
   }
 
   renderBundleItems() {
@@ -1483,14 +1535,11 @@ class OwnerDashboard {
   handleAddRoomType(e) {
     e.preventDefault();
     const formData = new FormData(e.target);
-
     if (!this.campData) {
       this.showMessage("請先設定營地基本資料", "error");
       return;
     }
-
-    // 準備要發送的數據（送假圖片 byte array）
-    const fakeImage = [255, 216, 255, 224, 0, 16, 74, 70, 73, 70, 0, 1]; // JPEG 檔頭
+    // 只傳送必要欄位
     const roomTypeData = {
       id: {
         campId: this.campData.camp_id,
@@ -1500,186 +1549,244 @@ class OwnerDashboard {
       campsitePeople: parseInt(formData.get("campsite_people")),
       campsiteNum: parseInt(formData.get("campsite_num")),
       campsitePrice: parseInt(formData.get("campsite_price")),
-      campsitePic1: fakeImage, // 傳一個假的圖片 byte array
-      campsitePic2: null,
-      campsitePic3: null,
-      campsitePic4: null,
     };
-
     fetch("http://localhost:8081/CJA101G02/campsitetype/addCampsiteType", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(roomTypeData),
     })
       .then((response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
         return response.json();
       })
       .then((data) => {
-        // 處理成功響應
-        console.log("新增房型成功：", data);
-        console.log("API回應狀態：", data.status);
-        console.log("API回應資料：", data.data);
         this.showMessage("房型新增成功！", "success");
-
-        // 關閉模態框
-        const modal = bootstrap.Modal.getInstance(
-          document.getElementById("addRoomTypeModal")
-        );
-        if (modal) {
-          modal.hide();
-        }
-
-        // 清空表單
+        const modal = bootstrap.Modal.getInstance(document.getElementById("addRoomTypeModal"));
+        if (modal) modal.hide();
         e.target.reset();
-
-        // 重新載入房型資料
         if (this.campData && this.campData.camp_id) {
-          console.log("開始重新載入房型資料，營地ID：", this.campData.camp_id);
           this.loadCampsiteTypesByCampId(this.campData.camp_id)
-            .then(() => {
-              console.log("房型資料重新載入完成，開始渲染");
-              this.renderRoomTypes().catch((error) => {
-                console.error("重新渲染房型列表失敗：", error);
-              });
-            })
-            .catch((error) => {
-              console.error("重新載入房型資料失敗：", error);
-            });
-        } else {
-          console.error("無法重新載入房型資料：缺少營地資料");
+            .then(() => this.renderRoomTypes().catch((error) => {console.error("重新渲染房型列表失敗：", error);}));
         }
       })
       .catch((error) => {
-        console.error("API請求錯誤：", error);
-        this.showMessage(
-          `新增房型失敗：${error.message || "未知錯誤"}`,
-          "error"
-        );
+        this.showMessage(`新增房型失敗：${error.message || "未知錯誤"}`, "error");
       });
   }
 
   editRoomType(campsiteTypeId) {
-    console.log("編輯房型，ID:", campsiteTypeId);
-
-    // 找到房型資料，支援多種可能的欄位名稱
     const roomType = this.campsiteTypeData.find((type) => {
-      const typeId =
-        type.campsiteTypeId ||
-        type.id?.campsiteTypeId ||
-        type.campsite_type_id ||
-        type.id;
+      const typeId = type.campsiteTypeId || type.id?.campsiteTypeId || type.campsite_type_id || type.id;
       return typeId == campsiteTypeId;
     });
-
     if (!roomType) {
       this.showMessage("找不到房型資料", "error");
       return;
     }
-
-    console.log("要編輯的房型資料：", roomType);
-
-    // 填充編輯表單
     const editForm = document.getElementById("editRoomTypeForm");
     if (editForm) {
-      // 設定隱藏欄位
-      editForm.querySelector('[name="campId"]').value =
-        roomType.camp_id || roomType.campId;
+      const campId = roomType.camp_id || roomType.campId || this.campData?.camp_id;
+      editForm.querySelector('[name="campId"]').value = campId;
       editForm.querySelector('[name="campsiteTypeId"]').value = campsiteTypeId;
-
-      // 設定表單欄位
-      editForm.querySelector('[name="campsiteName"]').value =
-        roomType.campsiteName || roomType.campsite_name || "";
-      editForm.querySelector('[name="campsitePeople"]').value =
-        roomType.campsitePeople || roomType.campsite_people || "";
-      editForm.querySelector('[name="campsiteNum"]').value =
-        roomType.campsiteNum || roomType.campsite_num || "";
-      editForm.querySelector('[name="campsitePrice"]').value =
-        roomType.campsitePrice || roomType.campsite_price || "";
-      editForm.querySelector('[name="campsitePic1"]').value =
-        roomType.campsitePic1 || roomType.campsite_pic1 || "";
-      editForm.querySelector('[name="campsitePic2"]').value =
-        roomType.campsitePic2 || roomType.campsite_pic2 || "";
-      editForm.querySelector('[name="campsitePic3"]').value =
-        roomType.campsitePic3 || roomType.campsite_pic3 || "";
-      editForm.querySelector('[name="campsitePic4"]').value =
-        roomType.campsitePic4 || roomType.campsite_pic4 || "";
+      editForm.querySelector('[name="campsiteName"]').value = roomType.campsiteName || roomType.campsite_name || "";
+      editForm.querySelector('[name="campsitePeople"]').value = roomType.campsitePeople || roomType.campsite_people || "";
+      editForm.querySelector('[name="campsiteNum"]').value = roomType.campsiteNum || roomType.campsite_num || "";
+      editForm.querySelector('[name="campsitePrice"]').value = roomType.campsitePrice || roomType.campsite_price || "";
+      // 新增：初始化圖片預覽
+      initRoomTypeImagePreview(roomType);
     }
-
-    // 顯示編輯modal
-    const editModal = new bootstrap.Modal(
-      document.getElementById("editRoomTypeModal")
-    );
+    const editModal = new bootstrap.Modal(document.getElementById("editRoomTypeModal"));
     editModal.show();
   }
 
-  handleEditRoomType(e) {
+  async handleEditRoomType(e) {
     e.preventDefault();
-    const formData = new FormData(e.target);
+    const form = e.target;
+    const formData = new FormData(form);
+    const typeId = formData.get("campsiteTypeId") || formData.get("campsite_type_id");
+    const campId = formData.get("campId") || formData.get("camp_id");
+    
+    async function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        if (!file) return resolve(null);
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+    
+    // 取得 input
+    const imgInputs = [
+      form.querySelector('#edit-roomtype-img1'),
+      form.querySelector('#edit-roomtype-img2'),
+      form.querySelector('#edit-roomtype-img3'),
+      form.querySelector('#edit-roomtype-img4')
+    ];
 
-    const typeId = formData.get("campsite_type_id");
-    // console.log("aaaaaa");
-    // console.log("a:", this.campsiteTypeData);
-    // console.log("編輯房型：", typeId);
+    // 直接取得 File 物件
+    const pics = imgInputs.map(input => input && input.files[0] ? input.files[0] : null);
 
-    // this.campsiteTypeData.findIndex((type) =>
-    //   console.log(
-    //     "typeId:",
-    //     typeId,
-    //     "type.campsite_type_id:",
-    //     type.campsite_type_id
-    //   )
-    // );
+    console.log("所有圖片資料:", pics.map((pic, index) => ({
+      index: index + 1,
+      hasData: !!pic,
+      dataType: pic ? Object.prototype.toString.call(pic) : null,
+      name: pic ? pic.name : null,
+      size: pic ? pic.size : null
+    })));
 
-    // 找到要更新的房型資料
-    const roomTypeIndex = this.campsiteTypeData.findIndex(
-      (type) => type.campsite_type_id == typeId
-    );
+    try {
+      // 步驟1：更新房型基本資訊（不含圖片）
+      const basicData = {
+        campsiteTypeId: parseInt(typeId),
+        campId: parseInt(campId),
+        campsiteName: formData.get("campsiteName") || formData.get("campsite_name"),
+        campsitePeople: parseInt(formData.get("campsitePeople") || formData.get("campsite_people")),
+        campsiteNum: parseInt(formData.get("campsiteNum") || formData.get("campsite_num")),
+        campsitePrice: parseInt(formData.get("campsitePrice") || formData.get("campsite_price"))
+      };
 
-    console.log("更新前的房型資料：", this.campsiteTypeData[roomTypeIndex]);
+      const basicRes = await fetch("http://localhost:8081/CJA101G02/campsitetype/updateCampsiteType", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(basicData)
+      }).then(r => r.json());
 
-    if (roomTypeIndex === -1) {
-      this.showMessage("找不到房型資料", "error");
+      if (!basicRes || basicRes.status !== "success") {
+        this.showMessage("房型基本資訊更新失敗" + (basicRes && basicRes.message ? (":"+basicRes.message) : ""), "error");
+        return;
+      }
+
+      // 步驟2：更新房型圖片
+      const picFormData = new FormData();
+      picFormData.append("campsiteTypeId", parseInt(typeId));
+      picFormData.append("campId", parseInt(campId));
+      if (pics[0]) picFormData.append("pic1", pics[0]);
+      if (pics[1]) picFormData.append("pic2", pics[1]);
+      if (pics[2]) picFormData.append("pic3", pics[2]);
+      if (pics[3]) picFormData.append("pic4", pics[3]);
+
+      console.log("步驟2：更新房型圖片", {
+        campsiteTypeId: parseInt(typeId),
+        campId: parseInt(campId),
+        campsitePic1: pics[0] ? "有圖片" : "無圖片",
+        campsitePic2: pics[1] ? "有圖片" : "無圖片",
+        campsitePic3: pics[2] ? "有圖片" : "無圖片",
+        campsitePic4: pics[3] ? "有圖片" : "無圖片"
+      });
+      
+      // 記錄FormData內容
+      console.log("FormData內容:");
+      for (let [key, value] of picFormData.entries()) {
+        if (typeof value === 'string' && value.length > 100) {
+          console.log(`${key}: base64字串 (長度: ${value.length})`);
+          // 驗證base64格式
+          console.log(`${key} base64前10字元:`, value.substring(0, 10));
+          console.log(`${key} base64後10字元:`, value.substring(value.length - 10));
+        } else {
+          console.log(`${key}: ${value}`);
+        }
+      }
+      
+      // 驗證是否有圖片資料
+      const hasImageData = pics.some(pic => pic && pic.length > 0);
+      console.log("是否有圖片資料:", hasImageData);
+      console.log("圖片資料統計:", {
+        pic1: pics[0] ? `有資料 (${pics[0].length}字元)` : '無資料',
+        pic2: pics[1] ? `有資料 (${pics[1].length}字元)` : '無資料',
+        pic3: pics[2] ? `有資料 (${pics[2].length}字元)` : '無資料',
+        pic4: pics[3] ? `有資料 (${pics[3].length}字元)` : '無資料'
+      });
+      
+      // 檢查FormData的詳細資訊
+      console.log("FormData詳細資訊:");
+      console.log("FormData entries數量:", picFormData.entries().length);
+      console.log("FormData keys:", Array.from(picFormData.keys()));
+      
+      const imageUpdateUrl = `http://localhost:8081/CJA101G02/campsitetype/${parseInt(typeId)}/${parseInt(campId)}/update-images`;
+      console.log("圖片更新API URL:", imageUpdateUrl);
+      
+      try {
+        const picRes = await fetch(imageUpdateUrl, {
+          method: "POST",
+          body: picFormData
+        });
+        
+        console.log("圖片更新API回應狀態:", picRes.status, picRes.statusText);
+        
+        if (!picRes.ok) {
+          throw new Error(`HTTP ${picRes.status}: ${picRes.statusText}`);
+        }
+        
+        const picResData = await picRes.json();
+        console.log("圖片更新API回應:", picResData);
+
+        if (!picResData || picResData.status !== "success") {
+          this.showMessage("房型圖片更新失敗" + (picResData && picResData.message ? (":"+picResData.message) : ""), "error");
+          return;
+        }
+
+        console.log("步驟2完成：房型圖片更新成功");
+        this.justUpdatedRoomTypeId = parseInt(typeId);
+        
+        // 驗證圖片是否真的更新成功
+        console.log("開始驗證圖片更新結果...");
+        try {
+          // 延遲一下再檢查，確保後端有時間處理
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          // 重新載入房型資料來驗證更新
+          const verifyResponse = await fetch(`http://localhost:8081/CJA101G02/campsitetype/${parseInt(campId)}/getCampsiteTypes`);
+          if (verifyResponse.ok) {
+            const verifyData = await verifyResponse.json();
+            const updatedRoomType = verifyData.data.find(type => type.campsiteTypeId == parseInt(typeId));
+            console.log("驗證更新後的房型資料:", updatedRoomType);
+            
+            if (updatedRoomType) {
+              console.log("房型圖片欄位檢查:", {
+                campsitePic1: updatedRoomType.campsitePic1 ? `有資料 (${updatedRoomType.campsitePic1.length}字元)` : '無資料',
+                campsitePic2: updatedRoomType.campsitePic2 ? `有資料 (${updatedRoomType.campsitePic2.length}字元)` : '無資料',
+                campsitePic3: updatedRoomType.campsitePic3 ? `有資料 (${updatedRoomType.campsitePic3.length}字元)` : '無資料',
+                campsitePic4: updatedRoomType.campsitePic4 ? `有資料 (${updatedRoomType.campsitePic4.length}字元)` : '無資料'
+              });
+            }
+          }
+        } catch (verifyError) {
+          console.error("驗證圖片更新失敗:", verifyError);
+        }
+      } catch (fetchError) {
+        console.error("圖片更新API呼叫失敗:", fetchError);
+        console.error("API URL:", imageUpdateUrl);
+        console.error("FormData內容:");
+        for (let [key, value] of picFormData.entries()) {
+          if (typeof value === 'string' && value.length > 100) {
+            console.error(`${key}: base64字串 (長度: ${value.length})`);
+            // 驗證base64格式
+            console.error(`${key} base64前10字元:`, value.substring(0, 10));
+            console.error(`${key} base64後10字元:`, value.substring(value.length - 10));
+          } else {
+            console.error(`${key}: ${value}`);
+          }
+        }
+        this.showMessage("房型圖片更新失敗: " + fetchError.message, "error");
+        return;
+      }
+
+      this.showMessage("房型更新完成", "success");
+      const modal = bootstrap.Modal.getInstance(document.getElementById("editRoomTypeModal"));
+      if (modal) modal.hide();
+      
+      setTimeout(() => {
+        this.renderRoomTypes().catch((error) => {
+          console.error("重新渲染房型列表失敗：", error);
+        });
+      }, 500);
+
+    } catch (err) {
+      console.error("房型更新失敗：", err);
+      this.showMessage("房型資訊更新失敗(API 錯誤): " + err.message, "error");
       return;
     }
-
-    // 更新房型資料
-    const updatedRoomType = {
-      ...this.campsiteTypeData[roomTypeIndex],
-      campsite_name: formData.get("campsite_name"),
-      campsite_people: parseInt(formData.get("campsite_people")),
-      campsite_num: parseInt(formData.get("campsite_num")),
-      campsite_price: parseInt(formData.get("campsite_price")),
-      campsite_pic1: formData.get("campsite_pic1") || null,
-      campsite_pic2: formData.get("campsite_pic2") || null,
-      campsite_pic3: formData.get("campsite_pic3") || null,
-      campsite_pic4: formData.get("campsite_pic4") || null,
-    };
-
-    // 更新陣列中的資料
-    this.campsiteTypeData[roomTypeIndex] = updatedRoomType;
-
-    console.log("更新房型：", updatedRoomType);
-    this.showMessage("房型更新成功！", "success");
-
-    // 關閉模態框
-    const modal = bootstrap.Modal.getInstance(
-      document.getElementById("editRoomTypeModal")
-    );
-    if (modal) {
-      modal.hide();
-    }
-
-    // 重新載入房型資料
-    setTimeout(() => {
-      this.renderRoomTypes().catch((error) => {
-        console.error("重新渲染房型列表失敗：", error);
-      });
-    }, 500);
   }
 
   handleAddBundleItem(e) {
@@ -2416,8 +2523,9 @@ class OwnerDashboard {
       .then((result) => {
         if (result.status === "success") {
           this.showMessage("房型刪除成功！", "success");
-          // 重新載入房型資料
-          this.loadCampsiteTypesByCampId(deleteData.campId);
+          // 重新載入房型資料並立即渲染
+          this.loadCampsiteTypesByCampId(deleteData.campId)
+            .then(() => this.renderRoomTypes().catch((error) => {console.error("重新渲染房型列表失敗：", error);}));
         } else {
           this.showMessage(
             "房型刪除失敗：" + (result.message || "未知錯誤"),
@@ -2545,37 +2653,6 @@ class OwnerDashboard {
     const modal = new bootstrap.Modal(document.getElementById('editRoomModal'));
     modal.show();
   }
-
-  // 新增圖片上傳事件處理方法
-  handleRoomTypeImageChange(event, campsiteTypeId, imgIndex) {
-    const file = event.target.files[0];
-    if (!file) return;
-    this.uploadRoomTypeImage(campsiteTypeId, imgIndex, file);
-  }
-
-  // 新增圖片上傳API方法（僅前端範例，請依後端API調整）
-  async uploadRoomTypeImage(campsiteTypeId, imgIndex, file) {
-    try {
-      const formData = new FormData();
-      formData.append('campsiteTypeId', campsiteTypeId);
-      formData.append('imgIndex', imgIndex);
-      formData.append('file', file);
-      // 假設API為 /campsitetype/uploadImage
-      const response = await fetch('http://localhost:8081/CJA101G02/campsitetype/uploadImage', {
-        method: 'POST',
-        body: formData
-      });
-      const result = await response.json();
-      if (result.status === 'success') {
-        this.showMessage('圖片上傳成功！', 'success');
-        await this.renderRoomTypes();
-      } else {
-        this.showMessage('圖片上傳失敗：' + (result.message || '未知錯誤'), 'error');
-      }
-    } catch (error) {
-      this.showMessage('圖片上傳失敗：' + error.message, 'error');
-    }
-  }
 }
 
 // 初始化營地主後台
@@ -2583,3 +2660,106 @@ let ownerDashboard;
 document.addEventListener("DOMContentLoaded", function () {
   ownerDashboard = new OwnerDashboard();
 });
+
+// 編輯房型時初始化圖片預覽區
+function initRoomTypeImagePreview(roomType) {
+  console.log("初始化房型圖片預覽，房型資料:", roomType);
+  
+  for (let i = 1; i <= 4; i++) {
+    const input = document.getElementById('edit-roomtype-img' + i);
+    const previewImg = document.getElementById('edit-roomtype-img-preview' + i);
+    const pic = roomType[`campsitePic${i}`] || roomType[`campsite_pic${i}`] || null;
+    
+    console.log(`圖片${i}:`, {
+      input: input ? '找到' : '未找到',
+      previewImg: previewImg ? '找到' : '未找到',
+      hasPic: !!pic
+    });
+    
+    if (pic && previewImg) {
+      // 取得房型ID和營地ID
+      const campsiteTypeId = roomType.campsiteTypeId || roomType.campsite_type_id;
+      const campId = roomType.campId || roomType.camp_id;
+      
+      if (campsiteTypeId && campId) {
+        // 使用新的API端點
+        const apiUrl = `http://localhost:8081/CJA101G02/campsitetype/${campsiteTypeId}/${campId}/images/${i}`;
+        console.log(`圖片${i} API URL:`, apiUrl);
+        previewImg.src = apiUrl;
+        previewImg.style.display = 'block';
+        previewImg.style.width = '100%';
+        previewImg.style.height = '100%';
+        previewImg.style.objectFit = 'cover';
+        previewImg.style.borderRadius = '12px';
+        // 隱藏上傳提示
+        const uploadHint = document.getElementById(`upload-hint${i}`);
+        if (uploadHint) uploadHint.style.display = 'none';
+        if (input) input.setAttribute('data-old', pic); // 存原本 base64
+      } else {
+        // 如果沒有ID，使用原本的base64方式
+        console.log(`圖片${i} 使用base64方式`);
+        previewImg.src = 'data:image/jpeg;base64,' + pic;
+        previewImg.style.display = 'block';
+        previewImg.style.width = '100%';
+        previewImg.style.height = '100%';
+        previewImg.style.objectFit = 'cover';
+        previewImg.style.borderRadius = '12px';
+        // 隱藏上傳提示
+        const uploadHint = document.getElementById(`upload-hint${i}`);
+        if (uploadHint) uploadHint.style.display = 'none';
+        if (input) input.setAttribute('data-old', pic);
+      }
+    } else if (previewImg) {
+      console.log(`圖片${i} 無現有圖片，顯示上傳提示`);
+      previewImg.src = '#';
+      previewImg.style.display = 'none';
+      // 顯示上傳提示
+      const uploadHint = document.getElementById(`upload-hint${i}`);
+      if (uploadHint) uploadHint.style.display = 'flex';
+      if (input) input.removeAttribute('data-old');
+    }
+    
+    // 綁定圖片上傳change事件
+    if (input && previewImg) {
+      console.log(`綁定圖片${i}上傳事件`);
+      // 移除舊的事件監聽器（如果有的話）
+      input.removeEventListener('change', input._imagePreviewHandler);
+      
+      // 創建新的事件處理函數，使用立即執行函數來捕獲正確的索引值和元素
+      input._imagePreviewHandler = (function(index, imgElement) {
+        return function(e) {
+          console.log(`圖片${index}上傳事件觸發，檔案:`, e.target.files ? e.target.files[0] : '無檔案');
+          if (e.target.files && e.target.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+              console.log(`圖片${index}預覽載入完成`);
+              imgElement.src = ev.target.result;
+              imgElement.style.display = 'block';
+              imgElement.style.width = '100%';
+              imgElement.style.height = '100%';
+              imgElement.style.objectFit = 'cover';
+              imgElement.style.borderRadius = '12px';
+              // 隱藏上傳提示
+              const uploadHint = document.getElementById(`upload-hint${index}`);
+              if (uploadHint) uploadHint.style.display = 'none';
+            };
+            reader.readAsDataURL(e.target.files[0]);
+          } else {
+            console.log(`圖片${index}清除預覽`);
+            imgElement.src = '#';
+            imgElement.style.display = 'none';
+            // 顯示上傳提示
+            const uploadHint = document.getElementById(`upload-hint${index}`);
+            if (uploadHint) uploadHint.style.display = 'flex';
+          }
+        };
+      })(i, previewImg);
+      
+      // 添加新的事件監聽器
+      input.addEventListener('change', input._imagePreviewHandler);
+    }
+  }
+}
+
+
+
