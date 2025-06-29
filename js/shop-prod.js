@@ -351,7 +351,7 @@ document.addEventListener("DOMContentLoaded", function () {
       select.addEventListener("change", function () {
         const selectedOption = this.options[this.selectedIndex];
         const selectedPrice = parseFloat(selectedOption.dataset.price) || 0;
-        const priceContainer = this.closest(".product-price");
+        const priceContainer = this.closest(".product-info").querySelector(".product-price");
         const priceSpan = priceContainer.querySelector(".current-price");
         let originalPriceSpan = priceContainer.querySelector(".original-price");
       
