@@ -24,7 +24,7 @@ async function initCartPage() {
     const cartData = await fetchCartData();
     
     // 渲染購物車項目
-    renderCartItems(cartData.items);
+    await renderCartItems(cartData.items);
     
     // 更新購物車摘要
     updateCartSummary(cartData.summary);
@@ -34,9 +34,6 @@ async function initCartPage() {
     
     // 檢查購物車是否為空
     checkEmptyCart(cartData.items.length);
-    
-    // 顯示初始運費信息
-    updateShippingNote(cartData.summary.subtotal);
     
     hideLoadingOverlay();
   } catch (error) {
@@ -49,95 +46,186 @@ async function initCartPage() {
 // 從API獲取購物車數據
 async function fetchCartData() {
   try {
-    const response = await fetch('http://localhost:8081/CJA101G02/api/getCart');
+    // 假設登入測試
+    let memId = 10000007;
+    localStorage.setItem('memberInfo', JSON.stringify({ memId }));
+
+    // 取得會員ID
+    function getMemberId() {
+      const memberInfo = localStorage.getItem('memberInfo');
+      return memberInfo ? JSON.parse(memberInfo).memId : null;
+    }
+    
+    console.log('獲取購物車數據，會員ID:', memId);
+    
+    const response = await fetch(`http://localhost:8081/CJA101G02/api/getCart?memId=${memId}`);
     if (!response.ok) {
-      throw new Error('網路回應不正常');
+      throw new Error(`網路回應不正常: ${response.status} ${response.statusText}`);
     }
     const data = await response.json();
     
-    // 確保返回數據包含所有必要字段，如果缺少則提供默認值
-    return {
-      items: data.items || [],
-      totalItems: data.totalItems || 0,
-      summary: {
-        subtotal: data.summary?.subtotal || 0,
-        shipping: data.summary?.shipping || 0, // 後端可能不提供運費，我們在前端計算
-        discount: data.summary?.discount || 0,
-        total: data.summary?.total || 0 // 總計也會在前端重新計算
-      }
-    };
+    console.log('購物車API回應:', data);
+    
+    if (data.status === 'success' && data.data) {
+      const cartItems = data.data;
+      const totalItems = cartItems.reduce((sum, item) => sum + item.cartProdQty, 0);
+      const subtotal = cartItems.reduce((sum, item) => sum + (item.prodPrice * item.cartProdQty), 0);
+      
+      console.log('購物車項目數量:', cartItems.length, '總數量:', totalItems, '小計:', subtotal);
+      
+      return {
+        items: cartItems,
+        totalItems: totalItems,
+        summary: {
+          subtotal: subtotal,
+          shipping: 0, // 運費計算邏輯可以根據需求調整
+          discount: 0,
+          total: subtotal
+        }
+      };
+    } else {
+      console.log('購物車為空或API回應異常:', data);
+      // 如果沒有資料，返回空的購物車
+      return {
+        items: [],
+        totalItems: 0,
+        summary: {
+          subtotal: 0,
+          shipping: 0,
+          discount: 0,
+          total: 0
+        }
+      };
+    }
   } catch (error) {
     console.error('獲取購物車數據失敗:', error);
     throw error;
   }
 }
 
-// 渲染購物車項目
-function renderCartItems(items) {
+// 渲染購物車項目（支援動態取得顏色/規格選項）
+async function renderCartItems(items) {
   const cartItemsContainer = document.getElementById('cart-items-container');
   if (!cartItemsContainer) return;
-  
-  // 清空容器
   cartItemsContainer.innerHTML = '';
-  
-  // 如果沒有項目，直接返回
   if (!items || items.length === 0) return;
-  
-  // 渲染每個購物車項目
-  items.forEach(item => {
-    const itemElement = createCartItemElement(item);
+
+  for (const item of items) {
+    // 動態取得 color/spec options
+    let colorOptions = [];
+    let specOptions = [];
+    try {
+      const res = await fetch(`http://localhost:8081/CJA101G02/api/products/${item.prodId}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.status === 'success' && data.data) {
+          colorOptions = (data.data.prodColorList || []).map(c => ({ id: c.prodColorId, name: c.colorName }));
+          specOptions = (data.data.prodSpecList || []).map(s => ({ id: s.prodSpecId, name: s.prodSpecName }));
+        }
+      }
+    } catch (e) {
+      // 若失敗則 options 為空
+    }
+    const itemElement = createCartItemElement(item, colorOptions, specOptions);
     cartItemsContainer.appendChild(itemElement);
-  });
-  
+  }
   // 綁定事件
   bindCartItemEvents();
 }
 
-// 創建購物車項目元素
-function createCartItemElement(item) {
+// 創建購物車項目元素（支援 select）
+function createCartItemElement(item, colorOptions, specOptions) {
   const itemDiv = document.createElement('div');
   itemDiv.className = 'cart-item';
   itemDiv.dataset.id = item.prodId;
-  
-  // 購買類型標籤
-  let purchaseTypeTag = '';
-  if (item.purchaseType === 'rent') {
-    purchaseTypeTag = `<span class="product-tag product-tag-rent">租借 ${item.rentDays} 天</span>`;
-  } else if (item.purchaseType === 'used') {
-    purchaseTypeTag = '<span class="product-tag product-tag-used">二手</span>';
+  itemDiv.dataset.colorId = item.prodColorId;
+  itemDiv.dataset.specId = item.prodSpecId;
+  // 新增：記錄原本的顏色/規格
+  itemDiv.dataset.oldColorId = item.prodColorId;
+  itemDiv.dataset.oldSpecId = item.prodSpecId;
+
+  // 顏色選單
+  let colorSelect = '<select class="color-select">';
+  if (colorOptions && colorOptions.length > 0) {
+    colorOptions.forEach(opt => {
+      colorSelect += `<option value="${opt.id}" ${opt.id === item.prodColorId ? 'selected' : ''}>${opt.name}</option>`;
+    });
+  } else {
+    colorSelect += `<option value="${item.prodColorId}" selected>${item.colorName || '載入中...'}</option>`;
   }
-  
-  // 顏色選項
-  let colorOption = '';
-  if (item.color) {
-    colorOption = `<div class="product-color">顏色: ${item.color}</div>`;
+  colorSelect += '</select>';
+
+  // 規格選單
+  let specSelect = '<select class="spec-select">';
+  if (specOptions && specOptions.length > 0) {
+    specOptions.forEach(opt => {
+      specSelect += `<option value="${opt.id}" ${opt.id === item.prodSpecId ? 'selected' : ''}>${opt.name}</option>`;
+    });
+  } else {
+    specSelect += `<option value="${item.prodSpecId}" selected>${item.specName || '載入中...'}</option>`;
   }
-  
+  specSelect += '</select>';
+
   itemDiv.innerHTML = `
-    <div class="product-image">
-      <img src="${item.prodImage || 'images/product-placeholder.jpg'}" alt="${item.prodName}">
-      ${purchaseTypeTag}
-    </div>
     <div class="product-info">
       <h3>${item.prodName}</h3>
-      ${colorOption}
+      <div class="product-color">顏色: ${colorSelect}</div>
+      <div class="product-spec">規格: ${specSelect}</div>
       <div class="product-price">
-        <span class="current-price">NT$ ${item.prodPrice.toLocaleString()}</span>
+        <span class="current-price">NT$ ${item.prodPrice ? item.prodPrice.toLocaleString() : ''}</span>
       </div>
     </div>
     <div class="quantity-selector">
       <button class="btn-decrease">-</button>
-      <input type="number" value="${item.quantity}" min="1" max="10">
+      <input type="number" value="${item.cartProdQty}" min="1" max="10">
       <button class="btn-increase">+</button>
     </div>
     <div class="product-subtotal">
-      <span>NT$ ${(item.prodPrice * item.quantity).toLocaleString()}</span>
+      <span>NT$ ${(item.prodPrice * item.cartProdQty).toLocaleString()}</span>
     </div>
     <button class="btn-remove">
       <i class="fas fa-trash-alt"></i>
     </button>
   `;
-  
+
+  // 綁定 select/數量事件
+  itemDiv.querySelector('.color-select').addEventListener('change', function() {
+    updateCartItem(itemDiv);
+    // 更新原本的顏色id
+    itemDiv.dataset.oldColorId = itemDiv.querySelector('.color-select').value;
+    // 同時更新當前的顏色id
+    itemDiv.dataset.colorId = itemDiv.querySelector('.color-select').value;
+  });
+  itemDiv.querySelector('.spec-select').addEventListener('change', function() {
+    updateCartItem(itemDiv);
+    // 更新原本的規格id
+    itemDiv.dataset.oldSpecId = itemDiv.querySelector('.spec-select').value;
+    // 同時更新當前的規格id
+    itemDiv.dataset.specId = itemDiv.querySelector('.spec-select').value;
+  });
+  // input change 事件只呼叫一次 updateCartItem
+  itemDiv.querySelector('.quantity-selector input').addEventListener('change', function() {
+    updateCartItem(itemDiv);
+  });
+
+  // + - 按鈕只改變 input.value 並 dispatch change 事件
+  itemDiv.querySelector('.btn-increase').addEventListener('click', function() {
+    const input = itemDiv.querySelector('.quantity-selector input');
+    let value = parseInt(input.value) || 1;
+    if (value < parseInt(input.max)) {
+      input.value = value + 1;
+      input.dispatchEvent(new Event('change'));
+    }
+  });
+  itemDiv.querySelector('.btn-decrease').addEventListener('click', function() {
+    const input = itemDiv.querySelector('.quantity-selector input');
+    let value = parseInt(input.value) || 1;
+    if (value > parseInt(input.min)) {
+      input.value = value - 1;
+      input.dispatchEvent(new Event('change'));
+    }
+  });
+
   return itemDiv;
 }
 
@@ -190,81 +278,70 @@ function bindCartItemEvents() {
   });
 }
 
-// 更新項目數量
-async function updateItemQuantity(cartItem) {
-  const prodId = cartItem.dataset.id;
+// 更新購物車項目（顏色/規格/數量）
+async function updateCartItem(cartItem) {
+  const prodId = parseInt(cartItem.dataset.id);
+  const oldProdColorId = parseInt(cartItem.dataset.oldColorId);
+  const oldProdSpecId = parseInt(cartItem.dataset.oldSpecId);
+  const prodColorId = parseInt(cartItem.querySelector('.color-select').value);
+  const prodSpecId = parseInt(cartItem.querySelector('.spec-select').value);
   const quantity = parseInt(cartItem.querySelector('.quantity-selector input').value);
-  
+  const memberInfo = localStorage.getItem('memberInfo');
+  const memId = memberInfo ? JSON.parse(memberInfo).memId : null;
+
   try {
-    // 發送更新請求到API
     const response = await fetch('http://localhost:8081/CJA101G02/api/updateCart', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        prodId: prodId,
-        quantity: quantity
+        memId, prodId,
+        oldProdColorId, oldProdSpecId,
+        prodColorId, prodSpecId,
+        cartProdQty: quantity
       })
     });
-    
-    if (!response.ok) {
-      throw new Error('網路回應不正常');
-    }
-    
+    if (!response.ok) throw new Error('網路回應不正常');
     const data = await response.json();
-    
-    // 更新小計
-    updateItemSubtotal(cartItem);
-    
-    // 確保summary包含所有必要字段
-    const summary = {
-      subtotal: data.summary?.subtotal || 0,
-      shipping: data.summary?.shipping || 0,
-      discount: data.summary?.discount || 0,
-      total: data.summary?.total || 0
-    };
-    
-    // 更新購物車摘要
-    updateCartSummary(summary);
-    
-    // 更新購物車計數
-    updateCartCount(data.totalItems);
-    
+    if (data.status === 'success') {
+      await initCartPage();
+    } else {
+      alert('更新失敗');
+    }
   } catch (error) {
-    console.error('更新購物車項目數量失敗:', error);
-    showErrorMessage('更新數量失敗，請稍後再試');
-  }
-}
-
-// 更新項目小計
-function updateItemSubtotal(cartItem) {
-  const priceElement = cartItem.querySelector('.product-price .current-price');
-  const quantityInput = cartItem.querySelector('.quantity-selector input');
-  const subtotalElement = cartItem.querySelector('.product-subtotal span');
-  
-  if (priceElement && quantityInput && subtotalElement) {
-    const price = parseInt(priceElement.textContent.replace(/[^0-9]/g, ''));
-    const quantity = parseInt(quantityInput.value);
-    const subtotal = price * quantity;
-    
-    subtotalElement.textContent = `NT$ ${subtotal.toLocaleString()}`;
+    alert('更新失敗，請稍後再試');
   }
 }
 
 // 移除購物車項目
 async function removeCartItem(cartItem) {
-  const prodId = cartItem.dataset.id;
+  if (!confirm('確定要移除這個商品嗎？')) {
+    return;
+  }
+  
+  const prodId = parseInt(cartItem.dataset.id);
+  // 使用當前選擇的顏色和規格值，而不是舊的 dataset 值
+  const prodColorId = parseInt(cartItem.querySelector('.color-select').value);
+  const prodSpecId = parseInt(cartItem.querySelector('.spec-select').value);
+  
+  // 取得會員ID
+  const memberInfo = localStorage.getItem('memberInfo');
+  const memId = memberInfo ? JSON.parse(memberInfo).memId : null;
+  
+  console.log('移除購物車項目:', {
+    memId, prodId, prodColorId, prodSpecId
+  });
   
   try {
-    // 發送移除請求到API
-    const response = await fetch('http://localhost:8081/CJA101G02/api/removeCartItem', {
+    const response = await fetch('http://localhost:8081/CJA101G02/api/removeCart', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        prodId: prodId
+        memId: memId,
+        prodId: prodId,
+        prodColorId: prodColorId,
+        prodSpecId: prodSpecId
       })
     });
     
@@ -273,132 +350,79 @@ async function removeCartItem(cartItem) {
     }
     
     const data = await response.json();
+    console.log('移除購物車回應:', data);
     
-    // 從DOM中移除項目
-    cartItem.remove();
-    
-    // 確保summary包含所有必要字段
-    const summary = {
-      subtotal: data.summary?.subtotal || 0,
-      shipping: data.summary?.shipping || 0,
-      discount: data.summary?.discount || 0,
-      total: data.summary?.total || 0
-    };
-    
-    // 更新購物車摘要
-    updateCartSummary(summary);
-    
-    // 更新購物車計數
-    updateCartCount(data.totalItems);
-    
-    // 檢查購物車是否為空
-    checkEmptyCart(data.totalItems);
-    
+    if (data.status === 'success') {
+      // 重新載入購物車資料
+      await initCartPage();
+    } else {
+      alert('移除商品失敗');
+    }
   } catch (error) {
-    console.error('移除購物車項目失敗:', error);
-    showErrorMessage('移除商品失敗，請稍後再試');
+    console.error('移除商品失敗:', error);
+    alert('移除商品失敗，請稍後再試');
   }
 }
 
 // 清空購物車
 async function clearCart() {
-  if (!confirm('確定要清空購物車嗎？')) return;
-  
+  if (!confirm('確定要清空購物車嗎？此操作無法復原。')) {
+    return;
+  }
+
+  // 取得會員ID
+  const memberInfo = localStorage.getItem('memberInfo');
+  const memId = memberInfo ? JSON.parse(memberInfo).memId : null;
+
   try {
-    // 發送清空請求到API
-    const response = await fetch('http://localhost:8081/CJA101G02/api/clearCart', {
-      method: 'POST'
+    const response = await fetch(`http://localhost:8081/CJA101G02/api/clearCart?memId=${memId || ''}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
     });
-    
+
     if (!response.ok) {
       throw new Error('網路回應不正常');
     }
-    
-    // 清空購物車項目容器
-    const cartItemsContainer = document.getElementById('cart-items-container');
-    if (cartItemsContainer) {
-      cartItemsContainer.innerHTML = '';
+
+    const data = await response.json();
+    if (data.status === 'success') {
+      // 重新載入購物車資料
+      await initCartPage();
+    } else {
+      alert('清空購物車失敗');
     }
-    
-    // 創建空的購物車摘要
-    const emptySummary = {
-      subtotal: 0,
-      shipping: 0,
-      discount: 0,
-      total: 0
-    };
-    
-    // 更新購物車摘要（全部歸零）
-    updateCartSummary(emptySummary);
-    
-    // 更新運費說明
-    updateShippingNote(0);
-    
-    // 更新購物車計數
-    updateCartCount(0);
-    
-    // 顯示空購物車訊息
-    checkEmptyCart(0);
-    
   } catch (error) {
     console.error('清空購物車失敗:', error);
-    showErrorMessage('清空購物車失敗，請稍後再試');
+    alert('清空購物車失敗，請稍後再試');
   }
 }
 
 // 設定運費常數
 const SHIPPING_FEE = 60;
-const FREE_SHIPPING_THRESHOLD = 1500;
-
-// 更新運費說明
-function updateShippingNote(subtotal) {
-  const shippingNote = document.querySelector('.shipping-note');
-  if (!shippingNote) return;
-  
-  if (subtotal >= FREE_SHIPPING_THRESHOLD) {
-    shippingNote.textContent = '（已達免運門檻）';
-    shippingNote.style.color = '#3A5A40';
-  } else {
-    shippingNote.textContent = `（滿NT$ ${FREE_SHIPPING_THRESHOLD.toLocaleString()}免運費，還差NT$ ${(FREE_SHIPPING_THRESHOLD - subtotal).toLocaleString()}）`;
-    shippingNote.style.color = '';
-  }
-}
 
 // 更新購物車摘要
 function updateCartSummary(summary) {
-  // 更新小計
-  const subtotalElement = document.querySelector('.summary-row:nth-child(1) .summary-value');
+  // 商品總計 = 商品費用 * 數量的加總
+  const subtotalElement = document.getElementById('cart-subtotal');
   if (subtotalElement) {
-    subtotalElement.textContent = `NT$ ${summary.subtotal.toLocaleString()}`;
+    subtotalElement.textContent = `NT$ ${Number(summary.subtotal).toLocaleString()}`;
   }
-  
-  // 更新運費 - 固定為60元，滿1500免運費
-  const shippingElement = document.querySelector('.summary-row:nth-child(2) .summary-value');
+
+  // 運費 - 固定為 SHIPPING_FEE
+  const shippingElement = document.querySelector('.shipping-fee');
   if (shippingElement) {
-    // 如果小計滿1500，則免運費
-    const finalShipping = summary.subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
-    shippingElement.textContent = `NT$ ${finalShipping.toLocaleString()}`;
-    
-    // 更新運費說明
-    updateShippingNote(summary.subtotal);
+    shippingElement.textContent = `NT$ ${Number(SHIPPING_FEE).toLocaleString()}`;
   }
-  
-  // 更新折扣
-  const discountElement = document.querySelector('.summary-row:nth-child(3) .summary-value');
-  if (discountElement) {
-    discountElement.textContent = `-NT$ ${summary.discount.toLocaleString()}`;
-  }
-  
-  // 計算總計（加上運費）
-  const finalShipping = summary.subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
-  const finalTotal = summary.subtotal + finalShipping - summary.discount;
-  
-  // 更新總計
-  const totalElement = document.querySelector('.summary-row.total .summary-value');
+
+  // 計算總計（商品總計 + 運費）
+  const finalTotal = Number(summary.subtotal) + Number(SHIPPING_FEE);
+  const totalElement = document.getElementById('cart-total');
   if (totalElement) {
     totalElement.textContent = `NT$ ${finalTotal.toLocaleString()}`;
   }
-  
+
   // 啟用/禁用結帳按鈕
   const checkoutButton = document.getElementById('checkout-btn');
   if (checkoutButton) {
@@ -408,11 +432,17 @@ function updateCartSummary(summary) {
 
 // 更新購物車計數
 function updateCartCount(count) {
-  const cartCountElements = document.querySelectorAll('.cart-count');
-  cartCountElements.forEach(element => {
-    element.textContent = count;
-    element.style.display = count > 0 ? 'inline' : 'none';
-  });
+  // 使用全域購物車管理器
+  if (window.globalCartManager) {
+    window.globalCartManager.updateCartCount(count);
+  } else {
+    // 備用方案
+    const cartCountElements = document.querySelectorAll('.cart-count');
+    cartCountElements.forEach(element => {
+      element.textContent = count;
+      element.style.display = count > 0 ? 'inline' : 'none';
+    });
+  }
 }
 
 // 檢查購物車是否為空
@@ -451,43 +481,6 @@ function showLoadingOverlay() {
     <p>載入中...</p>
   `;
   
-  // 添加樣式
-  overlay.style.cssText = `
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(255, 255, 255, 0.8);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-  `;
-  
-  // 添加旋轉動畫樣式
-  if (!document.querySelector('style[data-loading-animation]')) {
-    const style = document.createElement('style');
-    style.setAttribute('data-loading-animation', 'true');
-    style.textContent = `
-      .loading-spinner {
-        width: 50px;
-        height: 50px;
-        border: 5px solid #f3f3f3;
-        border-top: 5px solid #3A5A40;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-      }
-      
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-    `;
-    document.head.appendChild(style);
-  }
-  
   document.body.appendChild(overlay);
 }
 
@@ -509,33 +502,34 @@ function showErrorMessage(message) {
     <span>${message}</span>
   `;
   
-  // 添加樣式
-  errorDiv.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background-color: #e74c3c;
-    color: white;
-    padding: 12px 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    z-index: 10000;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-family: 'Noto Sans TC', sans-serif;
-    animation: slideInRight 0.3s ease;
-  `;
-  
   document.body.appendChild(errorDiv);
   
   // 3秒後移除
   setTimeout(() => {
-    errorDiv.style.animation = 'fadeOut 0.3s ease';
+    errorDiv.className = 'error-message fadeOut';
     setTimeout(() => {
       if (errorDiv.parentNode) {
         errorDiv.parentNode.removeChild(errorDiv);
       }
     }, 300);
   }, 3000);
+}
+
+// 新增：即時計算商品總計、總計
+function recalculateCartSummary() {
+  let subtotal = 0;
+  document.querySelectorAll('.cart-item').forEach(item => {
+    const price = parseInt(item.querySelector('.current-price').textContent.replace(/[^\d]/g, '')) || 0;
+    const qty = parseInt(item.querySelector('.quantity-selector input').value) || 1;
+    subtotal += price * qty;
+    // 更新每個商品小計
+    item.querySelector('.product-subtotal span').textContent = `NT$ ${(price * qty).toLocaleString()}`;
+  });
+  // 商品總計
+  document.getElementById('cart-subtotal').textContent = `NT$ ${subtotal.toLocaleString()}`;
+  // 運費
+  const shipping = Number(SHIPPING_FEE);
+  document.querySelector('.shipping-fee').textContent = `NT$ ${shipping.toLocaleString()}`;
+  // 總計
+  document.getElementById('cart-total').textContent = `NT$ ${(subtotal + shipping).toLocaleString()}`;
 }

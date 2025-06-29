@@ -1752,3 +1752,13 @@ h4 {
   display: block;
 }
 
+
+.data-table {
+  width: 100%;
+  min-width: 851px;
+  max-width: 1023px;
+  border-collapse: collapse;
+}
+.data-table tr {
+  height: 67.59px;
+}

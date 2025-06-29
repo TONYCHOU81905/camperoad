@@ -39,14 +39,14 @@ async function handleLogin(e) {
   e.preventDefault();
 
   const formData = new FormData(e.target);
-  const memId = formData.get("mem_id") || formData.get("username");
+  const memAcc = formData.get("mem_acc") || formData.get("username");
   const password = formData.get("password");
   const remember = formData.get("remember");
 
-  console.log("登入請求：", { memId, password, remember });
+  console.log("登入請求：", { memAcc, password, remember });
 
-  if (!memId || !password) {
-    showMessage("請輸入會員ID和密碼", "error");
+  if (!memAcc || !password) {
+    showMessage("請輸入露營者帳號和密碼", "error");
     return;
   }
 
@@ -57,7 +57,7 @@ async function handleLogin(e) {
 
   // 驗證登入
   const member = memberData.find(
-    (m) => m.mem_id == memId && m.mem_pwd == password
+    (m) => m.mem_acc == memAcc && m.mem_pwd == password
   );
 
   if (member) {
@@ -78,7 +78,7 @@ async function handleLogin(e) {
       window.location.href = "index.html";
     }, 1500);
   } else {
-    showMessage("會員ID或密碼錯誤", "error");
+    showMessage("露營者帳號或密碼錯誤", "error");
   }
 }
 

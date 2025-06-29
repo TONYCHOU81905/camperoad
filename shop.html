@@ -19,8 +19,37 @@
     <link rel="stylesheet" href="css/shop.css" />
   </head>
   <body>
-    <!-- 導入 header -->
-    <div id="header-container"></div>
+    <header class="site-header">
+      <div class="container">
+        <div class="logo">
+          <a href="index.html">
+            <img src="images/logo.svg" alt="露途 Logo" />
+          </a>
+        </div>
+        <nav class="main-nav">
+          <ul>
+            <li><a href="campsites.html">營地預訂</a></li>
+            <li><a href="shop.html" class="active">裝備商城</a></li>
+            <li><a href="camp-guides.html">論壇攻略</a></li>
+            <li><a href="#">關於我們</a></li>
+          </ul>
+        </nav>
+        <div class="user-actions">
+          <a href="cart.html" class="btn-cart">
+            <i class="fas fa-shopping-cart"></i>
+            <span class="cart-count">0</span>
+          </a>
+          <a href="user-profile.html" class="btn-login"
+            ><i class="fas fa-user"></i
+          ></a>
+        </div>
+        <button class="mobile-menu-toggle">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+    </header>
 
     <div class="breadcrumb">
       <div class="container">
@@ -161,7 +190,7 @@
     <!-- 導入 footer -->
     <div id="footer-container"></div>
 
-    <script src="js/main.js"></script>
+    <!-- <script src="js/main.js"></script> -->
     <script src="js/header-auth.js"></script>
     <script src="js/shop-prod.js"></script>
     <!-- 自動載入 header/footer 的 script -->
