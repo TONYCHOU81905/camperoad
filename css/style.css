@@ -240,10 +240,13 @@ h4 {
 }
 
 .btn-search,
-.btn-cart {
+.btn-cart,
+.btn-login {
   font-size: 1.2rem;
   color: #3a5a40;
   position: relative;
+  width: 24px; /* 統一三個圖示的寬度 */
+  text-align: center;
 }
 
 .btn-cart.active {
@@ -266,21 +269,19 @@ h4 {
 }
 
 .btn-login {
-  padding: 8px 16px;
-  border: 1px solid #3a5a40;
-  border-radius: 4px;
-  color: #3a5a40;
-  font-weight: 500;
+  border: none; /* 移除外框 */
+  border-radius: 0;
+  padding: 0;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
   text-decoration: none;
 }
 
 .btn-login:hover {
-  background-color: #3a5a40;
-  color: white;
+  background-color: transparent; /* 移除懸停時的背景色 */
+  color: #2d4731; /* 保持懸停時的顏色變化 */
 }
 
 .btn-login.logged-in {
@@ -1693,44 +1694,64 @@ h4 {
   align-self: flex-end;
 }
 
-/* 用戶下拉選單樣式 */
-.user-dropdown {
+/* 導航下拉選單樣式 */
+.main-nav .dropdown {
   position: relative;
-  display: inline-flex;
-  align-items: center;
-  height: 100%;
 }
 
-.dropdown-menu {
+.main-nav .dropdown-menu {
   display: none;
   position: absolute;
   top: 100%;
-  right: 0;
-  background: white;
+  left: 0;
+  background-color: white;
   border: 1px solid #ddd;
   border-radius: 4px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  min-width: 120px;
-  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  min-width: 160px;
+  z-index: 999;
+  padding: 10px 0;
   margin-top: 5px;
 }
 
-.dropdown-item {
+.main-nav .dropdown-item {
   display: block;
-  padding: 8px 16px;
-  color: #333;
-  text-decoration: none;
+  padding: 10px 20px;
   font-size: 14px;
-  white-space: nowrap;
+  color: #3a5a40;
+  transition: background-color 0.3s ease;
 }
 
-.dropdown-item:hover {
-  background-color: #f5f5f5;
+.main-nav .dropdown-item:hover {
+  background-color: #f0f0f0;
 }
 
-.user-dropdown:hover .dropdown-menu {
+.main-nav .sale-item {
+  color: #e76f51;
+  font-weight: bold;
+}
+
+/* 修正裝備商城 hover 效果 */
+.main-nav .dropdown > a:after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background-color: #3a5a40;
+  transition: width 0.3s ease;
+}
+
+.main-nav .dropdown:hover > a:after {
+  width: 100%;
+}
+
+/* 滑鼠移上去才顯示下拉 */
+.main-nav .dropdown:hover .dropdown-menu {
   display: block;
 }
+
 
 .data-table {
   width: 100%;
