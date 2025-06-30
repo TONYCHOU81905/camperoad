@@ -57,14 +57,195 @@ class UserProfileManager {
     }
   }
 
-  // 登出功能
-  logout() {
-    // 清除localStorage和sessionStorage中的會員資訊
-    localStorage.removeItem("currentMember");
-    sessionStorage.removeItem("currentMember");
+  // 顯示更改密碼模態框
+  showChangePasswordModal() {
+    // 檢查是否已存在模態框
+    let modal = document.getElementById('change-password-modal');
+    
+    if (!modal) {
+      // 創建模態框
+      modal = document.createElement('div');
+      modal.id = 'change-password-modal';
+      modal.className = 'modal';
+      modal.innerHTML = `
+        <div class="modal-content">
+          <span class="close-btn">&times;</span>
+          <h3>更改密碼</h3>
+          <form id="change-password-form">
+            <div class="form-group">
+              <label for="current-password">目前密碼</label>
+              <input type="password" id="current-password" required>
+            </div>
+            <div class="form-group">
+              <label for="new-password">新密碼</label>
+              <input type="password" id="new-password" required>
+              <div class="password-strength-meter">
+                <div class="strength-bar"></div>
+              </div>
+              <p class="password-hint">密碼須包含至少8個字符，包括大小寫字母、數字和特殊符號</p>
+            </div>
+            <div class="form-group">
+              <label for="confirm-password">確認新密碼</label>
+              <input type="password" id="confirm-password" required>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn-save">確認更改</button>
+              <button type="button" class="btn-cancel">取消</button>
+            </div>
+          </form>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      
+      // 關閉按鈕事件
+      const closeBtn = modal.querySelector('.close-btn');
+      closeBtn.addEventListener('click', () => {
+        modal.style.display = 'none';
+      });
+      
+      // 取消按鈕事件
+      const cancelBtn = modal.querySelector('.btn-cancel');
+      cancelBtn.addEventListener('click', () => {
+        modal.style.display = 'none';
+      });
+      
+      // 表單提交事件
+      const form = modal.querySelector('#change-password-form');
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const currentPassword = document.getElementById('current-password').value;
+        const newPassword = document.getElementById('new-password').value;
+        const confirmPassword = document.getElementById('confirm-password').value;
+        
+        // 驗證新密碼與確認密碼是否一致
+        if (newPassword !== confirmPassword) {
+          showMessage('新密碼與確認密碼不一致', 'error');
+          return;
+        }
+        
+        // 驗證密碼強度
+        const strength = this.checkPasswordStrength(newPassword);
+        if (strength < 60) {
+          showMessage('新密碼強度不足，請設置更複雜的密碼', 'error');
+          return;
+        }
+        
+        try {
+          // 使用API更改密碼
+          const response = await fetch("http://localhost:8081/CJA101G02/api/member/changePassword", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              mem_id: this.currentMember.mem_id,
+              old_password: currentPassword,
+              new_password: newPassword
+            }),
+            credentials: "include" // 包含Cookie
+          });
+          
+          if (!response.ok) {
+            throw new Error("密碼更改請求失敗");
+          }
+          
+          const data = await response.json();
+          
+          if (data.success) {
+            showMessage("密碼已成功更改", "success");
+            modal.style.display = 'none';
+            form.reset();
+          } else {
+            showMessage(data.message || "密碼更改失敗，請檢查當前密碼是否正確", "error");
+          }
+        } catch (error) {
+          console.error("密碼更改錯誤：", error);
+          showMessage("密碼更改失敗，請稍後再試", "error");
+        }
+      });
+      
+      // 密碼強度檢測
+      const newPasswordInput = document.getElementById('new-password');
+      const strengthBar = modal.querySelector('.strength-bar');
+      
+      newPasswordInput.addEventListener('input', () => {
+        const password = newPasswordInput.value;
+        const strength = this.checkPasswordStrength(password);
+        
+        // 更新強度條
+        strengthBar.style.width = `${strength}%`;
+        
+        // 根據強度設置顏色
+        if (strength < 30) {
+          strengthBar.style.backgroundColor = '#ff4d4d'; // 弱
+        } else if (strength < 60) {
+          strengthBar.style.backgroundColor = '#ffa64d'; // 中
+        } else {
+          strengthBar.style.backgroundColor = '#4CAF50'; // 強
+        }
+      });
+    }
+    
+    // 顯示模態框
+    modal.style.display = 'block';
+  }
+  
+  // 檢查密碼強度
+  checkPasswordStrength(password) {
+    let strength = 0;
+    
+    // 長度檢查
+    if (password.length >= 8) {
+      strength += 20;
+    }
+    
+    // 包含大寫字母
+    if (/[A-Z]/.test(password)) {
+      strength += 20;
+    }
+    
+    // 包含小寫字母
+    if (/[a-z]/.test(password)) {
+      strength += 20;
+    }
+    
+    // 包含數字
+    if (/[0-9]/.test(password)) {
+      strength += 20;
+    }
+    
+    // 包含特殊字符
+    if (/[^A-Za-z0-9]/.test(password)) {
+      strength += 20;
+    }
+    
+    return strength;
+  }
 
-    // 重定向到首頁
-    window.location.href = "index.html";
+  // 登出功能
+  async logout() {
+    try {
+      // 呼叫登出API
+      const response = await fetch("http://localhost:8081/CJA101G02/api/member/logout", {
+        method: "POST",
+        credentials: "include" // 包含Cookie
+      });
+
+      // 無論API回應如何，都清除本地儲存的會員資訊
+      localStorage.removeItem("currentMember");
+      sessionStorage.removeItem("currentMember");
+
+      // 重定向到首頁
+      window.location.href = "index.html";
+    } catch (error) {
+      console.error("登出錯誤：", error);
+      // 即使API呼叫失敗，仍然清除本地儲存並登出
+      localStorage.removeItem("currentMember");
+      sessionStorage.removeItem("currentMember");
+      window.location.href = "index.html";
+    }
   }
 
   async init() {
@@ -398,6 +579,15 @@ class UserProfileManager {
 
   loadMemberData() {
     if (!this.currentMember) return;
+    
+    // 初始化更改密碼按鈕
+    const changePasswordBtn = document.querySelector('.btn-change-password');
+    if (changePasswordBtn) {
+      changePasswordBtn.addEventListener('click', () => {
+        // 創建密碼更改模態框
+        this.showChangePasswordModal();
+      });
+    }
 
     // 填入基本資料
     document.getElementById("profile-id").value =
@@ -414,6 +604,77 @@ class UserProfileManager {
       this.currentMember.mem_birth || "";
     document.getElementById("profile-gender").value =
       this.currentMember.mem_gender || "";
+      
+    // 綁定表單提交事件
+    const profileForm = document.querySelector('.profile-form');
+    if (profileForm) {
+      profileForm.addEventListener('submit', this.handleProfileUpdate.bind(this));
+    }
+  }
+  
+  // 處理會員資料更新
+  async handleProfileUpdate(e) {
+    e.preventDefault();
+    
+    if (!this.currentMember) {
+      showMessage("無法獲取會員資料，請重新登入", "error");
+      return;
+    }
+    
+    // 收集表單資料
+    const memData = {
+      mem_id: document.getElementById("profile-id").value,
+      mem_name: document.getElementById("profile-name").value,
+      mem_email: document.getElementById("profile-email").value,
+      mem_mobile: document.getElementById("profile-phone").value,
+      mem_addr: document.getElementById("profile-address").value,
+      mem_birth: document.getElementById("profile-birthday").value,
+      mem_gender: document.getElementById("profile-gender").value
+    };
+    
+    // 驗證必填欄位
+    if (!memData.mem_name || !memData.mem_mobile || !memData.mem_addr) {
+      showMessage("請填寫所有必填欄位", "error");
+      return;
+    }
+    
+    try {
+      // 使用API更新會員資料
+      const response = await fetch("http://localhost:8081/CJA101G02/api/member/update", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(memData),
+        credentials: "include" // 包含Cookie
+      });
+      
+      if (!response.ok) {
+        throw new Error("更新請求失敗");
+      }
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        // 更新成功，更新本地儲存的會員資料
+        this.currentMember = { ...this.currentMember, ...memData };
+        
+        // 更新localStorage和sessionStorage中的會員資訊
+        if (localStorage.getItem("currentMember")) {
+          localStorage.setItem("currentMember", JSON.stringify(this.currentMember));
+        }
+        if (sessionStorage.getItem("currentMember")) {
+          sessionStorage.setItem("currentMember", JSON.stringify(this.currentMember));
+        }
+        
+        showMessage("會員資料更新成功", "success");
+      } else {
+        showMessage(data.message || "更新失敗，請檢查資料是否正確", "error");
+      }
+    } catch (error) {
+      console.error("更新失敗：", error);
+      showMessage("更新失敗，請稍後再試", "error");
+    }
   }
 
   loadCampsiteOrders() {

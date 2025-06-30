@@ -64,39 +64,35 @@ async function handleForgotPassword(e) {
   }
 
   try {
-    // 模擬檢查電子郵件是否存在於系統中
-    // 實際應用中，這裡應該是一個API請求
-    const memberData = await loadMemberData();
-    const member = memberData.find(
-      (m) => m.mem_email.toLowerCase() === email.toLowerCase() || m.mem_acc.toLowerCase() === email.toLowerCase()
-    );
+    // 使用API發送重設密碼請求
+    const response = await fetch("http://localhost:8081/CJA101G02/api/auth/forgot-password", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ email: email }),
+      credentials: "include" // 包含Cookie
+    });
 
-    if (!member) {
-      showMessage("此電子郵件地址未註冊", "error");
-      return;
+    if (!response.ok) {
+      throw new Error("發送重設密碼請求失敗");
     }
 
-    // 模擬發送重設密碼郵件
-    // 實際應用中，這裡應該是一個API請求，生成重設令牌並發送郵件
-    console.log("發送重設密碼郵件到：", email);
-    
-    // 模擬生成重設令牌
-    const resetToken = generateResetToken();
-    
-    // 在實際應用中，這個令牌應該存儲在數據庫中，並與用戶關聯
-    // 這裡我們只是模擬，將令牌存儲在sessionStorage中
-    sessionStorage.setItem("resetToken", resetToken);
-    sessionStorage.setItem("resetEmail", email);
-    
-    // 顯示成功訊息
-    showMessage("重設密碼連結已發送到您的電子郵件", "success");
-    
-    // 模擬郵件發送後，在實際應用中，用戶會點擊郵件中的連結
-    // 這裡我們只是模擬，2秒後自動跳轉到重設密碼頁面
-    setTimeout(() => {
-      // 在實際應用中，這個URL應該包含重設令牌
-      window.location.href = `Reset-Password.html?token=${resetToken}&email=${encodeURIComponent(email)}`;
-    }, 2000);
+    const data = await response.json();
+
+    if (data.success) {
+      // 顯示成功訊息
+      showMessage("重設密碼連結已發送到您的電子郵件，請查收", "success");
+      
+      // 如果API返回了令牌，可以存儲它（實際應用中可能不需要，因為令牌通常會包含在郵件連結中）
+      if (data.token) {
+        sessionStorage.setItem("resetToken", data.token);
+        sessionStorage.setItem("resetEmail", email);
+      }
+    } else {
+      // 顯示API返回的錯誤訊息
+      showMessage(data.message || "發送重設密碼郵件失敗，請稍後再試", "error");
+    }
   } catch (error) {
     console.error("處理忘記密碼請求時出錯：", error);
     showMessage("處理請求時出錯，請稍後再試", "error");
@@ -114,11 +110,7 @@ async function handleResetPassword(e) {
   const token = urlParams.get("token");
   const email = urlParams.get("email");
 
-  // 驗證令牌和電子郵件
-  const storedToken = sessionStorage.getItem("resetToken");
-  const storedEmail = sessionStorage.getItem("resetEmail");
-
-  if (!token || token !== storedToken || !email || email !== storedEmail) {
+  if (!token || !email) {
     showMessage("無效的密碼重設連結，請重新申請", "error");
     return;
   }
@@ -138,22 +130,51 @@ async function handleResetPassword(e) {
     return;
   }
 
+  // 檢查密碼強度
+  const strengthBar = document.querySelector(".password-strength-bar");
+  const strengthPercentage = parseInt(strengthBar.style.width) || 0;
+  if (strengthPercentage < 50) {
+    showMessage("密碼強度不足，請設置更複雜的密碼", "error");
+    return;
+  }
+
   try {
-    // 模擬更新密碼
-    // 實際應用中，這裡應該是一個API請求
-    console.log("更新密碼：", { email, newPassword });
+    // 使用API重設密碼
+    const response = await fetch("http://localhost:8081/CJA101G02/api/member/changePassword", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        token: token,
+        email: email,
+        new_password: newPassword
+      }),
+      credentials: "include" // 包含Cookie
+    });
 
-    // 清除重設令牌
-    sessionStorage.removeItem("resetToken");
-    sessionStorage.removeItem("resetEmail");
+    if (!response.ok) {
+      throw new Error("密碼重設請求失敗");
+    }
 
-    // 顯示成功訊息
-    showMessage("密碼重設成功，即將跳轉到登入頁面", "success");
+    const data = await response.json();
 
-    // 延遲跳轉到登入頁面
-    setTimeout(() => {
-      window.location.href = "login.html";
-    }, 2000);
+    if (data.success) {
+      // 清除重設令牌
+      sessionStorage.removeItem("resetToken");
+      sessionStorage.removeItem("resetEmail");
+
+      // 顯示成功訊息
+      showMessage("密碼重設成功，即將跳轉到登入頁面", "success");
+
+      // 延遲跳轉到登入頁面
+      setTimeout(() => {
+        window.location.href = "login.html";
+      }, 2000);
+    } else {
+      // 顯示API返回的錯誤訊息
+      showMessage(data.message || "密碼重設失敗，請稍後再試", "error");
+    }
   } catch (error) {
     console.error("重設密碼時出錯：", error);
     showMessage("重設密碼時出錯，請稍後再試", "error");
