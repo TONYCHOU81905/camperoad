@@ -7,6 +7,8 @@
   background-color: #f5f5f5;
 }
 
+
+
 /* Sidebar */
 .sidebar {
   width: 60px; /* 默认就是收缩宽度 */
@@ -736,53 +738,49 @@
   box-shadow: 0 6px 20px rgba(23, 162, 184, 0.3);
 }
 
-/* Legacy action button classes for backward compatibility */
+/* 操作按鈕樣式 */
 .action-btn {
   padding: 8px 15px;
   margin: 0 3px;
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
-  text-transform: uppercase;
   transition: all 0.3s ease;
+  color: white;
+}
+
+.btn-view {
+  background-color: #17a2b8;
+}
+
+.btn-view:hover {
+  background-color: #138496;
+}
+
+.btn-edit {
+  background-color: #6b9b73;
+}
+
+.btn-edit:hover {
+  background-color: #5a8c69;
 }
 
 .btn-activate {
   background-color: #28a745;
-  color: white;
 }
 
 .btn-activate:hover {
   background-color: #218838;
 }
 
-.btn-suspend {
-  background-color: #ffc107;
-  color: #212529;
-}
-
-.btn-suspend:hover {
-  background-color: #e0a800;
-}
-
 .btn-deactivate {
   background-color: #dc3545;
-  color: white;
 }
 
 .btn-deactivate:hover {
   background-color: #c82333;
-}
-
-.btn-payment {
-  background-color: #17a2b8;
-  color: white;
-}
-
-.btn-payment:hover {
-  background-color: #138496;
 }
 
 /* 聊天視窗 */
@@ -1212,4 +1210,10 @@
   width: 100%;
   height: 788.94px;
   table-layout: fixed;
+}
+
+/* 表格中的顏色和規格數量 */
+.data-table td:nth-child(6),
+.data-table td:nth-child(7) {
+  text-align: center;
 }

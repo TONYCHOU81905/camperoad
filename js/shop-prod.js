@@ -93,7 +93,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // ✅ 動態載入商品分類選單
   function loadCategories() {
-    return fetch("http://localhost:8081/CJA101G02/api/product-types")
+    return fetch("${window.api_prefix}/api/product-types")
       .then(res => res.json())
       .then(response => {
         // 檢查是否有嵌套結構，例如 { data: [...] } 或 { results: [...] }
@@ -127,22 +127,22 @@ document.addEventListener("DOMContentLoaded", function () {
     const priceRange = document.getElementById("price")?.value;
 
 
-    let url = "http://localhost:8081/CJA101G02/api/products";
+    let url = "${window.api_prefix}/api/products";
 
     if (category) {
-      url = `http://localhost:8081/CJA101G02/api/products/type/${category}`;
+      url = `${window.api_prefix}/api/products/type/${category}`;
     } else if (priceRange){
-      url = `http://localhost:8081/CJA101G02/api/products/price-range?range=${priceRange}`;
+      url = `${window.api_prefix}/api/products/price-range?range=${priceRange}`;
     }else if (sort === "latest") {
-      url = `http://localhost:8081/CJA101G02/api/products/latest`;
+      url = `${window.api_prefix}/api/products/latest`;
     } else if (sort === "popular") {
-      url = `http://localhost:8081/CJA101G02/api/products`;
+      url = `${window.api_prefix}/api/products`;
     } else if (sort === "discount") {
-      url = `http://localhost:8081/CJA101G02/api/products/discount`;
+      url = `${window.api_prefix}/api/products/discount`;
     } else if (sort === "price-asc") {
-      url = "http://localhost:8081/CJA101G02/api/products/price-asc";
+      url = `${window.api_prefix}/api/products/price-asc`;
     } else if (sort === "price-desc") {
-      url = "http://localhost:8081/CJA101G02/api/products/price-desc";
+      url = `${window.api_prefix}/api/products/price-desc`;
     }
 
     console.log("API 請求網址：", url);
@@ -175,7 +175,7 @@ document.addEventListener("DOMContentLoaded", function () {
           
               // 如果有圖片才組圖片 HTML
               if (hasImage) {
-                const imgUrl = `http://localhost:8081/CJA101G02/api/prod-colors/colorpic/${prod.prodId}/${colorId}`;
+                const imgUrl = `${window.api_prefix}/api/prod-colors/colorpic/${prod.prodId}/${colorId}`;
                 imageHtml = `<img src="${imgUrl}" alt="${colorName}" class="color-thumbnail" onerror="this.src='images/default-color.png'" />`;
               }
           
@@ -220,7 +220,7 @@ document.addEventListener("DOMContentLoaded", function () {
           if (prod.prodPicList && prod.prodPicList.length > 0) {
             const firstPicId = prod.prodPicList[0].prodPicId;
             // 添加錯誤處理
-            productImageHtml = `<img src="http://localhost:8081/CJA101G02/api/products/prodpic/${firstPicId}" alt="${prod.prodName}" onerror="this.onerror=null; this.src='images/default-product.jpg';" />`;
+            productImageHtml = `<img src="${window.api_prefix}/api/products/prodpic/${firstPicId}" alt="${prod.prodName}" onerror="this.onerror=null; this.src='images/default-product.jpg';" />`;
           } else {
             productImageHtml = `<img src="images/default-product.jpg" alt="無圖片" />`;
           }
@@ -413,7 +413,7 @@ document.addEventListener("DOMContentLoaded", function () {
         console.log('加入購物車數據:', cartData);
         
         // 使用fetch API發送請求
-        fetch('http://localhost:8081/CJA101G02/api/addCart', {
+        fetch('${window.api_prefix}/api/addCart', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
