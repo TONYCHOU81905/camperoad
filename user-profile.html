@@ -139,16 +139,19 @@
                     <input type="text" id="profile-name" value="" />
                   </div>
                   <div class="form-group">
-                    <label for="profile-nickname">暱稱</label>
-                    <input type="text" id="profile-nickname" value="" />
+                    <label for="profile-email">電子郵件</label>
+                    <input type="email" id="profile-email" value="" disabled />
+                    <p class="form-hint">電子郵件為您的登入帳號，無法修改</p>
                   </div>
                 </div>
 
                 <div class="form-row">
                   <div class="form-group">
-                    <label for="profile-email">電子郵件</label>
-                    <input type="email" id="profile-email" value="" disabled />
-                    <p class="form-hint">電子郵件為您的登入帳號，無法修改</p>
+                    <label for="profile-password">密碼</label>
+                    <div class="password-field">
+                      <input type="password" id="profile-password" value="********" disabled />
+                      <button type="button" class="btn-change-password">更改密碼</button>
+                    </div>
                   </div>
                   <div class="form-group">
                     <label for="profile-phone">手機號碼</label>
@@ -163,12 +166,13 @@
                   </div>
                   <div class="form-group">
                     <label for="profile-gender">性別</label>
-                    <select id="profile-gender">
+                    <select id="profile-gender" disabled>
                       <option value="">請選擇</option>
                       <option value="1">男性</option>
                       <option value="2">女性</option>
                       <option value="0">其他</option>
                     </select>
+                    <p class="form-hint">性別資料無法修改</p>
                   </div>
                 </div>
 

@@ -273,42 +273,16 @@
                 class="role-form active"
               >
                 <div class="form-group">
-                  <label for="camper-register-name">姓名</label>
+                  <label for="camper-register-account">帳號</label>
                   <div class="input-with-icon">
                     <i class="fas fa-user input-icon"></i>
                     <input
-                      type="text"
-                      id="camper-register-name"
-                      name="name"
-                      required
-                      placeholder="請輸入您的姓名"
-                    />
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label for="camper-register-email">電子郵件</label>
-                  <div class="input-with-icon">
-                    <i class="fas fa-envelope input-icon"></i>
-                    <input
                       type="email"
-                      id="camper-register-email"
-                      name="email"
+                      id="camper-register-account"
+                      name="mem_acc"
                       required
-                      placeholder="請輸入您的電子郵件"
+                      placeholder="信箱日後不可更改，信箱即為會員帳號"
                       autocomplete="email"
-                    />
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label for="camper-register-phone">手機號碼</label>
-                  <div class="input-with-icon">
-                    <i class="fas fa-phone input-icon"></i>
-                    <input
-                      type="tel"
-                      id="camper-register-phone"
-                      name="phone"
-                      required
-                      placeholder="請輸入您的手機號碼"
                     />
                   </div>
                 </div>
@@ -319,7 +293,7 @@
                     <input
                       type="password"
                       id="camper-register-password"
-                      name="password"
+                      name="mem_pwd"
                       required
                       placeholder="請設定6-20位密碼"
                       autocomplete="new-password"
@@ -350,6 +324,114 @@
                     <button type="button" class="toggle-password">
                       <i class="fas fa-eye"></i>
                     </button>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="camper-register-name">姓名</label>
+                  <div class="input-with-icon">
+                    <i class="fas fa-user input-icon"></i>
+                    <input
+                      type="text"
+                      id="camper-register-name"
+                      name="mem_name"
+                      required
+                      placeholder="請輸入您的姓名"
+                    />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>性別</label>
+                  <div class="radio-group">
+                    <label class="radio-label">
+                      <input type="radio" name="mem_gender" value="1" required />
+                      <span>男生</span>
+                    </label>
+                    <label class="radio-label">
+                      <input type="radio" name="mem_gender" value="2" required />
+                      <span>女生</span>
+                    </label>
+                    <label class="radio-label">
+                      <input type="radio" name="mem_gender" value="3" required />
+                      <span>其他</span>
+                    </label>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="camper-register-email">信箱</label>
+                  <div class="input-with-icon">
+                    <i class="fas fa-envelope input-icon"></i>
+                    <input
+                      type="email"
+                      id="camper-register-email"
+                      name="mem_email"
+                      required
+                      placeholder="請輸入與會員帳號相同"
+                      autocomplete="email"
+                    />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="camper-register-phone">手機</label>
+                  <div class="input-with-icon">
+                    <i class="fas fa-phone input-icon"></i>
+                    <input
+                      type="tel"
+                      id="camper-register-phone"
+                      name="mem_mobile"
+                      required
+                      placeholder="格式如0911-123-456"
+                    />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="camper-register-address">地址</label>
+                  <div class="input-with-icon">
+                    <i class="fas fa-map-marker-alt input-icon"></i>
+                    <input
+                      type="text"
+                      id="camper-register-address"
+                      name="mem_addr"
+                      required
+                      placeholder="請輸入您的地址"
+                    />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>國籍</label>
+                  <div class="radio-group">
+                    <label class="radio-label">
+                      <input type="radio" name="mem_nation" value="0" required />
+                      <span>本國籍</span>
+                    </label>
+                    <label class="radio-label">
+                      <input type="radio" name="mem_nation" value="1" required />
+                      <span>非本國籍</span>
+                    </label>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="camper-register-id">身分證</label>
+                  <div class="input-with-icon">
+                    <i class="fas fa-id-card input-icon"></i>
+                    <input
+                      type="text"
+                      id="camper-register-id"
+                      name="mem_nation_id"
+                      required
+                      placeholder="非本國籍請輸入護照號碼"
+                    />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="camper-register-birth">生日</label>
+                  <div class="input-with-icon">
+                    <i class="fas fa-calendar-alt input-icon"></i>
+                    <input
+                      type="date"
+                      id="camper-register-birth"
+                      name="mem_birth"
+                      required
+                    />
                   </div>
                 </div>
                 <div class="form-group terms-agree">
