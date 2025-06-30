@@ -97,34 +97,66 @@ class OwnerDashboard {
         // 綁定切換事件
         ownerProfileSelect.onchange = async () => {
           const campId = ownerProfileSelect.value;
-          await this.loadCampsiteTypesByCampId(campId);
-          // 重新載入該營地的相關資料
-          const campsiteResponse = await fetch("data/campsite.json");
-          if (campsiteResponse.ok) {
-            const allCampsites = await campsiteResponse.json();
-            this.campsiteData = allCampsites.filter(campsite => campsite.camp_id == campId);
+          // 更新 campData
+          this.campData = this.allCamps.find(camp => camp.camp_id == campId);
 
+          // 1. 只顯示/隱藏 loading 區塊，不覆蓋 camp-info
+          let campInfoLoading = document.getElementById('campInfoLoading');
+          if (!campInfoLoading) {
+            // 如果沒有 loading 區塊，動態新增
+            const formParent = document.querySelector('#camp-info .camp-info-form');
+            if (formParent) {
+              campInfoLoading = document.createElement('div');
+              campInfoLoading.id = 'campInfoLoading';
+              campInfoLoading.className = 'text-center py-4';
+              campInfoLoading.innerText = '載入中...';
+              formParent.insertBefore(campInfoLoading, formParent.firstChild);
+            }
           }
-          const bundleResponse = await fetch("data/bundle_item.json");
-          if (bundleResponse.ok) {
-            const allBundles = await bundleResponse.json();
-            this.bundleItemData = allBundles.filter(bundle => bundle.camp_id == campId);
+          if (campInfoLoading) campInfoLoading.style.display = '';
+          const campInfoForm = document.getElementById('campInfoForm');
+          if (campInfoForm) campInfoForm.style.display = 'none';
+
+          // 其他分頁 loading 同前
+          const roomTypesTableBody = document.getElementById('roomTypesTableBody');
+          if (roomTypesTableBody) {
+            roomTypesTableBody.innerHTML = '<tr><td colspan="9" class="text-center">載入中...</td></tr>';
           }
+          const bundleItemsTableBody = document.getElementById('bundleItemsTableBody');
+          if (bundleItemsTableBody) {
+            bundleItemsTableBody.innerHTML = '<tr><td colspan="3" class="text-center py-4">載入中...</td></tr>';
+          }
+          const ordersTableBody = document.getElementById('ordersTableBody');
+          if (ordersTableBody) {
+            ordersTableBody.innerHTML = '<tr><td colspan="10" class="text-center py-4">載入中...</td></tr>';
+          }
+          const discountCodesTableBody = document.getElementById('discountCodesTableBody');
+          if (discountCodesTableBody) {
+            discountCodesTableBody.innerHTML = '<tr><td colspan="8" class="text-center py-4">載入中...</td></tr>';
+          }
+
+          // 2. 依序載入所有資料
+          await this.renderRoomTypes(false, true); // 房型
+          await this.loadBundleItemsByCampId(campId); // 加購商品
           const orderResponse = await fetch("data/campsite_order.json");
           if (orderResponse.ok) {
             const allOrders = await orderResponse.json();
             this.orderData = allOrders.filter(order => order.camp_id == campId);
           }
-          // 更新營地基本資料表單
-          this.campData = this.allCamps.find(camp => camp.camp_id == campId);
+          const discountResponse = await fetch("data/discount_code.json");
+          if (discountResponse.ok) {
+            const allDiscountCodes = await discountResponse.json();
+            this.discountCodeData = allDiscountCodes.filter(
+              code => code.owner_id === this.currentOwner.owner_id
+            );
+          }
+
+          // 3. 切換到營地基本資料分頁，並 render
+          this.showTabContent('camp-info');
+          // loading 隱藏，表單顯示
+          if (campInfoLoading) campInfoLoading.style.display = 'none';
+          if (campInfoForm) campInfoForm.style.display = '';
           this.initCampInfoForm();
-          this.updateOwnerInfo();
-          // 重新渲染所有頁面資料
-          await this.renderRoomTypes(true, true).catch(error => {
-            console.error("重新渲染房型列表失敗：", error);
-          });
-          this.renderBundleItems();
-          this.renderOrders();
         };
       }
     } catch (error) {
@@ -173,15 +205,8 @@ class OwnerDashboard {
           this.campData && campsite.camp_id === this.campData.camp_id
       );
 
-      // 載入加購商品資料
-      const bundleResponse = await fetch("data/bundle_item.json");
-      if (!bundleResponse.ok) {
-        throw new Error(`載入加購商品資料失敗：${bundleResponse.status}`);
-      }
-      const allBundles = await bundleResponse.json();
-      this.bundleItemData = allBundles.filter(
-        (bundle) => this.campData && bundle.camp_id === this.campData.camp_id
-      );
+      // 載入加購商品資料 - 使用API
+      await this.loadBundleItemsByCampId(this.campData.camp_id);
 
       // 載入訂單資料
       const orderResponse = await fetch("data/campsite_order.json");
@@ -202,16 +227,6 @@ class OwnerDashboard {
       }
       this.orderDetails = await orderDetailsResponse.json();
 
-      // 載入折價券資料
-      const discountResponse = await fetch("data/discount_code.json");
-      if (!discountResponse.ok) {
-        throw new Error(`載入折價券資料失敗：${discountResponse.status}`);
-      }
-      this.discountCodeData = await discountResponse.json();
-      
-      // 移除：不在初始化時載入房型資料，改為在需要時才載入
-      // await this.renderRoomTypes();
-
       // 載入會員資料
       const memberResponse = await fetch("data/mem.json");
       if (!memberResponse.ok) {
@@ -219,11 +234,72 @@ class OwnerDashboard {
       }
       this.memberData = await memberResponse.json();
 
-      // 初始化下拉選單（在所有資料載入完成後）
-      await this.initCampIdSelect();
+      // 載入房型資料
+      const campsiteTypeResponse = await fetch("data/campsite_type.json");
+      if (!campsiteTypeResponse.ok) {
+        throw new Error(`載入房型資料失敗：${campsiteTypeResponse.status}`);
+      }
+      const allCampsiteTypes = await campsiteTypeResponse.json();
+      this.campsiteTypeData = allCampsiteTypes.filter(
+        (type) => this.campData && type.camp_id === this.campData.camp_id
+      );
+
+      // 載入折價券資料
+      const discountResponse = await fetch("data/discount_code.json");
+      if (!discountResponse.ok) {
+        throw new Error(`載入折價券資料失敗：${discountResponse.status}`);
+      }
+      const allDiscountCodes = await discountResponse.json();
+      this.discountCodeData = allDiscountCodes.filter(
+        (code) => code.owner_id === this.currentOwner.owner_id
+      );
+
+      console.log("所有資料載入完成");
     } catch (error) {
       console.error("載入資料失敗：", error);
       this.showMessage(`載入資料失敗：${error.message}`, "error");
+    }
+  }
+
+  // 新增：使用API載入特定營地的加購項目
+  async loadBundleItemsByCampId(campId) {
+    try {
+      console.log(`正在載入營地 ${campId} 的加購項目...`);
+      
+      if (!campId) {
+        console.warn("campId 為空，無法載入加購項目");
+        this.bundleItemData = [];
+        return;
+      }
+
+      const response = await fetch(`http://localhost:8081/CJA101G02/bundleitem/${campId}/getBundleItems`);
+      if (!response.ok) {
+        throw new Error(`載入加購項目失敗：${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log(`API回傳的加購項目資料：`, data);
+      
+      // 確保回傳的資料是陣列
+      if (Array.isArray(data)) {
+        this.bundleItemData = data;
+      } else if (data && Array.isArray(data.data)) {
+        // 如果API回傳的是包裝在data欄位中的陣列
+        this.bundleItemData = data.data;
+      } else if (data && typeof data === 'object') {
+        // 如果API回傳的是物件，嘗試轉換為陣列
+        this.bundleItemData = [data];
+      } else {
+        console.warn("API回傳的資料格式不正確，使用空陣列");
+        this.bundleItemData = [];
+      }
+      
+      console.log(`載入營地 ${campId} 的加購項目完成：`, this.bundleItemData);
+    } catch (error) {
+      console.error("載入加購項目失敗：", error);
+      this.showMessage(`載入加購項目失敗：${error.message}`, "error");
+      // 如果API失敗，使用空陣列
+      this.bundleItemData = [];
     }
   }
 
@@ -789,6 +865,14 @@ class OwnerDashboard {
       targetContent.classList.add("active");
     }
 
+    // 同步左側 menu active 狀態
+    document.querySelectorAll('.profile-menu-item').forEach((item) => {
+      item.classList.remove('active');
+      if (item.getAttribute('data-tab') === tabName) {
+        item.classList.add('active');
+      }
+    });
+
     // 保存當前頁面到 localStorage
     localStorage.setItem("ownerDashboardLastTab", tabName);
 
@@ -924,7 +1008,19 @@ class OwnerDashboard {
   // 新增函數：為特定行載入房間數量
   async loadRoomCountForRow(row, campsiteTypeId, campId) {
     try {
+      // 驗證參數
+      if (!campsiteTypeId || !campId) {
+        console.warn(`無法載入房間數量：campsiteTypeId=${campsiteTypeId}, campId=${campId}`);
+        const button = row.querySelector('button[onclick*="showRoomDetails"]');
+        if (button) {
+          button.textContent = '0 間';
+        }
+        return;
+      }
+
       const apiUrl = `http://localhost:8081/CJA101G02/campsitetype/${campsiteTypeId}/${campId}/getcampsites`;
+      console.log(`載入房間數量 API: ${apiUrl}`);
+      
       const response = await fetch(apiUrl);
       if (response.ok) {
         const result = await response.json();
@@ -936,6 +1032,7 @@ class OwnerDashboard {
           button.textContent = `${actualRoomCount} 間`;
         }
       } else {
+        console.warn(`載入房間數量失敗：${response.status}`);
         // 如果載入失敗，顯示 0 間
         const button = row.querySelector('button[onclick*="showRoomDetails"]');
         if (button) {
@@ -1007,19 +1104,28 @@ class OwnerDashboard {
     let roomTypeData;
     if (loadRoomCounts) {
       const roomTypePromises = currentCampRoomTypes.map(async (roomType) => {
-        const roomTypeId = roomType.campsiteTypeId;
+        const roomTypeId = roomType.campsiteTypeId || roomType.campsite_type_id;
+        const campId = roomType.campId || roomType.camp_id;
         let actualRoomCount = 0;
-        try {
-          const campId = roomType.campId;
-          const apiUrl = `http://localhost:8081/CJA101G02/campsitetype/${roomTypeId}/${campId}/getcampsites`;
-          const response = await fetch(apiUrl);
-          if (response.ok) {
-            const result = await response.json();
-            actualRoomCount = Array.isArray(result.data) ? result.data.length : 0;
+        
+        // 驗證參數
+        if (roomTypeId && campId) {
+          try {
+            const apiUrl = `http://localhost:8081/CJA101G02/campsitetype/${roomTypeId}/${campId}/getcampsites`;
+            console.log(`載入房型 ${roomTypeId} 房間數量: ${apiUrl}`);
+            const response = await fetch(apiUrl);
+            if (response.ok) {
+              const result = await response.json();
+              actualRoomCount = Array.isArray(result.data) ? result.data.length : 0;
+            }
+          } catch (error) {
+            console.warn(`載入房型 ${roomTypeId} 房間數量失敗:`, error);
+            actualRoomCount = 0;
           }
-        } catch (error) {
-          actualRoomCount = 0;
+        } else {
+          console.warn(`房型資料不完整：roomTypeId=${roomTypeId}, campId=${campId}`);
         }
+        
         return { roomType, actualRoomCount };
       });
       roomTypeData = await Promise.all(roomTypePromises);
@@ -1115,9 +1221,15 @@ class OwnerDashboard {
     const tableBody = document.getElementById("bundleItemsTableBody");
     if (!tableBody) return;
 
+    // 確保 bundleItemData 是陣列
+    if (!Array.isArray(this.bundleItemData)) {
+      console.warn("bundleItemData 不是陣列，重置為空陣列");
+      this.bundleItemData = [];
+    }
+
     if (this.bundleItemData.length === 0) {
       tableBody.innerHTML =
-        '<tr><td colspan="3" class="text-center py-4">尚未設定任何加購商品</td></tr>';
+        '<tr><td colspan="4" class="text-center py-4">尚未設定任何加購商品</td></tr>';
       return;
     }
 
@@ -1125,14 +1237,15 @@ class OwnerDashboard {
       .map(
         (item) => `
       <tr>
-        <td>${item.bundle_name}</td>
-        <td>NT$ ${item.bundle_price}</td>
+        <td>${item.bundle_name || item.bundleName || '未命名'}</td>
+        <td>NT$ ${item.bundle_price || item.bundlePrice || 0}</td>
+        <td>${item.bundle_add_date || item.bundleAddDate || '-'}</td>
         <td>
           <div class="d-flex">
-            <button class="btn btn-sm btn-secondary" onclick="ownerDashboard.editBundleItem('${item.bundle_id}')">
+            <button class="btn btn-sm btn-secondary" onclick="ownerDashboard.editBundleItem('${item.bundle_id || item.bundleId || ''}')">
               <i class="fas fa-edit"></i>
             </button>
-            <button class="btn btn-sm btn-danger ms-2" onclick="ownerDashboard.deleteBundleItem('${item.bundle_id}')">
+            <button class="btn btn-sm btn-danger ms-2" onclick="ownerDashboard.deleteBundleItem('${item.bundle_id || item.bundleId || ''}')">
               <i class="fas fa-trash"></i>
             </button>
           </div>
@@ -2307,7 +2420,7 @@ class OwnerDashboard {
     }
   }
 
-  handleAddBundleItem(e) {
+  async handleAddBundleItem(e) {
     e.preventDefault();
     const formData = new FormData(e.target);
 
@@ -2320,37 +2433,69 @@ class OwnerDashboard {
     const bundlePrice = parseInt(formData.get("bundle_price"));
 
     if (this.isEditingBundle && this.editingBundleId) {
-      // 編輯模式
-      const bundleIndex = this.bundleItemData.findIndex(
-        (item) => item.bundle_id === this.editingBundleId
-      );
-      if (bundleIndex !== -1) {
-        this.bundleItemData[bundleIndex] = {
-          ...this.bundleItemData[bundleIndex],
-          bundle_name: bundleName,
-          bundle_price: bundlePrice,
+      // 編輯模式 - 使用API
+      try {
+        const bundleData = {
+          bundleId: Number(this.editingBundleId),
+          campId: this.campData.camp_id,
+          bundleName: bundleName,
+          bundlePrice: bundlePrice
         };
-        console.log("更新加購商品：", this.bundleItemData[bundleIndex]);
+        const response = await fetch('http://localhost:8081/CJA101G02/bundleitem/updateBundleItem', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(bundleData)
+        });
+        if (!response.ok) {
+          throw new Error(`編輯加購項目失敗：${response.status}`);
+        }
         this.showMessage("加購商品更新成功！", "success");
+        // 重新載入加購項目列表
+        await this.loadBundleItemsByCampId(this.campData.camp_id);
+      } catch (error) {
+        console.error("編輯加購項目失敗：", error);
+        this.showMessage(`編輯加購項目失敗：${error.message}`, "error");
+        return;
       }
     } else {
-      // 新增模式
-      const bundleData = {
-        bundle_id: this.generateRandomId(),
-        camp_id: this.campData.camp_id,
-        bundle_name: bundleName,
-        bundle_price: bundlePrice,
-        bundle_add_date: new Date().toISOString().split("T")[0],
-      };
+      // 新增模式 - 使用API
+      try {
+        const bundleData = {
+          campId: this.campData.camp_id,
+          bundleName: bundleName,
+          bundlePrice: bundlePrice
+        };
 
-      this.bundleItemData.push(bundleData);
-      console.log("新增加購商品：", bundleData);
-      this.showMessage("加購商品新增成功！", "success");
+        const response = await fetch('http://localhost:8081/CJA101G02/bundleitem/addBundleItem', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(bundleData)
+        });
+
+        if (!response.ok) {
+          throw new Error(`新增加購項目失敗：${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log("API新增加購項目結果：", result);
+        this.showMessage("加購商品新增成功！", "success");
+
+        // 重新載入加購項目列表
+        await this.loadBundleItemsByCampId(this.campData.camp_id);
+      } catch (error) {
+        console.error("新增加購項目失敗：", error);
+        this.showMessage(`新增加購項目失敗：${error.message}`, "error");
+        return;
+      }
     }
 
     this.hideModal("addBundleItemModal");
 
-    // 重新載入加購商品資料
+    // 重新渲染加購商品列表
     setTimeout(() => {
       this.renderBundleItems();
     }, 500);
@@ -2463,8 +2608,9 @@ class OwnerDashboard {
 
   // 加購商品操作
   editBundleItem(bundleId) {
+    // 支援 bundle_id 或 bundleId
     const bundleItem = this.bundleItemData.find(
-      (item) => item.bundle_id == bundleId
+      (item) => item.bundle_id == bundleId || item.bundleId == bundleId
     );
     if (!bundleItem) {
       this.showMessage("找不到該加購商品", "error");
@@ -2481,9 +2627,9 @@ class OwnerDashboard {
     submitBtn.innerHTML = '<i class="fas fa-save"></i> 更新商品';
 
     // 填入現有數據
-    document.getElementById("bundle-id").value = bundleItem.bundle_id;
-    document.getElementById("bundle-name").value = bundleItem.bundle_name;
-    document.getElementById("bundle-price").value = bundleItem.bundle_price;
+    document.getElementById("bundle-id").value = bundleItem.bundle_id || bundleItem.bundleId;
+    document.getElementById("bundle-name").value = bundleItem.bundle_name || bundleItem.bundleName;
+    document.getElementById("bundle-price").value = bundleItem.bundle_price || bundleItem.bundlePrice;
 
     // 使用Bootstrap方式顯示模態框
     const modal = new bootstrap.Modal(
@@ -2492,11 +2638,31 @@ class OwnerDashboard {
     modal.show();
   }
 
-  deleteBundleItem(bundleId) {
+  async deleteBundleItem(bundleId) {
+    if (!bundleId) {
+      this.showMessage("加購商品ID無效", "error");
+      return;
+    }
     if (confirm("確定要刪除此加購商品嗎？")) {
-      console.log("刪除加購商品：", bundleId);
-      this.showMessage("加購商品已刪除", "success");
-      this.renderBundleItems();
+      try {
+        const response = await fetch('http://localhost:8081/CJA101G02/bundleitem/deleteBundleItem', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ bundleId: Number(bundleId) })
+        });
+        if (!response.ok) {
+          throw new Error(`刪除加購商品失敗：${response.status}`);
+        }
+        this.showMessage("加購商品已刪除", "success");
+        // 重新載入加購商品列表
+        await this.loadBundleItemsByCampId(this.campData.camp_id);
+        this.renderBundleItems();
+      } catch (error) {
+        console.error("刪除加購商品失敗：", error);
+        this.showMessage(`刪除加購商品失敗：${error.message}`, "error");
+      }
     }
   }
 
@@ -3342,19 +3508,28 @@ class OwnerDashboard {
     let roomTypeData;
     if (loadRoomCounts) {
       const roomTypePromises = currentCampRoomTypes.map(async (roomType) => {
-        const roomTypeId = roomType.campsiteTypeId;
+        const roomTypeId = roomType.campsiteTypeId || roomType.campsite_type_id;
+        const campId = roomType.campId || roomType.camp_id;
         let actualRoomCount = 0;
-        try {
-          const campId = roomType.campId;
-          const apiUrl = `http://localhost:8081/CJA101G02/campsitetype/${roomTypeId}/${campId}/getcampsites`;
-          const response = await fetch(apiUrl);
-          if (response.ok) {
-            const result = await response.json();
-            actualRoomCount = Array.isArray(result.data) ? result.data.length : 0;
+        
+        // 驗證參數
+        if (roomTypeId && campId) {
+          try {
+            const apiUrl = `http://localhost:8081/CJA101G02/campsitetype/${roomTypeId}/${campId}/getcampsites`;
+            console.log(`載入房型 ${roomTypeId} 房間數量: ${apiUrl}`);
+            const response = await fetch(apiUrl);
+            if (response.ok) {
+              const result = await response.json();
+              actualRoomCount = Array.isArray(result.data) ? result.data.length : 0;
+            }
+          } catch (error) {
+            console.warn(`載入房型 ${roomTypeId} 房間數量失敗:`, error);
+            actualRoomCount = 0;
           }
-        } catch (error) {
-          actualRoomCount = 0;
+        } else {
+          console.warn(`房型資料不完整：roomTypeId=${roomTypeId}, campId=${campId}`);
         }
+        
         return { roomType, actualRoomCount };
       });
       roomTypeData = await Promise.all(roomTypePromises);

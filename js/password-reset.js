@@ -93,6 +93,7 @@ async function handleForgotPassword(e) {
       // 顯示API返回的錯誤訊息
       showMessage(data.message || "發送重設密碼郵件失敗，請稍後再試", "error");
     }
+
   } catch (error) {
     console.error("處理忘記密碼請求時出錯：", error);
     showMessage("處理請求時出錯，請稍後再試", "error");
@@ -110,7 +111,9 @@ async function handleResetPassword(e) {
   const token = urlParams.get("token");
   const email = urlParams.get("email");
 
+  
   if (!token || !email) {
+
     showMessage("無效的密碼重設連結，請重新申請", "error");
     return;
   }
@@ -175,6 +178,7 @@ async function handleResetPassword(e) {
       // 顯示API返回的錯誤訊息
       showMessage(data.message || "密碼重設失敗，請稍後再試", "error");
     }
+
   } catch (error) {
     console.error("重設密碼時出錯：", error);
     showMessage("重設密碼時出錯，請稍後再試", "error");
