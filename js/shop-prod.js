@@ -93,7 +93,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // ✅ 動態載入商品分類選單
   function loadCategories() {
-    return fetch("${window.api_prefix}/api/product-types")
+    return fetch(`${window.api_prefix}/api/product-types`)
       .then(res => res.json())
       .then(response => {
         // 檢查是否有嵌套結構，例如 { data: [...] } 或 { results: [...] }
@@ -127,7 +127,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const priceRange = document.getElementById("price")?.value;
 
 
-    let url = "${window.api_prefix}/api/products";
+    let url = `${window.api_prefix}/api/products`;
 
     if (category) {
       url = `${window.api_prefix}/api/products/type/${category}`;
