@@ -169,15 +169,19 @@ var check_in_date;
 var check_out_date;
 
 //======================取得入住日期資料=====================//
-check_in_el.addEventListener("change", function () {
-  check_in_date = document.getElementById("check-in").valueAsDate;
-  console.log("checkin: " + check_in_date);
-});
+if (check_in_el) {
+  check_in_el.addEventListener("change", function () {
+    check_in_date = document.getElementById("check-in").valueAsDate;
+    console.log("checkin: " + check_in_date);
+  });
+}
 //======================取得出營日期資料=====================//
-check_out_el.addEventListener("change", function () {
-  check_out_date = document.getElementById("check-out").valueAsDate;
-  console.log("checkout: " + check_out_date);
-});
+if (check_out_el) {
+  check_out_el.addEventListener("change", function () {
+    check_out_date = document.getElementById("check-out").valueAsDate;
+    console.log("checkout: " + check_out_date);
+  });
+}
 
 // 解析URL參數並填入表單
 function parseAndFillSearchParams() {
@@ -294,41 +298,43 @@ function initDatePickerInteraction() {
   }
 }
 
-room_search_btn.addEventListener("click", function (e) {
-  e.preventDefault(); // 阻止默認提交行為
+if (room_search_btn) {
+  room_search_btn.addEventListener("click", function (e) {
+    e.preventDefault(); // 阻止默認提交行為
 
-  console.log("checkin_btn: " + check_in_date);
-  console.log("checkout_btn: " + check_out_date);
+    console.log("checkin_btn: " + check_in_date);
+    console.log("checkout_btn: " + check_out_date);
 
-  // 檢查必填欄位
-  const checkInInput = document.getElementById("check-in");
-  const checkOutInput = document.getElementById("check-out");
+    // 檢查必填欄位
+    const checkInInput = document.getElementById("check-in");
+    const checkOutInput = document.getElementById("check-out");
 
-  if (!checkInInput.value) {
-    alert("請選擇入住日期");
-    checkInInput.focus();
-    return;
-  }
+    if (!checkInInput.value) {
+      alert("請選擇入住日期");
+      checkInInput.focus();
+      return;
+    }
 
-  if (!checkOutInput.value) {
-    alert("請選擇退房日期");
-    checkOutInput.focus();
-    return;
-  }
+    if (!checkOutInput.value) {
+      alert("請選擇退房日期");
+      checkOutInput.focus();
+      return;
+    }
 
-  // 檢查日期邏輯
-  if (check_in_date && check_out_date && check_in_date >= check_out_date) {
-    alert("退房日期必須晚於入住日期");
-    checkOutInput.focus();
-    return;
-  }
+    // 檢查日期邏輯
+    if (check_in_date && check_out_date && check_in_date >= check_out_date) {
+      alert("退房日期必須晚於入住日期");
+      checkOutInput.focus();
+      return;
+    }
 
-  // 獲取表單元素並提交
-  const form = this.closest("form");
-  if (form) {
-    form.submit(); // 提交表單
-  }
-});
+    // 獲取表單元素並提交
+    const form = this.closest("form");
+    if (form) {
+      form.submit(); // 提交表單
+    }
+  });
+}
 
 //所有地區資料
 let taiwanDistricts = {};
