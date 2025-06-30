@@ -150,29 +150,55 @@ class UserProfileManager {
         return;
       }
 
-      // 載入營地訂單
-      const ordersResponse = await fetch("data/campsite_order.json");
-      this.campsiteOrders = await ordersResponse.json();
-
-      // 載入訂單詳情
-      const orderDetailsResponse = await fetch(
-        "data/campsite_order_details.json"
+      // 載入營地訂單 - 從API獲取
+      const memId = this.currentMember.mem_id;
+      const ordersResponse = await fetch(
+        `http://localhost:8081/CJA101G02/member/${memId}/orders`
       );
-      this.orderDetails = await orderDetailsResponse.json();
+      const ordersData = await ordersResponse.json();
 
-      // 載入加購商品詳情
-      const bundleDetailsResponse = await fetch(
-        "data/bundle_item_details.json"
-      );
-      this.bundleDetails = await bundleDetailsResponse.json();
+      if (ordersData.status.trim() === "success") {
+        this.campsiteOrders = ordersData.data;
+
+        // 將orderDetails整合到訂單中
+        this.orderDetails = [];
+        this.bundleDetails = [];
+
+        // 處理新的API資料結構
+        this.campsiteOrders.forEach((order) => {
+          if (order.orderDetails && order.orderDetails.length > 0) {
+            order.orderDetails.forEach((detail) => {
+              this.orderDetails.push({
+                order_details_id: detail.campsiteDetailsId,
+                campsite_order_id: order.campsiteOrderId,
+                campsite_type_id: detail.campsiteTypeId,
+                campsite_num: detail.campsiteNum,
+                campsite_amount: detail.campsiteAmount,
+              });
+            });
+          }
+        });
+      } else {
+        console.error("獲取訂單資料失敗:", ordersData.message);
+        this.campsiteOrders = [];
+        this.orderDetails = [];
+        this.bundleDetails = [];
+      }
 
       // 載入營地收藏
       const favoritesResponse = await fetch("data/camp_track_list.json");
       this.favoriteCamps = await favoritesResponse.json();
 
       // 載入營地資料
-      const campsResponse = await fetch("data/camp.json");
-      this.camps = await campsResponse.json();
+      const campsResponse = await fetch("http://localhost:8081/CJA101G02/api/getallcamps");
+      const campsData = await campsResponse.json();
+      
+      if (campsData.status.trim() === "success") {
+        this.camps = campsData.data;
+      } else {
+        console.error("獲取營地資料失敗:", campsData.message);
+        this.camps = [];
+      }
     } catch (error) {
       console.error("載入數據失敗:", error);
     }
@@ -211,6 +237,7 @@ class UserProfileManager {
 
     // 初始化訂單狀態篩選器
     this.initOrderFilter();
+    console.log("initOrderFilter:" + this.campsiteOrders);
   }
 
   initOrderFilter() {
@@ -226,10 +253,9 @@ class UserProfileManager {
     const ordersList = document.getElementById("campsite-orders-list");
     if (!ordersList) return;
 
-    // 篩選當前會員的訂單
-    let memberOrders = this.campsiteOrders.filter(
-      (order) => order.mem_id === this.currentMember.mem_id
-    );
+    // API已經根據會員ID篩選過訂單，直接使用
+    let memberOrders = [...this.campsiteOrders];
+    console.log("memberOrders:" + memberOrders);
 
     // 根據狀態篩選
     if (status) {
@@ -241,7 +267,7 @@ class UserProfileManager {
       };
       const targetStatus = statusMap[status];
       memberOrders = memberOrders.filter(
-        (order) => order.campsite_order_status === targetStatus
+        (order) => order.campsiteOrderStatus === targetStatus
       );
     }
 
@@ -250,6 +276,8 @@ class UserProfileManager {
 
   renderOrders(orders) {
     const ordersList = document.getElementById("campsite-orders-list");
+    console.log("ordersList:" + ordersList);
+
     if (!ordersList) return;
 
     if (orders.length === 0) {
@@ -264,18 +292,25 @@ class UserProfileManager {
       return;
     }
 
-    ordersList.innerHTML = orders
+    // 按訂單日期排序，最新的在上面
+    const sortedOrders = [...orders].sort((a, b) => {
+      const dateA = new Date(a.orderDate || '1970-01-01');
+      const dateB = new Date(b.orderDate || '1970-01-01');
+      return dateB - dateA; // 降序排列，最新的在前
+    });
+
+    ordersList.innerHTML = sortedOrders
       .map((order) => {
-        const camp = this.camps.find((c) => c.camp_id === order.camp_id);
-        const statusText = this.getOrderStatusText(order.campsite_order_status);
-        const statusClass = this.getOrderStatusClass(
-          order.campsite_order_status
-        );
-        const payMethodText = this.getPayMethodText(order.pay_method);
+        console.log("ORDER:" + order.checkIn);
+
+        const camp = this.camps.find((c) => c.campId === order.campId);
+        const statusText = this.getOrderStatusText(order.campsiteOrderStatus);
+        const statusClass = this.getOrderStatusClass(order.campsiteOrderStatus);
+        const payMethodText = this.getPayMethodText(order.payMethod);
 
         // 獲取該訂單的加購商品
         const orderDetailsList = this.orderDetails.filter(
-          (detail) => detail.campsite_order_id === order.campsite_order_id
+          (detail) => detail.campsite_order_id === order.campsiteOrderId
         );
 
         const bundleItems = [];
@@ -292,10 +327,10 @@ class UserProfileManager {
         <div class="order-item">
           <div class="order-header">
             <div class="order-info">
-              <h4>${camp ? camp.camp_name : "營地名稱"}</h4>
-              <p class="order-id">訂單編號: ${order.campsite_order_id}</p>
+              <h4>${camp ? camp.campName : "營地名稱"}</h4>
+              <p class="order-id">訂單編號: ${order.campsiteOrderId}</p>
               <p class="order-date"><i class="fas fa-clock"></i> 下訂日期: ${
-                order.order_date
+                order.orderDate || "未提供"
               }</p>
             </div>
             <div class="order-status ${statusClass}">
@@ -306,10 +341,10 @@ class UserProfileManager {
           <div class="order-details">
             <div class="order-dates">
               <span><i class="fas fa-calendar-check"></i> 入住: ${
-                order.check_in
+                order.checkIn || "未提供"
               }</span>
               <span><i class="fas fa-calendar-times"></i> 退房: ${
-                order.check_out
+                order.checkOut || "未提供"
               }</span>
             </div>
             <div class="payment-method">
@@ -317,38 +352,61 @@ class UserProfileManager {
             </div>
           </div>
           
+          ${
+            orderDetailsList.length > 0
+              ? `
+            <div class="order-details-section">
+              <h5><i class="fas fa-list"></i> 訂單明細</h5>
+              <div class="details-list">
+                ${orderDetailsList
+                  .map(
+                    (detail) => `
+                  <div class="detail-item">
+                    <span>營地類型ID: ${detail.campsite_type_id}</span>
+                    <span>營地數量: ${detail.campsite_num}</span>
+                    <span>營地金額: NT$ ${(detail.campsite_amount || 0).toLocaleString()}</span>
+                  </div>
+                `
+                  )
+                  .join("")}
+              </div>
+            </div>
+          `
+              : ""
+          }
+          
           <div class="amount-breakdown">
             <div class="amount-row">
               <span>營地費用:</span>
-              <span>NT$ ${order.camp_amount.toLocaleString()}</span>
+              <span>NT$ ${(order.campsiteAmount || 0).toLocaleString()}</span>
             </div>
             ${
-              order.bundle_amount > 0
+              (order.bundleAmount || 0) > 0
                 ? `
               <div class="amount-row">
                 <span>加購項目:</span>
-                <span>NT$ ${order.bundle_amount.toLocaleString()}</span>
+                <span>NT$ ${order.bundleAmount.toLocaleString()}</span>
               </div>
             `
                 : ""
             }
             <div class="amount-row">
               <span>小計:</span>
-              <span>NT$ ${order.bef_amount.toLocaleString()}</span>
+              <span>NT$ ${(order.befAmount || 0).toLocaleString()}</span>
             </div>
             ${
-              order.dis_amount > 0
+              (order.disAmount || 0) > 0
                 ? `
               <div class="amount-row discount">
                 <span>折扣:</span>
-                <span>-NT$ ${order.dis_amount.toLocaleString()}</span>
+                <span>-NT$ ${order.disAmount.toLocaleString()}</span>
               </div>
             `
                 : ""
             }
             <div class="amount-row total">
               <span>實付金額:</span>
-              <span>NT$ ${order.aft_amount.toLocaleString()}</span>
+              <span>NT$ ${(order.aftAmount || 0).toLocaleString()}</span>
             </div>
           </div>
           
@@ -376,13 +434,13 @@ class UserProfileManager {
           }
           
           ${
-            order.comment_content
+            order.commentContent
               ? `
             <div class="order-comment">
               <div class="rating">
-                ${this.generateStars(order.comment_satisfaction)}
+                ${this.generateStars(order.commentSatisfaction)}
               </div>
-              <p>${order.comment_content}</p>
+              <p>${order.commentContent}</p>
             </div>
           `
               : ""
@@ -417,12 +475,8 @@ class UserProfileManager {
   }
 
   loadCampsiteOrders() {
-    // 篩選當前會員的訂單
-    const memberOrders = this.campsiteOrders.filter(
-      (order) => order.mem_id === this.currentMember.mem_id
-    );
-
-    this.renderOrders(memberOrders);
+    // API已經根據會員ID篩選過訂單，直接使用
+    this.renderOrders(this.campsiteOrders);
   }
 
   loadFavoriteCamps() {
@@ -448,45 +502,45 @@ class UserProfileManager {
 
     favoritesGrid.innerHTML = memberFavorites
       .map((favorite) => {
-        const camp = this.camps.find((c) => c.camp_id === favorite.camp_id);
+        const camp = this.camps.find((c) => c.campId === favorite.camp_id);
         if (!camp) return "";
 
         const avgRating =
-          camp.camp_comment_number_count > 0
+          camp.campCommentNumberCount > 0
             ? (
-                camp.camp_comment_sun_score / camp.camp_comment_number_count
+                camp.campCommentSumScore / camp.campCommentNumberCount
               ).toFixed(1)
             : "0.0";
 
         return `
         <div class="favorite-camp-item">
           <div class="camp-image">
-            <img src="images/camp-${(camp.camp_id % 5) + 1}.jpg" alt="${
-          camp.camp_name
+            <img src="images/camp-${(camp.campId % 5) + 1}.jpg" alt="${
+          camp.campName
         }" />
-            <button class="btn-remove-favorite" data-camp-id="${camp.camp_id}">
+            <button class="btn-remove-favorite" data-camp-id="${camp.campId}">
               <i class="fas fa-heart"></i>
             </button>
           </div>
           <div class="camp-info">
-            <h4>${camp.camp_name}</h4>
+            <h4>${camp.campName}</h4>
             <p class="camp-location">
               <i class="fas fa-map-marker-alt"></i>
-              ${camp.camp_city} ${camp.camp_dist}
+              ${camp.campCity} ${camp.campDist}
             </p>
             <div class="camp-rating">
               ${this.generateStars(Math.round(parseFloat(avgRating)))}
               <span class="rating-text">${avgRating} (${
-          camp.camp_comment_number_count
+          camp.campCommentNumberCount
         })</span>
             </div>
-            <p class="camp-description">${camp.camp_content}</p>
+            <p class="camp-description">${camp.campContent}</p>
             <div class="camp-actions">
               <a href="campsite-detail.html?id=${
-                camp.camp_id
+                camp.campId
               }" class="btn-view">查看詳情</a>
               <a href="campsite-booking.html?id=${
-                camp.camp_id
+                camp.campId
               }" class="btn-book">立即預訂</a>
             </div>
           </div>
@@ -563,16 +617,24 @@ class UserProfileManager {
     }
 
     // 如果已經連接且ownerId相同，不要重複連接
-    if (this.stompClient && this.stompClient.connected && this.currentOwnerId === this.ownerId) {
+    if (
+      this.stompClient &&
+      this.stompClient.connected &&
+      this.currentOwnerId === this.ownerId
+    ) {
       return;
     }
-    
+
     // 如果已經連接但ownerId不同，先斷開連接
-    if (this.stompClient && this.stompClient.connected && this.currentOwnerId !== this.ownerId) {
+    if (
+      this.stompClient &&
+      this.stompClient.connected &&
+      this.currentOwnerId !== this.ownerId
+    ) {
       console.log("切換到不同的營地主，重新建立連接");
       this.disconnect();
     }
-    
+
     // 記錄當前的ownerId
     this.currentOwnerId = this.ownerId;
 
@@ -693,8 +755,9 @@ class UserProfileManager {
     }
 
     // 檢查是否在營地主後台
-    const isOwnerDashboard = window.location.pathname.includes('owner-dashboard');
-    
+    const isOwnerDashboard =
+      window.location.pathname.includes("owner-dashboard");
+
     if (type === "user") {
       if (isOwnerDashboard) {
         // 在營地主後台，"user"類型的訊息是營地主發送的，應該顯示在右側
@@ -1099,74 +1162,96 @@ if (typeof module !== "undefined" && module.exports) {
 
 // 商城訂單管理功能
 function loadShopOrders() {
-  const memId = document.getElementById('profile-id').value;
-  const listDiv = document.getElementById('shop-orders-list');
-  listDiv.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><h3>載入中...</h3></div>';
+  const memId = document.getElementById("profile-id").value;
+  const listDiv = document.getElementById("shop-orders-list");
+  listDiv.innerHTML =
+    '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><h3>載入中...</h3></div>';
   if (!memId) {
-    listDiv.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><h3>請先登入</h3></div>';
+    listDiv.innerHTML =
+      '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><h3>請先登入</h3></div>';
     return;
   }
   fetch(`http://localhost:8081/CJA101G02/api/getOneByMemId?memId=${memId}`)
-    .then(res => res.json())
-    .then(data => {
+    .then((res) => res.json())
+    .then((data) => {
       if (!data || !data.data || data.data.length === 0) {
-        listDiv.innerHTML = '<div class="empty-state"><i class="fas fa-shopping-bag"></i><h3>尚無商城訂單</h3><p>您還沒有購買任何商品</p><a href="shop.html" class="btn-primary">前往商城</a></div>';
+        listDiv.innerHTML =
+          '<div class="empty-state"><i class="fas fa-shopping-bag"></i><h3>尚無商城訂單</h3><p>您還沒有購買任何商品</p><a href="shop.html" class="btn-primary">前往商城</a></div>';
         return;
       }
-      let html = '<table class="data-table"><thead><tr><th>訂單編號</th><th>日期</th><th>金額</th><th>狀態</th><th>操作</th></tr></thead><tbody>';
-      data.data.forEach(order => {
+      let html =
+        '<table class="data-table"><thead><tr><th>訂單編號</th><th>日期</th><th>金額</th><th>狀態</th><th>操作</th></tr></thead><tbody>';
+      data.data.forEach((order) => {
         html += `<tr>
           <td>${order.shopOrderId}</td>
-          <td>${order.shopOrderDate ? order.shopOrderDate.split('T')[0] : ''}</td>
+          <td>${
+            order.shopOrderDate ? order.shopOrderDate.split("T")[0] : ""
+          }</td>
           <td>NT$ ${order.afterDiscountAmount}</td>
-          <td>${order.shopOrderStatusStr || ''}</td>
-          <td><button class="btn-view" onclick="viewShopOrderDetail(${order.shopOrderId})">查看詳情</button></td>
+          <td>${order.shopOrderStatusStr || ""}</td>
+          <td><button class="btn-view" onclick="viewShopOrderDetail(${
+            order.shopOrderId
+          })">查看詳情</button></td>
         </tr>`;
       });
-      html += '</tbody></table>';
+      html += "</tbody></table>";
       listDiv.innerHTML = html;
     })
     .catch(() => {
-      listDiv.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><h3>載入失敗</h3></div>';
+      listDiv.innerHTML =
+        '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><h3>載入失敗</h3></div>';
     });
 }
 
 function viewShopOrderDetail(orderId) {
-  const modal = document.getElementById('shop-order-detail-modal');
-  const contentDiv = document.getElementById('shop-order-detail-content');
-  contentDiv.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><h3>載入中...</h3></div>';
-  modal.style.display = 'block';
+  const modal = document.getElementById("shop-order-detail-modal");
+  const contentDiv = document.getElementById("shop-order-detail-content");
+  contentDiv.innerHTML =
+    '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><h3>載入中...</h3></div>';
+  modal.style.display = "block";
 
   // 先取得訂單主檔
   fetch(`http://localhost:8081/CJA101G02/api/getOneById?shopOrderId=${orderId}`)
-    .then(res => res.json())
-    .then(orderRes => {
+    .then((res) => res.json())
+    .then((orderRes) => {
       const order = orderRes.data;
       if (!order) {
-        contentDiv.innerHTML = '<div class="empty-state"><i class="fas fa-info-circle"></i><h3>查無訂單資料</h3></div>';
+        contentDiv.innerHTML =
+          '<div class="empty-state"><i class="fas fa-info-circle"></i><h3>查無訂單資料</h3></div>';
         return;
       }
       // 再取得明細
-      fetch(`http://localhost:8081/CJA101G02/api/getDetailsByShopOrderId?shopOrderId=${orderId}`)
-        .then(res => res.json())
-        .then(detailRes => {
+      fetch(
+        `http://localhost:8081/CJA101G02/api/getDetailsByShopOrderId?shopOrderId=${orderId}`
+      )
+        .then((res) => res.json())
+        .then((detailRes) => {
           const details = detailRes.data || [];
           // 格式化
-          const statusText = order.shopOrderStatusStr || '';
-          const paymentMethod = order.shopOrderPaymentStr || '';
-          const shipmentMethod = order.shopOrderShipmentStr || '';
-          const returnApplyText = order.shopReturnApplyStr || '';
-          const orderDate = order.shopOrderDate ? order.shopOrderDate.split('T')[0] : '';
-          const totalItems = details.reduce((sum, item) => sum + (item.shopOrderQty || 0), 0);
-          let productRows = '';
-          details.forEach(detail => {
+          const statusText = order.shopOrderStatusStr || "";
+          const paymentMethod = order.shopOrderPaymentStr || "";
+          const shipmentMethod = order.shopOrderShipmentStr || "";
+          const returnApplyText = order.shopReturnApplyStr || "";
+          const orderDate = order.shopOrderDate
+            ? order.shopOrderDate.split("T")[0]
+            : "";
+          const totalItems = details.reduce(
+            (sum, item) => sum + (item.shopOrderQty || 0),
+            0
+          );
+          let productRows = "";
+          details.forEach((detail) => {
             const productName = detail.prodName || `商品 #${detail.prodId}`;
-            const colorName = detail.prodColorName || `顏色 #${detail.prodColorId || '無'}`;
-            const specName = detail.prodSpecName || `規格 #${detail.prodSpecId || '無'}`;
-            const unitPrice = detail.prodOrderPrice != null ? detail.prodOrderPrice : 0;
+            const colorName =
+              detail.prodColorName || `顏色 #${detail.prodColorId || "無"}`;
+            const specName =
+              detail.prodSpecName || `規格 #${detail.prodSpecId || "無"}`;
+            const unitPrice =
+              detail.prodOrderPrice != null ? detail.prodOrderPrice : 0;
             const subtotal = detail.shopOrderQty * unitPrice;
-            const commentSatis = detail.commentSatis != null ? detail.commentSatis : '';
-            const commentContent = detail.commentContent || '';
+            const commentSatis =
+              detail.commentSatis != null ? detail.commentSatis : "";
+            const commentContent = detail.commentContent || "";
             productRows += `
               <tr>
                 <td>${productName}</td>
@@ -1180,10 +1265,14 @@ function viewShopOrderDetail(orderId) {
                 <td><button class="btn-comment"
                   data-order-id="${order.shopOrderId}"
                   data-prod-id="${detail.prodId}"
-                  data-prod-color-id="${detail.prodColorId != null ? detail.prodColorId : ''}"
-                  data-prod-spec-id="${detail.prodSpecId != null ? detail.prodSpecId : ''}"
-                  data-comment-satis="${detail.commentSatis || ''}"
-                  data-comment-content="${detail.commentContent || ''}">
+                  data-prod-color-id="${
+                    detail.prodColorId != null ? detail.prodColorId : ""
+                  }"
+                  data-prod-spec-id="${
+                    detail.prodSpecId != null ? detail.prodSpecId : ""
+                  }"
+                  data-comment-satis="${detail.commentSatis || ""}"
+                  data-comment-content="${detail.commentContent || ""}">
                   評分/評論
                 </button></td>
               </tr>
@@ -1198,23 +1287,37 @@ function viewShopOrderDetail(orderId) {
                 <div class="order-info-section">
                   <h4>基本資訊</h4>
                   <div class="info-grid">
-                    <div class="info-item"><span class="info-label">訂單編號:</span><span class="info-value">${order.shopOrderId}</span></div>
+                    <div class="info-item"><span class="info-label">訂單編號:</span><span class="info-value">${
+                      order.shopOrderId
+                    }</span></div>
                     <div class="info-item"><span class="info-label">訂單日期:</span><span class="info-value">${orderDate}</span></div>
                     <div class="info-item"><span class="info-label">訂單狀態:</span><span class="info-value status-badge">${statusText}</span></div>
                     <div class="info-item"><span class="info-label">付款方式:</span><span class="info-value">${paymentMethod}</span></div>
                     <div class="info-item"><span class="info-label">配送方式:</span><span class="info-value">${shipmentMethod}</span></div>
                     <div class="info-item"><span class="info-label">商品總數:</span><span class="info-value">${totalItems} 件</span></div>
                     <div class="info-item"><span class="info-label">退貨申請狀態:</span><span class="info-value">${returnApplyText}</span></div>
-                    <div class="info-item"><span class="info-label">出貨日期:</span><span class="info-value">${order.shopOrderShipDate ? order.shopOrderShipDate.split('T')[0] : ''}</span></div>
+                    <div class="info-item"><span class="info-label">出貨日期:</span><span class="info-value">${
+                      order.shopOrderShipDate
+                        ? order.shopOrderShipDate.split("T")[0]
+                        : ""
+                    }</span></div>
                   </div>
                 </div>
                 <div class="order-info-section">
                   <h4>收件人資訊</h4>
                   <div class="info-grid">
-                    <div class="info-item"><span class="info-label">姓名:</span><span class="info-value">${order.orderName || ''}</span></div>
-                    <div class="info-item"><span class="info-label">電話:</span><span class="info-value">${order.orderPhone || ''}</span></div>
-                    <div class="info-item"><span class="info-label">Email:</span><span class="info-value">${order.orderEmail || ''}</span></div>
-                    <div class="info-item"><span class="info-label">收件地址:</span><span class="info-value">${order.orderShippingAddress || ''}</span></div>
+                    <div class="info-item"><span class="info-label">姓名:</span><span class="info-value">${
+                      order.orderName || ""
+                    }</span></div>
+                    <div class="info-item"><span class="info-label">電話:</span><span class="info-value">${
+                      order.orderPhone || ""
+                    }</span></div>
+                    <div class="info-item"><span class="info-label">Email:</span><span class="info-value">${
+                      order.orderEmail || ""
+                    }</span></div>
+                    <div class="info-item"><span class="info-label">收件地址:</span><span class="info-value">${
+                      order.orderShippingAddress || ""
+                    }</span></div>
                   </div>
                 </div>
               </div>
@@ -1242,17 +1345,29 @@ function viewShopOrderDetail(orderId) {
                 </div>
               </div>
               <div class="order-actions" style="margin: 20px 0 0 0;">
-                <button id="btn-cancel-order" data-order-id="${order.shopOrderId}" style="display:none; margin-right: 12px;">申請取消訂單</button>
-                <button id="btn-return-order" data-order-id="${order.shopOrderId}" style="display:none;">申請退貨</button>
+                <button id="btn-cancel-order" data-order-id="${
+                  order.shopOrderId
+                }" style="display:none; margin-right: 12px;">申請取消訂單</button>
+                <button id="btn-return-order" data-order-id="${
+                  order.shopOrderId
+                }" style="display:none;">申請退貨</button>
                 <div id="order-action-error" style="color:red;margin-top:8px;"></div>
               </div>
               <div class="order-info-section">
                 <h4>金額明細</h4>
                 <div class="amount-breakdown">
-                  <div class="amount-item"><span class="amount-label">商品總額:</span><span class="amount-value">NT$ ${order.beforeDiscountAmount}</span></div>
-                  <div class="amount-item"><span class="amount-label">運費:</span><span class="amount-value">NT$ ${order.shopOrderShipFee}</span></div>
-                  <div class="amount-item discount"><span class="amount-label">折扣金額:</span><span class="amount-value">- NT$ ${order.discountAmount == null ? 0 : order.discountAmount}</span></div>
-                  <div class="amount-item total"><span class="amount-label">訂單總額:</span><span class="amount-value">NT$ ${order.afterDiscountAmount}</span></div>
+                  <div class="amount-item"><span class="amount-label">商品總額:</span><span class="amount-value">NT$ ${
+                    order.beforeDiscountAmount
+                  }</span></div>
+                  <div class="amount-item"><span class="amount-label">運費:</span><span class="amount-value">NT$ ${
+                    order.shopOrderShipFee
+                  }</span></div>
+                  <div class="amount-item discount"><span class="amount-label">折扣金額:</span><span class="amount-value">- NT$ ${
+                    order.discountAmount == null ? 0 : order.discountAmount
+                  }</span></div>
+                  <div class="amount-item total"><span class="amount-label">訂單總額:</span><span class="amount-value">NT$ ${
+                    order.afterDiscountAmount
+                  }</span></div>
                 </div>
               </div>
               <div class="modal-actions">
@@ -1261,52 +1376,62 @@ function viewShopOrderDetail(orderId) {
             </div>
           `;
           // 控制按鈕顯示
-          const btnCancel = document.getElementById('btn-cancel-order');
-          const btnReturn = document.getElementById('btn-return-order');
-          if (btnCancel) btnCancel.style.display = 'none';
-          if (btnReturn) btnReturn.style.display = 'none';
+          const btnCancel = document.getElementById("btn-cancel-order");
+          const btnReturn = document.getElementById("btn-return-order");
+          if (btnCancel) btnCancel.style.display = "none";
+          if (btnReturn) btnReturn.style.display = "none";
           if (order.shopOrderStatus === 0 || order.shopOrderStatus === 1) {
-            btnCancel.style.display = '';
+            btnCancel.style.display = "";
           }
           if (order.shopOrderStatus === 3 && order.shopReturnApply !== 1) {
-            btnReturn.style.display = '';
+            btnReturn.style.display = "";
           }
           // 綁定事件
           if (btnCancel) {
-            btnCancel.onclick = async function() {
+            btnCancel.onclick = async function () {
               const orderId = this.dataset.orderId;
               const data = { shopOrderId: orderId, shopOrderStatus: 5 };
               try {
-                const resp = await fetch('http://localhost:8081/CJA101G02/api/updateShopOrderByMember', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify(data)
-                });
+                const resp = await fetch(
+                  "http://localhost:8081/CJA101G02/api/updateShopOrderByMember",
+                  {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data),
+                  }
+                );
                 const result = await resp.json();
-                if (!resp.ok || result.error) throw new Error(result.message || '申請失敗');
-                alert('已申請取消訂單');
+                if (!resp.ok || result.error)
+                  throw new Error(result.message || "申請失敗");
+                alert("已申請取消訂單");
                 closeShopOrderDetailModal();
               } catch (err) {
-                document.getElementById('order-action-error').textContent = err.message;
+                document.getElementById("order-action-error").textContent =
+                  err.message;
               }
             };
           }
           if (btnReturn) {
-            btnReturn.onclick = async function() {
+            btnReturn.onclick = async function () {
               const orderId = this.dataset.orderId;
               const data = { shopOrderId: orderId, shopReturnApply: 1 };
               try {
-                const resp = await fetch('http://localhost:8081/CJA101G02/api/updateShopOrderByMember', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify(data)
-                });
+                const resp = await fetch(
+                  "http://localhost:8081/CJA101G02/api/updateShopOrderByMember",
+                  {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data),
+                  }
+                );
                 const result = await resp.json();
-                if (!resp.ok || result.error) throw new Error(result.message || '申請失敗');
-                alert('已申請退貨');
+                if (!resp.ok || result.error)
+                  throw new Error(result.message || "申請失敗");
+                alert("已申請退貨");
                 closeShopOrderDetailModal();
               } catch (err) {
-                document.getElementById('order-action-error').textContent = err.message;
+                document.getElementById("order-action-error").textContent =
+                  err.message;
               }
             };
           }
@@ -1315,17 +1440,17 @@ function viewShopOrderDetail(orderId) {
 }
 
 function closeShopOrderDetailModal() {
-  document.getElementById('shop-order-detail-modal').style.display = 'none';
+  document.getElementById("shop-order-detail-modal").style.display = "none";
 }
 
 // 自動載入商城訂單管理（切換到該分頁時）
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener("DOMContentLoaded", function () {
   const shopOrdersTab = document.querySelector('[data-tab="shop-orders"]');
   if (shopOrdersTab) {
-    shopOrdersTab.addEventListener('click', loadShopOrders);
+    shopOrdersTab.addEventListener("click", loadShopOrders);
   }
   // 若預設顯示商城訂單管理，也可自動載入
-  if (document.getElementById('shop-orders').classList.contains('active')) {
+  if (document.getElementById("shop-orders").classList.contains("active")) {
     loadShopOrders();
   }
 });
@@ -1333,7 +1458,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // ====== 商品明細評分/評論功能（事件代理版） ======
 
 // 2. 評分/評論 Modal HTML（建議插入到 user-profile.html 尾端）
-if (!document.getElementById('commentModal')) {
+if (!document.getElementById("commentModal")) {
   const modalHtml = `
   <div id="commentModal" class="order-details-modal">
     <div class="modal-content" style="max-width:400px;">
@@ -1363,68 +1488,87 @@ if (!document.getElementById('commentModal')) {
       </div>
     </div>
   </div>`;
-  document.body.insertAdjacentHTML('beforeend', modalHtml);
+  document.body.insertAdjacentHTML("beforeend", modalHtml);
 }
 
 // 事件代理：所有 .btn-comment 按鈕都能正確觸發
 if (!window._commentBtnDelegation) {
-  document.body.addEventListener('click', function(e) {
-    if (e.target.classList && e.target.classList.contains('btn-comment')) {
+  document.body.addEventListener("click", function (e) {
+    if (e.target.classList && e.target.classList.contains("btn-comment")) {
       const btn = e.target;
-      const modal = document.getElementById('commentModal');
+      const modal = document.getElementById("commentModal");
       if (!modal) {
-        alert('評論視窗未正確載入');
+        alert("評論視窗未正確載入");
         return;
       }
-      modal.querySelector('input[name="shopOrderId"]').value = btn.dataset.orderId;
+      modal.querySelector('input[name="shopOrderId"]').value =
+        btn.dataset.orderId;
       modal.querySelector('input[name="prodId"]').value = btn.dataset.prodId;
-      modal.querySelector('input[name="prodColorId"]').value = btn.dataset.prodColorId;
-      modal.querySelector('input[name="prodSpecId"]').value = btn.dataset.prodSpecId;
-      modal.querySelector('input[name="commentSatis"]').value = btn.dataset.commentSatis || '';
-      modal.querySelector('textarea[name="commentContent"]').value = btn.dataset.commentContent || '';
-      modal.classList.add('show');
-      document.getElementById('commentError').textContent = '';
+      modal.querySelector('input[name="prodColorId"]').value =
+        btn.dataset.prodColorId;
+      modal.querySelector('input[name="prodSpecId"]').value =
+        btn.dataset.prodSpecId;
+      modal.querySelector('input[name="commentSatis"]').value =
+        btn.dataset.commentSatis || "";
+      modal.querySelector('textarea[name="commentContent"]').value =
+        btn.dataset.commentContent || "";
+      modal.classList.add("show");
+      document.getElementById("commentError").textContent = "";
     }
-    if (e.target.id === 'closeCommentModal') {
-      document.getElementById('commentModal').classList.remove('show');
+    if (e.target.id === "closeCommentModal") {
+      document.getElementById("commentModal").classList.remove("show");
     }
   });
   window._commentBtnDelegation = true;
 }
 
 // 送出評論
-if (document.getElementById('commentForm')) {
-  document.getElementById('commentForm').onsubmit = async function(e) {
+if (document.getElementById("commentForm")) {
+  document.getElementById("commentForm").onsubmit = async function (e) {
     e.preventDefault();
     const form = e.target;
     const data = {
       shopOrderId: form.shopOrderId.value,
       prodId: form.prodId.value,
-      prodColorId: (form.prodColorId.value && form.prodColorId.value !== 'undefined') ? form.prodColorId.value : null,
-      prodSpecId: (form.prodSpecId.value && form.prodSpecId.value !== 'undefined') ? form.prodSpecId.value : null,
+      prodColorId:
+        form.prodColorId.value && form.prodColorId.value !== "undefined"
+          ? form.prodColorId.value
+          : null,
+      prodSpecId:
+        form.prodSpecId.value && form.prodSpecId.value !== "undefined"
+          ? form.prodSpecId.value
+          : null,
       commentSatis: form.commentSatis.value,
-      commentContent: form.commentContent.value
+      commentContent: form.commentContent.value,
     };
     // 基本欄位檢查
-    if (data.commentSatis === '' || isNaN(data.commentSatis) || data.commentSatis < 0 || data.commentSatis > 5) {
-      document.getElementById('commentError').textContent = '請輸入0~5分的評分';
+    if (
+      data.commentSatis === "" ||
+      isNaN(data.commentSatis) ||
+      data.commentSatis < 0 ||
+      data.commentSatis > 5
+    ) {
+      document.getElementById("commentError").textContent = "請輸入0~5分的評分";
       return;
     }
     try {
-      const resp = await fetch('http://localhost:8081/CJA101G02/api/updateComments', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
+      const resp = await fetch(
+        "http://localhost:8081/CJA101G02/api/updateComments",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        }
+      );
       const result = await resp.json();
       if (!resp.ok || result.error) {
-        throw new Error(result.message || '更新失敗');
+        throw new Error(result.message || "更新失敗");
       }
-      alert('評論已更新！');
-      document.getElementById('commentModal').classList.remove('show');
+      alert("評論已更新！");
+      document.getElementById("commentModal").classList.remove("show");
       // 你可以在這裡刷新明細資料
     } catch (err) {
-      document.getElementById('commentError').textContent = err.message;
+      document.getElementById("commentError").textContent = err.message;
     }
   };
 }

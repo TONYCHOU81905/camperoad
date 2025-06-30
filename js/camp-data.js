@@ -99,9 +99,7 @@ async function createCampCard(camp) {
 
   card.innerHTML = `
         <div class="camp-image">
-            <img src="${
-              "data:image/jpeg;base64," + camp.campPic1 || "images/camp-1.jpg"
-            }" alt="${camp.camp_name}" />
+            <img src=images/camp-1.jpg alt="${camp.camp_name}" />
             <span class="camp-tag">熱門</span>
         </div>
         <div class="camp-info">
