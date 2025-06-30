@@ -424,7 +424,7 @@ function viewProductDetail(productId) {
   
   // 創建模態框
   const modal = document.createElement("div");
-  modal.className = "modal";
+  modal.className = "custom-modal";
   modal.innerHTML = `
     <div class="modal-content product-detail-modal">
       <div class="modal-header">
@@ -453,9 +453,10 @@ function viewProductDetail(productId) {
       </div>
     </div>
   `;
-  
+  modal.style.display = "flex";
   // 添加到頁面
   document.body.appendChild(modal);
+  
 }
 
 // 顯示編輯商品模態框
@@ -468,7 +469,7 @@ function showEditProductModal(productId) {
   
   // 創建模態框
   const modal = document.createElement("div");
-  modal.className = "modal";
+  modal.className = "custom-modal";
   
   // 生成商品類型選項
   let typeOptions = '';
@@ -541,6 +542,7 @@ function showEditProductModal(productId) {
     </div>
   `;
   
+  modal.style.display = "flex";
   // 添加到頁面
   document.body.appendChild(modal);
   
@@ -832,7 +834,7 @@ async function saveProductChanges() {
 function showAddProductModal() {
   // 創建模態框
   const modal = document.createElement("div");
-  modal.className = "modal";
+  modal.className = "custom-modal";
   
   // 生成商品類型選項
   let typeOptions = '';
@@ -954,6 +956,7 @@ function showAddProductModal() {
     </div>
   `;
   
+  modal.style.display = "flex"; // 顯示模態框
   // 添加到頁面
   document.body.appendChild(modal);
   
@@ -1211,7 +1214,7 @@ function shouldIncludeInFiltered(product) {
 
 // 關閉模態框
 function closeModal() {
-  const modal = document.querySelector(".modal");
+  const modal = document.querySelector(".custom-modal");
   if (modal) {
     modal.remove();
   }
@@ -1379,6 +1382,7 @@ function showNotification(message, type = "success") {
     <span>${message}</span>
   `;
   
+  modal.style.display = "flex"; // 顯示模態框
   // 添加到頁面
   document.body.appendChild(notification);
   

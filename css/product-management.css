@@ -632,3 +632,45 @@ div.modal-content .modal-header h3 {
 .new-color-container {
   margin-top: 10px;
 }
+
+/* 模態框容器 */
+.custom-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: none; /* 預設隱藏，JS 中會設為 flex */
+  align-items: center;
+  justify-content: center;
+}
+
+/* 模態框內容區塊 */
+.custom-modal-content {
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  max-width: 600px;
+  width: 90%;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+/* 標題與關閉按鈕 */
+.custom-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.custom-modal-header h3 {
+  margin: 0;
+}
+
+.close-btn {
+  font-size: 1.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
