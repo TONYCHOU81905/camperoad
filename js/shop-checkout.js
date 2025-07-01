@@ -17,10 +17,22 @@ class CheckoutManager {
   }
 
   async init() {
-    // 取得會員ID
-    const memberInfo = sessionStorage.getItem('currentMember');
-    let memId = memberInfo ? JSON.parse(memberInfo).mem_id : null; 
+    // 取得會員ID - 檢查 localStorage 和 sessionStorage
+    let memberInfo = localStorage.getItem('currentMember') || sessionStorage.getItem('currentMember');
+    let memId = null;
+    
+    if (memberInfo) {
+      try {
+        const member = JSON.parse(memberInfo);
+        // 檢查 mem_id 或 memId（支援兩種命名方式）
+        memId = member.mem_id || member.memId;
+      } catch (e) {
+        console.error('解析會員資料失敗:', e);
+      }
+    }
+    
     if (!memId) {
+      console.log('未找到會員資料，跳轉到登入頁面');
       window.location.href = 'login.html';
       return;
     }
