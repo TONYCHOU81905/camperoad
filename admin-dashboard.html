@@ -26,7 +26,16 @@
             <img src="images/logo.svg" alt="露營趣 Logo" />
             <span>露營趣 - 管理員後台</span>
           </div>
-          <div class="user-actions" style="position: absolute; right: 20px; display: flex; align-items: center; gap: 10px;">
+          <div
+            class="user-actions"
+            style="
+              position: absolute;
+              right: 20px;
+              display: flex;
+              align-items: center;
+              gap: 10px;
+            "
+          >
             <span id="adminName">管理員</span>
             <!-- 登出按钮已移除 -->
           </div>
@@ -40,7 +49,7 @@
       <button id="sidebarToggle" class="sidebar-toggle">
         <i class="fas fa-chevron-left" id="toggleIcon"></i>
       </button>
-      
+
       <!-- Sidebar -->
       <aside class="sidebar">
         <nav class="sidebar-nav">
@@ -69,7 +78,8 @@
                 onclick="showSection('order-management')"
                 class="nav-link"
                 data-title="商品訂單管理"
-                ><i class="fas fa-shopping-cart"></i> <span>商品訂單管理</span></a
+                ><i class="fas fa-shopping-cart"></i>
+                <span>商品訂單管理</span></a
               >
             </li>
             <li>
@@ -78,7 +88,8 @@
                 onclick="showSection('campsite-orders')"
                 class="nav-link"
                 data-title="營地訂單管理"
-                ><i class="fas fa-clipboard-list"></i> <span>營地訂單管理</span></a
+                ><i class="fas fa-clipboard-list"></i>
+                <span>營地訂單管理</span></a
               >
             </li>
             <li>
@@ -108,11 +119,13 @@
                 data-title="折價券管理"
                 ><i class="fas fa-tags"></i> <span>折價券管理</span></a
               >
-              
+
               <!-- 登出按钮 - 添加 data-title 属性 -->
-              <a href="#" onclick="logout()" 
-                  class="nav-link logout"
-                  data-title="登出"
+              <a
+                href="#"
+                onclick="logout()"
+                class="nav-link logout"
+                data-title="登出"
                 ><i class="fas fa-sign-out-alt"></i> <span>登出</span></a
               >
             </li>
@@ -261,7 +274,7 @@
             <!-- 動態載入折價券管理內容 -->
           </div>
         </section>
-        
+
         <!-- 商品管理 -->
         <section id="product-management" class="content-section">
           <div class="section-header">
@@ -269,9 +282,16 @@
             <p>管理所有商品信息及庫存</p>
           </div>
           <div class="action-bar">
-            <button class="action-btn btn-add" onclick="showAddProductModal()"><i class="fas fa-plus"></i> 添加新商品</button>
+            <button class="action-btn btn-add" onclick="showAddProductModal()">
+              <i class="fas fa-plus"></i> 添加新商品
+            </button>
             <div class="search-box">
-              <input type="text" id="product-search" placeholder="搜索商品..." onkeyup="searchProducts()">
+              <input
+                type="text"
+                id="product-search"
+                placeholder="搜索商品..."
+                onkeyup="searchProducts()"
+              />
               <i class="fas fa-search"></i>
             </div>
           </div>
@@ -305,5 +325,6 @@
     <script src="js/camp-data.js"></script>
     <script src="js/admin-dashboard.js"></script>
     <script src="js/product-management.js"></script>
+    <script src="js/camp-data.js"></script>
   </body>
 </html>
