@@ -77,14 +77,18 @@ async function handleLogin(e) {
     try {
       const sessionCart = sessionStorage.getItem('sessionCart');
       if (sessionCart) {
-        const guestCartList = JSON.parse(sessionCart);
-        if (guestCartList.length > 0) {
+        const cartList = JSON.parse(sessionCart);
+        if (cartList.length > 0) {
+          console.log('合併購物車送出', {
+            memId: member.mem_id,
+            cartList: cartList
+          });
           fetch('http://localhost:8081/CJA101G02/api/mergeCart', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               memId: member.mem_id,
-              guestCartList: guestCartList
+              cartList: cartList
             })
           })
           .then(res => res.json())

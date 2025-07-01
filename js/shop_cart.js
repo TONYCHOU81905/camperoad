@@ -617,7 +617,7 @@ function recalculateCartSummary() {
   document.getElementById('cart-total').textContent = `NT$ ${(subtotal + shipping).toLocaleString()}`;
 }
 
-console.log('送出新增/修改購物車API', { memId, payload });
+// console.log('送出新增/修改購物車API', {memId, payload });
 fetch('/api/addCart', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
