@@ -1510,9 +1510,11 @@ function viewShopOrderDetail(orderId) {
             const unitPrice =
               detail.prodOrderPrice != null ? detail.prodOrderPrice : 0;
             const subtotal = detail.shopOrderQty * unitPrice;
-            const commentSatis =
-              detail.commentSatis != null ? detail.commentSatis : "";
-            const commentContent = detail.commentContent || "";
+            const commentSatis = detail.commentSatis != null ? detail.commentSatis : '';
+            const commentContent = detail.commentContent || '';
+            // 只有訂單狀態為3時才顯示評論按鈕
+            const canComment = order.shopOrderStatus === 3;
+
             productRows += `
               <tr>
                 <td>${productName}</td>
@@ -1523,19 +1525,22 @@ function viewShopOrderDetail(orderId) {
                 <td>NT$ ${subtotal.toLocaleString()}</td>
                 <td>${commentSatis}</td>
                 <td>${commentContent}</td>
-                <td><button class="btn-comment"
-                  data-order-id="${order.shopOrderId}"
-                  data-prod-id="${detail.prodId}"
-                  data-prod-color-id="${
-                    detail.prodColorId != null ? detail.prodColorId : ""
-                  }"
-                  data-prod-spec-id="${
-                    detail.prodSpecId != null ? detail.prodSpecId : ""
-                  }"
-                  data-comment-satis="${detail.commentSatis || ""}"
-                  data-comment-content="${detail.commentContent || ""}">
-                  評分/評論
-                </button></td>
+
+                <td>
+                  ${canComment
+                    ? `<button class="btn-comment"
+                        data-order-id="${order.shopOrderId}"
+                        data-prod-id="${detail.prodId}"
+                        data-prod-color-id="${detail.prodColorId != null ? detail.prodColorId : ''}"
+                        data-prod-spec-id="${detail.prodSpecId != null ? detail.prodSpecId : ''}"
+                        data-comment-satis="${detail.commentSatis || ''}"
+                        data-comment-content="${detail.commentContent || ''}">
+                        評分/評論
+                      </button>`
+                    : `<span class="text-muted"> </span>`
+                  }
+                </td>
+
               </tr>
             `;
           });
@@ -1644,8 +1649,9 @@ function viewShopOrderDetail(orderId) {
           if (order.shopOrderStatus === 0 || order.shopOrderStatus === 1) {
             btnCancel.style.display = "";
           }
-          if (order.shopOrderStatus === 3 && order.shopReturnApply !== 1) {
-            btnReturn.style.display = "";
+
+          if (order.shopOrderStatus === 3 && order.shopReturnApply === 0) {
+            btnReturn.style.display = '';
           }
           // 綁定事件
           if (btnCancel) {
@@ -1833,3 +1839,18 @@ if (document.getElementById("commentForm")) {
     }
   };
 }
+
+// 自動關閉商城訂單詳情視窗（只要點擊商城訂單管理以外的區域）
+document.addEventListener('click', function (e) {
+  const modal = document.getElementById('shop-order-detail-modal');
+  const shopOrderSection = document.getElementById('shop-orders');
+  if (
+    modal &&
+    modal.style.display !== 'none' &&
+    !modal.contains(e.target) &&
+    shopOrderSection &&
+    !shopOrderSection.contains(e.target)
+  ) {
+    closeShopOrderDetailModal();
+  }
+});

@@ -1,6 +1,31 @@
 // 使用全域購物車管理器
 // 移除重複的ShopCartManager類別定義
 
+// Session Cart 管理工具
+const sessionCartManager = {
+  getCart: function() {
+    const cart = sessionStorage.getItem('sessionCart');
+    return cart ? JSON.parse(cart) : [];
+  },
+  saveCart: function(cart) {
+    sessionStorage.setItem('sessionCart', JSON.stringify(cart));
+  },
+  addToCart: function(item) {
+    const cart = this.getCart();
+    const exist = cart.find(c =>
+      c.prodId === item.prodId &&
+      c.prodColorId === item.prodColorId &&
+      c.prodSpecId === item.prodSpecId
+    );
+    if (exist) {
+      exist.cartProdQty += item.cartProdQty;
+    } else {
+      cart.push(item);
+    }
+    this.saveCart(cart);
+  }
+};
+
 document.addEventListener("DOMContentLoaded", function () {
   const container = document.querySelector(".product-grid");
   const categorySelect = document.getElementById("category");
@@ -388,28 +413,48 @@ document.addEventListener("DOMContentLoaded", function () {
     document.querySelectorAll(".btn-add-cart").forEach((btn) => {
       btn.addEventListener("click", function () {
         const prodId = parseInt(this.dataset.id);
-        console.log("加入購物車:", prodId);
-        
-        // 獲取商品資訊
         const productCard = this.closest('.product-card');
-        
-        // 找出選中的顏色ID
         const selectedColorBtn = productCard.querySelector('.product-color-select .color-box.active');
-        const prodColorId = selectedColorBtn ? parseInt(selectedColorBtn.dataset.colorId) : 1; // 預設為1
-        
-        // 找出選中的規格ID
+        const prodColorId = selectedColorBtn ? parseInt(selectedColorBtn.dataset.colorId) : 1;
         const selectedSpecSelect = productCard.querySelector('.prod-spec-select');
-        const prodSpecId = selectedSpecSelect ? parseInt(selectedSpecSelect.value) : 1; // 現在value是規格ID
-        
-        // 準備要發送的數據（符合後端 CartDTO_req 格式）
+        const prodSpecId = selectedSpecSelect ? parseInt(selectedSpecSelect.value) : 1;
         const cartData = {
-          memId: globalCartManager.getMemberId(),  // 使用購物車管理器取得會員ID
           prodId: prodId,
           prodColorId: prodColorId,
           prodSpecId: prodSpecId,
-          cartProdQty: 1  // 預設數量為1
+          cartProdQty: 1
         };
+
+        // 判斷登入
+        const memberInfo = sessionStorage.getItem('currentMember');
+        const member = memberInfo ? JSON.parse(memberInfo) : null;
+        const memId = member ? member.mem_id : null;
+        console.log('取得會員ID:', memId);
         
+
+        if (memId) {
+          // 已登入，呼叫 API
+          cartData.memId = memId;
+          fetch('http://localhost:8081/CJA101G02/api/addCart', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(cartData)
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.status === 'success') {
+              if (window.globalCartManager) window.globalCartManager.updateCartCount();
+            }
+            showAddToCartMessage();
+          })
+          .catch(error => {
+            alert('加入購物車失敗，請稍後再試');
+          });
+        } else {
+          // 未登入，寫入 sessionStorage
+          sessionCartManager.addToCart(cartData);
+          if (window.globalCartManager) window.globalCartManager.updateCartCount();
+
         console.log('加入購物車數據:', cartData);
         
         // 使用fetch API發送請求
@@ -436,11 +481,7 @@ document.addEventListener("DOMContentLoaded", function () {
           
           // 顯示成功訊息
           showAddToCartMessage();
-        })
-        .catch(error => {
-          console.error('加入購物車失敗:', error);
-          alert('加入購物車失敗，請稍後再試');
-        });
+        }
       });
     });
     
