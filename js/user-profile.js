@@ -1459,7 +1459,7 @@ function loadShopOrders() {
       '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><h3>請先登入</h3></div>';
     return;
   }
-  fetch(`http://localhost:8081/CJA101G02/api/getOneByMemId?memId=${memId}`)
+  fetch(`${window.api_prefix}/api/getOneByMemId?memId=${memId}`)
     .then((res) => res.json())
     .then((data) => {
       if (!data || !data.data || data.data.length === 0) {
@@ -1499,7 +1499,7 @@ function viewShopOrderDetail(orderId) {
   modal.style.display = "block";
 
   // 先取得訂單主檔
-  fetch(`http://localhost:8081/CJA101G02/api/getOneById?shopOrderId=${orderId}`)
+  fetch(`${window.api_prefix}/api/getOneById?shopOrderId=${orderId}`)
     .then((res) => res.json())
     .then((orderRes) => {
       const order = orderRes.data;
@@ -1510,7 +1510,7 @@ function viewShopOrderDetail(orderId) {
       }
       // 再取得明細
       fetch(
-        `http://localhost:8081/CJA101G02/api/getDetailsByShopOrderId?shopOrderId=${orderId}`
+        `${window.api_prefix}/api/getDetailsByShopOrderId?shopOrderId=${orderId}`
       )
         .then((res) => res.json())
         .then((detailRes) => {
@@ -1540,7 +1540,7 @@ function viewShopOrderDetail(orderId) {
             const commentSatis = detail.commentSatis != null ? detail.commentSatis : '';
             const commentContent = detail.commentContent || '';
             // 只有訂單狀態為3時才顯示評論按鈕
-            const canComment = order.shopOrderStatus === 3;
+            const canComment = order.shopOrderStatus === 3 && order.shopReturnApply === 0;
 
             productRows += `
               <tr>
@@ -1687,7 +1687,7 @@ function viewShopOrderDetail(orderId) {
               const data = { shopOrderId: orderId, shopOrderStatus: 5 };
               try {
                 const resp = await fetch(
-                  "http://localhost:8081/CJA101G02/api/updateShopOrderByMember",
+                  `${window.api_prefix}/api/updateShopOrderByMember`,
                   {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -1711,7 +1711,7 @@ function viewShopOrderDetail(orderId) {
               const data = { shopOrderId: orderId, shopReturnApply: 1 };
               try {
                 const resp = await fetch(
-                  "http://localhost:8081/CJA101G02/api/updateShopOrderByMember",
+                  `${window.api_prefix}/api/updateShopOrderByMember`,
                   {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -1847,7 +1847,7 @@ if (document.getElementById("commentForm")) {
     }
     try {
       const resp = await fetch(
-        "http://localhost:8081/CJA101G02/api/updateComments",
+        `${window.api_prefix}/api/updateComments`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

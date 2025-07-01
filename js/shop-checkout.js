@@ -30,7 +30,7 @@ class CheckoutManager {
     // 折扣碼下拉選單載入（先查會員擁有，再查全部折扣碼，前端比對）
     try {
       // 取得所有折扣碼詳細資料  
-      const discountResp = await fetch('http://localhost:8081/CJA101G02/api/discount/all');
+      const discountResp = await fetch(`${window.api_prefix}/api/discount/all`);
       const discountData = await discountResp.json();
       console.log('discountData', discountData);
       this.allDiscounts = Array.isArray(discountData) ? discountData : [];
@@ -52,7 +52,7 @@ class CheckoutManager {
     // 取得購物車資料
     let cartItems = [];
     try {
-      const response = await fetch(`http://localhost:8081/CJA101G02/api/getCart?memId=${memId}`);
+      const response = await fetch(`${window.api_prefix}/api/getCart?memId=${memId}`);
       if (response.ok) {
         const data = await response.json();
         if (data.status === 'success' && data.data) {
@@ -170,19 +170,17 @@ class CheckoutManager {
     shippingMethods.forEach((method) => {
       method.addEventListener("click", (e) => {
         const methodElement = method.closest(".shipping-method");
-        const methodId = methodElement.dataset.method;
-        // 切換active樣式
         document.querySelectorAll('.shipping-method').forEach(m => m.classList.remove('active'));
         methodElement.classList.add('active');
-        // 切換radio
         const radio = method.querySelector("input[type='radio']");
-        if (radio) radio.checked = true;
-        // 門市選擇顯示/隱藏
-        handleCvsSelectVisibility();
+        if (radio && !radio.checked) {
+          radio.checked = true;
+          handleCvsSelectVisibility(); // 只有在 radio 狀態真的有變化時才呼叫
+        }
       });
     });
 
-    // shipping-method radio 變動時也要處理門市選擇顯示
+    // 仍保留 change 事件
     document.querySelectorAll('input[name="shipping-method"]').forEach(radio => {
       radio.addEventListener('change', handleCvsSelectVisibility);
     });
@@ -226,35 +224,31 @@ class CheckoutManager {
     }
 
     async function handleCvsSelectVisibility() {
+      console.trace('handleCvsSelectVisibility called');
       const selectedShipping = document.querySelector('input[name="shipping-method"]:checked').value;
+      if (cvsArea) {
+        cvsArea.innerHTML = ''; // 先清空，避免重複
+      }
       if (selectedShipping === '2') {
-        // 顯示門市選擇
-        if (cvsArea && cvsArea.childElementCount === 0) {
-          // 載入711資料
-          await load711Stores();
-          // 建立下拉選單
-          const cvsDiv = document.createElement('div');
-          cvsDiv.innerHTML = `
-            <label>選擇城市：<select id="city-select"></select></label>
-            <label>選擇門市：<select id="store-select"></select></label>
-          `;
-          cvsArea.appendChild(cvsDiv);
-          citySelect = document.getElementById('city-select');
-          storeSelect = document.getElementById('store-select');
-          citySelect.addEventListener('change', () => {
-            renderStoreOptions();
-            document.getElementById('customer-address').value = '';
-          });
-          storeSelect.addEventListener('change', handleStoreSelected);
-          renderCityOptions();
-        } else if (cvsArea) {
-          cvsArea.style.display = '';
-        }
+        await load711Stores();
+        // 建立下拉選單
+        const cvsDiv = document.createElement('div');
+        cvsDiv.innerHTML = `
+          <label>選擇城市：<select id="city-select"></select></label>
+          <label>選擇門市：<select id="store-select"></select></label>
+        `;
+        cvsArea.appendChild(cvsDiv);
+        citySelect = document.getElementById('city-select');
+        storeSelect = document.getElementById('store-select');
+        citySelect.addEventListener('change', () => {
+          renderStoreOptions();
+          document.getElementById('customer-address').value = '';
+        });
+        storeSelect.addEventListener('change', handleStoreSelected);
+        renderCityOptions();
+        console.log('插入711門市下拉選單');
       } else {
-        // 隱藏門市選擇
-        if (cvsArea) {
-          cvsArea.innerHTML = '';
-        }
+        console.log('未選擇超商取貨，清空711門市下拉選單');
       }
     }
 
@@ -327,8 +321,17 @@ class CheckoutManager {
     const orderShippingAddress = document.getElementById("customer-address").value.trim();
     const shopOrderNote = document.getElementById("customer-note").value.trim();
 
-    // 出貨方式、付款方式、運費
-    const shopOrderShipment = Number(document.querySelector('input[name="shipping-method"]:checked')?.value || 1);
+    // 出貨方式
+    let shopOrderShipment = 1; // 1: 賣家宅配, 2: 超商取貨
+    const shippingRadio = document.querySelector('input[name="shipping-method"]:checked');
+    if (shippingRadio) {
+      if (shippingRadio.value === '1') {
+        shopOrderShipment = 1;
+      } else if (shippingRadio.value === '2') {
+        shopOrderShipment = 2;
+      }
+    }
+    // 付款方式
     let shopOrderPayment = 1; // 1: LINE Pay, 2: 宅配取貨付款, 3: 超商取貨付款
     if (this.selectedPaymentMethod === 'line-pay') shopOrderPayment = 1;
     else if (this.selectedPaymentMethod === 'cod-home') shopOrderPayment = 2;
@@ -399,10 +402,10 @@ class CheckoutManager {
         ],
         redirectUrls: {
           confirmUrl:
-            "http://localhost:8081/CJA101G02/api/confirmpayment/" +
+            `${window.api_prefix}/api/confirmpayment/` +
             orderId +
             "/true",
-          cancelUrl: "http://127.0.0.1:5501/linepay-cancel.html",
+          cancelUrl: `${window.api_prefix}/linepay-cancel.html`,
         },
       };
 
@@ -491,7 +494,7 @@ class CheckoutManager {
   async getOrderIdFromServer() {
     try {
       const response = await fetch(
-        "http://localhost:8081/CJA101G02/api/campsite/newordernumber"
+        `${window.api_prefix}/api/campsite/newordernumber`
       );
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -511,7 +514,7 @@ class CheckoutManager {
   async sendPaymentRequest(requestBody) {
     try {
       const response = await fetch(
-        "http://localhost:8081/CJA101G02/api/linepay/true",
+        `${window.api_prefix}/api/linepay/true`,
         {
           method: "POST",
           headers: {
@@ -671,7 +674,7 @@ class CheckoutManager {
     }
     if (memId) {
       try {
-        await fetch(`http://localhost:8081/CJA101G02/api/clearCart?memId=${memId}`, {
+        await fetch(`${window.api_prefix}/api/clearCart?memId=${memId}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' }
         });
