@@ -94,7 +94,7 @@ async function fetchCartData() {
     // 取得會員ID
     const memberInfo = sessionStorage.getItem('currentMember');
     const member = memberInfo ? JSON.parse(memberInfo) : null;
-    const memId = member ? member.mem_id : null;
+    const memId = member ? member.memId : null;
     console.log('取得會員ID:', memId);
 
     if (memId) {
@@ -365,7 +365,7 @@ async function updateCartItem(cartItem) {
   const quantity = parseInt(cartItem.querySelector('.quantity-selector input').value);
   const memberInfo = sessionStorage.getItem('currentMember');
   const member = memberInfo ? JSON.parse(memberInfo) : null;
-  const memId = member ? member.mem_id : null;
+  const memId = member ? member.memId : null;
   console.log('取得會員ID:', memId);
 
   if (memId) {
@@ -408,7 +408,7 @@ async function removeCartItem(cartItem) {
   const prodSpecId = parseInt(cartItem.querySelector('.spec-select').value);
   const memberInfo = sessionStorage.getItem('currentMember');
   const member = memberInfo ? JSON.parse(memberInfo) : null;
-  const memId = member ? member.mem_id : null;
+  const memId = member ? member.memId : null;
   console.log('取得會員ID:', memId);
 
   if (memId) {
@@ -452,7 +452,7 @@ async function clearCart() {
   }
   const memberInfo = sessionStorage.getItem('currentMember');
   const member = memberInfo ? JSON.parse(memberInfo) : null;
-  const memId = member ? member.mem_id : null;
+  const memId = member ? member.memId : null;
   console.log('取得會員ID:', memId);
   if (memId) {
     // ...原本已登入API邏輯...
@@ -617,7 +617,7 @@ function recalculateCartSummary() {
   document.getElementById('cart-total').textContent = `NT$ ${(subtotal + shipping).toLocaleString()}`;
 }
 
-console.log('送出新增/修改購物車API', { memId, payload });
+// console.log('送出新增/修改購物車API', {memId, payload });
 fetch('/api/addCart', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
