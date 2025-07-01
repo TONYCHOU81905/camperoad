@@ -137,7 +137,7 @@ function initBookingButton() {
     // 修改按鈕文字為「查詢空房」
     bookButton.innerHTML = '<i class="fas fa-search"></i> 查詢空房';
 
-    bookButton.addEventListener("click", function () {
+    bookButton.addEventListener("click", async function () {
       // 獲取表單數據
       const checkInDate = document.getElementById("check-in-date").value;
       const checkOutDate = document.getElementById("check-out-date").value;
@@ -152,8 +152,14 @@ function initBookingButton() {
       // 獲取營地ID (從URL參數)
       const campsiteId = getCurrentCampsiteId();
 
-      // 查詢並顯示符合條件的房型
-      loadCampsiteTypesByGuestCount();
+      try {
+        // 使用fetch API獲取可用房型數據
+        await getAvailableRoomTypesFromAPI(campsiteId, guests, checkInDate, checkOutDate);
+      } catch (error) {
+        console.error('獲取可用房型失敗:', error);
+        // 如果API調用失敗，回退到原有邏輯
+        loadCampsiteTypesByGuestCount();
+      }
     });
   }
 }
@@ -348,51 +354,14 @@ function addRoomTypesStyles() {
  * 添加到購物車
  * @param {string} campsite_type_id - 房型ID
  */
-function addToCart(campsite_type_id) {
+async function addToCart(campsite_type_id) {
   // 獲取營地ID
   const campId = getCurrentCampsiteId();
-
-  // 獲取營地名稱
-  // const campsiteName = document.querySelector(".campsite-title h1").textContent;
 
   // 獲取入住和退房日期
   const checkInDate = document.getElementById("check-in-date").value;
   const checkOutDate = document.getElementById("check-out-date").value;
-
-  // 獲取人數
-  // const guestsInput = document.getElementById("guests");
-  // const guests = guestsInput ? parseInt(guestsInput.value) : 2;
-
-  console.log(
-    campsite_type_id,
-    // campsiteName,
-    checkInDate,
-    checkOutDate
-    // guestsInput,
-    // guests
-  );
-
-  // 獲取帳篷類型（如果提供了typeId，則使用該typeId對應的房型名稱）
-  // let tentType = document.getElementById("tent-type").value;
-  // let price = 0;
-
-  // 如果提供了typeId，則從房型數據中獲取對應的房型名稱和價格
-  // if (campsite_type_id) {
-  //   // 從全局變量中獲取房型數據
-  //   const selectedType = window.campsiteTypes.find(
-  //     (type) => type.campsite_type_id === campsite_type_id
-  //   );
-  //   if (selectedType) {
-  //     tentType = selectedType.campsite_name;
-  //     price = parseInt(selectedType.campsite_price);
-  //   }
-  // } else {
-  //   // 獲取價格
-  //   const priceElement = document.querySelector(".price-value");
-  //   price = priceElement
-  //     ? parseInt(priceElement.textContent.replace(/[^0-9]/g, ""))
-  //     : 2000;
-  // }
+  const guests = document.getElementById("guests").value;
 
   // 驗證日期
   if (!checkInDate || !checkOutDate) {
@@ -417,59 +386,82 @@ function addToCart(campsite_type_id) {
     return;
   }
 
-  // 計算住宿天數
-  const days = Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24));
+  try {
+    // 檢查剩餘房型數量
+    const remainingCount = await checkRemainingRoomCount(campId, campsite_type_id, guests, checkInDate, checkOutDate);
+    
+    // 檢查購物車中是否已有該房型
+    let cart = JSON.parse(localStorage.getItem("campingCart")) || [];
+    
+    // 檢查是否已有不同營地或日期的項目
+    const hasDifferentCampsite = cart.some(
+      (item) =>
+        item.campId !== campId ||
+        item.checkIn !== checkInDate ||
+        item.checkOut !== checkOutDate
+    );
 
-  // 創建購物車項目
-  const cartItem = {
-    campId: campId,
-    campsite_type_id: campsite_type_id || "1", // 添加房型ID
-    campsite_num: 1,
-    // name: campsiteName,
-    checkIn: checkInDate,
-    checkOut: checkOutDate,
+    if (hasDifferentCampsite) {
+      // 詢問用戶是否要清空購物車
+      if (
+        confirm("購物車中已有不同營地或日期的項目，是否清空購物車並添加新項目？")
+      ) {
+        cart = [];
+      } else {
+        return;
+      }
+    }
 
-    // guests: guests,
-    // tentType: tentType,
-    days: days,
-    // price: price,
-    // total: price * days,
-  };
+    // 計算購物車中該房型的數量
+    const existingCount = cart.filter(
+      (item) => item.campsite_type_id === campsite_type_id
+    ).length;
 
-  // 檢查本地存儲中是否已有購物車
-  let cart = JSON.parse(localStorage.getItem("campingCart")) || [];
-
-  // 檢查是否已有不同營地或日期的項目
-  const hasDifferentCampsite = cart.some(
-    (item) =>
-      item.campId !== campId ||
-      item.checkIn !== checkInDate ||
-      item.checkOut !== checkOutDate
-  );
-
-  if (hasDifferentCampsite) {
-    // 詢問用戶是否要清空購物車
-    if (
-      confirm("購物車中已有不同營地或日期的項目，是否清空購物車並添加新項目？")
-    ) {
-      cart = [];
-    } else {
+    // 檢查是否會超過剩餘數量
+    if (existingCount + 1 > remainingCount) {
+      alert(`抱歉，該房型剩餘數量為 ${remainingCount} 間，購物車中已有 ${existingCount} 間，無法再添加。`);
+      
+      // 禁用加入購物車按鈕
+      const addToCartBtn = document.querySelector(`[data-type-id="${campsite_type_id}"]`);
+      if (addToCartBtn) {
+        addToCartBtn.disabled = true;
+        addToCartBtn.innerHTML = '數量已達上限';
+        addToCartBtn.style.backgroundColor = '#ccc';
+        addToCartBtn.style.cursor = 'not-allowed';
+      }
       return;
     }
+
+    // 計算住宿天數
+    const days = Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24));
+
+    // 創建購物車項目
+    const cartItem = {
+      campId: campId,
+      campsite_type_id: campsite_type_id || "1",
+      campsite_num: 1,
+      checkIn: checkInDate,
+      checkOut: checkOutDate,
+      days: days,
+    };
+
+    // 添加到購物車
+    cart.push(cartItem);
+
+    // 保存到本地存儲
+    localStorage.setItem("campingCart", JSON.stringify(cart));
+
+    // 更新購物車數量顯示
+    updateCartCount(cart.length);
+
+    // 顯示添加成功消息
+    showAddToCartMessage();
+    console.log("已添加到購物車");
+    
+  } catch (error) {
+    console.error('檢查剩餘房型數量失敗:', error);
+    alert('無法檢查房型可用性，請稍後再試。');
   }
-
-  // 添加到購物車
-  cart.push(cartItem);
-
-  // 保存到本地存儲
-  localStorage.setItem("campingCart", JSON.stringify(cart));
-
-  // 更新購物車數量顯示
-  updateCartCount(cart.length);
-
-  // 顯示添加成功消息
-  showAddToCartMessage();
-  console.log("已添加到購物車");
 }
 
 function getCurrentCampsiteId() {
@@ -544,6 +536,262 @@ function showAddToCartMessage() {
       }
     }, 300);
   }, 3000);
+}
+
+/**
+ * 檢查剩餘房型數量
+ * @param {string} campId - 營地ID
+ * @param {string} campsiteTypeId - 房型ID
+ * @param {string} guests - 人數
+ * @param {string} checkIn - 入住日期
+ * @param {string} checkOut - 退房日期
+ * @returns {Promise<number>} 剩餘房型數量
+ */
+async function checkRemainingRoomCount(campId, campsiteTypeId, guests, checkIn, checkOut) {
+  try {
+    const requestBody = new URLSearchParams({
+      campIds: campId,
+      people: guests,
+      checkIn: checkIn,
+      checkOut: checkOut
+    });
+
+    const response = await fetch('http://localhost:8081/CJA101G02/api/ca/available/Remaing', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: requestBody
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('API回應數據:', data);
+
+    // 查找對應房型的剩餘數量
+    const roomTypeData = data.find(item => 
+      item.campId === parseInt(campId) && 
+      item.campsiteTypeId === parseInt(campsiteTypeId)
+    );
+
+    return roomTypeData ? roomTypeData.remaing : 0;
+  } catch (error) {
+    console.error('檢查剩餘房型數量失敗:', error);
+    throw error;
+  }
+}
+
+/**
+ * 使用API獲取可用房型數據並顯示
+ * @param {string} campId - 營地ID
+ * @param {string} guests - 人數
+ * @param {string} checkIn - 入住日期
+ * @param {string} checkOut - 退房日期
+ */
+async function getAvailableRoomTypesFromAPI(campId, guests, checkIn, checkOut) {
+  try {
+    const requestBody = new URLSearchParams({
+      campIds: campId,
+      people: guests,
+      checkIn: checkIn,
+      checkOut: checkOut
+    });
+
+    const response = await fetch('http://localhost:8081/CJA101G02/api/ca/available/Remaing', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: requestBody
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const availableData = await response.json();
+    console.log('可用房型API回應:', availableData);
+
+    // 過濾出該營地的可用房型
+    const campAvailableTypes = availableData.filter(item => 
+      item.campId === parseInt(campId) && item.remaing > 0
+    );
+
+    if (campAvailableTypes.length === 0) {
+      displayNoAvailableRooms(guests);
+      return;
+    }
+
+    // 從原始房型數據中獲取詳細信息
+    if (window.campsiteTypes && window.campsiteTypes.length > 0) {
+      const availableTypes = window.campsiteTypes.filter(type => 
+        campAvailableTypes.some(available => 
+          available.campsiteTypeId === type.campsite_type_id
+        )
+      );
+
+      // 添加剩餘數量信息
+      availableTypes.forEach(type => {
+        const availableInfo = campAvailableTypes.find(available => 
+          available.campsiteTypeId === type.campsite_type_id
+        );
+        if (availableInfo) {
+          type.remaing = availableInfo.remaing;
+        }
+      });
+
+      displayAvailableRoomTypes(availableTypes, guests);
+    } else {
+      // 如果沒有詳細房型數據，顯示基本信息
+      displayBasicAvailableRooms(campAvailableTypes, guests);
+    }
+
+  } catch (error) {
+    console.error('獲取可用房型失敗:', error);
+    throw error;
+  }
+}
+
+/**
+ * 顯示沒有可用房型的訊息
+ * @param {string} guests - 人數
+ */
+function displayNoAvailableRooms(guests) {
+  let roomTypesSection = document.querySelector(".room-types-section");
+  if (!roomTypesSection) {
+    const campsiteInfo = document.querySelector(".campsite-info");
+    if (campsiteInfo) {
+      roomTypesSection = document.createElement("div");
+      roomTypesSection.className = "room-types-section";
+      campsiteInfo.appendChild(roomTypesSection);
+    }
+  }
+
+  if (roomTypesSection) {
+    roomTypesSection.innerHTML = `
+      <h3>查詢結果</h3>
+      <div class="no-available-rooms">
+        <i class="fas fa-exclamation-triangle"></i>
+        <p>抱歉，在選定的日期內沒有適合 ${guests} 人的可用房型。</p>
+        <p>請嘗試調整日期或人數。</p>
+      </div>
+    `;
+  }
+}
+
+/**
+ * 顯示可用房型（詳細版本）
+ * @param {Array} availableTypes - 可用房型數據
+ * @param {string} guests - 人數
+ */
+function displayAvailableRoomTypes(availableTypes, guests) {
+  let roomTypesSection = document.querySelector(".room-types-section");
+  if (!roomTypesSection) {
+    const campsiteInfo = document.querySelector(".campsite-info");
+    if (campsiteInfo) {
+      roomTypesSection = document.createElement("div");
+      roomTypesSection.className = "room-types-section";
+      campsiteInfo.appendChild(roomTypesSection);
+    }
+  }
+
+  if (!roomTypesSection) return;
+
+  roomTypesSection.innerHTML = `
+    <h3>適合 ${guests} 人的可用房型</h3>
+    <div class="room-types-container" id="room-types-container"></div>
+  `;
+
+  const roomTypesContainer = document.getElementById("room-types-container");
+
+  availableTypes.forEach((type) => {
+    const roomCard = document.createElement("div");
+    roomCard.className = "room-type-card";
+
+    const roomImages = document.createElement("div");
+    roomImages.className = "room-type-images";
+
+    if (type.campsite_pic1) {
+      const img = document.createElement("img");
+      img.src = `data:image/jpeg;base64,${type.campsite_pic1}`;
+      img.alt = type.campsite_name;
+      roomImages.appendChild(img);
+    } else {
+      const img = document.createElement("img");
+      img.src = "images/camp-1.jpg";
+      img.alt = type.campsite_name;
+      roomImages.appendChild(img);
+    }
+
+    const roomInfo = document.createElement("div");
+    roomInfo.className = "room-type-info";
+    roomInfo.innerHTML = `
+      <h4>${type.campsite_name}</h4>
+      <p>適合人數: ${type.campsite_people}人</p>
+      <p>價格: NT$ ${type.campsite_price.toLocaleString()} / 晚</p>
+      <p>剩餘數量: <span class="remaining-count">${type.remaing}</span>間</p>
+      <button class="btn-add-to-cart" data-type-id="${type.campsite_type_id}">加入購物車</button>
+    `;
+
+    roomCard.appendChild(roomImages);
+    roomCard.appendChild(roomInfo);
+    roomTypesContainer.appendChild(roomCard);
+  });
+
+  // 為所有「加入購物車」按鈕添加事件監聽器
+  const addToCartButtons = document.querySelectorAll(".btn-add-to-cart");
+  addToCartButtons.forEach((button) => {
+    button.addEventListener("click", function () {
+      const typeId = this.getAttribute("data-type-id");
+      addToCart(typeId);
+    });
+  });
+
+  addRoomTypesStyles();
+}
+
+/**
+ * 顯示基本可用房型信息
+ * @param {Array} availableData - API返回的可用房型數據
+ * @param {string} guests - 人數
+ */
+function displayBasicAvailableRooms(availableData, guests) {
+  let roomTypesSection = document.querySelector(".room-types-section");
+  if (!roomTypesSection) {
+    const campsiteInfo = document.querySelector(".campsite-info");
+    if (campsiteInfo) {
+      roomTypesSection = document.createElement("div");
+      roomTypesSection.className = "room-types-section";
+      campsiteInfo.appendChild(roomTypesSection);
+    }
+  }
+
+  if (!roomTypesSection) return;
+
+  roomTypesSection.innerHTML = `
+    <h3>可用房型查詢結果</h3>
+    <div class="available-rooms-list">
+      ${availableData.map(item => `
+        <div class="available-room-item">
+          <p>房型ID: ${item.campsiteTypeId}</p>
+          <p>剩餘數量: ${item.remaing} 間</p>
+          <button class="btn-add-to-cart" data-type-id="${item.campsiteTypeId}">加入購物車</button>
+        </div>
+      `).join('')}
+    </div>
+  `;
+
+  // 為所有「加入購物車」按鈕添加事件監聽器
+  const addToCartButtons = document.querySelectorAll(".btn-add-to-cart");
+  addToCartButtons.forEach((button) => {
+    button.addEventListener("click", function () {
+      const typeId = this.getAttribute("data-type-id");
+      addToCart(typeId);
+    });
+  });
 }
 
 /**
@@ -827,6 +1075,90 @@ function addRoomTypesStyles() {
       font-size: 40px;
       color: #e63946;
       margin-bottom: 15px;
+    }
+    
+    .no-available-rooms {
+      text-align: center;
+      padding: 30px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      margin: 20px 0;
+    }
+    
+    .no-available-rooms i {
+      font-size: 40px;
+      color: #f39c12;
+      margin-bottom: 15px;
+    }
+    
+    .no-available-rooms p {
+      color: #666;
+      margin: 10px 0;
+    }
+    
+    .available-rooms-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 15px;
+      margin: 20px 0;
+    }
+    
+    .available-room-item {
+      background-color: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      border-left: 4px solid #3A5A40;
+    }
+    
+    .available-room-item p {
+      margin: 8px 0;
+      color: #555;
+    }
+    
+    .available-room-item .btn-add-to-cart {
+      margin-top: 15px;
+    }
+    
+    .remaining-count {
+      font-weight: bold;
+      color: #3A5A40;
+    }
+    
+    .btn-add-to-cart:disabled {
+      background-color: #ccc !important;
+      cursor: not-allowed !important;
+      opacity: 0.6;
+    }
+    
+    .btn-add-to-cart:disabled:hover {
+      background-color: #ccc !important;
+    }
+    
+    .room-types-section h3 {
+      color: #3A5A40;
+      font-size: 22px;
+      margin-bottom: 20px;
+      text-align: center;
+      border-bottom: 2px solid #3A5A40;
+      padding-bottom: 10px;
+    }
+    
+    .room-type-images {
+      height: 200px;
+      overflow: hidden;
+    }
+    
+    .room-type-images img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+    
+    .room-type-card:hover .room-type-images img {
+      transform: scale(1.05);
     }
     
     .no-rooms-message p {
