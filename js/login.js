@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", function () {
   if (adminLoginForm) {
     adminLoginForm.addEventListener("submit", handleAdminLogin);
   }
-  
+
   // 密碼強度檢測
   const passwordInput = document.getElementById("camper-register-password");
   const strengthBar = document.querySelector(".strength-fill");
@@ -91,18 +91,33 @@ async function handleLogin(e) {
   }
 
   try {
+    console.log("memAcc:" + memAcc);
+    console.log("password:" + password);
     // 使用API進行登入
-    const response = await fetch("http://localhost:8081/CJA101G02/api/member/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        mem_acc: memAcc,
-        mem_pwd: password
-      }),
-      credentials: "include" // 包含Cookie
-    });
+
+    const response = await fetch(
+      "http://localhost:8081/CJA101G02/api/member/login",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          memAcc: memAcc,
+          memPwd: password,
+        }),
+        //credentials: "include", // 包含Cookie
+      }
+    );
+
+    // const response = await fetch(
+    //   "data/mem.json",
+    //   // "http://localhost:8081/CJA101G02/api/member/login",
+    //   {
+    //     method: "GET",
+    //     //credentials: "include", // 包含Cookie
+    //   }
+    // );
 
     if (!response.ok) {
       throw new Error("登入失敗");
@@ -110,7 +125,9 @@ async function handleLogin(e) {
 
     const data = await response.json();
 
-    if (data.success) {
+    console.log("response" + data.status);
+
+    if (data.status === "登入成功") {
       // 登入成功
       const member = data.member;
       currentMember = member;
@@ -191,7 +208,7 @@ async function handleRegister(e) {
     mem_addr: formData.get("mem_addr"),
     mem_nation: formData.get("mem_nation"),
     mem_nation_id: formData.get("mem_nation_id"),
-    mem_birth: formData.get("mem_birth")
+    mem_birth: formData.get("mem_birth"),
   };
 
   // 驗證必填欄位
@@ -241,13 +258,16 @@ async function handleRegister(e) {
 
   try {
     // 使用API進行註冊
-    const response = await fetch("http://localhost:8081/CJA101G02/api/member/register", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(memData)
-    });
+    const response = await fetch(
+      "http://localhost:8081/CJA101G02/api/member/register",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(memData),
+      }
+    );
 
     if (!response.ok) {
       throw new Error("註冊請求失敗");
@@ -447,7 +467,7 @@ async function handleAdminLogin(e) {
       } else {
         sessionStorage.setItem("currentAdmin", JSON.stringify(admin));
       }
-      
+
       showMessage("管理員登入成功！", "success");
 
       // 延遲跳轉到管理員後台
