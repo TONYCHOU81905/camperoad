@@ -17,6 +17,9 @@ document.addEventListener("DOMContentLoaded", function () {
   // 初始化修改搜尋按鈕
   initModifySearchButton();
 
+  // 初始化營地收藏清單
+  initFavoriteCampIds();
+
   // 模擬頁面載入
   simulatePageLoading();
 });
@@ -437,8 +440,12 @@ async function renderPaginatedResults(camps) {
   generatePagination(totalPages);
 }
 
+
+
 // 顯示當前頁面的營地
 async function displayCurrentPage() {
+  await initFavoriteCampIds();
+  
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentPageCamps = allCampCards.slice(startIndex, endIndex);
@@ -448,6 +455,9 @@ async function displayCurrentPage() {
   if (searchResults) {
     searchResults.innerHTML = "";
 
+
+    
+    
     // 使用Promise.all來並行處理所有營地卡片的創建
     const campCardPromises = currentPageCamps.map((camp) =>
       createCampCard(camp)

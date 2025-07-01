@@ -69,80 +69,145 @@ function updateSearchResultsCount(count) {
   if (totalResults) totalResults.textContent = count.toString();
 }
 
+// 初始化營地收藏清單，獲取會員資料與會員
+async function initFavoriteCampIds() {
+  const saved = localStorage.getItem("currentMember") || sessionStorage.getItem("currentMember");
+  if (!saved) return;
+
+  const currentMember = JSON.parse(saved);
+  const memId = currentMember.mem_id || currentMember.memId || currentMember.id;
+
+  try {
+    const response = await fetch(`${window.api_prefix}/camptracklist/${memId}/getCampTrackLists`);
+    const json = await response.json();
+    // 假設 API 回傳格式為 { status: "success", data: [{ campId: 1001 }, ...] }
+    window.favoriteCampIds = json.data.map(item => item.campId);
+  } catch (error) {
+    console.error("載入會員收藏清單失敗", error);
+    window.favoriteCampIds = [];
+  }
+}
+
+
+
 // 建立營地卡片
 async function createCampCard(camp) {
   const card = document.createElement("div");
   card.className = "camp-card";
 
-  // 計算星星評分
   const rating = calculateRating(
     camp.camp_comment_sun_score,
     camp.camp_comment_number_count
   );
   const starsHtml = generateStarsHtml(rating);
 
-  //確認URL夾帶資料
   const urlParams = new URLSearchParams(window.location.search);
   const guests = urlParams.get("guests");
   const checkIn = urlParams.get("check-in");
   const checkOut = urlParams.get("check-out");
 
-  // 載入該營地的房型資料
   const campsiteTypes = await getCampsiteTypesByCampId(camp.camp_id, guests);
   const priceListHtml = generatePriceListHtml(campsiteTypes);
-
-  // 格式化營地內容，限制長度並美化顯示
   const formattedContent = formatCampContent(camp.camp_content, 80);
-
-  // 格式化註冊日期
   const regDate = formatDate(camp.camp_reg_date);
 
+  const isFavorited = window.favoriteCampIds?.includes?.(camp.camp_id);
+
   card.innerHTML = `
-        <div class="camp-image">
-            <img src=images/camp-1.jpg alt="${camp.camp_name}" />
-            <span class="camp-tag">熱門</span>
-        </div>
-        <div class="camp-info">
-            <h3>${camp.camp_name}</h3>
-            <p>${formattedContent}</p>
-            <p class="camp-location">
-                <i class="fas fa-map-marker-alt"></i> ${
-                  camp.camp_city + camp.camp_dist
-                }
-            </p>
-            <p class="camp-date">
-                <i class="far fa-calendar-alt"></i> 上架日期: ${regDate}
-            </p>
-            <div class="camp-rating">
-                <div class="stars">
-                    ${starsHtml}
-                </div>
-                <span class="rating-count">(${
-                  camp.camp_comment_number_count || 0
-                })</span>
-            </div>
-            <div class="camp-features">
-                <span><i class="fas fa-mountain"></i> 山景</span>
-                <span><i class="fas fa-shower"></i> 衛浴</span>
-                <span><i class="fas fa-utensils"></i> 餐廳</span>
-            </div>
-            <div class="camp-footer">
-                <div class="camp-price-list">
-                    ${priceListHtml}
-                </div>
-            </div>
-            <div class="camp-actions">
-                <a href="campsite-detail.html?id=${
-                  camp.camp_id
-                }&guests=${guests}&check-in=${checkIn}&check-out=${checkOut}" class="btn-view btn-view-enhanced btn-view-full">
-                    <i class="fas fa-search-plus"></i> 查看詳情
-                </a>
-            </div>
-        </div>
-    `;
+    <div class="camp-image">
+      <img src="images/camp-1.jpg" alt="${camp.camp_name}" />
+      <span class="camp-tag">熱門</span>
+    </div>
+    <div class="camp-info">
+      <h3>${camp.camp_name}</h3>
+      <p>${formattedContent}</p>
+      <p class="camp-location">
+        <i class="fas fa-map-marker-alt"></i> ${camp.camp_city + camp.camp_dist}
+      </p>
+      <p class="camp-date">
+        <i class="far fa-calendar-alt"></i> 上架日期: ${regDate}
+      </p>
+      <div class="camp-rating">
+        <div class="stars">${starsHtml}</div>
+        <span class="rating-count">(${camp.camp_comment_number_count || 0})</span>
+      </div>
+      <div class="camp-features">
+        <span><i class="fas fa-mountain"></i> 山景</span>
+        <span><i class="fas fa-shower"></i> 衛浴</span>
+        <span><i class="fas fa-utensils"></i> 餐廳</span>
+      </div>
+      <div class="camp-footer">
+        <div class="camp-price-list">${priceListHtml}</div>
+      </div>
+      <div class="camp-actions">
+        <a href="campsite-detail.html?id=${camp.camp_id}&guests=${guests}&check-in=${checkIn}&check-out=${checkOut}" class="btn-view btn-view-enhanced btn-view-full">
+          <i class="fas fa-search-plus"></i> 查看詳情
+        </a>
+        <button class="btn-toggle-favorite ${isFavorited ? "favorited" : ""}" 
+                data-camp-id="${camp.camp_id}" 
+                title="${isFavorited ? "已收藏" : "加入收藏"}">
+          <i class="fas fa-heart"></i>
+        </button>
+      </div>
+    </div>
+  `;
+
+  const favBtn = card.querySelector(".btn-toggle-favorite");
+  if (favBtn) {
+    favBtn.addEventListener("click", async () => {
+      const saved = localStorage.getItem("currentMember") || sessionStorage.getItem("currentMember");
+      if (!saved) return alert("請先登入才能收藏");
+      const currentMember = JSON.parse(saved);
+      const memId = currentMember.mem_id || currentMember.memId || currentMember.id;
+      const campId = parseInt(favBtn.dataset.campId);
+      if (!Array.isArray(window.favoriteCampIds)) window.favoriteCampIds = [];
+      try {
+        const isFav = favBtn.classList.contains("favorited");
+        const url = `${window.api_prefix}/camptracklist/${isFav ? "deleteCampTrackList" : "addCampTrackList"}`;
+        const response = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ campId, memId }),
+        });
+        if (!response.ok) {
+          alert("操作失敗：" + response.statusText);
+          return;
+        }
+        favBtn.classList.toggle("favorited", !isFav);
+        favBtn.title = isFav ? "加入收藏" : "已收藏";
+        if (isFav) {
+          window.favoriteCampIds = window.favoriteCampIds.filter(id => id !== campId);
+        } else if (!window.favoriteCampIds.includes(campId)) {
+          window.favoriteCampIds.push(campId);
+        }
+      } catch (error) {
+        alert("網路錯誤，請稍後再試");
+      }
+    });
+  }
 
   return card;
 }
+
+// 初始化營地收藏清單，獲取會員資料與會員
+async function initFavoriteCampIds() {
+  const saved = localStorage.getItem("currentMember") || sessionStorage.getItem("currentMember");
+  if (!saved) return;
+
+  const currentMember = JSON.parse(saved);
+  const memId = currentMember.mem_id || currentMember.memId || currentMember.id;
+
+  try {
+    const response = await fetch(`${window.api_prefix}/camptracklist/${memId}/getCampTrackLists`);
+    const json = await response.json();
+    // 假設 API 回傳格式為 { status: "success", data: [{ campId: 1001 }, ...] }
+    window.favoriteCampIds = json.data.map(item => item.campId);
+  } catch (error) {
+    console.error("載入會員收藏清單失敗", error);
+    window.favoriteCampIds = [];
+  }
+}
+
 
 // 載入營地房型資料
 let campsiteTypesData = null;
@@ -471,6 +536,7 @@ async function initCampData() {
   // 載入資料
   await loadCampData();
   await loadMemberData();
+  await initFavoriteCampIds(); // 載入收藏資料
 
   // 檢查是否有已登入的會員
   const savedMember = localStorage.getItem("currentMember");
@@ -491,6 +557,7 @@ async function initCampData() {
     console.log("首頁顯示3個營地卡片");
   } else if (currentPath.includes("campsites.html")) {
     console.log("營地列表頁");
+
 
     // 營地列表頁顯示所有營地
     renderCampCards(campData);
