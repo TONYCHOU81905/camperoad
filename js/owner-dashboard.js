@@ -9,6 +9,8 @@ class OwnerDashboard {
     this.discountCodeData = [];
     this.justUpdatedRoomTypeId = null; // 新增：記錄剛剛有上傳圖片的房型ID
     this.pendingCampImages = {}; // 新增：暫存待上傳的營地圖片
+    this.deletedCampImages = {}; // 新增：記錄被刪除的營地圖片索引
+    this.imageExistsCache = {}; // 新增：圖片存在性緩存
     this.init();
   }
 
@@ -104,6 +106,8 @@ class OwnerDashboard {
           const campId = ownerProfileSelect.value;
           // 更新 campData
           this.campData = this.allCamps.find((camp) => camp.campId == campId);
+          // 清空圖片刪除標記
+          this.deletedCampImages = {};
 
           // 1. 只顯示/隱藏 loading 區塊，不覆蓋 camp-info
           let campInfoLoading = document.getElementById("campInfoLoading");
@@ -221,6 +225,8 @@ class OwnerDashboard {
 
       // 預設選擇第一個營地
       this.campData = this.allCamps[0];
+      // 清空圖片刪除標記
+      this.deletedCampImages = {};
       console.log("asdasd:" + this.allCamps);
       // 載入營地房間資料
       const campsiteResponse = await fetch(
@@ -398,17 +404,40 @@ class OwnerDashboard {
 
   // 檢查圖片是否存在的輔助函數
   checkImageExists(url) {
+    // 檢查緩存
+    if (this.imageExistsCache.hasOwnProperty(url)) {
+      return Promise.resolve(this.imageExistsCache[url]);
+    }
+
     return new Promise((resolve) => {
       try {
         const img = new Image();
-        img.onload = () => resolve(true);
-        img.onerror = () => resolve(false);
+        img.onload = () => {
+          this.imageExistsCache[url] = true;
+          resolve(true);
+        };
+        img.onerror = () => {
+          this.imageExistsCache[url] = false;
+          resolve(false);
+        };
         img.src = url;
       } catch (error) {
         console.error("檢查圖片存在性時發生錯誤：", error);
+        this.imageExistsCache[url] = false;
         resolve(false);
       }
     });
+  }
+
+  // 清除圖片存在性緩存
+  clearImageCache(url = null) {
+    if (url) {
+      // 清除特定URL的緩存
+      delete this.imageExistsCache[url];
+    } else {
+      // 清除所有緩存
+      this.imageExistsCache = {};
+    }
   }
 
   async renderCampImages() {
@@ -418,7 +447,6 @@ class OwnerDashboard {
       }
 
       const campId = this.campData.campId;
-      const defaultImagePath = "images/camp-1.jpg";
 
       for (let i = 1; i <= 4; i++) {
         const container = document.getElementById(`campImage${i}Container`);
@@ -433,7 +461,7 @@ class OwnerDashboard {
             <div class="image-container">
               <img src="${pendingImage.previewUrl}" class="thumbnail" onclick="ownerDashboard.showCampImageModal('${pendingImage.previewUrl}', ${i})" />
               <div class="image-actions">
-                <button class="btn btn-sm btn-camping" onclick="ownerDashboard.uploadCampImage(${i})"><i class="fas fa-upload"></i></button>
+                <button class="btn btn-sm btn-camping" onclick="ownerDashboard.uploadCampImage(${i}, event)"><i class="fas fa-upload"></i></button>
                 <button class="btn btn-sm btn-danger" onclick="ownerDashboard.deleteCampImage(${i})"><i class="fas fa-trash"></i></button>
               </div>
               <div class="image-status pending">待保存</div>
@@ -443,32 +471,39 @@ class OwnerDashboard {
           // 檢查是否有現有圖片數據
           const hasImageData = true;
           if (hasImageData) {
-            // 構建API圖片URL
+            // 構建API圖片URL，添加時間戳破除快取
+            const timestamp = new Date().getTime();
             const apiImageUrl = `http://localhost:8081/CJA101G02/api/camps/${campId}/${i}`;
-            console.log("apiImageUrl:" + apiImageUrl);
+            const apiImageUrlWithCache = `${apiImageUrl}?t=${timestamp}`;
+            console.log("apiImageUrl:" + apiImageUrlWithCache);
 
-            // 檢查API圖片是否可訪問
+            // 檢查API圖片是否可訪問（使用原始URL檢查）
             const apiImageExists = await this.checkImageExists(apiImageUrl);
             console.log(i + ":" + apiImageExists);
 
-            // 決定使用哪個圖片URL
-            const imageUrl = apiImageExists ? apiImageUrl : defaultImagePath;
-            const imageSource = apiImageExists
-              ? apiImageUrl
-              : this.campData[`camp_pic${i}`] || defaultImagePath;
-
-            container.innerHTML = `
-               <div class="image-container">
-                 <img src="${imageUrl}" class="thumbnail" onclick="ownerDashboard.showCampImageModal('${imageSource}', ${i})" />
-                 <div class="image-actions">
-                   <button class="btn btn-sm btn-camping" onclick="ownerDashboard.uploadCampImage(${i})"><i class="fas fa-upload"></i></button>
-                   <button class="btn btn-sm btn-danger" onclick="ownerDashboard.deleteCampImage(${i})"><i class="fas fa-trash"></i></button>
+            if (apiImageExists) {
+              // 如果API圖片存在，顯示圖片（使用帶時間戳的URL）
+              container.innerHTML = `
+                 <div class="image-container">
+                   <img src="${apiImageUrlWithCache}" class="thumbnail" onclick="ownerDashboard.showCampImageModal('${apiImageUrlWithCache}', ${i})" />
+                   <div class="image-actions">
+                     <button class="btn btn-sm btn-camping" onclick="ownerDashboard.uploadCampImage(${i}, event)"><i class="fas fa-upload"></i></button>
+                     <button class="btn btn-sm btn-danger" onclick="ownerDashboard.deleteCampImage(${i})"><i class="fas fa-trash"></i></button>
+                   </div>
                  </div>
-               </div>
-             `;
+               `;
+            } else {
+              // 如果API圖片不存在，顯示上傳佔位符
+              container.innerHTML = `
+                 <div class="image-placeholder" onclick="ownerDashboard.uploadCampImage(${i}, event)">
+                   <i class="fas fa-plus"></i>
+                   <span>上傳圖片</span>
+                 </div>
+               `;
+            }
           } else {
             container.innerHTML = `
-               <div class="image-placeholder" onclick="ownerDashboard.uploadCampImage(${i})">
+               <div class="image-placeholder" onclick="ownerDashboard.uploadCampImage(${i}, event)">
                  <i class="fas fa-plus"></i>
                  <span>上傳圖片</span>
                </div>
@@ -2040,8 +2075,6 @@ class OwnerDashboard {
     // 獲取營地主ID
     const ownerId = this.currentOwner.owner_id;
 
-    console.log("campData", this.campData);
-
     // 創建FormData對象用於API請求
     const apiFormData = new FormData();
     apiFormData.append("campId", this.campData.campId);
@@ -2056,19 +2089,40 @@ class OwnerDashboard {
     apiFormData.append("campCommentSumScore", 0);
     apiFormData.append("campRegDate", campRegDate);
 
+    console.log("apiFormData", apiFormData);
+
     console.log("campId", this.campData.campId);
     console.log("ownerId", ownerId);
     console.log("上傳圖片");
 
     // 處理營地圖片
     try {
+      console.log("刪除的圖片索引:", this.deletedCampImages);
       const imageResults = await this.handleCampImageUpload();
+      console.log("圖片處理結果:", imageResults);
 
-      // 將圖片添加到FormData
-      imageResults.forEach((result) => {
-        const filename = result.filename || `campPic${result.index}.jpg`;
-        apiFormData.append(`campPic${result.index}`, result.file, filename);
-      });
+      // 處理所有4個圖片位置，被刪除的傳送null
+      for (let i = 1; i <= 4; i++) {
+        console.log("deletedCampImages:", this.deletedCampImages[i], i);
+
+        if (this.deletedCampImages[i]) {
+          // 被刪除的圖片傳送null
+          apiFormData.append(`campPic${i}`, null);
+          console.log(`添加圖片到FormData: campPic${i} = null (已刪除)`);
+        } else {
+          // 查找對應的圖片結果
+          const result = imageResults.find((r) => r.index === i);
+          if (result) {
+            const filename = result.filename || `campPic${i}.jpg`;
+            apiFormData.append(`campPic${i}`, result.file, filename);
+            console.log(`添加圖片到FormData: campPic${i} (${filename})`);
+          } else {
+            // 如果沒有圖片，也傳送null
+            apiFormData.append(`campPic${i}`, null);
+            console.log(`添加圖片到FormData: campPic${i} = null (無圖片)`);
+          }
+        }
+      }
 
       console.log("所有圖片已處理完成");
     } catch (error) {
@@ -2077,13 +2131,15 @@ class OwnerDashboard {
       return;
     }
 
+    console.log("apiFormData", apiFormData, apiFormData.campPic4);
+
     // 發送API請求
     fetch(
       //create
       // "http://localhost:8081/CJA101G02/api/camps/createonecamp?withOrders=false",
 
       //update
-      "http://localhost:8081/CJA101G02/api/camps/updateonecamp?withOrders=false",
+      "http://localhost:8081/CJA101G02/api/camps/updateonecamp",
       {
         method: "POST",
         body: apiFormData,
@@ -4024,7 +4080,13 @@ class OwnerDashboard {
   }
 
   // 營地圖片選擇功能
-  uploadCampImage(imageIndex) {
+  uploadCampImage(imageIndex, event) {
+    // 防止事件冒泡和默認行為
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
     const input = document.createElement("input");
     input.type = "file";
     input.accept = "image/*";
@@ -4061,6 +4123,11 @@ class OwnerDashboard {
         previewUrl: previewUrl,
       };
 
+      // 清除刪除標記（如果存在）
+      if (this.deletedCampImages[imageIndex]) {
+        delete this.deletedCampImages[imageIndex];
+      }
+
       // 更新頁面顯示
       const container = document.getElementById(
         `campImage${imageIndex}Container`
@@ -4070,7 +4137,7 @@ class OwnerDashboard {
           <div class="image-container">
             <img src="${previewUrl}" class="thumbnail" onclick="ownerDashboard.showCampImageModal('${previewUrl}', ${imageIndex})" />
             <div class="image-actions">
-              <button class="btn btn-sm btn-camping" onclick="ownerDashboard.uploadCampImage(${imageIndex})"><i class="fas fa-upload"></i></button>
+              <button class="btn btn-sm btn-camping" onclick="ownerDashboard.uploadCampImage(${imageIndex}, event)"><i class="fas fa-upload"></i></button>
               <button class="btn btn-sm btn-danger" onclick="ownerDashboard.deleteCampImage(${imageIndex})"><i class="fas fa-trash"></i></button>
             </div>
             <div class="image-status pending">待保存</div>
@@ -4092,6 +4159,7 @@ class OwnerDashboard {
       if (!this.campData) {
         throw new Error("找不到營地資料");
       }
+      console.log("handleCampImageUpload");
 
       // 處理圖片文件，返回所有圖片的Promise數組
       const imagePromises = [];
@@ -4105,6 +4173,9 @@ class OwnerDashboard {
               filename: `campPic${i}.jpg`,
             })
           );
+        } else if (this.deletedCampImages[i]) {
+          // 如果圖片被標記為刪除，返回null
+          imagePromises.push(Promise.resolve(null));
         } else {
           // 嘗試從API獲取現有圖片
           const promise = (async () => {
@@ -4158,8 +4229,9 @@ class OwnerDashboard {
         }
       }
 
-      // 等待所有圖片處理完成並返回結果
-      return await Promise.all(imagePromises);
+      // 等待所有圖片處理完成並過濾掉null值
+      const results = await Promise.all(imagePromises);
+      return results.filter((result) => result !== null);
     } catch (error) {
       console.error("圖片處理錯誤:", error);
       throw error;
@@ -4178,13 +4250,16 @@ class OwnerDashboard {
         delete this.pendingCampImages[imageIndex];
       }
 
+      // 標記圖片為已刪除
+      this.deletedCampImages[imageIndex] = true;
+
       // 更新頁面顯示為空白狀態
       const container = document.getElementById(
         `campImage${imageIndex}Container`
       );
       if (container) {
         container.innerHTML = `
-          <div class="image-placeholder" onclick="ownerDashboard.uploadCampImage(${imageIndex})">
+          <div class="image-placeholder" onclick="ownerDashboard.uploadCampImage(${imageIndex}, event)">
             <i class="fas fa-plus"></i>
             <span>上傳圖片</span>
           </div>
@@ -4214,7 +4289,7 @@ class OwnerDashboard {
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>
-              <button type="button" class="btn btn-camping" onclick="ownerDashboard.uploadCampImage(${imageIndex}); bootstrap.Modal.getInstance(document.getElementById('campImageModal')).hide();">更換圖片</button>
+              <button type="button" class="btn btn-camping" onclick="ownerDashboard.uploadCampImage(${imageIndex}, event); bootstrap.Modal.getInstance(document.getElementById('campImageModal')).hide();">更換圖片</button>
               <button type="button" class="btn btn-danger" onclick="ownerDashboard.deleteCampImage(${imageIndex}); bootstrap.Modal.getInstance(document.getElementById('campImageModal')).hide();">刪除圖片</button>
             </div>
           </div>
