@@ -413,7 +413,7 @@ class CheckoutManager {
       const totalAmount = cartManager.getTotalPrice();
 
       //confirmURL
-      const confirm_url = "http://127.0.0.1:5501/linepay-success.html";
+      const confirm_url = "http://127.0.0.1:5503/linepay-success.html";
 
       // 構建付款請求參數
       const linepay_body = {

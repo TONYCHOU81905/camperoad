@@ -20,8 +20,8 @@ class UserProfileManager {
 
     // 已登入狀態 - 確保樣式一致
     btnLogin.href = "user-profile.html";
-    btnLogin.innerHTML = `<i class="fas fa-user"></i> ${this.currentMember.mem_name}`;
-    btnLogin.title = `會員：${this.currentMember.mem_name}`;
+    btnLogin.innerHTML = `<i class="fas fa-user"></i> ${this.currentMember.memName}`;
+    btnLogin.title = `會員：${this.currentMember.memName}`;
     btnLogin.classList.add("logged-in");
 
     // 添加登出功能
@@ -60,13 +60,13 @@ class UserProfileManager {
   // 顯示更改密碼模態框
   showChangePasswordModal() {
     // 檢查是否已存在模態框
-    let modal = document.getElementById('change-password-modal');
-    
+    let modal = document.getElementById("change-password-modal");
+
     if (!modal) {
       // 創建模態框
-      modal = document.createElement('div');
-      modal.id = 'change-password-modal';
-      modal.className = 'modal';
+      modal = document.createElement("div");
+      modal.id = "change-password-modal";
+      modal.className = "modal";
       modal.innerHTML = `
         <div class="modal-content">
           <span class="close-btn">&times;</span>
@@ -95,132 +95,140 @@ class UserProfileManager {
           </form>
         </div>
       `;
-      
+
       document.body.appendChild(modal);
-      
+
       // 關閉按鈕事件
-      const closeBtn = modal.querySelector('.close-btn');
-      closeBtn.addEventListener('click', () => {
-        modal.style.display = 'none';
+      const closeBtn = modal.querySelector(".close-btn");
+      closeBtn.addEventListener("click", () => {
+        modal.style.display = "none";
       });
-      
+
       // 取消按鈕事件
-      const cancelBtn = modal.querySelector('.btn-cancel');
-      cancelBtn.addEventListener('click', () => {
-        modal.style.display = 'none';
+      const cancelBtn = modal.querySelector(".btn-cancel");
+      cancelBtn.addEventListener("click", () => {
+        modal.style.display = "none";
       });
-      
+
       // 表單提交事件
-      const form = modal.querySelector('#change-password-form');
-      form.addEventListener('submit', async (e) => {
+      const form = modal.querySelector("#change-password-form");
+      form.addEventListener("submit", async (e) => {
         e.preventDefault();
-        
-        const currentPassword = document.getElementById('current-password').value;
-        const newPassword = document.getElementById('new-password').value;
-        const confirmPassword = document.getElementById('confirm-password').value;
-        
+
+        const currentPassword =
+          document.getElementById("current-password").value;
+        const newPassword = document.getElementById("new-password").value;
+        const confirmPassword =
+          document.getElementById("confirm-password").value;
+
         // 驗證新密碼與確認密碼是否一致
         if (newPassword !== confirmPassword) {
-          showMessage('新密碼與確認密碼不一致', 'error');
+          showMessage("新密碼與確認密碼不一致", "error");
           return;
         }
-        
+
         // 驗證密碼強度
         const strength = this.checkPasswordStrength(newPassword);
         if (strength < 60) {
-          showMessage('新密碼強度不足，請設置更複雜的密碼', 'error');
+          showMessage("新密碼強度不足，請設置更複雜的密碼", "error");
           return;
         }
-        
+
         try {
           // 使用API更改密碼
-          const response = await fetch("http://localhost:8081/CJA101G02/api/member/changePassword", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              mem_id: this.currentMember.mem_id,
-              old_password: currentPassword,
-              new_password: newPassword
-            }),
-            credentials: "include" // 包含Cookie
-          });
-          
+          const response = await fetch(
+            "http://localhost:8081/CJA101G02/api/member/changePassword",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                memId: this.currentMember.memId,
+                old_password: currentPassword,
+                new_password: newPassword,
+              }),
+              credentials: "include", // 包含Cookie
+            }
+          );
+
           if (!response.ok) {
             throw new Error("密碼更改請求失敗");
           }
-          
+
           const data = await response.json();
-          
+
           if (data.success) {
             showMessage("密碼已成功更改", "success");
-            modal.style.display = 'none';
+            modal.style.display = "none";
             form.reset();
           } else {
-            showMessage(data.message || "密碼更改失敗，請檢查當前密碼是否正確", "error");
+            showMessage(
+              data.message || "密碼更改失敗，請檢查當前密碼是否正確",
+              "error"
+            );
           }
         } catch (error) {
           console.error("密碼更改錯誤：", error);
           showMessage("密碼更改失敗，請稍後再試", "error");
         }
       });
-      
+
       // 密碼強度檢測
-      const newPasswordInput = document.getElementById('new-password');
-      const strengthBar = modal.querySelector('.strength-bar');
-      
-      newPasswordInput.addEventListener('input', () => {
+      const newPasswordInput = document.getElementById("new-password");
+      const strengthBar = modal.querySelector(".strength-bar");
+
+      newPasswordInput.addEventListener("input", () => {
         const password = newPasswordInput.value;
         const strength = this.checkPasswordStrength(password);
-        
+
         // 更新強度條
         strengthBar.style.width = `${strength}%`;
-        
+
         // 根據強度設置顏色
         if (strength < 30) {
-          strengthBar.style.backgroundColor = '#ff4d4d'; // 弱
+          strengthBar.style.backgroundColor = "#ff4d4d"; // 弱
         } else if (strength < 60) {
-          strengthBar.style.backgroundColor = '#ffa64d'; // 中
+          strengthBar.style.backgroundColor = "#ffa64d"; // 中
         } else {
-          strengthBar.style.backgroundColor = '#4CAF50'; // 強
+          strengthBar.style.backgroundColor = "#4CAF50"; // 強
         }
       });
     }
-    
+
     // 顯示模態框
-    modal.style.display = 'block';
+    modal.style.display = "block";
   }
-  
+
   // 檢查密碼強度
   checkPasswordStrength(password) {
     let strength = 0;
-    
+
     // 長度檢查
     if (password.length >= 8) {
       strength += 20;
     }
-    
+
     // 包含大寫字母
     if (/[A-Z]/.test(password)) {
       strength += 20;
     }
-    
+
     // 包含小寫字母
     if (/[a-z]/.test(password)) {
       strength += 20;
     }
-    
+
     // 包含數字
     if (/[0-9]/.test(password)) {
       strength += 20;
     }
-    
+
     // 包含特殊字符
     if (/[^A-Za-z0-9]/.test(password)) {
       strength += 20;
     }
-    
+
     return strength;
   }
 
@@ -228,10 +236,13 @@ class UserProfileManager {
   async logout() {
     try {
       // 呼叫登出API
-      const response = await fetch("http://localhost:8081/CJA101G02/api/member/logout", {
-        method: "POST",
-        credentials: "include" // 包含Cookie
-      });
+      const response = await fetch(
+        "http://localhost:8081/CJA101G02/api/member/logout",
+        {
+          method: "POST",
+          credentials: "include", // 包含Cookie
+        }
+      );
 
       // 無論API回應如何，都清除本地儲存的會員資訊
       localStorage.removeItem("currentMember");
@@ -259,7 +270,7 @@ class UserProfileManager {
 
   // 載入會員頭像
   loadMemberAvatar() {
-    if (!this.currentMember || !this.currentMember.mem_id) return;
+    if (!this.currentMember || !this.currentMember.memId) return;
 
     // 添加頁面載入遮罩
     const loadingOverlay = document.createElement("div");
@@ -267,7 +278,7 @@ class UserProfileManager {
     loadingOverlay.innerHTML = '<div class="loading-spinner"></div>';
     document.body.appendChild(loadingOverlay);
 
-    const memId = this.currentMember.mem_id;
+    const memId = this.currentMember.memId;
     const avatarPreview = document.querySelector(".avatar-preview img");
 
     if (avatarPreview) {
@@ -332,7 +343,7 @@ class UserProfileManager {
       }
 
       // 載入營地訂單 - 從API獲取
-      const memId = this.currentMember.mem_id;
+      const memId = this.currentMember.memId;
       const ordersResponse = await fetch(
         `http://localhost:8081/CJA101G02/member/${memId}/orders`
       );
@@ -371,9 +382,11 @@ class UserProfileManager {
       this.favoriteCamps = await favoritesResponse.json();
 
       // 載入營地資料
-      const campsResponse = await fetch("http://localhost:8081/CJA101G02/api/getallcamps");
+      const campsResponse = await fetch(
+        "http://localhost:8081/CJA101G02/api/getallcamps"
+      );
       const campsData = await campsResponse.json();
-      
+
       if (campsData.status.trim() === "success") {
         this.camps = campsData.data;
       } else {
@@ -475,8 +488,8 @@ class UserProfileManager {
 
     // 按訂單日期排序，最新的在上面
     const sortedOrders = [...orders].sort((a, b) => {
-      const dateA = new Date(a.orderDate || '1970-01-01');
-      const dateB = new Date(b.orderDate || '1970-01-01');
+      const dateA = new Date(a.orderDate || "1970-01-01");
+      const dateB = new Date(b.orderDate || "1970-01-01");
       return dateB - dateA; // 降序排列，最新的在前
     });
 
@@ -545,7 +558,9 @@ class UserProfileManager {
                   <div class="detail-item">
                     <span>營地類型ID: ${detail.campsite_type_id}</span>
                     <span>營地數量: ${detail.campsite_num}</span>
-                    <span>營地金額: NT$ ${(detail.campsite_amount || 0).toLocaleString()}</span>
+                    <span>營地金額: NT$ ${(
+                      detail.campsite_amount || 0
+                    ).toLocaleString()}</span>
                   </div>
                 `
                   )
@@ -637,11 +652,11 @@ class UserProfileManager {
 
   loadMemberData() {
     if (!this.currentMember) return;
-    
+
     // 初始化更改密碼按鈕
-    const changePasswordBtn = document.querySelector('.btn-change-password');
+    const changePasswordBtn = document.querySelector(".btn-change-password");
     if (changePasswordBtn) {
-      changePasswordBtn.addEventListener('click', () => {
+      changePasswordBtn.addEventListener("click", () => {
         // 創建密碼更改模態框
         this.showChangePasswordModal();
       });
@@ -649,82 +664,94 @@ class UserProfileManager {
 
     // 填入基本資料
     document.getElementById("profile-id").value =
-      this.currentMember.mem_id || "";
+      this.currentMember.memId || "";
     document.getElementById("profile-name").value =
-      this.currentMember.mem_name || "";
+      this.currentMember.memName || "";
     document.getElementById("profile-email").value =
-      this.currentMember.mem_email || "";
+      this.currentMember.memEmail || "";
     document.getElementById("profile-phone").value =
-      this.currentMember.mem_mobile || "";
+      this.currentMember.memMobile || "";
     document.getElementById("profile-address").value =
-      this.currentMember.mem_addr || "";
+      this.currentMember.memAddr || "";
     document.getElementById("profile-birthday").value =
-      this.currentMember.mem_birth || "";
+      this.currentMember.memBirth || "";
     document.getElementById("profile-gender").value =
-      this.currentMember.mem_gender || "";
-      
+      this.currentMember.memGender || "";
+
     // 綁定表單提交事件
-    const profileForm = document.querySelector('.profile-form');
+    const profileForm = document.querySelector(".profile-form");
     if (profileForm) {
-      profileForm.addEventListener('submit', this.handleProfileUpdate.bind(this));
+      profileForm.addEventListener(
+        "submit",
+        this.handleProfileUpdate.bind(this)
+      );
     }
   }
-  
+
   // 處理會員資料更新
   async handleProfileUpdate(e) {
     e.preventDefault();
-    
+
     if (!this.currentMember) {
       showMessage("無法獲取會員資料，請重新登入", "error");
       return;
     }
-    
+
     // 收集表單資料
     const memData = {
-      mem_id: document.getElementById("profile-id").value,
-      mem_name: document.getElementById("profile-name").value,
-      mem_email: document.getElementById("profile-email").value,
-      mem_mobile: document.getElementById("profile-phone").value,
-      mem_addr: document.getElementById("profile-address").value,
-      mem_birth: document.getElementById("profile-birthday").value,
-      mem_gender: document.getElementById("profile-gender").value
+      memId: document.getElementById("profile-id").value,
+      memName: document.getElementById("profile-name").value,
+      memEmail: document.getElementById("profile-email").value,
+      memMobile: document.getElementById("profile-phone").value,
+      memAddr: document.getElementById("profile-address").value,
+      memBirth: document.getElementById("profile-birthday").value,
+      memGender: document.getElementById("profile-gender").value,
     };
-    
+
     // 驗證必填欄位
-    if (!memData.mem_name || !memData.mem_mobile || !memData.mem_addr) {
+    if (!memData.memName || !memData.memMobile || !memData.memAddr) {
       showMessage("請填寫所有必填欄位", "error");
       return;
     }
-    
+
     try {
       // 使用API更新會員資料
-      const response = await fetch("http://localhost:8081/CJA101G02/api/member/update", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(memData),
-        credentials: "include" // 包含Cookie
-      });
-      
+      const response = await fetch(
+        "http://localhost:8081/CJA101G02/api/member/update",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(memData),
+          credentials: "include", // 包含Cookie
+        }
+      );
+
       if (!response.ok) {
         throw new Error("更新請求失敗");
       }
-      
+
       const data = await response.json();
-      
+
       if (data.success) {
         // 更新成功，更新本地儲存的會員資料
         this.currentMember = { ...this.currentMember, ...memData };
-        
+
         // 更新localStorage和sessionStorage中的會員資訊
         if (localStorage.getItem("currentMember")) {
-          localStorage.setItem("currentMember", JSON.stringify(this.currentMember));
+          localStorage.setItem(
+            "currentMember",
+            JSON.stringify(this.currentMember)
+          );
         }
         if (sessionStorage.getItem("currentMember")) {
-          sessionStorage.setItem("currentMember", JSON.stringify(this.currentMember));
+          sessionStorage.setItem(
+            "currentMember",
+            JSON.stringify(this.currentMember)
+          );
         }
-        
+
         showMessage("會員資料更新成功", "success");
       } else {
         showMessage(data.message || "更新失敗，請檢查資料是否正確", "error");
@@ -746,7 +773,7 @@ class UserProfileManager {
 
     // 篩選當前會員的收藏
     const memberFavorites = this.favoriteCamps.filter(
-      (fav) => fav.mem_id === this.currentMember.mem_id
+      (fav) => fav.memId === this.currentMember.memId
     );
 
     if (memberFavorites.length === 0) {
@@ -768,9 +795,9 @@ class UserProfileManager {
 
         const avgRating =
           camp.campCommentNumberCount > 0
-            ? (
-                camp.campCommentSumScore / camp.campCommentNumberCount
-              ).toFixed(1)
+            ? (camp.campCommentSumScore / camp.campCommentNumberCount).toFixed(
+                1
+              )
             : "0.0";
 
         return `
@@ -1184,7 +1211,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // 獲取會員ID
       const userProfileManager = new UserProfileManager();
-      const memId = userProfileManager.currentMember?.mem_id;
+      const memId = userProfileManager.currentMember?.memId;
 
       if (!memId) {
         showMessage("無法獲取會員ID，請重新登入", "error");
@@ -1239,7 +1266,7 @@ document.addEventListener("DOMContentLoaded", () => {
           if (data === "ok" || (data && data.data === "ok")) {
             // 上傳成功後，重新載入頭像（添加時間戳避免緩存）
             const timestamp = new Date().getTime();
-            const memId = userProfileManager.currentMember?.mem_id;
+            const memId = userProfileManager.currentMember?.memId;
 
             // 添加載入指示器
             const loadingIndicator = document.createElement("div");
