@@ -35,6 +35,29 @@ class ArticleManager {
         }
     }
 
+    // 載入會員數據
+    async loadMembers() {
+        try {
+            console.log('開始載入會員資料...');
+            const response = await fetch('data/mem.json');
+            console.log('會員資料回應狀態:', response.status);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const members = await response.json();
+            this.members = members;
+            console.log('會員資料載入成功:', members.length, '筆');
+            console.log('會員資料範例:', members[0]);
+            return members;
+        } catch (error) {
+            console.error('載入會員數據失敗:', error);
+            this.members = [];
+            return [];
+        }
+    }
+
     // 根據 ID 獲取文章
     getArticleById(id) {
         return this.articles.find(article => article.acId === parseInt(id));
@@ -125,11 +148,34 @@ class ArticleManager {
         return '露營愛好者';
     }
 
-    // 生成模擬瀏覽數
-    generateViewCount(articleId) {
-        // 使用文章ID生成一個相對穩定的隨機數
-        const base = (articleId * 137) % 1000;
-        return (base + 500 + Math.floor(Math.random() * 200)).toString();
+    // 獲取文章瀏覽數
+    getViewCount(articleId) {
+        // 如果 viewCounter 存在，使用真實的瀏覽統計
+        if (typeof viewCounter !== 'undefined' && viewCounter) {
+            return viewCounter.getViewCount(articleId);
+        }
+
+        // 否則使用模擬數據（200以下的隨機數）
+        const randomViews = Math.floor(Math.random() * 200) + 1;
+        return randomViews;
+    }
+
+    // 格式化瀏覽數顯示
+    formatViewCount(articleId) {
+        const count = this.getViewCount(articleId);
+
+        if (typeof viewCounter !== 'undefined' && viewCounter) {
+            return viewCounter.formatViewCount(articleId);
+        }
+
+        // 備用格式化邏輯
+        if (count >= 10000) {
+            return (count / 10000).toFixed(1) + '萬';
+        } else if (count >= 1000) {
+            return (count / 1000).toFixed(1) + 'k';
+        } else {
+            return count.toString();
+        }
     }
 
     // 生成模擬留言數
@@ -147,6 +193,82 @@ class ArticleManager {
             30003: '裝備評測'
         };
         return typeMap[typeId] || '其他';
+    }
+
+    // 獲取作者的發文數 - 使用後端API
+    async getAuthorArticleCount(authorId) {
+        console.log('getAuthorArticleCount 被調用，作者ID:', authorId);
+
+        if (!authorId) {
+            console.log('缺少作者ID，返回0');
+            return 0;
+        }
+
+        try {
+            const response = await fetch(`http://localhost:8081/CJA101G02/api/articles/member/${authorId}/count`);
+            console.log('發文數API回應狀態:', response.status);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            console.log('發文數API回應:', result);
+
+            if (result.status === 'success' && result.data !== undefined) {
+                console.log('作者發文數:', result.data);
+                return result.data;
+            } else {
+                console.error('發文數API回應錯誤:', result);
+                return 0;
+            }
+        } catch (error) {
+            console.error('獲取作者發文數失敗:', error);
+            return 0;
+        }
+    }
+
+    // 獲取作者註冊時間
+    getAuthorRegDate(authorId) {
+        console.log('getAuthorRegDate 被調用，作者ID:', authorId);
+        console.log('會員資料是否存在:', !!this.members);
+        console.log('會員資料數量:', this.members ? this.members.length : 0);
+
+        if (!authorId) {
+            console.log('缺少作者ID，返回未知');
+            return '未知';
+        }
+
+        try {
+            // 從會員資料中獲取註冊時間
+            const memberData = this.members || [];
+            console.log('搜尋會員資料，尋找ID:', authorId);
+
+            const member = memberData.find(m => {
+                console.log(`檢查會員 ${m.mem_id}: ${m.mem_id === authorId ? '匹配' : '不匹配'}`);
+                return m.mem_id === authorId;
+            });
+
+            if (member && member.mem_reg_date) {
+                console.log('找到會員:', member);
+                console.log('註冊時間:', member.mem_reg_date);
+
+                // 格式化註冊時間為 YYYY/MM/DD 格式
+                const regDate = new Date(member.mem_reg_date);
+                const year = regDate.getFullYear();
+                const month = String(regDate.getMonth() + 1).padStart(2, '0');
+                const day = String(regDate.getDate()).padStart(2, '0');
+                const formattedDate = `${year}/${month}/${day}`;
+                console.log('格式化後的日期:', formattedDate);
+                return formattedDate;
+            }
+
+            console.log('未找到會員或註冊時間');
+            return '未知';
+        } catch (error) {
+            console.error('獲取作者註冊時間失敗:', error);
+            return '未知';
+        }
     }
 
     // 設置當前文章
@@ -249,7 +371,10 @@ class ArticleManager {
 
     // 渲染文章詳情
     renderArticleDetail(articleId) {
+        console.log('開始渲染文章詳情，文章ID:', articleId);
         const article = this.currentArticle;
+        console.log('當前文章物件:', article);
+
         if (!article) {
             console.error('找不到文章:', articleId);
             return;
@@ -306,22 +431,55 @@ class ArticleManager {
                 postDate.innerHTML = `<i class="fas fa-calendar"></i> 發布時間：${formattedDate}`;
             }
 
+            // 更新瀏覽次數
+            const viewCountElement = postContent.querySelector('.view-count');
+            if (viewCountElement) {
+                viewCountElement.setAttribute('data-article-id', article.acId);
+                viewCountElement.textContent = this.formatViewCount(article.acId);
+            }
+
             // 更新作者資訊
             const authorNameElement = document.querySelector('.author-name');
             if (authorNameElement) {
                 authorNameElement.textContent = authorName;
             }
 
-            // 更新作者統計資訊（模擬數據）
-            const authorStats = postContent.querySelector('.author-stats');
+            // 更新作者統計資訊（使用真實數據）
+            console.log('開始更新作者統計資訊...');
+            // 作者統計資訊在 post-author 區域內，不是在 post-content 內
+            const authorStats = document.querySelector('.post-author .author-stats');
+            console.log('找到作者統計元素:', authorStats);
+
             if (authorStats) {
                 const stats = authorStats.querySelectorAll('span:last-child');
-                if (stats.length >= 4) {
-                    stats[0].textContent = Math.floor(Math.random() * 200) + 50; // 發文數
-                    stats[1].textContent = Math.floor(Math.random() * 50) + 10;  // 精華文
-                    stats[2].textContent = Math.floor(Math.random() * 10000) + 1000; // 經驗值
-                    stats[3].textContent = '2021/' + String(Math.floor(Math.random() * 12) + 1).padStart(2, '0'); // 註冊時間
+                console.log('找到統計項目數量:', stats.length);
+                console.log('統計項目:', stats);
+
+                if (stats.length >= 2) {
+                    // 計算作者的發文數
+                    const authorId = article.memId || article.mem_id;
+                    console.log('作者ID:', authorId);
+                    console.log('文章資料:', article);
+                    console.log('會員資料:', this.members);
+
+                    // 使用異步方法獲取發文數
+                    this.getAuthorArticleCount(authorId).then(count => {
+                        console.log('作者發文數:', count);
+                        stats[0].textContent = count;
+                    }).catch(error => {
+                        console.error('獲取發文數失敗:', error);
+                        stats[0].textContent = '0';
+                    });
+
+                    // 獲取作者註冊時間
+                    const authorRegDate = this.getAuthorRegDate(authorId);
+                    console.log('作者註冊時間:', authorRegDate);
+                    stats[1].textContent = authorRegDate;
+                } else {
+                    console.log('統計項目數量不足，需要2個但只有', stats.length, '個');
                 }
+            } else {
+                console.log('未找到作者統計元素');
             }
 
             // 更新作者徽章
@@ -386,6 +544,11 @@ class ArticleManager {
                 <span>${article.acTitle}</span>
             `;
         }
+
+        // 觸發文章載入完成事件，通知收藏功能
+        window.dispatchEvent(new CustomEvent('articleLoaded', {
+            detail: { articleId: article.acId }
+        }));
     }
 
     // 獲取對應的列表頁面編號
@@ -447,7 +610,7 @@ class ArticleManager {
                     <div class="article-stats-cell">
                         <div class="stat-item">
                             <i class="fas fa-eye"></i>
-                            <span>${this.generateViewCount(article.acId)}</span>
+                            <span class="view-count" data-article-id="${article.acId}">${this.formatViewCount(article.acId)}</span>
                         </div>
                     </div>
                     <div class="article-content-mobile">
@@ -462,7 +625,7 @@ class ArticleManager {
                         <div class="article-meta-mobile">
                             <span>作者：${authorName}</span>
                             <span>${this.formatDateShort(article.acTime)}</span>
-                            <span><i class="fas fa-eye"></i> ${this.generateViewCount(article.acId)}</span>
+                            <span><i class="fas fa-eye"></i> <span class="view-count" data-article-id="${article.acId}">${this.formatViewCount(article.acId)}</span></span>
                         </div>
                     </div>
                 </div>
@@ -477,35 +640,64 @@ class ArticleManager {
 
     // 初始化文章詳情頁面
     async initArticleDetail() {
-        // 從 URL 參數獲取文章 ID
-        const urlParams = new URLSearchParams(window.location.search);
-        const articleId = urlParams.get('id');
+        try {
+            // 同時載入文章和會員資料
+            await Promise.all([
+                this.loadArticles(),
+                this.loadMembers()
+            ]);
 
-        if (articleId) {
-            await this.loadSingleArticle(parseInt(articleId));
-        } else {
-            // 如果沒有指定 ID，先載入所有文章，然後顯示第一篇
-            await this.loadArticles();
-            const firstArticle = this.getLatestArticles(1)[0];
-            if (firstArticle) {
-                await this.loadSingleArticle(firstArticle.acId);
-                // 更新 URL 以反映當前顯示的文章
-                const newUrl = new URL(window.location);
-                newUrl.searchParams.set('id', firstArticle.acId);
-                window.history.replaceState({}, '', newUrl);
+            // 從 URL 參數獲取文章 ID
+            const urlParams = new URLSearchParams(window.location.search);
+            const articleId = urlParams.get('id');
+
+            if (articleId) {
+                await this.loadSingleArticle(parseInt(articleId));
+            } else {
+                // 如果沒有指定 ID，顯示第一篇
+                const firstArticle = this.getLatestArticles(1)[0];
+                if (firstArticle) {
+                    await this.loadSingleArticle(firstArticle.acId);
+                    // 更新 URL 以反映當前顯示的文章
+                    const newUrl = new URL(window.location);
+                    newUrl.searchParams.set('id', firstArticle.acId);
+                    window.history.replaceState({}, '', newUrl);
+                }
             }
+        } catch (error) {
+            console.error('初始化文章詳情頁面失敗:', error);
         }
     }
 
     // 載入單一文章
     async loadSingleArticle(articleId) {
         try {
+            console.log('開始載入單一文章，ID:', articleId);
+
+            // 確保會員資料和所有文章資料已載入（用於計算發文數）
+            if (!this.members) {
+                console.log('會員資料未載入，開始載入...');
+                await this.loadMembers();
+            }
+
+            if (!this.articles || this.articles.length === 0) {
+                console.log('文章資料未載入，開始載入所有文章...');
+                await this.loadArticles();
+            }
+
             const response = await fetch(`http://localhost:8081/CJA101G02/api/articles/${articleId}`);
             const result = await response.json();
+            console.log('單一文章API回應:', result);
 
             if (result.status === 'success' && result.data) {
                 this.currentArticle = result.data;
+                console.log('設置當前文章:', this.currentArticle);
                 this.renderArticleDetail(articleId);
+
+                // 記錄文章瀏覽
+                if (typeof viewCounter !== 'undefined' && viewCounter) {
+                    viewCounter.recordView(articleId);
+                }
 
                 // 初始化留言功能
                 await this.initReplyFeatures(articleId);
@@ -561,7 +753,15 @@ class ArticleManager {
         const container = document.getElementById('popular-articles-list');
         if (!container) return;
 
-        let articles = typeId ? this.getArticlesByType(typeId) : this.getLatestArticles(5);
+        let articles = typeId ? this.getArticlesByType(typeId) : this.getLatestArticles(10);
+
+        // 根據瀏覽次數排序（從高到低）
+        articles.sort((a, b) => {
+            const viewCountA = this.getViewCount(a.acId);
+            const viewCountB = this.getViewCount(b.acId);
+            return viewCountB - viewCountA; // 降序排列
+        });
+
         articles = articles.slice(0, 3); // 只顯示前3篇
 
         const images = ['camp-1.jpg', 'camp-2.jpg', 'camp-3.jpg'];
@@ -576,7 +776,7 @@ class ArticleManager {
                         <div class="popular-guide-info">
                             <h4>${article.acTitle}</h4>
                             <div class="popular-guide-meta">
-                                <span><i class="fas fa-eye"></i> ${this.generateViewCount(article.acId)}</span>
+                                <span><i class="fas fa-eye"></i> <span class="view-count" data-article-id="${article.acId}">${this.formatViewCount(article.acId)}</span></span>
                             </div>
                         </div>
                     </a>
@@ -589,17 +789,25 @@ class ArticleManager {
 
     // 初始化文章列表頁面
     async initArticleList(typeId = null) {
-        await this.loadArticles(typeId);
+        try {
+            // 同時載入文章和會員資料
+            await Promise.all([
+                this.loadArticles(typeId),
+                this.loadMembers()
+            ]);
 
-        // 從 URL 參數獲取頁碼
-        const urlParams = new URLSearchParams(window.location.search);
-        const page = parseInt(urlParams.get('page')) || 1;
+            // 從 URL 參數獲取頁碼
+            const urlParams = new URLSearchParams(window.location.search);
+            const page = parseInt(urlParams.get('page')) || 1;
 
-        this.currentPage = page;
-        this.currentTypeId = typeId;
+            this.currentPage = page;
+            this.currentTypeId = typeId;
 
-        this.renderArticleList('articles-container', typeId, page);
-        this.renderPopularArticles(typeId);
+            this.renderArticleList('articles-container', typeId, page);
+            this.renderPopularArticles(typeId);
+        } catch (error) {
+            console.error('初始化文章列表頁面失敗:', error);
+        }
     }
 
     // 載入文章留言

@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>我的收藏 - 露營路</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/role-system.css" />
+    <style>
+        .favorites-hero {
+            background: linear-gradient(135deg, #3A5A40 0%, #588157 100%);
+            color: white;
+            padding: 80px 0;
+            text-align: center;
+        }
+
+        .favorites-hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        .favorites-hero p {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+
+        .favorites-search-box {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .favorites-search-box form {
+            display: flex;
+            background: white;
+            border-radius: 25px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .favorites-search-box form:focus-within {
+            box-shadow: 0 6px 20px rgba(58, 90, 64, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .favorites-search-box input {
+            flex: 1;
+            padding: 15px 20px;
+            border: none;
+            font-size: 1rem;
+            outline: none;
+            background: transparent;
+            color: #333;
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+
+        .favorites-search-box input::placeholder {
+            color: #999;
+            font-style: italic;
+        }
+
+        .favorites-search-box input:focus {
+            background: #f8f9fa;
+        }
+
+        .btn-search-submit {
+            background: #3A5A40;
+            color: white;
+            border: none;
+            padding: 15px 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            min-width: 80px;
+            width: 80px;
+            flex-shrink: 0;
+            margin-left: -10px;
+            border-radius: 0 25px 25px 0;
+        }
+
+        .btn-search-submit:hover {
+            background: #2d4731;
+            transform: scale(1.05);
+        }
+
+        .btn-search-submit:active {
+            transform: scale(0.95);
+        }
+
+        .favorites-content {
+            padding: 60px 0;
+            background: #f8f9fa;
+        }
+
+        .favorites-layout {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 40px;
+        }
+
+        .favorites-filter {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .favorites-filter select {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .favorites-count {
+            color: #666;
+            font-weight: 500;
+        }
+
+        /* 論壇風格表格式排版 */
+        .article-table-container {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .article-table-header {
+            display: grid;
+            grid-template-columns: 160px 6fr 1fr 1fr 1fr;
+            gap: 20px;
+            padding: 20px 25px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+            font-weight: 600;
+            color: #495057;
+            align-items: center;
+        }
+
+        .header-item {
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .article-title-header {
+            text-align: left;
+        }
+
+        .article-list {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .article-item {
+            display: grid;
+            grid-template-columns: 160px 6fr 1fr 1fr 1fr;
+            gap: 20px;
+            padding: 20px 25px;
+            border-bottom: 1px solid #e9ecef;
+            align-items: center;
+            transition: background 0.2s ease;
+            min-height: 140px;
+        }
+
+        .article-item:hover {
+            background: #f8f9fa;
+        }
+
+        .article-item:last-child {
+            border-bottom: none;
+        }
+
+        .article-image-cell {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .article-image {
+            width: 142px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 10px;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .article-title-cell {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            text-align: left;
+            padding: 5px 0;
+        }
+
+        .article-title-link {
+            color: #333;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.15rem;
+            line-height: 1.4;
+            transition: color 0.2s ease;
+            margin-bottom: 4px;
+        }
+
+        .article-title-link:hover {
+            color: #3A5A40;
+        }
+
+        .article-preview {
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            max-height: 3.6em;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .article-tag {
+            display: inline-block;
+            background: #3A5A40;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            margin-bottom: 3px;
+        }
+
+        .article-author-cell {
+            text-align: center;
+            color: #666;
+            font-size: 1rem;
+            font-weight: 500;
+            grid-column: 3;
+        }
+
+        .article-date-cell {
+            text-align: center;
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            grid-column: 4;
+        }
+
+        .article-stats-cell {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.9rem;
+            color: #888;
+            grid-column: 5;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .remove-favorite-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 5px;
+        }
+
+        .remove-favorite-btn:hover {
+            background: #c82333;
+            transform: translateY(-1px);
+        }
+
+        .loading-message {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .empty-favorites {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .empty-favorites i {
+            font-size: 4rem;
+            color: #ddd;
+            margin-bottom: 20px;
+        }
+
+        .empty-favorites h3 {
+            color: #999;
+            margin-bottom: 15px;
+        }
+
+        .empty-favorites p {
+            margin-bottom: 25px;
+            color: #888;
+        }
+
+        .btn-explore {
+            background: #3A5A40;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 5px;
+            text-decoration: none;
+            display: inline-block;
+            font-weight: 500;
+            transition: background 0.3s ease;
+        }
+
+        .btn-explore:hover {
+            background: #2d4731;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 40px;
+        }
+
+        .pagination a {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            color: #666;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .pagination a:hover,
+        .pagination a.active {
+            background: #3A5A40;
+            color: white;
+            border-color: #3A5A40;
+        }
+
+        .favorites-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .sidebar-widget {
+            background: white;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .widget-title {
+            margin: 0 0 20px 0;
+            color: #3A5A40;
+            font-size: 1.2rem;
+            border-bottom: 2px solid #E9EDC9;
+            padding-bottom: 10px;
+        }
+
+        .user-info {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .user-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            object-fit: cover;
+            border: 3px solid #E9EDC9;
+        }
+
+        .user-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #3A5A40;
+            margin-bottom: 5px;
+        }
+
+        .user-stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            padding: 15px 0;
+            border-top: 1px solid #f0f0f0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .stat-box {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #3A5A40;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .favorite-categories {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .favorite-categories li {
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .category-name {
+            color: #333;
+            font-weight: 500;
+        }
+
+        .category-count {
+            background: #3A5A40;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+
+        .btn-cta {
+            background: #3A5A40;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 5px;
+            text-decoration: none;
+            display: inline-block;
+            font-weight: 500;
+            transition: background 0.3s ease;
+        }
+
+        .btn-cta:hover {
+            background: #2d4731;
+        }
+
+        @media (max-width: 768px) {
+            .favorites-layout {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+
+            .favorites-filter {
+                flex-direction: column;
+                gap: 15px;
+                align-items: stretch;
+            }
+
+            .article-table-header {
+                display: none;
+            }
+
+            .article-item {
+                display: flex;
+                flex-direction: row;
+                gap: 18px;
+                padding: 25px 20px;
+                border-bottom: 1px solid #e9ecef;
+                min-height: 150px;
+            }
+
+            .article-image-cell {
+                flex-shrink: 0;
+            }
+
+            .article-image {
+                width: 142px;
+                height: 120px;
+            }
+
+            .article-content-mobile {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .article-title-cell {
+                margin-bottom: 0;
+            }
+
+            .article-title-link {
+                font-size: 1.2rem;
+                line-height: 1.5;
+            }
+
+            .article-preview {
+                margin-top: 10px;
+                font-size: 1rem;
+                line-height: 1.5;
+            }
+
+            .article-meta-mobile {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-top: 10px;
+                padding-top: 10px;
+                border-top: 1px solid #f0f0f0;
+                font-size: 0.8rem;
+                color: #666;
+            }
+
+            .article-title-cell:not(.article-content-mobile .article-title-cell),
+            .article-author-cell,
+            .article-date-cell,
+            .article-stats-cell {
+                display: none;
+            }
+
+            .article-content-mobile {
+                display: flex !important;
+            }
+        }
+
+        /* 桌面版隱藏手機版資訊 */
+        @media (min-width: 769px) {
+
+            .article-meta-mobile,
+            .article-content-mobile {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="container">
+            <div class="logo">
+                <a href="index.html">
+                    <img src="images/logo.svg" alt="露營路Logo" />
+                </a>
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="index.html">營地搜尋</a></li>
+                    <li><a href="shop.html">裝備商城</a></li>
+                    <li><a href="article-type.html" class="active">論壇攻略</a></li>
+                    <li><a href="user-profile.html">關於我們</a></li>
+                </ul>
+            </nav>
+            <div class="user-actions">
+                <a href="#" class="btn-search"><i class="fas fa-search"></i></a>
+                <a href="cart.html" class="btn-cart"><i class="fas fa-shopping-cart"></i><span
+                        class="cart-count">0</span></a>
+                <a href="login.html" class="btn-login">登入 / 註冊</a>
+            </div>
+            <button class="mobile-menu-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </header>
+
+    <section class="favorites-hero">
+        <div class="container">
+            <div class="favorites-hero-content">
+                <h1>我的收藏</h1>
+                <p>管理您收藏的露營文章，隨時重溫精彩內容</p>
+                <div class="favorites-search-box">
+                    <form id="search-form" onsubmit="handleSearch(event)">
+                        <input type="text" placeholder="搜尋收藏的文章..." name="search" id="search-input" autocomplete="off">
+                        <button type="submit" class="btn-search-submit" title="搜尋">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="favorites-content">
+        <div class="container">
+            <div class="favorites-layout">
+                <main class="favorites-main">
+                    <div class="favorites-filter">
+                        <div class="filter-options">
+                            <select name="sort" id="sort-favorites">
+                                <option value="latest">最新收藏</option>
+                                <option value="oldest">最早收藏</option>
+                                <option value="title">標題排序</option>
+                                <option value="author">作者排序</option>
+                            </select>
+                        </div>
+                        <div class="favorites-count">共 <span id="favorites-count">載入中...</span> 篇收藏</div>
+                    </div>
+
+                    <div class="article-table-container">
+                        <div class="article-table-header">
+                            <div class="header-item">圖片</div>
+                            <div class="header-item article-title-header">標題</div>
+                            <div class="header-item article-author-header">作者</div>
+                            <div class="header-item article-date-header">收藏時間</div>
+                            <div class="header-item article-stats-header">操作</div>
+                        </div>
+                        <div class="article-list" id="favorites-container">
+                            <!-- 收藏文章將由 JavaScript 動態載入 -->
+                            <div class="loading-message">載入中...</div>
+                        </div>
+                    </div>
+
+                    <div class="pagination">
+                        <!-- 分頁將由 JavaScript 動態生成 -->
+                    </div>
+                </main>
+
+                <aside class="favorites-sidebar">
+                    <div class="sidebar-widget user-profile">
+                        <div class="user-info">
+                            <img src="images/user-1.jpg" alt="用戶頭像" class="user-avatar" id="user-avatar">
+                            <div class="user-name" id="user-name">載入中...</div>
+                            <div class="user-stats">
+                                <div class="stat-box">
+                                    <span class="stat-number" id="total-favorites">0</span>
+                                    <div class="stat-label">收藏文章</div>
+                                </div>
+                                <div class="stat-box">
+                                    <span class="stat-number" id="total-articles">0</span>
+                                    <div class="stat-label">發布文章</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-widget favorite-categories">
+                        <h3 class="widget-title">收藏分類</h3>
+                        <ul class="favorite-categories" id="categories-list">
+                            <!-- 分類統計將由 JavaScript 動態載入 -->
+                            <li>
+                                <div style="text-align: center; padding: 20px; color: #666;">載入中...</div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="sidebar-widget explore-more">
+                        <h3 class="widget-title">探索更多</h3>
+                        <p>
+                            想要發現更多優質的露營文章嗎？瀏覽我們的論壇，找到更多值得收藏的內容。
+                        </p>
+                        <a href="article-type.html" class="btn-cta">瀏覽論壇</a>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </section>
+
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <img src="images/logo-white.svg" alt="露營路Logo" />
+                    <p>探索自然，體驗生活</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h3>關於我們</h3>
+                        <ul>
+                            <li><a href="#">公司簡介</a></li>
+                            <li><a href="#">服務條款</a></li>
+                            <li><a href="#">隱私政策</a></li>
+                            <li><a href="#">加入我們</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>營地資訊</h3>
+                        <ul>
+                            <li><a href="#">北部營地</a></li>
+                            <li><a href="#">中部營地</a></li>
+                            <li><a href="#">南部營地</a></li>
+                            <li><a href="#">東部營地</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>裝備商城</h3>
+                        <ul>
+                            <li><a href="#">全新商品</a></li>
+                            <li><a href="#">配送說明</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>幫助中心</h3>
+                        <ul>
+                            <li><a href="#">常見問題</a></li>
+                            <li><a href="#">使用教學</a></li>
+                            <li><a href="#">聯絡客服</a></li>
+                            <li><a href="#">緊急聯絡</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-youtube"></i></a>
+                    <a href="#"><i class="fab fa-line"></i></a>
+                </div>
+                <p class="copyright">© 2023 露營路 All Rights Reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script src="js/articles.js"></script>
+    <script src="js/header-auth.js"></script>
+    <script>
+        // 收藏文章管理器
+        class FavoritesManager {
+            constructor() {
+                this.currentMember = null;
+                this.favorites = [];
+                this.filteredFavorites = [];
+                this.membersData = null; // 會員資料
+                this.init();
+            }
+
+            init() {
+                this.checkLoginStatus();
+                this.loadMembersData();
+                this.loadFavorites();
+                this.setupEventListeners();
+            }
+
+            // 檢查登入狀態
+            checkLoginStatus() {
+                const memberData = localStorage.getItem("currentMember") || sessionStorage.getItem("currentMember");
+                if (memberData) {
+                    this.currentMember = JSON.parse(memberData);
+                    this.updateUserInfo();
+                } else {
+                    // 未登入，使用預設用戶（僅用於測試）
+                    console.log('未檢測到登入狀態，使用預設用戶進行測試');
+                    this.currentMember = {
+                        mem_id: 10000002,
+                        mem_name: "測試用戶",
+                        mem_email: "test@example.com",
+                        mem_avatar: "images/user-2.jpg"
+                    };
+                    this.updateUserInfo();
+                }
+            }
+
+            // 更新用戶資訊
+            updateUserInfo() {
+                if (this.currentMember) {
+                    const userName = document.getElementById('user-name');
+                    const userAvatar = document.getElementById('user-avatar');
+
+                    if (userName) {
+                        userName.textContent = this.currentMember.mem_name || '用戶';
+                    }
+
+                    if (userAvatar) {
+                        userAvatar.src = this.currentMember.mem_avatar || 'images/user-1.jpg';
+                    }
+                }
+            }
+
+            // 載入會員資料
+            async loadMembersData() {
+                try {
+                    const response = await fetch('data/mem.json');
+                    this.membersData = await response.json();
+                    console.log('會員資料載入成功，共', this.membersData.length, '筆資料');
+                } catch (error) {
+                    console.error('載入會員資料失敗:', error);
+                    this.membersData = [];
+                }
+            }
+
+            // 載入收藏文章
+            async loadFavorites() {
+                if (!this.currentMember) {
+                    this.showEmptyState('請先登入');
+                    return;
+                }
+
+                try {
+                    // 先嘗試從後端API獲取收藏
+                    const response = await fetch('http://localhost:8081/CJA101G02/api/favorites');
+                    const result = await response.json();
+
+                    if (response.ok && result.status === 'success' && result.data) {
+                        // 過濾當前用戶的收藏
+                        this.favorites = result.data.filter(fav =>
+                            fav.memId === this.currentMember.mem_id
+                        );
+
+                        // 獲取收藏文章的詳細資訊
+                        await this.loadFavoriteArticles();
+                    } else {
+                        // 如果API失敗，使用localStorage的模擬收藏
+                        this.loadLocalFavorites();
+                    }
+                } catch (error) {
+                    console.error('載入收藏失敗:', error);
+                    this.loadLocalFavorites();
+                }
+            }
+
+            // 載入localStorage中的模擬收藏
+            loadLocalFavorites() {
+                const localFavorites = JSON.parse(localStorage.getItem('articleFavorites') || '[]');
+                this.favorites = localFavorites.filter(fav =>
+                    fav.memId === this.currentMember.mem_id
+                );
+
+                if (this.favorites.length > 0) {
+                    this.loadFavoriteArticles();
+                } else {
+                    this.showEmptyState();
+                }
+            }
+
+            // 載入收藏文章的詳細資訊
+            async loadFavoriteArticles() {
+                try {
+                    // 獲取所有文章
+                    const response = await fetch('http://localhost:8081/CJA101G02/api/articles');
+                    const result = await response.json();
+
+                    if (response.ok && result.status === 'success' && result.data) {
+                        // 將收藏記錄與文章資訊合併
+                        const favoriteArticles = this.favorites.map(fav => {
+                            const article = result.data.find(art => art.acId === fav.acId);
+                            return {
+                                ...article,
+                                favoriteTime: fav.acFavTime
+                            };
+                        }).filter(article => article.acId); // 過濾掉找不到的文章
+
+                        this.favorites = favoriteArticles;
+                        this.filteredFavorites = [...favoriteArticles];
+                        this.displayFavorites();
+                        this.updateStats();
+                        this.updateCategories();
+                    } else {
+                        this.showEmptyState('無法載入文章資訊');
+                    }
+                } catch (error) {
+                    console.error('載入文章資訊失敗:', error);
+                    this.showEmptyState('載入失敗');
+                }
+            }
+
+            // 顯示收藏文章
+            displayFavorites() {
+                const container = document.getElementById('favorites-container');
+                const countElement = document.getElementById('favorites-count');
+
+                if (!container) return;
+
+                if (this.filteredFavorites.length === 0) {
+                    this.showEmptyState();
+                    return;
+                }
+
+                // 更新數量
+                if (countElement) {
+                    countElement.textContent = this.filteredFavorites.length;
+                }
+
+                let html = '';
+                this.filteredFavorites.forEach((article, index) => {
+                    const favoriteDate = article.favoriteTime ?
+                        new Date(article.favoriteTime).toLocaleDateString('zh-TW') :
+                        '未知時間';
+
+                    // 重新獲取作者名稱（確保會員資料已載入）
+                    const authorName = this.getAuthorName(article);
+                    const articleType = this.getArticleType(article.acTypeId);
+
+                    html += `
+                        <div class="article-item" data-article-id="${article.acId}">
+                            <div class="article-image-cell">
+                                <img src="images/camp-${(index % 5) + 1}.jpg" alt="文章圖片" class="article-image" />
+                            </div>
+                            <div class="article-title-cell">
+                                <a href="articles.html?id=${article.acId}" class="article-title-link">${article.acTitle}</a>
+                                <div class="article-preview">${article.acContext ? article.acContext.substring(0, 100) + '...' : '無內容預覽'}</div>
+                                <span class="article-tag">${articleType}</span>
+                            </div>
+                            <div class="article-author-cell">${authorName}</div>
+                            <div class="article-date-cell">${favoriteDate}</div>
+                            <div class="article-stats-cell">
+                                <button class="remove-favorite-btn" onclick="favoritesManager.removeFavorite(${article.acId})">
+                                    <i class="fas fa-trash"></i> 移除收藏
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML = html;
+            }
+
+            // 顯示空狀態
+            showEmptyState(message = '') {
+                const container = document.getElementById('favorites-container');
+                const countElement = document.getElementById('favorites-count');
+
+                if (countElement) {
+                    countElement.textContent = '0';
+                }
+
+                if (container) {
+                    container.innerHTML = `
+                        <div class="empty-favorites">
+                            <i class="fas fa-bookmark"></i>
+                            <h3>還沒有收藏任何文章</h3>
+                            <p>${message || '開始瀏覽論壇，收藏您喜歡的文章吧！'}</p>
+                            <a href="article-type.html" class="btn-explore">瀏覽論壇</a>
+                        </div>
+                    `;
+                }
+            }
+
+            // 移除收藏
+            async removeFavorite(articleId) {
+                if (!confirm('確定要移除這篇收藏嗎？')) {
+                    return;
+                }
+
+                try {
+                    // 嘗試從後端移除
+                    const response = await fetch(`http://localhost:8081/CJA101G02/api/favorites/${this.currentMember.mem_id}/${articleId}`, {
+                        method: 'DELETE'
+                    });
+
+                    if (response.ok) {
+                        console.log('從後端移除收藏成功');
+                    } else {
+                        console.log('後端移除失敗，使用本地移除');
+                    }
+                } catch (error) {
+                    console.error('移除收藏API調用失敗:', error);
+                }
+
+                // 從本地數據中移除
+                this.favorites = this.favorites.filter(fav => fav.acId !== articleId);
+                this.filteredFavorites = this.filteredFavorites.filter(fav => fav.acId !== articleId);
+
+                // 從localStorage移除
+                const localFavorites = JSON.parse(localStorage.getItem('articleFavorites') || '[]');
+                const updatedFavorites = localFavorites.filter(fav =>
+                    !(fav.memId === this.currentMember.mem_id && fav.acId === articleId)
+                );
+                localStorage.setItem('articleFavorites', JSON.stringify(updatedFavorites));
+
+                // 重新顯示
+                this.displayFavorites();
+                this.updateStats();
+                this.updateCategories();
+
+                // 顯示成功訊息
+                this.showMessage('已移除收藏', 'success');
+            }
+
+            // 更新統計資訊
+            updateStats() {
+                const totalFavorites = document.getElementById('total-favorites');
+                const totalArticles = document.getElementById('total-articles');
+
+                if (totalFavorites) {
+                    totalFavorites.textContent = this.favorites.length;
+                }
+
+                if (totalArticles) {
+                    // 這裡可以添加用戶發布的文章數量統計
+                    totalArticles.textContent = '0';
+                }
+            }
+
+            // 更新分類統計
+            updateCategories() {
+                const categoriesList = document.getElementById('categories-list');
+                if (!categoriesList) return;
+
+                const categories = {};
+                this.favorites.forEach(article => {
+                    const type = this.getArticleType(article.acTypeId);
+                    categories[type] = (categories[type] || 0) + 1;
+                });
+
+                if (Object.keys(categories).length === 0) {
+                    categoriesList.innerHTML = '<li><div style="text-align: center; padding: 20px; color: #666;">暫無分類</div></li>';
+                    return;
+                }
+
+                let html = '';
+                Object.entries(categories).forEach(([type, count]) => {
+                    html += `
+                        <li>
+                            <span class="category-name">${type}</span>
+                            <span class="category-count">${count}</span>
+                        </li>
+                    `;
+                });
+
+                categoriesList.innerHTML = html;
+            }
+
+            // 獲取作者名稱
+            getAuthorName(article) {
+                if (!article) return '未知作者';
+
+                // 從會員資料中獲取作者名稱
+                const memberId = article.memId || article.mem_id;
+                if (!memberId) return '未知作者';
+
+                // 如果已經載入了會員資料，直接使用
+                if (this.membersData) {
+                    const member = this.membersData.find(m => m.mem_id === memberId);
+                    return member ? member.mem_name : `用戶${memberId}`;
+                }
+
+                // 如果還沒有載入會員資料，返回預設值
+                return `用戶${memberId}`;
+            }
+
+            // 獲取文章類型
+            getArticleType(acTypeId) {
+                const typeMap = {
+                    30001: '新手指南',
+                    30002: '裝備評測',
+                    30003: '營地攻略',
+                    30004: '露營食譜',
+                    30005: '戶外技巧'
+                };
+                return typeMap[acTypeId] || '其他';
+            }
+
+            // 搜尋收藏
+            searchFavorites(keyword) {
+                if (!keyword.trim()) {
+                    this.filteredFavorites = [...this.favorites];
+                } else {
+                    this.filteredFavorites = this.favorites.filter(article =>
+                        article.acTitle.toLowerCase().includes(keyword.toLowerCase()) ||
+                        (article.acContext && article.acContext.toLowerCase().includes(keyword.toLowerCase()))
+                    );
+                }
+                this.displayFavorites();
+            }
+
+            // 排序收藏
+            sortFavorites(sortType) {
+                switch (sortType) {
+                    case 'latest':
+                        this.filteredFavorites.sort((a, b) => new Date(b.favoriteTime) - new Date(a.favoriteTime));
+                        break;
+                    case 'oldest':
+                        this.filteredFavorites.sort((a, b) => new Date(a.favoriteTime) - new Date(b.favoriteTime));
+                        break;
+                    case 'title':
+                        this.filteredFavorites.sort((a, b) => a.acTitle.localeCompare(b.acTitle));
+                        break;
+                    case 'author':
+                        this.filteredFavorites.sort((a, b) => this.getAuthorName(a).localeCompare(this.getAuthorName(b)));
+                        break;
+                }
+                this.displayFavorites();
+            }
+
+            // 設置事件監聽器
+            setupEventListeners() {
+                // 搜尋功能
+                const searchInput = document.getElementById('search-input');
+                if (searchInput) {
+                    searchInput.addEventListener('keypress', (event) => {
+                        if (event.key === 'Enter') {
+                            event.preventDefault();
+                            this.searchFavorites(searchInput.value.trim());
+                        }
+                    });
+                }
+
+                // 排序功能
+                const sortSelect = document.getElementById('sort-favorites');
+                if (sortSelect) {
+                    sortSelect.addEventListener('change', (event) => {
+                        this.sortFavorites(event.target.value);
+                    });
+                }
+            }
+
+            // 顯示訊息
+            showMessage(message, type) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${type}`;
+                messageDiv.textContent = message;
+                messageDiv.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    padding: 12px 20px;
+                    border-radius: 6px;
+                    color: white;
+                    font-weight: 500;
+                    z-index: 1000;
+                    animation: slideIn 0.3s ease;
+                `;
+
+                switch (type) {
+                    case 'success':
+                        messageDiv.style.backgroundColor = '#28a745';
+                        break;
+                    case 'error':
+                        messageDiv.style.backgroundColor = '#dc3545';
+                        break;
+                    case 'warning':
+                        messageDiv.style.backgroundColor = '#ffc107';
+                        messageDiv.style.color = '#212529';
+                        break;
+                    default:
+                        messageDiv.style.backgroundColor = '#6c757d';
+                }
+
+                document.body.appendChild(messageDiv);
+
+                setTimeout(() => {
+                    messageDiv.style.animation = 'slideOut 0.3s ease';
+                    setTimeout(() => {
+                        if (messageDiv.parentNode) {
+                            messageDiv.parentNode.removeChild(messageDiv);
+                        }
+                    }, 300);
+                }, 3000);
+            }
+        }
+
+        // 添加動畫樣式
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            
+            @keyframes slideOut {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // 預設登入用戶
+        const defaultMember = {
+            mem_id: 10000002,
+            mem_name: "測試用戶",
+            mem_email: "test@example.com",
+            mem_avatar: "images/user-2.jpg"
+        };
+
+        // 初始化收藏管理器
+        const favoritesManager = new FavoritesManager();
+
+        // 自動設置登入狀態
+        document.addEventListener('DOMContentLoaded', function () {
+            // 檢查是否已經有登入狀態
+            const existingMember = localStorage.getItem("currentMember") || sessionStorage.getItem("currentMember");
+
+            if (!existingMember) {
+                // 設置預設登入狀態
+                localStorage.setItem("currentMember", JSON.stringify(defaultMember));
+                console.log('已設置預設登入用戶:', defaultMember.mem_name);
+
+                // 重新初始化收藏管理器
+                favoritesManager.checkLoginStatus();
+            }
+        });
+
+        // 處理搜尋功能
+        function handleSearch(event) {
+            event.preventDefault();
+            const searchInput = document.getElementById('search-input');
+            const searchTerm = searchInput.value.trim();
+            favoritesManager.searchFavorites(searchTerm);
+        }
+    </script>
+</body>
+
+</html>
