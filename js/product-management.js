@@ -38,9 +38,12 @@ async function loadProductsData() {
     const specResponse = await fetch(`${window.api_prefix}/api/prod-specs`);
     if (!specResponse.ok) throw new Error(`商品規格錯誤: ${specResponse.status}`);
     const specData = await specResponse.json();
+
+    console.log("商品規格原始資料：", specData);
+
     productSpecificationsData = (specData.data || []).map(s => ({
-      id: s.specId,
-      name: s.specName
+      id: s.prodSpecId || s.specId,
+      name: s.prodSpecName || s.specName
     }));
     console.log("商品規格資料：", productSpecificationsData);
 
@@ -49,8 +52,8 @@ async function loadProductsData() {
     if (!colorResponse.ok) throw new Error(`商品顏色錯誤: ${colorResponse.status}`);
     const colorData = await colorResponse.json();
     productColorsData = (colorData.data || []).map(c => ({
-      id: c.colorId,
-      name: c.colorName
+      id: c.prodColorId || c.colorId,
+      name: c.colorName || c.name
     }));
     console.log("商品顏色資料：", productColorsData);
 
@@ -67,7 +70,7 @@ async function loadProductsData() {
       createdAt: p.prodReleaseDate ? new Date(p.prodReleaseDate) : null,
       status: p.prodStatus === 1 ? "上架中" : "已下架",
       specifications: (p.prodSpecList || []).map(s => ({
-        name: s.spec?.specName || "無規格",  // 加入 null 檢查
+        name: s.prodSpecName || "無規格",
         price: s.prodSpecPrice
       })),      
       colors: (p.prodColorList || []).map(c => ({
@@ -828,7 +831,7 @@ async function saveProductChanges() {
     };
     
     // 發送 PUT 請求到 API
-    const response = await fetch(`http://localhost:8081/CJA101G02/api/products/${productId}`, {
+    const response = await fetch(`http://localhost:8081/CJA101G02/api/updateprod`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json'
@@ -1181,7 +1184,7 @@ async function addNewProduct() {
     };
     
     // 發送 POST 請求到 API
-    const response = await fetch(`http://localhost:8081/CJA101G02/api/products`, {
+    const response = await fetch(`http://localhost:8081/CJA101G02/api/addprod`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -1412,84 +1415,63 @@ async function addNewProductType(typeName) {
 // 添加新商品規格
 async function addNewProductSpecification(specName, selectElement) {
   try {
-    // 在實際應用中，這裡應該發送 POST 請求到 API
-    // 模擬 API 請求
+    // 檢查是否已存在同名規格
+    const alreadyExists = productSpecificationsData.some(s => s.name === specName);
+    if (alreadyExists) {
+      alert("已經有相同名稱的規格，請勿重複新增！");
+      return;
+    }
+
+    // 模擬新增
     await new Promise(resolve => setTimeout(resolve, 300));
-    
-    // 生成新規格ID
-    const newSpecId = productSpecificationsData.length > 0 ? Math.max(...productSpecificationsData.map(s => s.id)) + 1 : 1;
-    
-    // 創建新規格對象
-    const newSpec = {
-      id: newSpecId,
-      name: specName
-    };
-    
-    // 添加到本地數據
+
+    const newSpecId = Math.max(...productSpecificationsData.map(s => s.id)) + 1;
+    const newSpec = { id: newSpecId, name: specName };
     productSpecificationsData.push(newSpec);
-    
-    // 更新規格選擇器
+
     const newOption = document.createElement("option");
     newOption.value = newSpec.id;
     newOption.textContent = newSpec.name;
-    
-    // 插入到「新增規格」選項之前
     selectElement.insertBefore(newOption, selectElement.lastElementChild);
-    
-    // 選中新添加的規格
     selectElement.value = newSpec.id;
-    
-    // 隱藏新增規格輸入框
     selectElement.closest(".spec-selection-container").querySelector(".new-spec-input").style.display = "none";
-    
-    // 顯示成功消息
+
     showNotification("新規格添加成功", "success");
   } catch (error) {
-    console.error("添加規格失敗:", error);
-    showNotification("添加規格失敗，請稍後再試", "error");
+    showNotification("新增規格失敗", "error");
   }
 }
+
 
 // 添加新商品顏色
 async function addNewProductColor(colorName, selectElement) {
   try {
-    // 在實際應用中，這裡應該發送 POST 請求到 API
-    // 模擬 API 請求
+    // 檢查是否已存在同名顏色
+    const alreadyExists = productColorsData.some(c => c.name === colorName);
+    if (alreadyExists) {
+      alert("已經有相同名稱的顏色，請勿重複新增！");
+      return;
+    }
+
     await new Promise(resolve => setTimeout(resolve, 300));
-    
-    // 生成新顏色ID
-    const newColorId = productColorsData.length > 0 ? Math.max(...productColorsData.map(c => c.id)) + 1 : 1;
-    
-    // 創建新顏色對象
-    const newColor = {
-      id: newColorId,
-      name: colorName
-    };
-    
-    // 添加到本地數據
+
+    const newColorId = Math.max(...productColorsData.map(c => c.id)) + 1;
+    const newColor = { id: newColorId, name: colorName };
     productColorsData.push(newColor);
-    
-    // 更新顏色選擇器
+
     const newOption = document.createElement("option");
     newOption.value = newColor.id;
     newOption.textContent = newColor.name;
-    
-    // 插入到「新增顏色」選項之前
     selectElement.insertBefore(newOption, selectElement.lastElementChild);
-    
-    // 選中新添加的顏色
     selectElement.value = newColor.id;
-    
-    // 隱藏新增顏色輸入框
     selectElement.closest(".color-selection-container").querySelector(".new-color-input").style.display = "none";
-    
-    // 顯示成功消息
+
     showNotification("新顏色添加成功", "success");
   } catch (error) {
-    console.error("添加顏色失敗:", error);
-    showNotification("添加顏色失敗，請稍後再試", "error");
+    showNotification("新增顏色失敗", "error");
   }
 }
+
 
 // 顯示通知消息
 function showNotification(message, type = "success") {
