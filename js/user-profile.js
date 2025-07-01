@@ -381,14 +381,15 @@ class UserProfileManager {
       }
 
       // 載入營地收藏
-      const favoritesResponse = await fetch(`http://localhost:8081/CJA101G02/camptracklist/${memId}/getCampTrackLists`);
+      
+      const favoritesResponse = await fetch(`${window.api_prefix}/camptracklist/${memId}/getCampTrackLists`);
       this.favoriteCamps = await favoritesResponse.json();
       console.log("favoriteCamps:"+this.favoriteCamps);
       
 
       // 載入營地資料
       const campsResponse = await fetch(
-        "http://localhost:8081/CJA101G02/api/getallcamps"
+        `${window.api_prefix}/api/getallcamps`
       );
       const campsData = await campsResponse.json();
 
@@ -832,7 +833,7 @@ class UserProfileManager {
           if (!confirmDelete) return;
   
           try {
-            const res = await fetch("http://localhost:8081/CJA101G02/camptracklist/deleteCampTrackList", {
+            const res = await fetch(`${window.api_prefix}/camptracklist/deleteCampTrackList`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json"
