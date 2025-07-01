@@ -410,80 +410,80 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     // 加入購物車按鈕點選事件
-    document.querySelectorAll(".btn-add-cart").forEach((btn) => {
-      btn.addEventListener("click", function () {
-        const prodId = parseInt(this.dataset.id);
-        const productCard = this.closest('.product-card');
-        const selectedColorBtn = productCard.querySelector('.product-color-select .color-box.active');
-        const prodColorId = selectedColorBtn ? parseInt(selectedColorBtn.dataset.colorId) : 1;
-        const selectedSpecSelect = productCard.querySelector('.prod-spec-select');
-        const prodSpecId = selectedSpecSelect ? parseInt(selectedSpecSelect.value) : 1;
-        const cartData = {
-          prodId: prodId,
-          prodColorId: prodColorId,
-          prodSpecId: prodSpecId,
-          cartProdQty: 1
-        };
+// 加入購物車按鈕點選事件
+document.querySelectorAll(".btn-add-cart").forEach((btn) => {
+  btn.addEventListener("click", function () {
+    const prodId = parseInt(this.dataset.id);
+    const productCard = this.closest('.product-card');
+    const selectedColorBtn = productCard.querySelector('.product-color-select .color-box.active');
+    const prodColorId = selectedColorBtn ? parseInt(selectedColorBtn.dataset.colorId) : 1;
+    const selectedSpecSelect = productCard.querySelector('.prod-spec-select');
+    const prodSpecId = selectedSpecSelect ? parseInt(selectedSpecSelect.value) : 1;
 
-        // 判斷登入
-        const memberInfo = sessionStorage.getItem('currentMember');
-        const member = memberInfo ? JSON.parse(memberInfo) : null;
-        const memId = member ? member.mem_id : null;
-        console.log('取得會員ID:', memId);
-        
+    const cartData = {
+      prodId: prodId,
+      prodColorId: prodColorId,
+      prodSpecId: prodSpecId,
+      cartProdQty: 1
+    };
 
-        if (memId) {
-          // 已登入，呼叫 API
-          cartData.memId = memId;
-          fetch('http://localhost:8081/CJA101G02/api/addCart', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(cartData)
-          })
-          .then(response => response.json())
-          .then(data => {
-            if (data.status === 'success') {
-              if (window.globalCartManager) window.globalCartManager.updateCartCount();
-            }
-            showAddToCartMessage();
-          })
-          .catch(error => {
-            alert('加入購物車失敗，請稍後再試');
-          });
-        } else {
-          // 未登入，寫入 sessionStorage
-          sessionCartManager.addToCart(cartData);
+    // 判斷登入
+    const memberInfo = sessionStorage.getItem('currentMember');
+    const member = memberInfo ? JSON.parse(memberInfo) : null;
+    const memId = member ? member.mem_id : null;
+    console.log('取得會員ID:', memId);
+
+    if (memId) {
+      // 已登入，呼叫 API 寫入資料庫
+      cartData.memId = memId;
+      fetch(`${window.api_prefix}/api/addCart`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(cartData)
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
           if (window.globalCartManager) window.globalCartManager.updateCartCount();
-
-        console.log('加入購物車數據:', cartData);
-        
-        // 使用fetch API發送請求
-        fetch('${window.api_prefix}/api/addCart', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(cartData)
-        })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('網路回應不正常');
-          }
-          return response.json();
-        })
-        .then(data => {
-          console.log('加入購物車成功:', data);
-          
-          // 更新購物車數量顯示
-          if (data.status === 'success') {
-            globalCartManager.updateCartCount(); // 重新取得購物車數量
-          }
-          
-          // 顯示成功訊息
-          showAddToCartMessage();
         }
+        showAddToCartMessage();
+      })
+      .catch(error => {
+        alert('加入購物車失敗，請稍後再試');
       });
-    });
+    } else {
+      // 未登入，寫入 sessionStorage
+      sessionCartManager.addToCart(cartData);
+      if (window.globalCartManager) window.globalCartManager.updateCartCount();
+
+      console.log('加入購物車數據:', cartData);
+
+      // 使用 API 模擬寫入（可省略或未來接上）
+      fetch(`${window.api_prefix}/api/addCart`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(cartData)
+      })
+      .then(response => {
+        if (!response.ok) throw new Error('網路回應不正常');
+        return response.json();
+      })
+      .then(data => {
+        console.log('加入購物車成功:', data);
+        if (data.status === 'success') {
+          if (window.globalCartManager) window.globalCartManager.updateCartCount();
+        }
+        showAddToCartMessage();
+      })
+      .catch(err => {
+        console.error('加入購物車失敗:', err);
+      });
+    }
+  });
+});
+
     
     // 顯示加入購物車成功訊息
     function showAddToCartMessage() {
