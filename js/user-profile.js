@@ -263,7 +263,7 @@ class UserProfileManager {
     await this.loadData();
     this.initTabs();
     this.loadMemberData();
-    this.loadCampsiteOrders();
+    // this.loadCampsiteOrders();
     this.loadFavoriteCamps();
     this.loadMemberAvatar();
   }
@@ -330,7 +330,8 @@ class UserProfileManager {
       const memberData =
         localStorage.getItem("currentMember") ||
         sessionStorage.getItem("currentMember");
-
+      console.log("loadData:"+memberData);
+      
       if (memberData) {
         // 如果有會員資料，解析並設定為當前會員
         this.currentMember = JSON.parse(memberData);
@@ -344,6 +345,8 @@ class UserProfileManager {
 
       // 載入營地訂單 - 從API獲取
       const memId = this.currentMember.memId;
+      console.log("memId:"+memId);
+      
       const ordersResponse = await fetch(
         `http://localhost:8081/CJA101G02/member/${memId}/orders`
       );
@@ -378,8 +381,10 @@ class UserProfileManager {
       }
 
       // 載入營地收藏
-      const favoritesResponse = await fetch("data/camp_track_list.json");
+      const favoritesResponse = await fetch(`http://localhost:8081/CJA101G02/camptracklist/${memId}/getCampTrackLists`);
       this.favoriteCamps = await favoritesResponse.json();
+      console.log("favoriteCamps:"+this.favoriteCamps);
+      
 
       // 載入營地資料
       const campsResponse = await fetch(
@@ -767,75 +772,107 @@ class UserProfileManager {
     this.renderOrders(this.campsiteOrders);
   }
 
-  loadFavoriteCamps() {
+  async loadFavoriteCamps() {
     const favoritesGrid = document.getElementById("favorite-camps-grid");
     if (!favoritesGrid) return;
-
-    // 篩選當前會員的收藏
-    const memberFavorites = this.favoriteCamps.filter(
-      (fav) => fav.memId === this.currentMember.memId
-    );
-
-    if (memberFavorites.length === 0) {
-      favoritesGrid.innerHTML = `
-        <div class="empty-state">
-          <i class="fas fa-heart"></i>
-          <h3>尚無收藏營地</h3>
-          <p>您還沒有收藏任何營地</p>
-          <a href="campsites.html" class="btn-primary">探索營地</a>
-        </div>
-      `;
+  
+    // 取得會員ID
+    let memId = null;
+    const memberInfo = localStorage.getItem("currentMember") || sessionStorage.getItem("currentMember");
+    if (memberInfo) {
+      try {
+        const memberObj = JSON.parse(memberInfo);
+        memId = memberObj.memId || memberObj.mem_id || memberObj.id;
+      } catch (e) {
+        memId = null;
+      }
+    }
+    if (!memId) {
+      favoritesGrid.innerHTML = `<div class="empty-state"><i class="fas fa-heart"></i><h3>請先登入會員以查看收藏營地</h3></div>`;
       return;
     }
-
-    favoritesGrid.innerHTML = memberFavorites
-      .map((favorite) => {
-        const camp = this.camps.find((c) => c.campId === favorite.camp_id);
-        if (!camp) return "";
-
-        const avgRating =
-          camp.campCommentNumberCount > 0
-            ? (camp.campCommentSumScore / camp.campCommentNumberCount).toFixed(
-                1
-              )
-            : "0.0";
-
-        return `
-        <div class="favorite-camp-item">
+  
+    try {
+      // 假設 this.favoriteCamps 已經是從 API 拿到的資料（你可以自行改為 fetch）
+      const camps = this.favoriteCamps.data;
+  
+      if (!Array.isArray(camps) || camps.length === 0) {
+        favoritesGrid.innerHTML = `<div class="empty-state"><i class="fas fa-heart"></i><h3>尚無收藏營地</h3></div>`;
+        return;
+      }
+  
+      // 渲染收藏卡片
+      favoritesGrid.innerHTML = camps.map(camp => `
+        <div class="favorite-camp-item" data-camp-id="${camp.campId}">
           <div class="camp-image">
-            <img src="images/camp-${(camp.campId % 5) + 1}.jpg" alt="${
-          camp.campName
-        }" />
-            <button class="btn-remove-favorite" data-camp-id="${camp.campId}">
-              <i class="fas fa-heart"></i>
-            </button>
+            <img src="http://localhost:8081/CJA101G02/api/camps1/${camp.campId}/1" alt="${camp.campName || ''}" />
+            <button class="btn-remove-favorite" data-camp-id="${camp.campId}"><i class="fas fa-heart"></i></button>
           </div>
           <div class="camp-info">
-            <h4>${camp.campName}</h4>
-            <p class="camp-location">
-              <i class="fas fa-map-marker-alt"></i>
-              ${camp.campCity} ${camp.campDist}
-            </p>
-            <div class="camp-rating">
-              ${this.generateStars(Math.round(parseFloat(avgRating)))}
-              <span class="rating-text">${avgRating} (${
-          camp.campCommentNumberCount
-        })</span>
-            </div>
-            <p class="camp-description">${camp.campContent}</p>
+            <h4>${camp.campName || ''}</h4>
+            <p class="camp-description">${camp.campContent || ''}</p>
             <div class="camp-actions">
-              <a href="campsite-detail.html?id=${
-                camp.campId
-              }" class="btn-view">查看詳情</a>
-              <a href="campsite-booking.html?id=${
-                camp.campId
-              }" class="btn-book">立即預訂</a>
+              <a href="campsite-detail.html?id=${camp.campId}" class="btn-view">查看詳情</a>
             </div>
           </div>
         </div>
-      `;
-      })
-      .join("");
+      `).join("");
+  
+      // 綁定每個愛心按鈕點擊事件
+      favoritesGrid.querySelectorAll(".btn-remove-favorite").forEach(btn => {
+        btn.addEventListener("click", async (e) => {
+          const campId = btn.dataset.campId;
+  
+          if (!campId || !memId) {
+            alert("資料錯誤，請重新登入或刷新頁面");
+            return;
+          }
+  
+          const confirmDelete = confirm("確定要移除這個收藏營地嗎？");
+          if (!confirmDelete) return;
+  
+          try {
+            const res = await fetch("http://localhost:8081/CJA101G02/camptracklist/deleteCampTrackList", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({
+                campId: parseInt(campId),
+                memId: parseInt(memId)
+              })
+            });
+  
+            const result = await res.json();
+  
+            if (result.status === "success") {
+              const card = btn.closest(".favorite-camp-item");
+            
+              // ✅ 加上動畫 class
+              card.classList.add("removing");
+            
+              // ✅ 動畫結束後再移除 DOM
+              setTimeout(() => card.remove(), 300);
+            
+              // ✅ 如果全部都刪完了，顯示空狀態（延後一點再判斷）
+              setTimeout(() => {
+                if (favoritesGrid.querySelectorAll(".favorite-camp-item").length === 0) {
+                  favoritesGrid.innerHTML = `<div class="empty-state"><i class="fas fa-heart"></i><h3>尚無收藏營地</h3></div>`;
+                }
+              }, 350);
+            } else {
+              alert("移除失敗：" + result.message);
+            }
+          } catch (err) {
+            console.error(err);
+            alert("發生錯誤，請稍後再試");
+          }
+        });
+      });
+  
+    } catch (err) {
+      favoritesGrid.innerHTML = `<div class="empty-state"><i class="fas fa-heart"></i><h3>無法取得收藏列表，請稍後再試</h3></div>`;
+    }
   }
 
   getOrderStatusText(status) {
