@@ -135,7 +135,6 @@ async function handleLogin(e) {
 
       showMessage("登入成功！", "success");
 
-
       // 登入成功後合併未登入時的購物車資料
       try {
         const sessionCart = sessionStorage.getItem('sessionCart');
