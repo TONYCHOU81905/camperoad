@@ -158,7 +158,7 @@ async function getAvailableCampsFromAPI(
 
     // 調用API
     const response = await fetch(
-      "http://localhost:8081/CJA101G02/api/ca/available/Remaing",
+      `${window.api_prefix}/api/ca/available/Remaing`,
       {
         method: "POST",
         headers: {

@@ -99,15 +99,17 @@ class OwnerDashboard {
           .join("");
         // 設定預設值
         if (this.campData) ownerProfileSelect.value = this.campData.campId;
-        console.log("LLLLLLL:");
+
         // 綁定切換事件
         ownerProfileSelect.onchange = async () => {
-          console.log("GGGGGG:");
           const campId = ownerProfileSelect.value;
+
           // 更新 campData
           this.campData = this.allCamps.find((camp) => camp.campId == campId);
           // 清空圖片刪除標記
           this.deletedCampImages = {};
+          // 清除圖片存在性快取
+          this.imageExistsCache = {};
 
           // 1. 只顯示/隱藏 loading 區塊，不覆蓋 camp-info
           let campInfoLoading = document.getElementById("campInfoLoading");
@@ -159,7 +161,7 @@ class OwnerDashboard {
           await this.renderRoomTypes(false, true); // 房型
           await this.loadBundleItemsByCampId(campId); // 加購商品
           const orderResponse = await fetch(
-            "http://localhost:8081/CJA101G02/api/campsite/order/all"
+            `${window.api_prefix}/api/campsite/order/all`
           );
           console.log("orderResponse:" + orderResponse);
 
@@ -202,7 +204,7 @@ class OwnerDashboard {
       console.log("GGGGG:");
       // 載入營地資料，只載入當前營地主的營地
       const campResponse = await fetch(
-        "http://localhost:8081/CJA101G02/api/getallcamps"
+        `${window.api_prefix}/api/getallcamps`
       );
       if (!campResponse.ok) {
         throw new Error(`載入營地資料失敗：${campResponse.status}`);
@@ -227,28 +229,32 @@ class OwnerDashboard {
       this.campData = this.allCamps[0];
       // 清空圖片刪除標記
       this.deletedCampImages = {};
-      console.log("asdasd:" + this.allCamps);
+      // 清除圖片存在性快取
+      this.imageExistsCache = {};
+
       // 載入營地房間資料
       const campsiteResponse = await fetch(
-        "http://localhost:8081/CJA101G02/api/getallcampsites"
+        `${window.api_prefix}/campsite/getAllCampsite`
       );
-      console.log("campsiteResponse:" + campsiteResponse);
+
       if (!campsiteResponse.ok) {
         throw new Error(`載入營地房間資料失敗：${campsiteResponse.status}`);
       }
-      console.log("33333:");
+
       const allCampsitesJson = await campsiteResponse.json();
       const allCampsites = allCampsitesJson.data;
       this.campsiteData = allCampsites.filter(
         (campsite) => this.campData && campsite.campId === this.campData.campId
       );
-      console.log("2222222:");
+
       // 載入加購商品資料 - 使用API
+      console.log("載入加購商品資料:", this.campData.campId);
+
       await this.loadBundleItemsByCampId(this.campData.campId);
-      console.log("1111111:");
+
       // 載入訂單資料
       const orderResponse = await fetch(
-        "http://localhost:8081/CJA101G02/api/campsite/order/all"
+        `${window.api_prefix}/api/campsite/order/all`
       );
       if (!orderResponse.ok) {
         throw new Error(`載入訂單資料失敗：${orderResponse.status}`);
@@ -316,7 +322,7 @@ class OwnerDashboard {
       }
 
       const response = await fetch(
-        `http://localhost:8081/CJA101G02/bundleitem/${campId}/getBundleItems`
+        `${window.api_prefix}/bundleitem/${campId}/getBundleItems`
       );
       if (!response.ok) {
         throw new Error(`載入加購項目失敗：${response.status}`);
@@ -473,7 +479,7 @@ class OwnerDashboard {
           if (hasImageData) {
             // 構建API圖片URL，添加時間戳破除快取
             const timestamp = new Date().getTime();
-            const apiImageUrl = `http://localhost:8081/CJA101G02/api/camps/${campId}/${i}`;
+            const apiImageUrl = `${window.api_prefix}/api/camps/${campId}/${i}`;
             const apiImageUrlWithCache = `${apiImageUrl}?t=${timestamp}`;
             console.log("apiImageUrl:" + apiImageUrlWithCache);
 
@@ -648,7 +654,7 @@ class OwnerDashboard {
         };
         try {
           const response = await fetch(
-            "http://localhost:8081/CJA101G02/campsite/addCampsite",
+            `${window.api_prefix}/campsite/addCampsite`,
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -707,7 +713,7 @@ class OwnerDashboard {
         };
         try {
           const response = await fetch(
-            "http://localhost:8081/CJA101G02/campsite/updateCampsite",
+            `${window.api_prefix}/campsite/updateCampsite`,
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -988,9 +994,9 @@ class OwnerDashboard {
     switch (tabName) {
       case "room-types":
         // 這裡改成每次都強制呼叫API
-          this.renderRoomTypes(false, true).catch((error) => {
-            console.error("載入房型資料失敗：", error);
-          });
+        this.renderRoomTypes(false, true).catch((error) => {
+          console.error("載入房型資料失敗：", error);
+        });
         break;
       case "bundle-items":
         this.renderBundleItems();
@@ -1041,7 +1047,7 @@ class OwnerDashboard {
                 if (pic && pic.length > 0) {
                   return `
                   <div class="carousel-item${idx === 0 ? " active" : ""}">
-                    <img src="http://localhost:8081/CJA101G02/campsitetype/${campsiteTypeId}/${campId}/images/${index}" 
+                    <img src="${window.api_prefix}/campsitetype/${campsiteTypeId}/${campId}/images/${index}" 
                          class="d-block w-100 roomtype-carousel-img" 
                          style="width:100%;height:100%;object-fit:cover;" 
                          onerror="this.style.display='none'; this.parentElement.style.display='none';" />
@@ -1149,7 +1155,7 @@ class OwnerDashboard {
         return;
       }
 
-      const apiUrl = `http://localhost:8081/CJA101G02/campsitetype/${campsiteTypeId}/${campId}/getcampsites`;
+      const apiUrl = `${window.api_prefix}/campsitetype/${campsiteTypeId}/${campId}/getcampsites`;
       console.log(`載入房間數量 API: ${apiUrl}`);
 
       const response = await fetch(apiUrl);
@@ -1217,7 +1223,7 @@ class OwnerDashboard {
       this.campsiteTypeData.length === 0
     ) {
       try {
-        const apiUrl = `http://localhost:8081/CJA101G02/campsitetype/${campId}/getCampsiteTypes`;
+        const apiUrl = `${window.api_prefix}/campsitetype/${campId}/getCampsiteTypes`;
         const response = await fetch(apiUrl);
         if (!response.ok) throw new Error(`API回應失敗：${response.status}`);
         const result = await response.json();
@@ -1252,7 +1258,7 @@ class OwnerDashboard {
         // 驗證參數
         if (roomTypeId && campId) {
           try {
-            const apiUrl = `http://localhost:8081/CJA101G02/campsitetype/${roomTypeId}/${campId}/getcampsites`;
+            const apiUrl = `${window.api_prefix}/campsitetype/${roomTypeId}/${campId}/getcampsites`;
             console.log(`載入房型 ${roomTypeId} 房間數量: ${apiUrl}`);
             const response = await fetch(apiUrl);
             if (response.ok) {
@@ -1313,7 +1319,7 @@ class OwnerDashboard {
                   if (pic && pic.length > 0) {
                     return `
                     <div class="carousel-item${idx === 0 ? " active" : ""}">
-                      <img src="http://localhost:8081/CJA101G02/campsitetype/${campsiteTypeId}/${campId}/images/${index}${tsParam}" 
+                      <img src="${window.api_prefix}/campsitetype/${campsiteTypeId}/${campId}/images/${index}${tsParam}" 
                            class="d-block w-100 roomtype-carousel-img" 
                            style="width:100%;height:100%;object-fit:cover;" 
                            onerror="this.style.display='none'; this.parentElement.style.display='none';" />
@@ -2139,7 +2145,8 @@ class OwnerDashboard {
       // "http://localhost:8081/CJA101G02/api/camps/createonecamp?withOrders=false",
 
       //update
-      "http://localhost:8081/CJA101G02/api/camps/updateonecamp",
+      // "http://localhost:8081/CJA101G02/api/camps/updateonecamp",
+      `${window.api_prefix}/api/camps/updateonecamp`,
       {
         method: "POST",
         body: apiFormData,
@@ -2169,10 +2176,13 @@ class OwnerDashboard {
           // 清空暫存的圖片
           this.pendingCampImages = {};
 
+          // 清除圖片存在性快取，確保重新檢查圖片
+          this.imageExistsCache = {};
+
           // 重新渲染營地圖片
           this.renderCampImages();
 
-          console.log("營地資料和圖片更新完成");
+          console.log("營地資料和圖片更新完成，已清除圖片快取");
         } else {
           // 更新失敗
           console.error("營地資料更新失敗：", data);
@@ -2295,7 +2305,7 @@ class OwnerDashboard {
 
       try {
         const res = await fetch(
-          `http://localhost:8081/CJA101G02/campsitetype/${this.campData.campId}/addCampsiteType`,
+          `${window.api_prefix}/campsitetype/${this.campData.campId}/addCampsiteType`,
           {
             method: "POST",
             body: apiFormData, // 不要加headers，瀏覽器自動處理
@@ -2545,7 +2555,7 @@ class OwnerDashboard {
       };
 
       const basicRes = await fetch(
-        "http://localhost:8081/CJA101G02/campsitetype/updateCampsiteType",
+        `${window.api_prefix}/campsitetype/updateCampsiteType`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -2611,7 +2621,7 @@ class OwnerDashboard {
       console.log("FormData entries數量:", picFormData.entries().length);
       console.log("FormData keys:", Array.from(picFormData.keys()));
 
-      const imageUpdateUrl = `http://localhost:8081/CJA101G02/campsitetype/${parseInt(
+      const imageUpdateUrl = `${window.api_prefix}/campsitetype/${parseInt(
         typeId
       )}/${parseInt(campId)}/update-images`;
       console.log("圖片更新API URL:", imageUpdateUrl);
@@ -2653,7 +2663,7 @@ class OwnerDashboard {
 
           // 重新載入房型資料來驗證更新
           const verifyResponse = await fetch(
-            `http://localhost:8081/CJA101G02/campsitetype/${parseInt(
+            `${window.api_prefix}/campsitetype/${parseInt(
               campId
             )}/getCampsiteTypes`
           );
@@ -2772,7 +2782,7 @@ class OwnerDashboard {
           bundlePrice: bundlePrice,
         };
         const response = await fetch(
-          "http://localhost:8081/CJA101G02/bundleitem/updateBundleItem",
+          `${window.api_prefix}/bundleitem/updateBundleItem`,
           {
             method: "POST",
             headers: {
@@ -2796,13 +2806,13 @@ class OwnerDashboard {
       // 新增模式 - 使用API
       try {
         const bundleData = {
-          campId: this.campData.camp_id,
+          campId: this.campData.campId,
           bundleName: bundleName,
           bundlePrice: bundlePrice,
         };
 
         const response = await fetch(
-          "http://localhost:8081/CJA101G02/bundleitem/addBundleItem",
+          `${window.api_prefix}/bundleitem/addBundleItem`,
           {
             method: "POST",
             headers: {
@@ -2821,7 +2831,7 @@ class OwnerDashboard {
         this.showMessage("加購商品新增成功！", "success");
 
         // 重新載入加購項目列表
-        await this.loadBundleItemsByCampId(this.campData.camp_id);
+        await this.loadBundleItemsByCampId(this.campData.campId);
       } catch (error) {
         console.error("新增加購項目失敗：", error);
         this.showMessage(`新增加購項目失敗：${error.message}`, "error");
@@ -2985,7 +2995,7 @@ class OwnerDashboard {
     if (confirm("確定要刪除此加購商品嗎？")) {
       try {
         const response = await fetch(
-          "http://localhost:8081/CJA101G02/bundleitem/deleteBundleItem",
+          `${window.api_prefix}/bundleitem/deleteBundleItem`,
           {
             method: "POST",
             headers: {
@@ -2999,7 +3009,7 @@ class OwnerDashboard {
         }
         this.showMessage("加購商品已刪除", "success");
         // 重新載入加購商品列表
-        await this.loadBundleItemsByCampId(this.campData.camp_id);
+        await this.loadBundleItemsByCampId(this.campData.campId);
         this.renderBundleItems();
       } catch (error) {
         console.error("刪除加購商品失敗：", error);
@@ -3050,7 +3060,7 @@ class OwnerDashboard {
       console.log(`載入房型 ${campsiteTypeId} 的房間資料，營地ID: ${campId}`);
 
       const response = await fetch(
-        `http://localhost:8081/CJA101G02/campsitetype/${campsiteTypeId}/${campId}/getcampsites`
+        `${window.api_prefix}/campsitetype/${campsiteTypeId}/${campId}/getcampsites`
       );
 
       if (!response.ok) {
@@ -3284,7 +3294,7 @@ class OwnerDashboard {
       console.log("API請求資料:", requestData);
 
       // 呼叫刪除房間API
-      fetch("http://localhost:8081/CJA101G02/campsite/deleteCampsite", {
+      fetch(`${window.api_prefix}/campsite/deleteCampsite`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestData),
@@ -3493,7 +3503,7 @@ class OwnerDashboard {
 
       console.log("開始呼叫API獲取房型資料");
       const response = await fetch(
-        `http://localhost:8081/CJA101G02/campsitetype/${campId}/getCampsiteTypes`
+        `${window.api_prefix}/campsitetype/${campId}/getCampsiteTypes`
       );
       if (!response.ok) {
         throw new Error(`載入房型資料失敗：${response.status}`);
@@ -3539,7 +3549,7 @@ class OwnerDashboard {
       campsiteTypeId: parseInt(campsiteTypeId),
     };
 
-    fetch("http://localhost:8081/CJA101G02/campsitetype/deleteCampsiteType", {
+    fetch(`${window.api_prefix}/campsitetype/deleteCampsiteType`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(deleteData),
@@ -3790,7 +3800,7 @@ class OwnerDashboard {
                       if (pic && pic.length > 0) {
                         return `
                         <div class="carousel-item${idx === 0 ? " active" : ""}">
-                          <img src="http://localhost:8081/CJA101G02/campsitetype/${campsiteTypeId}/${campId}/images/${index}${tsParam}" 
+                          <img src="${window.api_prefix}/campsitetype/${campsiteTypeId}/${campId}/images/${index}${tsParam}" 
                                class="d-block w-100 roomtype-carousel-img" 
                                style="width:100%;height:100%;object-fit:cover;" 
                                onerror="this.style.display='none'; this.parentElement.style.display='none';" />
@@ -3870,7 +3880,7 @@ class OwnerDashboard {
       this.campsiteTypeData.length === 0
     ) {
       try {
-        const apiUrl = `http://localhost:8081/CJA101G02/campsitetype/${campId}/getCampsiteTypes`;
+        const apiUrl = `${window.api_prefix}/campsitetype/${campId}/getCampsiteTypes`;
         const response = await fetch(apiUrl);
         if (!response.ok) throw new Error(`API回應失敗：${response.status}`);
         const result = await response.json();
@@ -3905,7 +3915,7 @@ class OwnerDashboard {
         // 驗證參數
         if (roomTypeId && campId) {
           try {
-            const apiUrl = `http://localhost:8081/CJA101G02/campsitetype/${roomTypeId}/${campId}/getcampsites`;
+            const apiUrl = `${window.api_prefix}/campsitetype/${roomTypeId}/${campId}/getcampsites`;
             console.log(`載入房型 ${roomTypeId} 房間數量: ${apiUrl}`);
             const response = await fetch(apiUrl);
             if (response.ok) {
@@ -3966,7 +3976,7 @@ class OwnerDashboard {
                   if (pic && pic.length > 0) {
                     return `
                     <div class="carousel-item${idx === 0 ? " active" : ""}">
-                      <img src="http://localhost:8081/CJA101G02/campsitetype/${campsiteTypeId}/${campId}/images/${index}${tsParam}" 
+                      <img src="${window.api_prefix}/campsitetype/${campsiteTypeId}/${campId}/images/${index}${tsParam}" 
                            class="d-block w-100 roomtype-carousel-img" 
                            style="width:100%;height:100%;object-fit:cover;" 
                            onerror="this.style.display='none'; this.parentElement.style.display='none';" />
@@ -4180,7 +4190,7 @@ class OwnerDashboard {
           // 嘗試從API獲取現有圖片
           const promise = (async () => {
             try {
-              const apiImageUrl = `http://localhost:8081/CJA101G02/api/camps/${this.campData.campId}/${i}`;
+              const apiImageUrl = `${window.api_prefix}/api/camps/${this.campData.campId}/${i}`;
               const imageResponse = await fetch(apiImageUrl);
               if (imageResponse.ok) {
                 const imageBlob = await imageResponse.blob();
@@ -4344,7 +4354,7 @@ function initRoomTypeImagePreview(roomType) {
 
       if (campsiteTypeId && campId) {
         // 使用新的API端點
-        const apiUrl = `http://localhost:8081/CJA101G02/campsitetype/${campsiteTypeId}/${campId}/images/${i}`;
+        const apiUrl = `${window.api_prefix}/campsitetype/${campsiteTypeId}/${campId}/images/${i}`;
         console.log(`圖片${i} API URL:`, apiUrl);
         previewImg.src = apiUrl;
         previewImg.style.display = "block";

@@ -783,7 +783,7 @@ async function saveProductChanges() {
     };
     
     // 發送 PUT 請求到 API
-    const response = await fetch(`http://localhost:8081/CJA101G02/api/updateprod`, {
+    const response = await fetch(`${window.api_prefix}/api/updateprod`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json'
@@ -1200,7 +1200,7 @@ async function addNewProduct() {
     };
     
     // 發送 POST 請求到 API
-    const response = await fetch(`http://localhost:8081/CJA101G02/api/addprod`, {
+    const response = await fetch(`${window.api_prefix}/api/addprod`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -1274,7 +1274,7 @@ async function toggleProductStatus(productId) {
   
   try {
     // 發送 PATCH 請求到 API
-    const response = await fetch(`http://localhost:8081/CJA101G02/api/products/${productId}/status`, {
+    const response = await fetch(`${window.api_prefix}/api/products/${productId}/status`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json'
@@ -1349,7 +1349,7 @@ async function simulateImageUpload(file) {
       const formData = new FormData();
       formData.append('image', file);
       
-      fetch('http://localhost:8081/CJA101G02/api/upload-image', {
+      fetch(`${window.api_prefix}/api/upload-image`, {
         method: 'POST',
         body: formData
       })

@@ -251,7 +251,7 @@ class GlobalCartManager {
   // 從後端取得購物車數量
   fetchCartCount() {
     const memId = this.getMemberId();
-    fetch(`http://localhost:8081/CJA101G02/api/getCart?memId=${memId || ''}`, {
+    fetch(`${window.api_prefix}/api/getCart?memId=${memId || ''}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
@@ -275,7 +275,7 @@ class GlobalCartManager {
 
   // 加入購物車
   addToCart(cartData) {
-    return fetch('http://localhost:8081/CJA101G02/api/addCart', {
+    return fetch(`${window.api_prefix}/api/addCart`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

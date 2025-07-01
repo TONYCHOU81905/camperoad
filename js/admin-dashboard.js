@@ -110,7 +110,7 @@ async function loadAllData() {
       console.log('開始載入商品訂單資料...');
       // 使用 API（如果 CORS 問題解決）
       const shopOrderResponse = await fetch(
-        "http://localhost:8081/CJA101G02/api/getAllShopOrders"
+        `${window.api_prefix}/api/getAllShopOrders`
         // "data/shop_order.json"  // 備用本地檔案
       );
       
@@ -161,7 +161,7 @@ async function loadAllData() {
     // 載入商品訂單詳細資料
     try {
       const shopOrderDetailsResponse = await fetch(
-        "http://localhost:8081/CJA101G02/api/getAllShopOrdersDetails"
+        `${window.api_prefix}/api/getAllShopOrdersDetails`
       ); //data/shop_order_details.json
       shopOrderDetailsData = await shopOrderDetailsResponse.json();
       shopOrderDetailsData = shopOrderDetailsData.data;
@@ -2020,7 +2020,7 @@ function updateShopOrderStatus(orderId, newStatus) {
     )
   ) {
     // 呼叫 API 更新後端狀態
-    fetch('http://localhost:8081/CJA101G02/api/updateShopOrder', {
+    fetch(`${window.api_prefix}/api/updateShopOrder`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ shopOrderId: orderId, shopOrderStatus: newStatus })
@@ -2533,7 +2533,7 @@ async function submitEditShopOrder(orderId) {
   });
 
   try {
-    const res = await fetch('http://localhost:8081/CJA101G02/api/updateShopOrder', {
+    const res = await fetch(`${window.api_prefix}/api/updateShopOrder`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
@@ -2663,7 +2663,7 @@ async function processReturnApply(orderId, returnStatus) {
     
     console.log('處理退貨申請:', payload);
     
-    const res = await fetch('http://localhost:8081/CJA101G02/api/updateShopOrder', {
+    const res = await fetch(`${window.api_prefix}/api/updateShopOrder`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
