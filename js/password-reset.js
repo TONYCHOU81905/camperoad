@@ -65,7 +65,7 @@ async function handleForgotPassword(e) {
 
   try {
     // 使用API發送重設密碼請求
-    const response = await fetch("http://localhost:8081/CJA101G02/api/auth/forgot-password", {
+    const response = await fetch("${window.api_prefix}/api/auth/forgot-password", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -143,7 +143,7 @@ async function handleResetPassword(e) {
 
   try {
     // 使用API重設密碼
-    const response = await fetch("http://localhost:8081/CJA101G02/api/member/changePassword", {
+    const response = await fetch("{window.api_prefix}/api/member/changePassword", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"

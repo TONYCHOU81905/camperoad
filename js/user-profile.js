@@ -137,7 +137,7 @@ class UserProfileManager {
         try {
           // 使用API更改密碼
           const response = await fetch(
-            "http://localhost:8081/CJA101G02/api/member/changePassword",
+            "{window.api_prefix}/api/member/changePassword",
             {
               method: "POST",
               headers: {
@@ -237,7 +237,7 @@ class UserProfileManager {
     try {
       // 呼叫登出API
       const response = await fetch(
-        "http://localhost:8081/CJA101G02/api/member/logout",
+        "{window.api_prefix}/api/member/logout",
         {
           method: "POST",
           credentials: "include", // 包含Cookie
@@ -722,7 +722,7 @@ class UserProfileManager {
     try {
       // 使用API更新會員資料
       const response = await fetch(
-        "http://localhost:8081/CJA101G02/api/member/update",
+        "{window.api_prefix}v/api/member/update",
         {
           method: "POST",
           headers: {
@@ -1884,7 +1884,7 @@ if (document.getElementById("commentForm")) {
     }
     try {
       const resp = await fetch(
-        "http://localhost:8081/CJA101G02/api/updateComments",
+        "{window.api_prefix}/api/updateComments",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

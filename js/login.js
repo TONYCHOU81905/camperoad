@@ -96,7 +96,7 @@ async function handleLogin(e) {
     // 使用API進行登入
 
     const response = await fetch(
-      "http://localhost:8081/CJA101G02/api/member/login",
+      "{window.api_prefix}/api/member/login",
       {
         method: "POST",
         headers: {
@@ -143,7 +143,7 @@ async function handleLogin(e) {
           if (cartList.length > 0) {
             console.log('準備合併購物車:', cartList);
             
-            const mergeResponse = await fetch('http://localhost:8081/CJA101G02/api/mergeCart', {
+            const mergeResponse = await fetch('{window.api_prefix}/api/mergeCart', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -254,7 +254,7 @@ async function handleRegister(e) {
   try {
     // 使用API進行註冊
     const response = await fetch(
-      "http://localhost:8081/CJA101G02/api/member/register",
+      "{window.api_prefix}/api/member/register",
       {
         method: "POST",
         headers: {
