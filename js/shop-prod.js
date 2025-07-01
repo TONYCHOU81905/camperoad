@@ -33,9 +33,15 @@ document.addEventListener("DOMContentLoaded", function () {
   const form = document.querySelector(".filter-form");
   const loadingOverlay = document.querySelector(".loading-overlay");
 
+  // 初始化商品dropdown分類選單
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlSort = urlParams.get("sort");
+  if (urlSort && sortSelect) {
+    sortSelect.value = urlSort;
+  }
+
   // 初始化松果載入動畫
   initLoadingAnimation();
-
   // 顯示載入畫面
   showLoadingOverlay();
 
@@ -112,7 +118,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // ✅ 動態載入商品分類選單
   function loadCategories() {
-    return fetch("http://localhost:8081/CJA101G02/api/product-types")
+    return fetch(`${window.api_prefix}/api/product-types`)
       .then(res => res.json())
       .then(response => {
         // 檢查是否有嵌套結構，例如 { data: [...] } 或 { results: [...] }
@@ -143,19 +149,25 @@ document.addEventListener("DOMContentLoaded", function () {
   function fetchProducts() {
     const category = categorySelect.value;
     const sort = sortSelect.value;
+    const priceRange = document.getElementById("price")?.value;
 
-    let url = "http://localhost:8081/CJA101G02/api/products";
+
+    let url = `${window.api_prefix}/api/products`;
 
     if (category) {
-      url = `http://localhost:8081/CJA101G02/api/products/type/${category}`;
-    } else if (sort === "newest") {
-      url = `http://localhost:8081/CJA101G02/api/products/latest`;
+      url = `${window.api_prefix}/api/products/type/${category}`;
+    } else if (priceRange){
+      url = `${window.api_prefix}/api/products/price-range?range=${priceRange}`;
+    }else if (sort === "latest") {
+      url = `${window.api_prefix}/api/products/latest`;
     } else if (sort === "popular") {
-      url = `http://localhost:8081/CJA101G02/api/products`;
+      url = `${window.api_prefix}/api/products`;
     } else if (sort === "discount") {
-      url = `http://localhost:8081/CJA101G02/api/products/discount`;
-    } else if (sort === "price-asc" || sort === "price-desc") {
-      console.warn("尚未支援價格排序");
+      url = `${window.api_prefix}/api/products/discount`;
+    } else if (sort === "price-asc") {
+      url = `${window.api_prefix}/api/products/price-asc`;
+    } else if (sort === "price-desc") {
+      url = `${window.api_prefix}/api/products/price-desc`;
     }
 
     console.log("API 請求網址：", url);
@@ -188,7 +200,7 @@ document.addEventListener("DOMContentLoaded", function () {
           
               // 如果有圖片才組圖片 HTML
               if (hasImage) {
-                const imgUrl = `http://localhost:8081/CJA101G02/api/prod-colors/colorpic/${prod.prodId}/${colorId}`;
+                const imgUrl = `${window.api_prefix}/api/prod-colors/colorpic/${prod.prodId}/${colorId}`;
                 imageHtml = `<img src="${imgUrl}" alt="${colorName}" class="color-thumbnail" onerror="this.src='images/default-color.png'" />`;
               }
           
@@ -233,7 +245,7 @@ document.addEventListener("DOMContentLoaded", function () {
           if (prod.prodPicList && prod.prodPicList.length > 0) {
             const firstPicId = prod.prodPicList[0].prodPicId;
             // 添加錯誤處理
-            productImageHtml = `<img src="http://localhost:8081/CJA101G02/api/products/prodpic/${firstPicId}" alt="${prod.prodName}" onerror="this.onerror=null; this.src='images/default-product.jpg';" />`;
+            productImageHtml = `<img src="${window.api_prefix}/api/products/prodpic/${firstPicId}" alt="${prod.prodName}" onerror="this.onerror=null; this.src='images/default-product.jpg';" />`;
           } else {
             productImageHtml = `<img src="images/default-product.jpg" alt="無圖片" />`;
           }
@@ -268,7 +280,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 ${specSelectHtml}  <!-- 規格區 -->
                 <div class="product-price">
                   <span class="current-price" data-base-price="${discountedPrice}" data-discount-rate="${discountRate}">NT$ ${discountedPrice}</span>
-                  <span class="original-price">NT$ ${originalPrice}</span>
+                  ${hasDiscount && discountRate < 1 ? `<span class="original-price">NT$ ${originalPrice}</span>` : ''}
                 </div>             
 
                 <div class="product-actions">
@@ -364,20 +376,29 @@ document.addEventListener("DOMContentLoaded", function () {
       select.addEventListener("change", function () {
         const selectedOption = this.options[this.selectedIndex];
         const selectedPrice = parseFloat(selectedOption.dataset.price) || 0;
-        const priceContainer = this.closest(".product-price");
+        const priceContainer = this.closest(".product-info").querySelector(".product-price");
         const priceSpan = priceContainer.querySelector(".current-price");
-        const originalPriceSpan = priceContainer.querySelector(".original-price");
-        
-        // 獲取折扣率，確保是有效數字 ; 從 HTML 取 discount rate
-        let discountRate = parseFloat(priceSpan.dataset.discountRate) || 1;
-        
-        // 更新原始價格
-        originalPriceSpan.textContent = `NT$ ${selectedPrice}`;
-        
-        // 計算並更新折扣後價格
+        let originalPriceSpan = priceContainer.querySelector(".original-price");
+      
+        // 取得折扣率
+        const discountRate = parseFloat(priceSpan.dataset.discountRate) || 1;
+      
+        // 若沒有 .original-price 元素，則手動建立
+        if (!originalPriceSpan && discountRate < 1) {
+          originalPriceSpan = document.createElement("span");
+          originalPriceSpan.classList.add("original-price");
+          priceSpan.after(originalPriceSpan);
+        }
+      
+        // 更新原始價格與折扣價格
         const discountedPrice = Math.round(selectedPrice * discountRate);
         priceSpan.textContent = `NT$ ${discountedPrice}`;
+      
+        if (originalPriceSpan) {
+          originalPriceSpan.textContent = `NT$ ${selectedPrice}`;
+        }
       });
+      
     });
 
     // 加入收藏按鈕點選事件
@@ -410,6 +431,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const memId = member ? member.mem_id : null;
         console.log('取得會員ID:', memId);
         
+
         if (memId) {
           // 已登入，呼叫 API
           cartData.memId = memId;
@@ -432,6 +454,32 @@ document.addEventListener("DOMContentLoaded", function () {
           // 未登入，寫入 sessionStorage
           sessionCartManager.addToCart(cartData);
           if (window.globalCartManager) window.globalCartManager.updateCartCount();
+
+        console.log('加入購物車數據:', cartData);
+        
+        // 使用fetch API發送請求
+        fetch('${window.api_prefix}/api/addCart', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(cartData)
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('網路回應不正常');
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log('加入購物車成功:', data);
+          
+          // 更新購物車數量顯示
+          if (data.status === 'success') {
+            globalCartManager.updateCartCount(); // 重新取得購物車數量
+          }
+          
+          // 顯示成功訊息
           showAddToCartMessage();
         }
       });

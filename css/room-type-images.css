@@ -175,3 +175,65 @@
 .room-types-table-container .image-cell {
   white-space: normal;
 }
+
+.image-card {
+  position: relative;
+  width: 120px;
+  height: 90px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px #0001;
+  background: #f8f9fa;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: box-shadow 0.2s, border 0.2s;
+  border: 2px solid transparent;
+}
+.image-card:hover {
+  border: 2px solid #2196f3;
+  box-shadow: 0 4px 16px #2196f322;
+}
+.image-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 12px;
+}
+.image-actions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 6px;
+  z-index: 2;
+}
+.btn-upload, .btn-delete {
+  background: rgba(255,255,255,0.9);
+  border: none;
+  border-radius: 6px;
+  padding: 4px 6px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-upload:hover { background: #e3f2fd; }
+.btn-delete:hover { background: #ffcdd2; }
+.image-label {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #888;
+  text-align: center;
+}
+
+.roomtype-carousel-img {
+  border-radius: 0;
+}
+.carousel.slide,
+.carousel-inner {
+  border-radius: 12px !important;
+  overflow: hidden;
+}

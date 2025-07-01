@@ -1,0 +1,36 @@
+/* 房型圖片輪播樣式 */
+.room-types-table-container table td:first-child, .room-types-table-container table th:first-child {
+  min-width: 170px;
+  width: 170px;
+  max-width: 180px;
+  padding-left: 8px;
+  padding-right: 8px;
+  text-align: center;
+  vertical-align: middle;
+}
+.carousel.slide, .carousel-inner {
+  width: 200px;
+  height: 150px;
+  max-width: 200px;
+  max-height: 150px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.carousel-item img {
+  width: 200px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 12px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+.carousel-control-prev,
+.carousel-control-next {
+  width: 24px;
+  height: 150px;
+}
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+  background-size: 20px 20px;
+} 

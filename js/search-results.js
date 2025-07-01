@@ -84,8 +84,26 @@ async function filterCampsBySearchCriteria() {
   //   );
   // }
 
-  // 根據人數篩選
+  // 檢查是否有日期和人數參數，如果有則調用API檢查可用性
+  const checkIn = urlParams.get("check-in");
+  const checkOut = urlParams.get("check-out");
   const guests = urlParams.get("guests");
+  console.log("checkIn:" + checkIn);
+  console.log("checkOut:" + checkOut);
+  console.log("guests:" + guests);
+  if (checkIn && checkOut && guests) {
+    console.log("日期篩選");
+    // 如果有完整的搜尋條件，調用API獲取可用營地
+    const availableCamps = await getAvailableCampsFromAPI(
+      checkIn,
+      checkOut,
+      guests,
+      filteredCamps
+    );
+    return availableCamps;
+  }
+
+  // 根據人數篩選（原有邏輯，當沒有日期時使用）
   if (guests) {
     const guestCount = parseInt(guests);
     console.log("篩選人數:" + guestCount);
@@ -113,6 +131,73 @@ async function filterCampsBySearchCriteria() {
   }
 
   return filteredCamps;
+}
+
+// 調用API獲取可用營地
+async function getAvailableCampsFromAPI(
+  checkIn,
+  checkOut,
+  guests,
+  filteredCamps
+) {
+  try {
+    // 從篩選後的營地中提取campId列表
+    const campIds = filteredCamps.map((camp) => camp.camp_id);
+    console.log("準備查詢的營地ID列表:", campIds);
+
+    // 構建API請求參數
+    const requestBody = new URLSearchParams();
+    campIds.forEach((id) => {
+      requestBody.append("campIds", id);
+    });
+    requestBody.append("people", guests);
+    requestBody.append("checkIn", checkIn);
+    requestBody.append("checkOut", checkOut);
+
+    console.log("API請求參數:", requestBody.toString());
+
+    // 調用API
+    const response = await fetch(
+      "http://localhost:8081/CJA101G02/api/ca/available/Remaing",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: requestBody,
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`API請求失敗: ${response.status}`);
+    }
+
+    const apiResult = await response.json();
+    console.log("API回應:", apiResult);
+
+    if (apiResult.status === "success" && apiResult.data) {
+      // 從API回應中提取有可用房型的營地ID
+      const availableCampIds = [
+        ...new Set(apiResult.data.map((item) => item.campId)),
+      ];
+      console.log("有可用房型的營地ID:", availableCampIds);
+
+      // 篩選出有可用房型的營地
+      const availableCamps = filteredCamps.filter((camp) =>
+        availableCampIds.includes(parseInt(camp.camp_id))
+      );
+
+      console.log("最終可用營地數量:", availableCamps.length);
+      return availableCamps;
+    } else {
+      console.warn("API回應格式異常或無可用資料");
+      return [];
+    }
+  } catch (error) {
+    console.error("調用可用性API失敗:", error);
+    // 如果API調用失敗，返回原始篩選結果
+    return filteredCamps;
+  }
 }
 
 // 顯示無結果狀態
