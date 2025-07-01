@@ -107,14 +107,54 @@ async function loadAllData() {
 
     // 載入商品訂單資料
     try {
+      console.log('開始載入商品訂單資料...');
+      // 使用 API（如果 CORS 問題解決）
       const shopOrderResponse = await fetch(
         "http://localhost:8081/CJA101G02/api/getAllShopOrders"
-      ); //data/shop_order.json
-      shopOrdersData = await shopOrderResponse.json();
-      shopOrdersData = shopOrdersData.data;
-      console.log(shopOrdersData); // Add this line to log the data t
+        // "data/shop_order.json"  // 備用本地檔案
+      );
+      
+      if (!shopOrderResponse.ok) {
+        throw new Error(`HTTP error! status: ${shopOrderResponse.status}`);
+      }
+      
+      const responseData = await shopOrderResponse.json();
+      
+      // 處理資料結構差異
+      if (responseData.data) {
+        // API 回應格式
+        shopOrdersData = responseData.data;
+      } else {
+        // 本地 JSON 格式，需要轉換欄位名稱
+        shopOrdersData = responseData.map(order => ({
+          shopOrderId: order.shop_order_id,
+          memId: order.mem_id,
+          shopOrderDate: order.shop_order_date,
+          shopOrderShipment: order.shop_order_shipment,
+          shopOrderShipFee: order.shop_order_ship_fee,
+          beforeDiscountAmount: order.before_discount_amount,
+          discountCodeId: order.discount_code_id,
+          discountAmount: order.discount_amount,
+          afterDiscountAmount: order.after_discount_amount,
+          shopOrderPayment: order.shop_order_payment,
+          orderName: order.order_name,
+          orderEmail: order.order_email,
+          orderPhone: order.order_phone,
+          orderShippingAddress: order.order_shipping_address,
+          shopOrderNote: order.shop_order_note,
+          shopOrderShipDate: order.shop_order_ship_date,
+          shopOrderStatus: order.shop_order_status,
+          shopReturnApply: order.shop_return_apply,
+          // 添加狀態文字（本地 JSON 沒有這些欄位）
+          shopOrderStatusStr: getShopOrderStatusInfo(order.shop_order_status).text,
+          shopOrderPaymentStr: getPaymentMethodText(order.shop_order_payment),
+          shopOrderShipmentStr: getShipmentMethodText(order.shop_order_shipment),
+          shopReturnApplyStr: getReturnApplyText(order.shop_return_apply)
+        }));
+      }
     } catch (error) {
       console.log("商品訂單資料載入失敗，使用空陣列");
+      console.log("錯誤詳情:", error);
       shopOrdersData = [];
     }
 
@@ -125,6 +165,7 @@ async function loadAllData() {
       ); //data/shop_order_details.json
       shopOrderDetailsData = await shopOrderDetailsResponse.json();
       shopOrderDetailsData = shopOrderDetailsData.data;
+      
     } catch (error) {
       console.log("商品訂單詳細資料載入失敗，使用空陣列");
       shopOrderDetailsData = [];
@@ -150,6 +191,17 @@ async function loadAllData() {
 
     // 初始化帳號管理頁面
     loadAccountManagement();
+    
+    // 在資料載入完成後檢查資料
+    console.log('loadAllData 完成 - shopOrdersData:', shopOrdersData);
+    console.log('loadAllData 完成 - shopOrderDetailsData', shopOrderDetailsData);
+    
+    // 如果當前在商品訂單管理頁面，重新載入
+    const currentSection = document.querySelector('.content-section.active');
+    if (currentSection && currentSection.id === 'order-management') {
+      console.log('重新載入商品訂單管理頁面');
+      loadOrderManagement();
+    }
   } catch (error) {
     console.error("資料載入失敗:", error);
     alert("資料載入失敗，請重新整理頁面");
@@ -179,7 +231,7 @@ function showSection(sectionId) {
   if (targetSection) {
     targetSection.classList.add("active");
 
-    // 設定對應導航連結為 active
+  // 設定對應導航連結為 active
     const navLink = document.querySelector(`.nav-link[onclick*="'${sectionId}'"`);
     if (navLink) {
       navLink.classList.add("active");
@@ -189,26 +241,26 @@ function showSection(sectionId) {
     const pageTitle = navLink ? navLink.textContent.trim() : "管理員後台";
     document.title = `${pageTitle} - 露營趣管理員後台`;
 
-    // 根據區段載入對應內容
-    switch (sectionId) {
-      case "account-management":
-        loadAccountManagement();
-        break;
-      case "campsite-orders":
-        loadCampsiteOrders();
-        break;
-      case "customer-service":
-        loadCustomerService();
-        break;
-      case "forum-management":
-        loadForumManagement();
-        break;
-      case "order-management":
-        loadOrderManagement();
-        break;
-      case "discount-management":
-        loadDiscountManagement();
-        break;
+  // 根據區段載入對應內容
+  switch (sectionId) {
+    case "account-management":
+      loadAccountManagement();
+      break;
+    case "campsite-orders":
+      loadCampsiteOrders();
+      break;
+    case "customer-service":
+      loadCustomerService();
+      break;
+    case "forum-management":
+      loadForumManagement();
+      break;
+    case "order-management":
+      loadOrderManagement();
+      break;
+    case "discount-management":
+      loadDiscountManagement();
+      break;
       // case "product-management":
       //   loadProductManagement();
       //   break;
@@ -887,13 +939,14 @@ function loadForumManagement() {
   }, 1000);
 }
 
+
 // 載入商品訂單管理
 function loadOrderManagement() {
+ 
   const content = document.getElementById("order-management-content");
   content.innerHTML = `
         <div class="loading">載入訂單管理資料中...</div>
     `;
-
   // 檢查是否有訂單數據
   if (!shopOrdersData || shopOrdersData.length === 0) {
     content.innerHTML = `
@@ -902,7 +955,7 @@ function loadOrderManagement() {
                     <thead>
                         <tr>
                             <th>訂單編號</th>
-                            <th style="min-width: 150px;">會員姓名</th>
+                            <th style="min-width: 150px;">會員編號</th>
                             <th>訂單日期</th>
                             <th style="min-width: 150px;">訂單金額</th>
                             <th>訂單狀態</th>
@@ -924,7 +977,6 @@ function loadOrderManagement() {
         `;
     return;
   }
-
   // 生成訂單表格
   let tableRows = "";
 
@@ -946,11 +998,11 @@ function loadOrderManagement() {
 
   currentPageData.forEach((order) => {
     // 查找會員資料
-    const member = membersData.find((m) => m.memId === order.memId) || {
-      memName: "未知會員",
-    };
+    // const member = membersData.find((m) => m.memId === order.memId) || {
+    //   memName: "未知會員",
+    // };
 
-    // 使用 DTO 的 str() 方法獲取狀態文字
+    // // 使用 DTO 的 str() 方法獲取狀態文字
     const statusText = order.shopOrderStatusStr || getShopOrderStatusInfo(order.shopOrderStatus).text;
     const statusClass = getShopOrderStatusInfo(order.shopOrderStatus).class;
     
@@ -962,12 +1014,11 @@ function loadOrderManagement() {
     
     // 使用 DTO 的 str() 方法獲取退貨申請文字
     const returnApplyText = order.shopReturnApplyStr || getReturnApplyText(order.shopReturnApply);
-
     // 格式化日期（含時間）
     const orderDate = formatDateTime(order.shopOrderDate);
-
     // 只有訂單狀態為0(等待賣家確認中)才顯示編輯按鈕
     const canEdit = order.shopOrderStatus === 0;
+
 
     // 生成表格行
     tableRows += `
@@ -1131,6 +1182,7 @@ function getReturnApplyClass(returnApply) {
   }
 }
 
+
 // 篩選商品訂單
 function filterShopOrders() {
   const statusFilter = document.getElementById("status-filter").value;
@@ -1234,6 +1286,7 @@ function changePage(pageNumber) {
 
 // 更新商品訂單表格
 function updateShopOrdersTable(orders, pageNumber = 1) {
+  console.log('updateShopOrdersTable orders:', orders);
   const tbody = document.querySelector("#shop-orders-table tbody");
   const paginationDiv = document.querySelector(".pagination");
 
