@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="stylesheet" href="css/style.css" />
     <link rel="stylesheet" href="css/role-system.css" />
+    <script src="js/camp-data.js"></script>
     <style>
         /* 文章類別樣式 */
         .article-type-hero {
@@ -130,6 +131,24 @@
                 padding: 20px;
             }
         }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .site-footer,
+        footer {
+            margin-top: auto;
+        }
     </style>
 </head>
 
@@ -172,45 +191,8 @@
     </section>
 
     <section class="article-type-list">
-        <div class="container">
-            <!-- 文章類別卡片 1 -->
-            <a href="articles-list-1.html" class="article-type-card">
-                <div class="article-type-image">
-                    <img src="images/camp-1.jpg" alt="新手指南" />
-                </div>
-                <div class="article-type-content">
-                    <span class="article-count" id="count-30001"><i class="fas fa-file-alt"></i> 載入中...</span>
-                    <h3>新手指南</h3>
-                    <p>露營新手入門必讀，包含基礎裝備選擇、搭帳技巧、安全須知等實用資訊，讓您第一次露營體驗就很愉快。準備好迎接這段令人興奮的戶外冒險之旅，讓我們帶您輕鬆踏入露營世界。</p>
-                    <div class="btn-view-articles">查看文章 <i class="fas fa-arrow-right"></i></div>
-                </div>
-            </a>
-
-            <!-- 文章類別卡片 2 -->
-            <a href="articles-list-2.html" class="article-type-card">
-                <div class="article-type-image">
-                    <img src="images/camp-2.jpg" alt="料理技巧" />
-                </div>
-                <div class="article-type-content">
-                    <span class="article-count" id="count-30002"><i class="fas fa-file-alt"></i> 載入中...</span>
-                    <h3>料理技巧</h3>
-                    <p>露營美食料理技巧，包含野外烹飪方法、食材準備、廚具選擇等實用資訊，讓您在野外也能享受美味佳餚。由經驗豐富的露營料理專家提供實用技巧與創意食譜。</p>
-                    <div class="btn-view-articles">查看文章 <i class="fas fa-arrow-right"></i></div>
-                </div>
-            </a>
-
-            <!-- 文章類別卡片 3 -->
-            <a href="articles-list-3.html" class="article-type-card">
-                <div class="article-type-image">
-                    <img src="images/camp-3.jpg" alt="裝備評測" />
-                </div>
-                <div class="article-type-content">
-                    <span class="article-count" id="count-30003"><i class="fas fa-file-alt"></i> 載入中...</span>
-                    <h3>裝備評測</h3>
-                    <p>深入測試各類露營裝備的性能與特點，包括帳篷、睡袋、爐具等專業評測，幫助您在眾多選擇中找到最適合自己需求的裝備。由經驗豐富的露營專家提供客觀評價與實用建議。</p>
-                    <div class="btn-view-articles">查看文章 <i class="fas fa-arrow-right"></i></div>
-                </div>
-            </a>
+        <div class="container" id="article-type-container">
+            <!-- 這裡由 JS 動態產生分類卡片 -->
         </div>
     </section>
 
@@ -273,46 +255,60 @@
     <script src="js/main.js"></script>
     <script src="js/header-auth.js"></script>
     <script>
-        // 載入文章數量
-        async function loadArticleCounts() {
-            const articleTypes = [
-                { id: 30001, name: '新手指南' },
-                { id: 30002, name: '料理技巧' },
-                { id: 30003, name: '裝備評測' }
-            ];
-
-            for (const type of articleTypes) {
-                try {
-                    // 呼叫 Spring Boot API 查詢文章數量
-                    const response = await fetch(`http://localhost:8081/CJA101G02/api/articles/type/${type.id}/count`);
-                    const result = await response.json();
-
-                    if (result.status === 'success') {
-                        const countElement = document.getElementById(`count-${type.id}`);
-                        if (countElement) {
-                            countElement.innerHTML = `<i class="fas fa-file-alt"></i> ${result.data} 篇文章`;
-                        }
-                    } else {
-                        console.error(`載入 ${type.name} 文章數量失敗:`, result.message);
-                        const countElement = document.getElementById(`count-${type.id}`);
-                        if (countElement) {
-                            countElement.innerHTML = `<i class="fas fa-file-alt"></i> 0 篇文章`;
-                        }
-                    }
-                } catch (error) {
-                    console.error(`載入 ${type.name} 文章數量時發生錯誤:`, error);
-                    const countElement = document.getElementById(`count-${type.id}`);
-                    if (countElement) {
-                        countElement.innerHTML = `<i class="fas fa-file-alt"></i> 載入失敗`;
-                    }
+        // 取得所有文章類別並渲染
+        async function loadArticleTypes() {
+            const container = document.getElementById('article-type-container');
+            container.innerHTML = '<div class="loading-message">載入中...</div>';
+            try {
+                // 取得所有分類
+                const response = await fetch(`${window.api_prefix}/api/article-types`);
+                const result = await response.json();
+                const types = result.data || [];
+                if (!Array.isArray(types) || types.length === 0) {
+                    container.innerHTML = '<div class="loading-message">目前沒有分類</div>';
+                    return;
                 }
+                // 依序取得每個分類的文章數量
+                const cards = await Promise.all(types.map(async (type, idx) => {
+                    // 取得文章數量
+                    let count = '載入中...';
+                    try {
+                        const countResp = await fetch(`${window.api_prefix}/api/articles/type/${type.acTypeId}/count`);
+                        const countResult = await countResp.json();
+                        if (countResult.status === 'success') {
+                            count = `${countResult.data} 篇文章`;
+                        } else {
+                            count = '0 篇文章';
+                        }
+                    } catch {
+                        count = '載入失敗';
+                    }
+                    // 圖片處理（若無則預設）
+                    let imgSrc = `images/camp-${(idx % 5) + 1}.jpg`;
+                    // 連結處理（依 acTypeId 對應）
+                    let link = `articles-list-${idx + 1}.html`;
+                    // 卡片 HTML
+                    return `
+                        <a href="${link}" class="article-type-card">
+                            <div class="article-type-image">
+                                <img src="${imgSrc}" alt="${type.acTypeKind}" />
+                            </div>
+                            <div class="article-type-content">
+                                <span class="article-count"><i class="fas fa-file-alt"></i> ${count}</span>
+                                <h3>${type.acTypeKind}</h3>
+                                <p>${type.acTypeText || ''}</p>
+                                <div class="btn-view-articles">查看文章 <i class="fas fa-arrow-right"></i></div>
+                            </div>
+                        </a>
+                    `;
+                }));
+                container.innerHTML = cards.join('');
+            } catch (error) {
+                container.innerHTML = '<div class="loading-message">載入分類失敗</div>';
+                console.error('載入文章分類失敗:', error);
             }
         }
-
-        // 頁面載入時執行
-        document.addEventListener('DOMContentLoaded', function () {
-            loadArticleCounts();
-        });
+        document.addEventListener('DOMContentLoaded', loadArticleTypes);
     </script>
 </body>
 

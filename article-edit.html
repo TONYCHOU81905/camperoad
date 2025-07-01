@@ -6,11 +6,27 @@
     <title>編輯文章 - 露營路</title>
     <link href="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.snow.css" rel="stylesheet" />
     <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .site-footer,
+        footer {
+            margin-top: auto;
+        }
+
         body {
             font-family: 'Noto Sans TC', Arial, sans-serif;
             background: #f8f9fa;
-            margin: 0;
-            padding: 0;
         }
 
         .container {
@@ -245,6 +261,7 @@
     <!-- Quill JS -->
     <script src="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.js"></script>
     <script src="js/header-auth.js"></script>
+    <script src="js/camp-data.js"></script>
     <script>
         // 初始化 Quill 編輯器
         const quill = new Quill('#editor', {
@@ -286,7 +303,7 @@
         // 載入文章資料
         async function loadArticleData(articleId) {
             try {
-                const response = await fetch(`http://localhost:8081/CJA101G02/api/articles/${articleId}`);
+                const response = await fetch(`${window.api_prefix}/api/articles/${articleId}`);
                 const result = await response.json();
 
                 if (response.ok && result.status === 'success') {
@@ -379,7 +396,7 @@
                 form.classList.add('loading');
 
                 // 發送到 Spring Boot API (PUT 方法)
-                const response = await fetch(`http://localhost:8081/CJA101G02/api/articles/${articleId}`, {
+                const response = await fetch(`${window.api_prefix}/api/articles/${articleId}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',

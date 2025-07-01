@@ -1,0 +1,38 @@
+修正紀錄：API 連結格式統一與 js/camp-data.js 注入
+
+1. article-edit.html
+- 將所有 fetch API 連結改為 `${window.api_prefix}/api/...` 格式。
+- 於 <head> 加入 <script src="js/camp-data.js"></script>。
+
+2. article-type.html
+- 將所有 fetch API 連結改為 `${window.api_prefix}/api/...` 格式。
+- 於 <head> 加入 <script src="js/camp-data.js"></script>。
+
+3. articles-add.html
+- 將所有 fetch API 連結改為 `${window.api_prefix}/api/...` 格式。
+- 於 <head> 加入 <script src="js/camp-data.js"></script>。
+
+4. articles-favorites.html
+- 將所有 fetch API 連結改為 `${window.api_prefix}/api/...` 格式。
+- 於 <head> 加入 <script src="js/camp-data.js"></script>。
+
+5. articles-list-1.html
+- 將所有 fetch API 連結改為 `${window.api_prefix}/api/...` 格式。
+- 於 <head> 加入 <script src="js/camp-data.js"></script>。
+
+6. articles-list-2.html
+- 將所有 fetch API 連結改為 `${window.api_prefix}/api/...` 格式。
+- 於 <head> 加入 <script src="js/camp-data.js"></script>。
+
+7. articles-list-3.html
+- 將所有 fetch API 連結改為 `${window.api_prefix}/api/...` 格式。
+- 於 <head> 加入 <script src="js/camp-data.js"></script>。
+
+8. articles.html
+- 將所有 fetch API 連結改為 `${window.api_prefix}/api/...` 格式。
+- 於 <head> 加入 <script src="js/camp-data.js"></script>。
+
+說明：
+- 所有原本硬編碼的 API 網址（如 http://localhost:8081/CJA101G02/api/...）已改為動態 `${window.api_prefix}/api/...`。
+- 為確保 window.api_prefix 可用，所有檔案於 <head> 區塊加入 <script src="js/camp-data.js"></script>。
+- 若需復原，請將上述檔案的 fetch 連結與 <script src="js/camp-data.js"></script> 的修改還原即可。 

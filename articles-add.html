@@ -13,7 +13,26 @@
     <link rel="stylesheet" href="css/style.css" />
     <link rel="stylesheet" href="css/role-system.css" />
     <link href="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.snow.css" rel="stylesheet" />
+    <script src="js/camp-data.js"></script>
     <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .site-footer,
+        footer {
+            margin-top: auto;
+        }
+
         .article-add-hero {
             background: linear-gradient(135deg, #3A5A40 0%, #588157 100%);
             color: white;
@@ -586,8 +605,8 @@
 
                 // 檢查是否包含圖片，決定使用哪個 API
                 const apiUrl = hasImages(content)
-                    ? 'http://localhost:8081/CJA101G02/api/articles/with-images'
-                    : 'http://localhost:8081/CJA101G02/api/articles';
+                    ? `${window.api_prefix}/api/articles/with-images`
+                    : `${window.api_prefix}/api/articles`;
 
                 // 發送到 Spring Boot API
                 const response = await fetch(apiUrl, {

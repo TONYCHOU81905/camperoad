@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>料理技巧文章列表 - 露營路</title>
+    <title>裝備評測文章列表 - 露營路</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono&display=swap"
@@ -491,6 +491,24 @@
                 display: none;
             }
         }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .site-footer,
+        footer {
+            margin-top: auto;
+        }
     </style>
 </head>
 
@@ -528,8 +546,8 @@
     <section class="guide-hero">
         <div class="container">
             <div class="guide-hero-content">
-                <h1>料理技巧</h1>
-                <p>露營美食料理技巧，讓您在野外也能享受美味佳餚</p>
+                <h1>裝備評測</h1>
+                <p>深入測試各類露營裝備的性能與特點，幫助您找到最適合的裝備</p>
                 <div class="guide-search-box">
                     <form id="search-form" onsubmit="handleSearch(event)">
                         <input type="text" placeholder="搜尋文章標題、內容或關鍵字..." name="search" id="search-input"
@@ -592,21 +610,21 @@
                     <div class="sidebar-widget guide-tags">
                         <h3 class="widget-title">熱門標籤</h3>
                         <div class="tag-cloud">
-                            <a href="#" class="tag-item">料理技巧</a>
-                            <a href="#" class="tag-item">露營美食</a>
-                            <a href="#" class="tag-item">野外烹飪</a>
-                            <a href="#" class="tag-item">食材準備</a>
-                            <a href="#" class="tag-item">廚具選擇</a>
-                            <a href="#" class="tag-item">食譜分享</a>
-                            <a href="#" class="tag-item">營養搭配</a>
-                            <a href="#" class="tag-item">保存技巧</a>
+                            <a href="#" class="tag-item">裝備評測</a>
+                            <a href="#" class="tag-item">帳篷</a>
+                            <a href="#" class="tag-item">睡袋</a>
+                            <a href="#" class="tag-item">爐具</a>
+                            <a href="#" class="tag-item">裝備選購</a>
+                            <a href="#" class="tag-item">產品評比</a>
+                            <a href="#" class="tag-item">耐用度</a>
+                            <a href="#" class="tag-item">專業建議</a>
                         </div>
                     </div>
 
                     <div class="sidebar-widget write-guide">
-                        <h3 class="widget-title">分享你的料理經驗</h3>
+                        <h3 class="widget-title">分享你的裝備心得</h3>
                         <p>
-                            你有特別的露營料理技巧或食譜想要分享嗎？歡迎投稿優質內容貢獻給社群，讓更多露營愛好者能夠交流學習。
+                            你有特別的露營裝備評測、選購經驗或產品心得想要分享嗎？歡迎投稿優質內容貢獻給社群，讓更多露營愛好者能夠交流學習。
                         </p>
                         <a href="articles-add.html" class="btn-cta">立即投稿</a>
                     </div>
@@ -675,8 +693,9 @@
     <script src="js/view-counter.js"></script>
     <script src="js/articles.js"></script>
     <script src="js/header-auth.js"></script>
+    <script src="js/camp-data.js"></script>
     <script>
-        // 初始化料理技巧文章列表
+        // 初始化裝備評測文章列表
         document.addEventListener('DOMContentLoaded', function () {
             articleManager.initArticleList(30002);
 
@@ -709,7 +728,7 @@
                 articlesContainer.innerHTML = '<div class="loading-message">搜尋中...</div>';
 
                 // 呼叫 Spring Boot API 進行進階搜尋（標題或內容）
-                const response = await fetch(`http://localhost:8081/CJA101G02/api/articles/search/advanced?keyword=${encodeURIComponent(searchTerm)}&acTypeId=30002`);
+                const response = await fetch(`${window.api_prefix}/api/articles/search/advanced?keyword=${encodeURIComponent(searchTerm)}&acTypeId=30002`);
                 const result = await response.json();
 
                 if (result.status === 'success' && result.data) {
@@ -760,7 +779,7 @@
                         <div class="article-title-cell">
                             <a href="articles.html?id=${article.acId}" class="article-title-link">${article.acTitle}</a>
                             <div class="article-preview">${article.acContext ? article.acContext.substring(0, 100) + '...' : '無內容預覽'}</div>
-                            <span class="article-tag">料理技巧</span>
+                            <span class="article-tag">裝備評測</span>
                         </div>
                         <div class="article-author-cell">${authorName}</div>
                         <div class="article-date-cell">${articleDate}</div>

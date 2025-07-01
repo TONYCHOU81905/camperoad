@@ -12,7 +12,26 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="stylesheet" href="css/style.css" />
     <link rel="stylesheet" href="css/role-system.css" />
+    <script src="js/camp-data.js"></script>
     <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .site-footer,
+        footer {
+            margin-top: auto;
+        }
+
         .favorites-hero {
             background: linear-gradient(135deg, #3A5A40 0%, #588157 100%);
             color: white;
@@ -438,6 +457,26 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .favorite-categories li:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .favorite-categories li.active {
+            background: #3A5A40 !important;
+            color: white !important;
+        }
+
+        .favorite-categories li.active .category-name {
+            color: white !important;
+        }
+
+        .favorite-categories li.active .category-count {
+            background: rgba(255, 255, 255, 0.25) !important;
+            color: white !important;
         }
 
         .category-name {
@@ -813,7 +852,7 @@
 
                 try {
                     // 先嘗試從後端API獲取收藏
-                    const response = await fetch('http://localhost:8081/CJA101G02/api/favorites');
+                    const response = await fetch(`${window.api_prefix}/api/favorites`);
                     const result = await response.json();
 
                     if (response.ok && result.status === 'success' && result.data) {
@@ -852,7 +891,7 @@
             async loadFavoriteArticles() {
                 try {
                     // 獲取所有文章
-                    const response = await fetch('http://localhost:8081/CJA101G02/api/articles');
+                    const response = await fetch(`${window.api_prefix}/api/articles`);
                     const result = await response.json();
 
                     if (response.ok && result.status === 'success' && result.data) {
@@ -867,6 +906,10 @@
 
                         this.favorites = favoriteArticles;
                         this.filteredFavorites = [...favoriteArticles];
+
+                        // 應用預設的「最新收藏」排序
+                        this.sortFavorites('latest');
+
                         this.displayFavorites();
                         this.updateStats();
                         this.updateCategories();
@@ -940,14 +983,28 @@
                 }
 
                 if (container) {
-                    container.innerHTML = `
-                        <div class="empty-favorites">
-                            <i class="fas fa-bookmark"></i>
-                            <h3>還沒有收藏任何文章</h3>
-                            <p>${message || '開始瀏覽論壇，收藏您喜歡的文章吧！'}</p>
-                            <a href="article-type.html" class="btn-explore">瀏覽論壇</a>
-                        </div>
-                    `;
+                    // 檢查是否是篩選後的空狀態
+                    const isFiltered = this.filteredFavorites.length === 0 && this.favorites.length > 0;
+
+                    if (isFiltered) {
+                        container.innerHTML = `
+                            <div class="empty-favorites">
+                                <i class="fas fa-filter"></i>
+                                <h3>該分類下沒有收藏的文章</h3>
+                                <p>${message || '試試其他分類或瀏覽更多文章吧！'}</p>
+                                <button onclick="favoritesManager.filterByCategory('all')" class="btn-explore">查看全部</button>
+                            </div>
+                        `;
+                    } else {
+                        container.innerHTML = `
+                            <div class="empty-favorites">
+                                <i class="fas fa-bookmark"></i>
+                                <h3>還沒有收藏任何文章</h3>
+                                <p>${message || '開始瀏覽論壇，收藏您喜歡的文章吧！'}</p>
+                                <a href="article-type.html" class="btn-explore">瀏覽論壇</a>
+                            </div>
+                        `;
+                    }
                 }
             }
 
@@ -959,7 +1016,7 @@
 
                 try {
                     // 嘗試從後端移除
-                    const response = await fetch(`http://localhost:8081/CJA101G02/api/favorites/${this.currentMember.mem_id}/${articleId}`, {
+                    const response = await fetch(`${window.api_prefix}/api/favorites/${this.currentMember.mem_id}/${articleId}`, {
                         method: 'DELETE'
                     });
 
@@ -983,8 +1040,13 @@
                 );
                 localStorage.setItem('articleFavorites', JSON.stringify(updatedFavorites));
 
-                // 重新顯示
-                this.displayFavorites();
+                // 重新顯示（保持當前排序）
+                const sortSelect = document.getElementById('sort-favorites');
+                if (sortSelect) {
+                    this.sortFavorites(sortSelect.value);
+                } else {
+                    this.sortFavorites('latest');
+                }
                 this.updateStats();
                 this.updateCategories();
 
@@ -1024,9 +1086,19 @@
                 }
 
                 let html = '';
+
+                // 添加「全部」選項
+                const totalCount = this.favorites.length;
+                html += `
+                    <li class="category-item active" data-category="all" style="cursor: pointer; background-color: #3A5A40; color: white; border-radius: 5px;">
+                        <span class="category-name">全部</span>
+                        <span class="category-count">${totalCount}</span>
+                    </li>
+                `;
+
                 Object.entries(categories).forEach(([type, count]) => {
                     html += `
-                        <li>
+                        <li class="category-item" data-category="${type}" style="cursor: pointer;">
                             <span class="category-name">${type}</span>
                             <span class="category-count">${count}</span>
                         </li>
@@ -1034,6 +1106,9 @@
                 });
 
                 categoriesList.innerHTML = html;
+
+                // 添加分類點擊事件
+                this.setupCategoryClickEvents();
             }
 
             // 獲取作者名稱
@@ -1076,7 +1151,15 @@
                         (article.acContext && article.acContext.toLowerCase().includes(keyword.toLowerCase()))
                     );
                 }
-                this.displayFavorites();
+
+                // 搜尋後應用當前選擇的排序
+                const sortSelect = document.getElementById('sort-favorites');
+                if (sortSelect) {
+                    this.sortFavorites(sortSelect.value);
+                } else {
+                    // 如果沒有排序選項，預設使用最新收藏排序
+                    this.sortFavorites('latest');
+                }
             }
 
             // 排序收藏
@@ -1114,10 +1197,76 @@
                 // 排序功能
                 const sortSelect = document.getElementById('sort-favorites');
                 if (sortSelect) {
+                    // 確保預設選項是「最新收藏」
+                    sortSelect.value = 'latest';
+
                     sortSelect.addEventListener('change', (event) => {
                         this.sortFavorites(event.target.value);
                     });
                 }
+            }
+
+            // 設置分類點擊事件
+            setupCategoryClickEvents() {
+                const categoryItems = document.querySelectorAll('.category-item');
+                categoryItems.forEach(item => {
+                    item.addEventListener('click', () => {
+                        const category = item.getAttribute('data-category');
+                        this.filterByCategory(category);
+
+                        // 更新分類項目的視覺狀態
+                        this.updateCategoryActiveState(category);
+                    });
+                });
+            }
+
+            // 按分類篩選
+            filterByCategory(category) {
+                if (category === 'all') {
+                    // 顯示所有收藏
+                    this.filteredFavorites = [...this.favorites];
+                } else {
+                    // 篩選指定分類
+                    this.filteredFavorites = this.favorites.filter(article =>
+                        this.getArticleType(article.acTypeId) === category
+                    );
+                }
+
+                // 應用當前排序
+                const sortSelect = document.getElementById('sort-favorites');
+                if (sortSelect) {
+                    this.sortFavorites(sortSelect.value);
+                } else {
+                    this.sortFavorites('latest');
+                }
+
+                // 更新數量顯示
+                const countElement = document.getElementById('favorites-count');
+                if (countElement) {
+                    countElement.textContent = this.filteredFavorites.length;
+                }
+
+                // 顯示篩選結果
+                this.displayFavorites();
+            }
+
+            // 更新分類項目的活躍狀態
+            updateCategoryActiveState(activeCategory) {
+                const categoryItems = document.querySelectorAll('.category-item');
+                categoryItems.forEach(item => {
+                    const category = item.getAttribute('data-category');
+                    if (category === activeCategory) {
+                        item.style.backgroundColor = '#3A5A40';
+                        item.style.color = 'white';
+                        item.style.borderRadius = '5px';
+                        item.classList.add('active');
+                    } else {
+                        item.style.backgroundColor = '#f8f9fa';
+                        item.style.color = '#333';
+                        item.style.borderRadius = '5px';
+                        item.classList.remove('active');
+                    }
+                });
             }
 
             // 顯示訊息

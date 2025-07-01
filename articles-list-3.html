@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>裝備評測文章列表 - 露營路</title>
+    <title>營地推薦文章列表 - 露營路</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono&display=swap"
@@ -491,6 +491,24 @@
                 display: none;
             }
         }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .site-footer,
+        footer {
+            margin-top: auto;
+        }
     </style>
 </head>
 
@@ -528,8 +546,8 @@
     <section class="guide-hero">
         <div class="container">
             <div class="guide-hero-content">
-                <h1>裝備評測</h1>
-                <p>專業裝備評測與推薦，幫助您選擇最適合的露營裝備</p>
+                <h1>營地推薦</h1>
+                <p>精選全台優質營地，詳細介紹各營地特色與實用攻略</p>
                 <div class="guide-search-box">
                     <form id="search-form" onsubmit="handleSearch(event)">
                         <input type="text" placeholder="搜尋文章標題、內容或關鍵字..." name="search" id="search-input"
@@ -592,21 +610,21 @@
                     <div class="sidebar-widget guide-tags">
                         <h3 class="widget-title">熱門標籤</h3>
                         <div class="tag-cloud">
-                            <a href="#" class="tag-item">裝備評測</a>
-                            <a href="#" class="tag-item">帳篷推薦</a>
-                            <a href="#" class="tag-item">睡袋選擇</a>
-                            <a href="#" class="tag-item">爐具評測</a>
-                            <a href="#" class="tag-item">背包推薦</a>
-                            <a href="#" class="tag-item">照明設備</a>
-                            <a href="#" class="tag-item">防水裝備</a>
-                            <a href="#" class="tag-item">性價比</a>
+                            <a href="#" class="tag-item">營地推薦</a>
+                            <a href="#" class="tag-item">北部營地</a>
+                            <a href="#" class="tag-item">中部營地</a>
+                            <a href="#" class="tag-item">南部營地</a>
+                            <a href="#" class="tag-item">東部營地</a>
+                            <a href="#" class="tag-item">親子營地</a>
+                            <a href="#" class="tag-item">景觀營地</a>
+                            <a href="#" class="tag-item">設施推薦</a>
                         </div>
                     </div>
 
                     <div class="sidebar-widget write-guide">
-                        <h3 class="widget-title">分享你的裝備心得</h3>
+                        <h3 class="widget-title">分享你的營地經驗</h3>
                         <p>
-                            你有使用過特別好的露營裝備想要推薦嗎？歡迎投稿裝備評測內容貢獻給社群，讓更多露營愛好者能夠做出明智的選擇。
+                            你有特別推薦的營地、實地體驗或攻略想要分享嗎？歡迎投稿優質內容貢獻給社群，讓更多露營愛好者能夠找到理想的營地。
                         </p>
                         <a href="articles-add.html" class="btn-cta">立即投稿</a>
                     </div>
@@ -675,6 +693,7 @@
     <script src="js/view-counter.js"></script>
     <script src="js/articles.js"></script>
     <script src="js/header-auth.js"></script>
+    <script src="js/camp-data.js"></script>
     <script>
         // 初始化裝備評測文章列表
         document.addEventListener('DOMContentLoaded', function () {
@@ -709,7 +728,7 @@
                 articlesContainer.innerHTML = '<div class="loading-message">搜尋中...</div>';
 
                 // 呼叫 Spring Boot API 進行進階搜尋（標題或內容）
-                const response = await fetch(`http://localhost:8081/CJA101G02/api/articles/search/advanced?keyword=${encodeURIComponent(searchTerm)}&acTypeId=30003`);
+                const response = await fetch(`${window.api_prefix}/api/articles/search/advanced?keyword=${encodeURIComponent(searchTerm)}&acTypeId=30003`);
                 const result = await response.json();
 
                 if (result.status === 'success' && result.data) {
@@ -760,7 +779,7 @@
                         <div class="article-title-cell">
                             <a href="articles.html?id=${article.acId}" class="article-title-link">${article.acTitle}</a>
                             <div class="article-preview">${article.acContext ? article.acContext.substring(0, 100) + '...' : '無內容預覽'}</div>
-                            <span class="article-tag">裝備評測</span>
+                            <span class="article-tag">營地推薦</span>
                         </div>
                         <div class="article-author-cell">${authorName}</div>
                         <div class="article-date-cell">${articleDate}</div>

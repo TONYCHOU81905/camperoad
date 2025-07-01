@@ -1,394 +1,389 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>購物車 - 露途</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
-    <link rel="stylesheet" href="css/style.css" />
-    <link rel="stylesheet" href="css/role-system.css" />
-    <link rel="stylesheet" href="css/cart-page.css" />
-  </head>
 
-  <body>
-    <header class="site-header">
-      <div class="container">
-        <div class="logo">
-          <a href="index.html">
-            <img src="images/logo.svg" alt="露途 Logo" />
-          </a>
-        </div>
-        <nav class="main-nav">
-          <ul>
-            <li><a href="campsites.html">營地預訂</a></li>
-            <li><a href="shop.html">裝備商城</a></li>
-            <li><a href="camp-guides.html">論壇攻略</a></li>
-            <li><a href="user-profile.html">關於我們</a></li>
-          </ul>
-        </nav>
-        <div class="user-actions">
-          <a href="camp_cart.html" class="btn-cart">
-            <i class="fas fa-shopping-cart"></i>
-            <span class="cart-count">0</span>
-          </a>
-          <a href="user-profile.html" class="btn-login"
-            ><i class="fas fa-user"></i
-          ></a>
-        </div>
-        <button class="mobile-menu-toggle">
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>購物車 - 露途</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/role-system.css" />
+  <link rel="stylesheet" href="css/cart-page.css" />
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="container">
+      <div class="logo">
+        <a href="index.html">
+          <img src="images/logo.svg" alt="露途 Logo" />
+        </a>
       </div>
-    </header>
-
-    <div class="breadcrumb">
-      <div class="container">
+      <nav class="main-nav">
         <ul>
-          <li><a href="index.html">首頁</a></li>
-          <li>購物車</li>
+          <li><a href="campsites.html">營地預訂</a></li>
+          <li><a href="shop.html">裝備商城</a></li>
+          <li><a href="article-type.html">論壇攻略</a></li>
+          <li><a href="user-profile.html">關於我們</a></li>
         </ul>
+      </nav>
+      <div class="user-actions">
+        <a href="camp_cart.html" class="btn-cart">
+          <i class="fas fa-shopping-cart"></i>
+          <span class="cart-count">0</span>
+        </a>
+        <a href="user-profile.html" class="btn-login"><i class="fas fa-user"></i></a>
       </div>
+      <button class="mobile-menu-toggle">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
     </div>
+  </header>
 
-    <section class="cart-section">
-      <div class="container">
-        <h1 class="section-title">購物車</h1>
+  <div class="breadcrumb">
+    <div class="container">
+      <ul>
+        <li><a href="index.html">首頁</a></li>
+        <li>購物車</li>
+      </ul>
+    </div>
+  </div>
 
-        <div class="cart-container">
-          <div class="cart-header">
-            <h1>購物車</h1>
+  <section class="cart-section">
+    <div class="container">
+      <h1 class="section-title">購物車</h1>
+
+      <div class="cart-container">
+        <div class="cart-header">
+          <h1>購物車</h1>
+        </div>
+
+        <!-- 購物車為空時顯示 -->
+        <div id="cart-empty" class="cart-empty">
+          <i class="fas fa-shopping-cart"></i>
+          <p>您的購物車是空的</p>
+          <a href="index.html" class="btn-continue-shopping">繼續購物</a>
+        </div>
+
+        <!-- 購物車項目 -->
+        <div id="cart-items-container" class="cart-items-container">
+          <!-- 購物車項目將由JavaScript動態生成 -->
+        </div>
+
+        <!-- 加購商品區域 -->
+        <div id="bundle-items-container" class="bundle-items-container">
+          <!-- 加購商品將由JavaScript動態生成 -->
+        </div>
+
+        <!-- 訂單摘要 -->
+        <div id="order-summary" class="order-summary">
+          <h2>訂單摘要</h2>
+          <div class="summary-row">
+            <span class="summary-label">商品總計</span>
+            <span id="cart-subtotal" class="summary-value">NT$ 0</span>
           </div>
-          
-          <!-- 購物車為空時顯示 -->
-          <div id="cart-empty" class="cart-empty">
-            <i class="fas fa-shopping-cart"></i>
-            <p>您的購物車是空的</p>
+          <div class="summary-row total">
+            <span class="summary-label">總計</span>
+            <span id="cart-total" class="summary-value">NT$ 0</span>
+          </div>
+          <div class="cart-actions">
+            <button id="checkout-btn" class="btn-checkout" disabled>前往結帳</button>
+            <button id="clear-cart-btn" class="btn-clear-cart">清空購物車</button>
             <a href="index.html" class="btn-continue-shopping">繼續購物</a>
           </div>
-          
-          <!-- 購物車項目 -->
-          <div id="cart-items-container" class="cart-items-container">
-            <!-- 購物車項目將由JavaScript動態生成 -->
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="recommended-products">
+    <div class="container">
+      <h2 class="section-title">您可能也會喜歡</h2>
+      <div class="product-preview">
+        <div class="product-card">
+          <div class="product-image">
+            <img src="images/product-2.jpg" alt="輕量保暖睡袋" />
           </div>
-          
-          <!-- 加購商品區域 -->
-          <div id="bundle-items-container" class="bundle-items-container">
-            <!-- 加購商品將由JavaScript動態生成 -->
+          <div class="product-info">
+            <h3>輕量保暖睡袋</h3>
+            <div class="product-rating">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="far fa-star"></i>
+              <span>(18)</span>
+            </div>
+            <div class="product-price">
+              <span class="current-price">NT$ 2,800</span>
+            </div>
+            <button class="btn-add-cart">加入購物車</button>
           </div>
-          
-          <!-- 訂單摘要 -->
-          <div id="order-summary" class="order-summary">
-            <h2>訂單摘要</h2>
-            <div class="summary-row">
-              <span class="summary-label">商品總計</span>
-              <span id="cart-subtotal" class="summary-value">NT$ 0</span>
+        </div>
+        <div class="product-card">
+          <div class="product-image">
+            <img src="images/product-3.jpg" alt="戶外摺疊桌椅組" />
+            <span class="product-tag product-tag-rent">可租借</span>
+          </div>
+          <div class="product-info">
+            <h3>戶外摺疊桌椅組</h3>
+            <div class="product-rating">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <span>(47)</span>
             </div>
-            <div class="summary-row total">
-              <span class="summary-label">總計</span>
-              <span id="cart-total" class="summary-value">NT$ 0</span>
+            <div class="product-price">
+              <span class="current-price">NT$ 3,600</span>
+              <span class="rent-price">租借: NT$ 600/天</span>
             </div>
-            <div class="cart-actions">
-              <button id="checkout-btn" class="btn-checkout" disabled>前往結帳</button>
-              <button id="clear-cart-btn" class="btn-clear-cart">清空購物車</button>
-              <a href="index.html" class="btn-continue-shopping">繼續購物</a>
+            <button class="btn-add-cart">加入購物車</button>
+          </div>
+        </div>
+        <div class="product-card">
+          <div class="product-image">
+            <img src="images/product-4.jpg" alt="專業登山背包 45L" />
+            <span class="product-tag product-tag-used">二手</span>
+          </div>
+          <div class="product-info">
+            <h3>專業登山背包 45L</h3>
+            <div class="product-rating">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star-half-alt"></i>
+              <i class="far fa-star"></i>
+              <span>(8)</span>
             </div>
+            <div class="product-price">
+              <span class="current-price">NT$ 2,100</span>
+              <span class="original-price">NT$ 4,200</span>
+            </div>
+            <button class="btn-add-cart">加入購物車</button>
           </div>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <section class="recommended-products">
-      <div class="container">
-        <h2 class="section-title">您可能也會喜歡</h2>
-        <div class="product-preview">
-          <div class="product-card">
-            <div class="product-image">
-              <img src="images/product-2.jpg" alt="輕量保暖睡袋" />
-            </div>
-            <div class="product-info">
-              <h3>輕量保暖睡袋</h3>
-              <div class="product-rating">
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="far fa-star"></i>
-                <span>(18)</span>
-              </div>
-              <div class="product-price">
-                <span class="current-price">NT$ 2,800</span>
-              </div>
-              <button class="btn-add-cart">加入購物車</button>
-            </div>
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-logo">
+          <img src="images/logo-white.svg" alt="露途 Logo" />
+          <p>探索自然，體驗野趣</p>
+        </div>
+        <div class="footer-links">
+          <div class="footer-column">
+            <h3>關於我們</h3>
+            <ul>
+              <li><a href="#">公司簡介</a></li>
+              <li><a href="#">服務條款</a></li>
+              <li><a href="#">隱私政策</a></li>
+              <li><a href="#">加入我們</a></li>
+            </ul>
           </div>
-          <div class="product-card">
-            <div class="product-image">
-              <img src="images/product-3.jpg" alt="戶外摺疊桌椅組" />
-              <span class="product-tag product-tag-rent">可租借</span>
-            </div>
-            <div class="product-info">
-              <h3>戶外摺疊桌椅組</h3>
-              <div class="product-rating">
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <span>(47)</span>
-              </div>
-              <div class="product-price">
-                <span class="current-price">NT$ 3,600</span>
-                <span class="rent-price">租借: NT$ 600/天</span>
-              </div>
-              <button class="btn-add-cart">加入購物車</button>
-            </div>
+          <div class="footer-column">
+            <h3>營地資訊</h3>
+            <ul>
+              <li><a href="#">北部營地</a></li>
+              <li><a href="#">中部營地</a></li>
+              <li><a href="#">南部營地</a></li>
+              <li><a href="#">東部營地</a></li>
+            </ul>
           </div>
-          <div class="product-card">
-            <div class="product-image">
-              <img src="images/product-4.jpg" alt="專業登山背包 45L" />
-              <span class="product-tag product-tag-used">二手</span>
-            </div>
-            <div class="product-info">
-              <h3>專業登山背包 45L</h3>
-              <div class="product-rating">
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star-half-alt"></i>
-                <i class="far fa-star"></i>
-                <span>(8)</span>
-              </div>
-              <div class="product-price">
-                <span class="current-price">NT$ 2,100</span>
-                <span class="original-price">NT$ 4,200</span>
-              </div>
-              <button class="btn-add-cart">加入購物車</button>
-            </div>
+          <div class="footer-column">
+            <h3>商城服務</h3>
+            <ul>
+              <li><a href="#">裝備租借</a></li>
+              <li><a href="#">全新商品</a></li>
+              <li><a href="#">二手市集</a></li>
+              <li><a href="#">配送說明</a></li>
+            </ul>
+          </div>
+          <div class="footer-column">
+            <h3>幫助中心</h3>
+            <ul>
+              <li><a href="#">常見問題</a></li>
+              <li><a href="#">預訂指南</a></li>
+              <li><a href="#">聯絡客服</a></li>
+              <li><a href="#">緊急協助</a></li>
+            </ul>
           </div>
         </div>
       </div>
-    </section>
-
-    <footer class="site-footer">
-      <div class="container">
-        <div class="footer-content">
-          <div class="footer-logo">
-            <img src="images/logo-white.svg" alt="露途 Logo" />
-            <p>探索自然，體驗野趣</p>
-          </div>
-          <div class="footer-links">
-            <div class="footer-column">
-              <h3>關於我們</h3>
-              <ul>
-                <li><a href="#">公司簡介</a></li>
-                <li><a href="#">服務條款</a></li>
-                <li><a href="#">隱私政策</a></li>
-                <li><a href="#">加入我們</a></li>
-              </ul>
-            </div>
-            <div class="footer-column">
-              <h3>營地資訊</h3>
-              <ul>
-                <li><a href="#">北部營地</a></li>
-                <li><a href="#">中部營地</a></li>
-                <li><a href="#">南部營地</a></li>
-                <li><a href="#">東部營地</a></li>
-              </ul>
-            </div>
-            <div class="footer-column">
-              <h3>商城服務</h3>
-              <ul>
-                <li><a href="#">裝備租借</a></li>
-                <li><a href="#">全新商品</a></li>
-                <li><a href="#">二手市集</a></li>
-                <li><a href="#">配送說明</a></li>
-              </ul>
-            </div>
-            <div class="footer-column">
-              <h3>幫助中心</h3>
-              <ul>
-                <li><a href="#">常見問題</a></li>
-                <li><a href="#">預訂指南</a></li>
-                <li><a href="#">聯絡客服</a></li>
-                <li><a href="#">緊急協助</a></li>
-              </ul>
-            </div>
-          </div>
+      <div class="footer-bottom">
+        <div class="social-links">
+          <a href="#"><i class="fab fa-facebook-f"></i></a>
+          <a href="#"><i class="fab fa-instagram"></i></a>
+          <a href="#"><i class="fab fa-youtube"></i></a>
+          <a href="#"><i class="fab fa-line"></i></a>
         </div>
-        <div class="footer-bottom">
-          <div class="social-links">
-            <a href="#"><i class="fab fa-facebook-f"></i></a>
-            <a href="#"><i class="fab fa-instagram"></i></a>
-            <a href="#"><i class="fab fa-youtube"></i></a>
-            <a href="#"><i class="fab fa-line"></i></a>
-          </div>
-          <p class="copyright">© 2023 露途 All Rights Reserved.</p>
-        </div>
+        <p class="copyright">© 2023 露途 All Rights Reserved.</p>
       </div>
-    </footer>
+    </div>
+  </footer>
 
-    <script src="js/main.js"></script>
-    <script src="js/camp_cart.js"></script>
-    <script src="js/cart-page.js"></script>
-    <script src="js/role-system.js"></script>
-    <script>
-      // 購物車頁面特定的JavaScript
-      document.addEventListener("DOMContentLoaded", function () {
-        // 初始化購物車頁面功能
-        initCartPage();
-      });
+  <script src="js/main.js"></script>
+  <script src="js/camp_cart.js"></script>
+  <script src="js/cart-page.js"></script>
+  <script src="js/role-system.js"></script>
+  <script>
+    // 購物車頁面特定的JavaScript
+    document.addEventListener("DOMContentLoaded", function () {
+      // 初始化購物車頁面功能
+      initCartPage();
+    });
 
-      function initCartPage() {
-        // 這裡將實現購物車頁面的功能
-        // 例如：載入購物車項目、更新數量、移除項目等
+    function initCartPage() {
+      // 這裡將實現購物車頁面的功能
+      // 例如：載入購物車項目、更新數量、移除項目等
 
-        // 數量選擇器功能
-        const quantitySelectors =
-          document.querySelectorAll(".quantity-selector");
-        quantitySelectors.forEach((selector) => {
-          const minusBtn = selector.querySelector(".minus");
-          const plusBtn = selector.querySelector(".plus");
-          const input = selector.querySelector("input");
+      // 數量選擇器功能
+      const quantitySelectors =
+        document.querySelectorAll(".quantity-selector");
+      quantitySelectors.forEach((selector) => {
+        const minusBtn = selector.querySelector(".minus");
+        const plusBtn = selector.querySelector(".plus");
+        const input = selector.querySelector("input");
 
-          minusBtn.addEventListener("click", function () {
-            let value = parseInt(input.value);
-            if (value > parseInt(input.min)) {
-              input.value = value - 1;
-              updateCartItemSubtotal(selector.closest(".cart-item"));
-            }
-          });
-
-          plusBtn.addEventListener("click", function () {
-            let value = parseInt(input.value);
-            if (value < parseInt(input.max)) {
-              input.value = value + 1;
-              updateCartItemSubtotal(selector.closest(".cart-item"));
-            }
-          });
-
-          input.addEventListener("change", function () {
+        minusBtn.addEventListener("click", function () {
+          let value = parseInt(input.value);
+          if (value > parseInt(input.min)) {
+            input.value = value - 1;
             updateCartItemSubtotal(selector.closest(".cart-item"));
-          });
-        });
-
-        // 移除按鈕功能
-        const removeButtons = document.querySelectorAll(".btn-remove");
-        removeButtons.forEach((button) => {
-          button.addEventListener("click", function () {
-            const cartItem = this.closest(".cart-item");
-            cartItem.remove();
-            updateCartSummary();
-          });
-        });
-      }
-
-      function updateCartItemSubtotal(cartItem) {
-        if (!cartItem) return;
-
-        const priceElement = cartItem.querySelector(
-          ".product-price .current-price"
-        );
-        const quantityInput = cartItem.querySelector(
-          ".quantity-selector input"
-        );
-        const subtotalElement = cartItem.querySelector(
-          ".product-subtotal span"
-        );
-
-        if (priceElement && quantityInput && subtotalElement) {
-          const price = parseInt(
-            priceElement.textContent.replace(/[^0-9]/g, "")
-          );
-          const quantity = parseInt(quantityInput.value);
-          const subtotal = price * quantity;
-
-          subtotalElement.textContent = `NT$ ${subtotal.toLocaleString()}`;
-          updateCartSummary();
-        }
-      }
-
-      function updateCartSummary() {
-        const cartItems = document.querySelectorAll(".cart-item");
-        const emptyCart = document.querySelector(".cart-empty");
-        const checkoutButton = document.querySelector(".btn-checkout");
-
-        // 計算商品總計
-        let subtotal = 0;
-        cartItems.forEach((item) => {
-          if (item.style.display !== "none") {
-            const itemSubtotal = item.querySelector(".product-subtotal span");
-            if (itemSubtotal) {
-              subtotal += parseInt(
-                itemSubtotal.textContent.replace(/[^0-9]/g, "")
-              );
-            }
           }
         });
 
-        // 計算運費 (假設滿1500免運費，否則運費100)
-        const shipping = subtotal >= 1500 || subtotal === 0 ? 0 : 100;
+        plusBtn.addEventListener("click", function () {
+          let value = parseInt(input.value);
+          if (value < parseInt(input.max)) {
+            input.value = value + 1;
+            updateCartItemSubtotal(selector.closest(".cart-item"));
+          }
+        });
 
-        // 計算折扣 (這裡可以根據實際需求實現折扣邏輯)
-        const discount = 0;
+        input.addEventListener("change", function () {
+          updateCartItemSubtotal(selector.closest(".cart-item"));
+        });
+      });
 
-        // 計算總計
-        const total = subtotal + shipping - discount;
+      // 移除按鈕功能
+      const removeButtons = document.querySelectorAll(".btn-remove");
+      removeButtons.forEach((button) => {
+        button.addEventListener("click", function () {
+          const cartItem = this.closest(".cart-item");
+          cartItem.remove();
+          updateCartSummary();
+        });
+      });
+    }
 
-        // 更新摘要區域
-        document.querySelector(
-          ".summary-row:nth-child(1) span:last-child"
-        ).textContent = `NT$ ${subtotal.toLocaleString()}`;
-        document.querySelector(
-          ".summary-row:nth-child(2) span:last-child"
-        ).textContent = `NT$ ${shipping.toLocaleString()}`;
-        document.querySelector(
-          ".summary-row:nth-child(3) span:last-child"
-        ).textContent = `-NT$ ${discount.toLocaleString()}`;
-        document.querySelector(
-          ".summary-row:nth-child(4) span:last-child"
-        ).textContent = `NT$ ${total.toLocaleString()}`;
+    function updateCartItemSubtotal(cartItem) {
+      if (!cartItem) return;
 
-        // 更新購物車計數
-        const cartCount = document.querySelector(".cart-count");
-        if (cartCount) {
-          let totalItems = 0;
-          cartItems.forEach((item) => {
-            if (item.style.display !== "none") {
-              const quantityInput = item.querySelector(
-                ".quantity-selector input"
-              );
-              if (quantityInput) {
-                totalItems += parseInt(quantityInput.value);
-              }
-            }
-          });
-          cartCount.textContent = totalItems;
-        }
+      const priceElement = cartItem.querySelector(
+        ".product-price .current-price"
+      );
+      const quantityInput = cartItem.querySelector(
+        ".quantity-selector input"
+      );
+      const subtotalElement = cartItem.querySelector(
+        ".product-subtotal span"
+      );
 
-        // 顯示/隱藏空購物車訊息
-        const hasItems = Array.from(cartItems).some(
-          (item) => item.style.display !== "none"
+      if (priceElement && quantityInput && subtotalElement) {
+        const price = parseInt(
+          priceElement.textContent.replace(/[^0-9]/g, "")
         );
-        if (emptyCart) {
-          emptyCart.style.display = hasItems ? "none" : "flex";
-        }
+        const quantity = parseInt(quantityInput.value);
+        const subtotal = price * quantity;
 
-        // 啟用/禁用結帳按鈕
-        if (checkoutButton) {
-          checkoutButton.disabled = !hasItems;
-        }
+        subtotalElement.textContent = `NT$ ${subtotal.toLocaleString()}`;
+        updateCartSummary();
       }
-    </script>
-  </body>
+    }
+
+    function updateCartSummary() {
+      const cartItems = document.querySelectorAll(".cart-item");
+      const emptyCart = document.querySelector(".cart-empty");
+      const checkoutButton = document.querySelector(".btn-checkout");
+
+      // 計算商品總計
+      let subtotal = 0;
+      cartItems.forEach((item) => {
+        if (item.style.display !== "none") {
+          const itemSubtotal = item.querySelector(".product-subtotal span");
+          if (itemSubtotal) {
+            subtotal += parseInt(
+              itemSubtotal.textContent.replace(/[^0-9]/g, "")
+            );
+          }
+        }
+      });
+
+      // 計算運費 (假設滿1500免運費，否則運費100)
+      const shipping = subtotal >= 1500 || subtotal === 0 ? 0 : 100;
+
+      // 計算折扣 (這裡可以根據實際需求實現折扣邏輯)
+      const discount = 0;
+
+      // 計算總計
+      const total = subtotal + shipping - discount;
+
+      // 更新摘要區域
+      document.querySelector(
+        ".summary-row:nth-child(1) span:last-child"
+      ).textContent = `NT$ ${subtotal.toLocaleString()}`;
+      document.querySelector(
+        ".summary-row:nth-child(2) span:last-child"
+      ).textContent = `NT$ ${shipping.toLocaleString()}`;
+      document.querySelector(
+        ".summary-row:nth-child(3) span:last-child"
+      ).textContent = `-NT$ ${discount.toLocaleString()}`;
+      document.querySelector(
+        ".summary-row:nth-child(4) span:last-child"
+      ).textContent = `NT$ ${total.toLocaleString()}`;
+
+      // 更新購物車計數
+      const cartCount = document.querySelector(".cart-count");
+      if (cartCount) {
+        let totalItems = 0;
+        cartItems.forEach((item) => {
+          if (item.style.display !== "none") {
+            const quantityInput = item.querySelector(
+              ".quantity-selector input"
+            );
+            if (quantityInput) {
+              totalItems += parseInt(quantityInput.value);
+            }
+          }
+        });
+        cartCount.textContent = totalItems;
+      }
+
+      // 顯示/隱藏空購物車訊息
+      const hasItems = Array.from(cartItems).some(
+        (item) => item.style.display !== "none"
+      );
+      if (emptyCart) {
+        emptyCart.style.display = hasItems ? "none" : "flex";
+      }
+
+      // 啟用/禁用結帳按鈕
+      if (checkoutButton) {
+        checkoutButton.disabled = !hasItems;
+      }
+    }
+  </script>
+</body>
+
 </html>

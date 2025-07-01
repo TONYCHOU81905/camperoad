@@ -1,600 +1,542 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>四人帳篷 - 星空系列 - 露途</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
-    <link rel="stylesheet" href="css/style.css" />
-    <link rel="stylesheet" href="css/role-system.css" />
-  </head>
-  <body>
-    <header class="site-header">
-      <div class="container">
-        <div class="logo">
-          <a href="index.html">
-            <img src="images/logo.svg" alt="露途 Logo" />
-          </a>
-        </div>
-        <nav class="main-nav">
-          <ul>
-            <li><a href="campsites.html">營地預訂</a></li>
-            <li><a href="shop.html" class="active">裝備商城</a></li>
-            <li><a href="camp-guides.html">論壇攻略</a></li>
-            <li><a href="#">關於我們</a></li>
-          </ul>
-        </nav>
-        <div class="user-actions">
-          <a href="shop_cart.html" class="btn-cart"
-            ><i class="fas fa-shopping-cart"></i
-            ><span class="cart-count">0</span></a
-          >
-          <a href="user-profile.html" class="btn-login"
-            ><i class="fas fa-user"></i
-          ></a>
-        </div>
-        <button class="mobile-menu-toggle">
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
-      </div>
-    </header>
 
-    <div class="breadcrumb">
-      <div class="container">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>四人帳篷 - 星空系列 - 露途</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/role-system.css" />
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="container">
+      <div class="logo">
+        <a href="index.html">
+          <img src="images/logo.svg" alt="露途 Logo" />
+        </a>
+      </div>
+      <nav class="main-nav">
         <ul>
-          <li><a href="index.html">首頁</a></li>
-          <li><a href="shop.html">裝備商城</a></li>
-          <li>四人帳篷 - 星空系列</li>
+          <li><a href="campsites.html">營地預訂</a></li>
+          <li><a href="shop.html" class="active">裝備商城</a></li>
+          <li><a href="article-type.html">論壇攻略</a></li>
+          <li><a href="#">關於我們</a></li>
         </ul>
+      </nav>
+      <div class="user-actions">
+        <a href="shop_cart.html" class="btn-cart"><i class="fas fa-shopping-cart"></i><span
+            class="cart-count">0</span></a>
+        <a href="user-profile.html" class="btn-login"><i class="fas fa-user"></i></a>
+      </div>
+      <button class="mobile-menu-toggle">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </header>
+
+  <div class="breadcrumb">
+    <div class="container">
+      <ul>
+        <li><a href="index.html">首頁</a></li>
+        <li><a href="shop.html">裝備商城</a></li>
+        <li>四人帳篷 - 星空系列</li>
+      </ul>
+    </div>
+  </div>
+
+  <section class="product-detail">
+    <div class="container">
+      <div class="product-detail-container">
+        <div class="product-gallery">
+          <div class="main-image">
+            <img src="images/product-1.jpg" alt="四人帳篷 - 星空系列" id="main-product-image" />
+            <span class="product-tag">熱銷</span>
+          </div>
+          <div class="thumbnail-images">
+            <div class="thumbnail active" data-image="images/product-1.jpg">
+              <img src="images/product-1.jpg" alt="四人帳篷 - 星空系列 - 圖片1" />
+            </div>
+            <div class="thumbnail" data-image="images/product-2.jpg">
+              <img src="images/product-2.jpg" alt="四人帳篷 - 星空系列 - 圖片2" />
+            </div>
+            <div class="thumbnail" data-image="images/product-3.jpg">
+              <img src="images/product-3.jpg" alt="四人帳篷 - 星空系列 - 圖片3" />
+            </div>
+            <div class="thumbnail" data-image="images/product-4.jpg">
+              <img src="images/product-4.jpg" alt="四人帳篷 - 星空系列 - 圖片4" />
+            </div>
+          </div>
+        </div>
+        <div class="product-info-container">
+          <h1 class="product-title">四人帳篷 - 星空系列</h1>
+          <div class="product-meta">
+            <div class="product-rating">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star-half-alt"></i>
+              <span>(32 則評價)</span>
+            </div>
+            <div class="product-id">商品編號: TENT-SKY-001</div>
+          </div>
+          <div class="product-price-container">
+            <div class="product-price">
+              <span class="current-price">NT$ 4,500</span>
+              <span class="original-price">NT$ 5,200</span>
+              <span class="discount-tag">限時優惠</span>
+            </div>
+            <div class="rent-option">
+              <span class="rent-price">租借價：NT$ 800 / 天</span>
+              <span class="rent-info">（押金：NT$ 2,000，租期結束歸還後退還）</span>
+            </div>
+          </div>
+          <div class="product-options">
+            <div class="option-group">
+              <label for="color">顏色</label>
+              <div class="color-options">
+                <div class="color-option active" data-color="綠色">
+                  <span style="background-color: #3a5a40"></span>
+                </div>
+                <div class="color-option" data-color="藍色">
+                  <span style="background-color: #1d3557"></span>
+                </div>
+                <div class="color-option" data-color="橙色">
+                  <span style="background-color: #e76f51"></span>
+                </div>
+              </div>
+            </div>
+            <div class="option-group">
+              <label for="purchase-type">購買方式</label>
+              <div class="purchase-options">
+                <div class="purchase-option active" data-type="buy">
+                  <span>購買</span>
+                </div>
+                <div class="purchase-option" data-type="rent">
+                  <span>租借</span>
+                </div>
+              </div>
+            </div>
+            <div class="option-group rent-duration" style="display: none">
+              <label for="rent-days">租借天數</label>
+              <div class="quantity-selector">
+                <button type="button" class="quantity-btn minus">-</button>
+                <input type="number" id="rent-days" value="1" min="1" max="30" />
+                <button type="button" class="quantity-btn plus">+</button>
+              </div>
+            </div>
+            <div class="option-group">
+              <label for="quantity">數量</label>
+              <div class="quantity-selector">
+                <button type="button" class="quantity-btn minus">-</button>
+                <input type="number" id="quantity" value="1" min="1" max="10" />
+                <button type="button" class="quantity-btn plus">+</button>
+              </div>
+            </div>
+          </div>
+          <div class="product-actions">
+            <button class="btn-add-cart">加入購物車</button>
+            <button class="btn-buy-now">立即購買</button>
+            <button class="btn-add-wishlist">
+              <i class="far fa-heart"></i>
+            </button>
+          </div>
+          <div class="product-delivery">
+            <div class="delivery-info">
+              <i class="fas fa-truck"></i>
+              <span>全台配送，滿NT$ 1,500免運費</span>
+            </div>
+            <div class="stock-info">
+              <i class="fas fa-check-circle"></i>
+              <span>現貨供應中，下單後 1-3 天內出貨</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="product-tabs">
+        <div class="tabs-header">
+          <button class="tab-btn active" data-tab="description">
+            商品描述
+          </button>
+          <button class="tab-btn" data-tab="specs">規格參數</button>
+          <button class="tab-btn" data-tab="reviews">顧客評價</button>
+          <button class="tab-btn" data-tab="shipping">運送與退貨</button>
+        </div>
+        <div class="tabs-content">
+          <div class="tab-panel active" id="description">
+            <div class="product-description">
+              <h3>星空系列四人帳篷 - 露營的完美選擇</h3>
+              <p>
+                星空系列四人帳篷是專為家庭露營和朋友聚會設計的高品質帳篷。採用創新的頂部透明設計，讓您在夜晚可以躺在帳篷內欣賞星空美景，體驗與大自然的完美融合。
+              </p>
+
+              <h4>產品特色</h4>
+              <ul>
+                <li>頂部透明天窗設計，可觀賞星空</li>
+                <li>防水等級達 3000mm，有效抵禦大雨</li>
+                <li>雙層結構，內層透氣網布，外層防水布料</li>
+                <li>鋁合金支架，輕量且堅固耐用</li>
+                <li>前庭空間設計，提供額外的活動和收納空間</li>
+                <li>多個通風口，有效改善帳內空氣流通</li>
+                <li>內部多個收納袋，方便整理小物品</li>
+              </ul>
+
+              <h4>適用場景</h4>
+              <p>
+                適合家庭露營、朋友聚會、野外探險等多種戶外活動。無論是草地、沙灘還是山區，星空系列帳篷都能為您提供舒適的臨時住所。
+              </p>
+
+              <div class="product-images">
+                <img src="images/product-1.jpg" alt="四人帳篷 - 星空系列 - 使用場景" />
+                <img src="images/product-2.jpg" alt="四人帳篷 - 星空系列 - 內部空間" />
+              </div>
+
+              <h4>使用建議</h4>
+              <p>
+                首次使用前建議進行試搭，熟悉搭建流程。帳篷收納前請確保完全乾燥，以延長使用壽命。定期檢查支架和營釘，確保各部件完好。
+              </p>
+            </div>
+          </div>
+          <div class="tab-panel" id="specs">
+            <div class="product-specs">
+              <table class="specs-table">
+                <tr>
+                  <th>品牌</th>
+                  <td>露途戶外</td>
+                </tr>
+                <tr>
+                  <th>型號</th>
+                  <td>TENT-SKY-001</td>
+                </tr>
+                <tr>
+                  <th>適用人數</th>
+                  <td>4人</td>
+                </tr>
+                <tr>
+                  <th>展開尺寸</th>
+                  <td>240 x 210 x 130 cm (長 x 寬 x 高)</td>
+                </tr>
+                <tr>
+                  <th>收納尺寸</th>
+                  <td>60 x 20 x 20 cm</td>
+                </tr>
+                <tr>
+                  <th>重量</th>
+                  <td>4.2 kg</td>
+                </tr>
+                <tr>
+                  <th>材質</th>
+                  <td>外帳：210T 防水滌綸布 (PU塗層 3000mm防水)</td>
+                </tr>
+                <tr>
+                  <th></th>
+                  <td>內帳：透氣網布 + 190T 滌綸布</td>
+                </tr>
+                <tr>
+                  <th></th>
+                  <td>底部：150D 牛津布 (PU塗層 5000mm防水)</td>
+                </tr>
+                <tr>
+                  <th>支架</th>
+                  <td>7001 航空鋁合金</td>
+                </tr>
+                <tr>
+                  <th>防水等級</th>
+                  <td>3000mm</td>
+                </tr>
+                <tr>
+                  <th>顏色選項</th>
+                  <td>綠色、藍色、橙色</td>
+                </tr>
+                <tr>
+                  <th>包裝內容</th>
+                  <td>帳篷本體、支架、營釘、營繩、收納袋、搭建說明書</td>
+                </tr>
+                <tr>
+                  <th>保固期限</th>
+                  <td>一年保固</td>
+                </tr>
+              </table>
+            </div>
+          </div>
+          <div class="tab-panel" id="reviews">
+            <div class="product-reviews">
+              <div class="reviews-summary">
+                <div class="average-rating">
+                  <div class="rating-number">4.5</div>
+                  <div class="rating-stars">
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star-half-alt"></i>
+                  </div>
+                  <div class="rating-count">32 則評價</div>
+                </div>
+                <div class="rating-bars">
+                  <div class="rating-bar-item">
+                    <div class="rating-label">5 星</div>
+                    <div class="rating-bar">
+                      <div class="rating-fill" style="width: 70%"></div>
+                    </div>
+                    <div class="rating-percent">70%</div>
+                  </div>
+                  <div class="rating-bar-item">
+                    <div class="rating-label">4 星</div>
+                    <div class="rating-bar">
+                      <div class="rating-fill" style="width: 20%"></div>
+                    </div>
+                    <div class="rating-percent">20%</div>
+                  </div>
+                  <div class="rating-bar-item">
+                    <div class="rating-label">3 星</div>
+                    <div class="rating-bar">
+                      <div class="rating-fill" style="width: 5%"></div>
+                    </div>
+                    <div class="rating-percent">5%</div>
+                  </div>
+                  <div class="rating-bar-item">
+                    <div class="rating-label">2 星</div>
+                    <div class="rating-bar">
+                      <div class="rating-fill" style="width: 3%"></div>
+                    </div>
+                    <div class="rating-percent">3%</div>
+                  </div>
+                  <div class="rating-bar-item">
+                    <div class="rating-label">1 星</div>
+                    <div class="rating-bar">
+                      <div class="rating-fill" style="width: 2%"></div>
+                    </div>
+                    <div class="rating-percent">2%</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="review-list">
+                <div class="review-item">
+                  <div class="reviewer-info">
+                    <img src="images/user-1.jpg" alt="使用者頭像" class="reviewer-avatar" />
+                    <div class="reviewer-details">
+                      <div class="reviewer-name">陳先生</div>
+                      <div class="review-date">2023/05/15</div>
+                    </div>
+                  </div>
+                  <div class="review-rating">
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                  </div>
+                  <div class="review-content">
+                    <p>
+                      非常滿意這個帳篷！搭建簡單，大約15分鐘就能完成。頂部的透明設計真的很棒，晚上躺在帳篷裡看星星是一種奇妙的體驗。前庭空間也很實用，可以放置鞋子和一些裝備。整體防水性能良好，上週末遇到小雨測試了一下，完全沒有漏水問題。
+                    </p>
+                    <div class="review-images">
+                      <img src="images/product-1.jpg" alt="使用者評價照片" />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="review-item">
+                  <div class="reviewer-info">
+                    <img src="images/user-2.jpg" alt="使用者頭像" class="reviewer-avatar" />
+                    <div class="reviewer-details">
+                      <div class="reviewer-name">林小姐</div>
+                      <div class="review-date">2023/04/28</div>
+                    </div>
+                  </div>
+                  <div class="review-rating">
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="far fa-star"></i>
+                  </div>
+                  <div class="review-content">
+                    <p>
+                      帳篷品質不錯，材質感覺很耐用。四個人住有點擠，但三個人剛好。透明天窗設計很特別，是我選擇這款的主要原因。唯一的小缺點是收納後體積還是有點大，放在車後車廂佔了不少空間。總體來說還是很推薦的一款帳篷。
+                    </p>
+                  </div>
+                </div>
+
+                <div class="review-item">
+                  <div class="reviewer-info">
+                    <img src="images/user-3.jpg" alt="使用者頭像" class="reviewer-avatar" />
+                    <div class="reviewer-details">
+                      <div class="reviewer-name">王先生</div>
+                      <div class="review-date">2023/03/10</div>
+                    </div>
+                  </div>
+                  <div class="review-rating">
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="far fa-star"></i>
+                    <i class="far fa-star"></i>
+                  </div>
+                  <div class="review-content">
+                    <p>
+                      帳篷整體設計不錯，但支架感覺不是很結實，擔心使用壽命問題。搭建說明不夠清晰，第一次搭建花了不少時間。防水性能還可以，但通風不是很理想，夏天可能會比較悶熱。
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="review-pagination">
+                <a href="#" class="page-prev"><i class="fas fa-chevron-left"></i></a>
+                <a href="#" class="page-number active">1</a>
+                <a href="#" class="page-number">2</a>
+                <a href="#" class="page-number">3</a>
+                <span class="page-dots">...</span>
+                <a href="#" class="page-number">7</a>
+                <a href="#" class="page-next"><i class="fas fa-chevron-right"></i></a>
+              </div>
+            </div>
+          </div>
+          <div class="tab-panel" id="shipping">
+            <div class="shipping-info">
+              <h3>配送資訊</h3>
+              <ul>
+                <li>全台灣本島地區配送，離島地區需額外運費</li>
+                <li>訂單滿 NT$ 1,500 免運費，未滿則酌收 NT$ 150 運費</li>
+                <li>一般訂單處理時間為 1-2 個工作天，出貨後 1-3 天送達</li>
+                <li>可選擇宅配或超商取貨付款</li>
+              </ul>
+
+              <h3>退換貨政策</h3>
+              <ul>
+                <li>收到商品後 7 天內可申請退換貨</li>
+                <li>商品須保持全新狀態，包含完整包裝、配件和說明書</li>
+                <li>非商品本身瑕疵因素退貨，需自行負擔退貨運費</li>
+                <li>已使用或人為損壞的商品恕不接受退換</li>
+                <li>租借商品有專屬的租借合約，請參考租借條款</li>
+              </ul>
+
+              <h3>保固資訊</h3>
+              <ul>
+                <li>本商品享有一年保固服務</li>
+                <li>保固範圍包含材料和製作瑕疵</li>
+                <li>人為損壞、自然磨損或不當使用不在保固範圍內</li>
+                <li>如需維修服務，請聯繫客服中心</li>
+              </ul>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
+  </section>
 
-    <section class="product-detail">
-      <div class="container">
-        <div class="product-detail-container">
-          <div class="product-gallery">
-            <div class="main-image">
-              <img
-                src="images/product-1.jpg"
-                alt="四人帳篷 - 星空系列"
-                id="main-product-image"
-              />
-              <span class="product-tag">熱銷</span>
-            </div>
-            <div class="thumbnail-images">
-              <div class="thumbnail active" data-image="images/product-1.jpg">
-                <img
-                  src="images/product-1.jpg"
-                  alt="四人帳篷 - 星空系列 - 圖片1"
-                />
-              </div>
-              <div class="thumbnail" data-image="images/product-2.jpg">
-                <img
-                  src="images/product-2.jpg"
-                  alt="四人帳篷 - 星空系列 - 圖片2"
-                />
-              </div>
-              <div class="thumbnail" data-image="images/product-3.jpg">
-                <img
-                  src="images/product-3.jpg"
-                  alt="四人帳篷 - 星空系列 - 圖片3"
-                />
-              </div>
-              <div class="thumbnail" data-image="images/product-4.jpg">
-                <img
-                  src="images/product-4.jpg"
-                  alt="四人帳篷 - 星空系列 - 圖片4"
-                />
-              </div>
-            </div>
+  <section class="related-products">
+    <div class="container">
+      <h2 class="section-title">相關商品推薦</h2>
+      <div class="product-grid">
+        <div class="product-card">
+          <div class="product-image">
+            <img src="images/product-2.jpg" alt="登山睡袋 - 輕量型" />
+            <span class="product-tag product-tag-rent">可租借</span>
           </div>
-          <div class="product-info-container">
-            <h1 class="product-title">四人帳篷 - 星空系列</h1>
-            <div class="product-meta">
-              <div class="product-rating">
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star-half-alt"></i>
-                <span>(32 則評價)</span>
-              </div>
-              <div class="product-id">商品編號: TENT-SKY-001</div>
+          <div class="product-info">
+            <h3><a href="product-detail.html">登山睡袋 - 輕量型</a></h3>
+            <div class="product-rating">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <span>(18)</span>
             </div>
-            <div class="product-price-container">
-              <div class="product-price">
-                <span class="current-price">NT$ 4,500</span>
-                <span class="original-price">NT$ 5,200</span>
-                <span class="discount-tag">限時優惠</span>
-              </div>
-              <div class="rent-option">
-                <span class="rent-price">租借價：NT$ 800 / 天</span>
-                <span class="rent-info"
-                  >（押金：NT$ 2,000，租期結束歸還後退還）</span
-                >
-              </div>
+            <div class="product-price">
+              <span class="current-price">NT$ 2,800</span>
+              <span class="rent-price">租借價：NT$ 400 / 天</span>
             </div>
-            <div class="product-options">
-              <div class="option-group">
-                <label for="color">顏色</label>
-                <div class="color-options">
-                  <div class="color-option active" data-color="綠色">
-                    <span style="background-color: #3a5a40"></span>
-                  </div>
-                  <div class="color-option" data-color="藍色">
-                    <span style="background-color: #1d3557"></span>
-                  </div>
-                  <div class="color-option" data-color="橙色">
-                    <span style="background-color: #e76f51"></span>
-                  </div>
-                </div>
-              </div>
-              <div class="option-group">
-                <label for="purchase-type">購買方式</label>
-                <div class="purchase-options">
-                  <div class="purchase-option active" data-type="buy">
-                    <span>購買</span>
-                  </div>
-                  <div class="purchase-option" data-type="rent">
-                    <span>租借</span>
-                  </div>
-                </div>
-              </div>
-              <div class="option-group rent-duration" style="display: none">
-                <label for="rent-days">租借天數</label>
-                <div class="quantity-selector">
-                  <button type="button" class="quantity-btn minus">-</button>
-                  <input
-                    type="number"
-                    id="rent-days"
-                    value="1"
-                    min="1"
-                    max="30"
-                  />
-                  <button type="button" class="quantity-btn plus">+</button>
-                </div>
-              </div>
-              <div class="option-group">
-                <label for="quantity">數量</label>
-                <div class="quantity-selector">
-                  <button type="button" class="quantity-btn minus">-</button>
-                  <input
-                    type="number"
-                    id="quantity"
-                    value="1"
-                    min="1"
-                    max="10"
-                  />
-                  <button type="button" class="quantity-btn plus">+</button>
-                </div>
-              </div>
-            </div>
-            <div class="product-actions">
-              <button class="btn-add-cart">加入購物車</button>
-              <button class="btn-buy-now">立即購買</button>
-              <button class="btn-add-wishlist">
-                <i class="far fa-heart"></i>
-              </button>
-            </div>
-            <div class="product-delivery">
-              <div class="delivery-info">
-                <i class="fas fa-truck"></i>
-                <span>全台配送，滿NT$ 1,500免運費</span>
-              </div>
-              <div class="stock-info">
-                <i class="fas fa-check-circle"></i>
-                <span>現貨供應中，下單後 1-3 天內出貨</span>
-              </div>
-            </div>
+            <button class="btn-add-cart">加入購物車</button>
           </div>
         </div>
-
-        <div class="product-tabs">
-          <div class="tabs-header">
-            <button class="tab-btn active" data-tab="description">
-              商品描述
-            </button>
-            <button class="tab-btn" data-tab="specs">規格參數</button>
-            <button class="tab-btn" data-tab="reviews">顧客評價</button>
-            <button class="tab-btn" data-tab="shipping">運送與退貨</button>
+        <div class="product-card">
+          <div class="product-image">
+            <img src="images/product-3.jpg" alt="露營燈 - 太陽能充電" />
+            <span class="product-tag">促銷</span>
           </div>
-          <div class="tabs-content">
-            <div class="tab-panel active" id="description">
-              <div class="product-description">
-                <h3>星空系列四人帳篷 - 露營的完美選擇</h3>
-                <p>
-                  星空系列四人帳篷是專為家庭露營和朋友聚會設計的高品質帳篷。採用創新的頂部透明設計，讓您在夜晚可以躺在帳篷內欣賞星空美景，體驗與大自然的完美融合。
-                </p>
-
-                <h4>產品特色</h4>
-                <ul>
-                  <li>頂部透明天窗設計，可觀賞星空</li>
-                  <li>防水等級達 3000mm，有效抵禦大雨</li>
-                  <li>雙層結構，內層透氣網布，外層防水布料</li>
-                  <li>鋁合金支架，輕量且堅固耐用</li>
-                  <li>前庭空間設計，提供額外的活動和收納空間</li>
-                  <li>多個通風口，有效改善帳內空氣流通</li>
-                  <li>內部多個收納袋，方便整理小物品</li>
-                </ul>
-
-                <h4>適用場景</h4>
-                <p>
-                  適合家庭露營、朋友聚會、野外探險等多種戶外活動。無論是草地、沙灘還是山區，星空系列帳篷都能為您提供舒適的臨時住所。
-                </p>
-
-                <div class="product-images">
-                  <img
-                    src="images/product-1.jpg"
-                    alt="四人帳篷 - 星空系列 - 使用場景"
-                  />
-                  <img
-                    src="images/product-2.jpg"
-                    alt="四人帳篷 - 星空系列 - 內部空間"
-                  />
-                </div>
-
-                <h4>使用建議</h4>
-                <p>
-                  首次使用前建議進行試搭，熟悉搭建流程。帳篷收納前請確保完全乾燥，以延長使用壽命。定期檢查支架和營釘，確保各部件完好。
-                </p>
-              </div>
+          <div class="product-info">
+            <h3><a href="product-detail.html">露營燈 - 太陽能充電</a></h3>
+            <div class="product-rating">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="far fa-star"></i>
+              <span>(24)</span>
             </div>
-            <div class="tab-panel" id="specs">
-              <div class="product-specs">
-                <table class="specs-table">
-                  <tr>
-                    <th>品牌</th>
-                    <td>露途戶外</td>
-                  </tr>
-                  <tr>
-                    <th>型號</th>
-                    <td>TENT-SKY-001</td>
-                  </tr>
-                  <tr>
-                    <th>適用人數</th>
-                    <td>4人</td>
-                  </tr>
-                  <tr>
-                    <th>展開尺寸</th>
-                    <td>240 x 210 x 130 cm (長 x 寬 x 高)</td>
-                  </tr>
-                  <tr>
-                    <th>收納尺寸</th>
-                    <td>60 x 20 x 20 cm</td>
-                  </tr>
-                  <tr>
-                    <th>重量</th>
-                    <td>4.2 kg</td>
-                  </tr>
-                  <tr>
-                    <th>材質</th>
-                    <td>外帳：210T 防水滌綸布 (PU塗層 3000mm防水)</td>
-                  </tr>
-                  <tr>
-                    <th></th>
-                    <td>內帳：透氣網布 + 190T 滌綸布</td>
-                  </tr>
-                  <tr>
-                    <th></th>
-                    <td>底部：150D 牛津布 (PU塗層 5000mm防水)</td>
-                  </tr>
-                  <tr>
-                    <th>支架</th>
-                    <td>7001 航空鋁合金</td>
-                  </tr>
-                  <tr>
-                    <th>防水等級</th>
-                    <td>3000mm</td>
-                  </tr>
-                  <tr>
-                    <th>顏色選項</th>
-                    <td>綠色、藍色、橙色</td>
-                  </tr>
-                  <tr>
-                    <th>包裝內容</th>
-                    <td>帳篷本體、支架、營釘、營繩、收納袋、搭建說明書</td>
-                  </tr>
-                  <tr>
-                    <th>保固期限</th>
-                    <td>一年保固</td>
-                  </tr>
-                </table>
-              </div>
+            <div class="product-price">
+              <span class="current-price">NT$ 950</span>
+              <span class="original-price">NT$ 1,200</span>
             </div>
-            <div class="tab-panel" id="reviews">
-              <div class="product-reviews">
-                <div class="reviews-summary">
-                  <div class="average-rating">
-                    <div class="rating-number">4.5</div>
-                    <div class="rating-stars">
-                      <i class="fas fa-star"></i>
-                      <i class="fas fa-star"></i>
-                      <i class="fas fa-star"></i>
-                      <i class="fas fa-star"></i>
-                      <i class="fas fa-star-half-alt"></i>
-                    </div>
-                    <div class="rating-count">32 則評價</div>
-                  </div>
-                  <div class="rating-bars">
-                    <div class="rating-bar-item">
-                      <div class="rating-label">5 星</div>
-                      <div class="rating-bar">
-                        <div class="rating-fill" style="width: 70%"></div>
-                      </div>
-                      <div class="rating-percent">70%</div>
-                    </div>
-                    <div class="rating-bar-item">
-                      <div class="rating-label">4 星</div>
-                      <div class="rating-bar">
-                        <div class="rating-fill" style="width: 20%"></div>
-                      </div>
-                      <div class="rating-percent">20%</div>
-                    </div>
-                    <div class="rating-bar-item">
-                      <div class="rating-label">3 星</div>
-                      <div class="rating-bar">
-                        <div class="rating-fill" style="width: 5%"></div>
-                      </div>
-                      <div class="rating-percent">5%</div>
-                    </div>
-                    <div class="rating-bar-item">
-                      <div class="rating-label">2 星</div>
-                      <div class="rating-bar">
-                        <div class="rating-fill" style="width: 3%"></div>
-                      </div>
-                      <div class="rating-percent">3%</div>
-                    </div>
-                    <div class="rating-bar-item">
-                      <div class="rating-label">1 星</div>
-                      <div class="rating-bar">
-                        <div class="rating-fill" style="width: 2%"></div>
-                      </div>
-                      <div class="rating-percent">2%</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="review-list">
-                  <div class="review-item">
-                    <div class="reviewer-info">
-                      <img
-                        src="images/user-1.jpg"
-                        alt="使用者頭像"
-                        class="reviewer-avatar"
-                      />
-                      <div class="reviewer-details">
-                        <div class="reviewer-name">陳先生</div>
-                        <div class="review-date">2023/05/15</div>
-                      </div>
-                    </div>
-                    <div class="review-rating">
-                      <i class="fas fa-star"></i>
-                      <i class="fas fa-star"></i>
-                      <i class="fas fa-star"></i>
-                      <i class="fas fa-star"></i>
-                      <i class="fas fa-star"></i>
-                    </div>
-                    <div class="review-content">
-                      <p>
-                        非常滿意這個帳篷！搭建簡單，大約15分鐘就能完成。頂部的透明設計真的很棒，晚上躺在帳篷裡看星星是一種奇妙的體驗。前庭空間也很實用，可以放置鞋子和一些裝備。整體防水性能良好，上週末遇到小雨測試了一下，完全沒有漏水問題。
-                      </p>
-                      <div class="review-images">
-                        <img src="images/product-1.jpg" alt="使用者評價照片" />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="review-item">
-                    <div class="reviewer-info">
-                      <img
-                        src="images/user-2.jpg"
-                        alt="使用者頭像"
-                        class="reviewer-avatar"
-                      />
-                      <div class="reviewer-details">
-                        <div class="reviewer-name">林小姐</div>
-                        <div class="review-date">2023/04/28</div>
-                      </div>
-                    </div>
-                    <div class="review-rating">
-                      <i class="fas fa-star"></i>
-                      <i class="fas fa-star"></i>
-                      <i class="fas fa-star"></i>
-                      <i class="fas fa-star"></i>
-                      <i class="far fa-star"></i>
-                    </div>
-                    <div class="review-content">
-                      <p>
-                        帳篷品質不錯，材質感覺很耐用。四個人住有點擠，但三個人剛好。透明天窗設計很特別，是我選擇這款的主要原因。唯一的小缺點是收納後體積還是有點大，放在車後車廂佔了不少空間。總體來說還是很推薦的一款帳篷。
-                      </p>
-                    </div>
-                  </div>
-
-                  <div class="review-item">
-                    <div class="reviewer-info">
-                      <img
-                        src="images/user-3.jpg"
-                        alt="使用者頭像"
-                        class="reviewer-avatar"
-                      />
-                      <div class="reviewer-details">
-                        <div class="reviewer-name">王先生</div>
-                        <div class="review-date">2023/03/10</div>
-                      </div>
-                    </div>
-                    <div class="review-rating">
-                      <i class="fas fa-star"></i>
-                      <i class="fas fa-star"></i>
-                      <i class="fas fa-star"></i>
-                      <i class="far fa-star"></i>
-                      <i class="far fa-star"></i>
-                    </div>
-                    <div class="review-content">
-                      <p>
-                        帳篷整體設計不錯，但支架感覺不是很結實，擔心使用壽命問題。搭建說明不夠清晰，第一次搭建花了不少時間。防水性能還可以，但通風不是很理想，夏天可能會比較悶熱。
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="review-pagination">
-                  <a href="#" class="page-prev"
-                    ><i class="fas fa-chevron-left"></i
-                  ></a>
-                  <a href="#" class="page-number active">1</a>
-                  <a href="#" class="page-number">2</a>
-                  <a href="#" class="page-number">3</a>
-                  <span class="page-dots">...</span>
-                  <a href="#" class="page-number">7</a>
-                  <a href="#" class="page-next"
-                    ><i class="fas fa-chevron-right"></i
-                  ></a>
-                </div>
-              </div>
+            <button class="btn-add-cart">加入購物車</button>
+          </div>
+        </div>
+        <div class="product-card">
+          <div class="product-image">
+            <img src="images/product-4.jpg" alt="防水帳篷地墊" />
+            <span class="product-tag product-tag-rent">可租借</span>
+          </div>
+          <div class="product-info">
+            <h3><a href="product-detail.html">防水帳篷地墊</a></h3>
+            <div class="product-rating">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="far fa-star"></i>
+              <span>(12)</span>
             </div>
-            <div class="tab-panel" id="shipping">
-              <div class="shipping-info">
-                <h3>配送資訊</h3>
-                <ul>
-                  <li>全台灣本島地區配送，離島地區需額外運費</li>
-                  <li>訂單滿 NT$ 1,500 免運費，未滿則酌收 NT$ 150 運費</li>
-                  <li>一般訂單處理時間為 1-2 個工作天，出貨後 1-3 天送達</li>
-                  <li>可選擇宅配或超商取貨付款</li>
-                </ul>
-
-                <h3>退換貨政策</h3>
-                <ul>
-                  <li>收到商品後 7 天內可申請退換貨</li>
-                  <li>商品須保持全新狀態，包含完整包裝、配件和說明書</li>
-                  <li>非商品本身瑕疵因素退貨，需自行負擔退貨運費</li>
-                  <li>已使用或人為損壞的商品恕不接受退換</li>
-                  <li>租借商品有專屬的租借合約，請參考租借條款</li>
-                </ul>
-
-                <h3>保固資訊</h3>
-                <ul>
-                  <li>本商品享有一年保固服務</li>
-                  <li>保固範圍包含材料和製作瑕疵</li>
-                  <li>人為損壞、自然磨損或不當使用不在保固範圍內</li>
-                  <li>如需維修服務，請聯繫客服中心</li>
-                </ul>
-              </div>
+            <div class="product-price">
+              <span class="current-price">NT$ 580</span>
+              <span class="rent-price">租借價：NT$ 100 / 天</span>
             </div>
+            <button class="btn-add-cart">加入購物車</button>
+          </div>
+        </div>
+        <div class="product-card">
+          <div class="product-image">
+            <img src="images/product-1.jpg" alt="便攜式烤肉爐" />
+          </div>
+          <div class="product-info">
+            <h3><a href="product-detail.html">便攜式烤肉爐</a></h3>
+            <div class="product-rating">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="far fa-star"></i>
+              <span>(15)</span>
+            </div>
+            <div class="product-price">
+              <span class="current-price">NT$ 1,800</span>
+            </div>
+            <button class="btn-add-cart">加入購物車</button>
           </div>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <section class="related-products">
-      <div class="container">
-        <h2 class="section-title">相關商品推薦</h2>
-        <div class="product-grid">
-          <div class="product-card">
-            <div class="product-image">
-              <img src="images/product-2.jpg" alt="登山睡袋 - 輕量型" />
-              <span class="product-tag product-tag-rent">可租借</span>
-            </div>
-            <div class="product-info">
-              <h3><a href="product-detail.html">登山睡袋 - 輕量型</a></h3>
-              <div class="product-rating">
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <span>(18)</span>
-              </div>
-              <div class="product-price">
-                <span class="current-price">NT$ 2,800</span>
-                <span class="rent-price">租借價：NT$ 400 / 天</span>
-              </div>
-              <button class="btn-add-cart">加入購物車</button>
-            </div>
-          </div>
-          <div class="product-card">
-            <div class="product-image">
-              <img src="images/product-3.jpg" alt="露營燈 - 太陽能充電" />
-              <span class="product-tag">促銷</span>
-            </div>
-            <div class="product-info">
-              <h3><a href="product-detail.html">露營燈 - 太陽能充電</a></h3>
-              <div class="product-rating">
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="far fa-star"></i>
-                <span>(24)</span>
-              </div>
-              <div class="product-price">
-                <span class="current-price">NT$ 950</span>
-                <span class="original-price">NT$ 1,200</span>
-              </div>
-              <button class="btn-add-cart">加入購物車</button>
-            </div>
-          </div>
-          <div class="product-card">
-            <div class="product-image">
-              <img src="images/product-4.jpg" alt="防水帳篷地墊" />
-              <span class="product-tag product-tag-rent">可租借</span>
-            </div>
-            <div class="product-info">
-              <h3><a href="product-detail.html">防水帳篷地墊</a></h3>
-              <div class="product-rating">
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="far fa-star"></i>
-                <span>(12)</span>
-              </div>
-              <div class="product-price">
-                <span class="current-price">NT$ 580</span>
-                <span class="rent-price">租借價：NT$ 100 / 天</span>
-              </div>
-              <button class="btn-add-cart">加入購物車</button>
-            </div>
-          </div>
-          <div class="product-card">
-            <div class="product-image">
-              <img src="images/product-1.jpg" alt="便攜式烤肉爐" />
-            </div>
-            <div class="product-info">
-              <h3><a href="product-detail.html">便攜式烤肉爐</a></h3>
-              <div class="product-rating">
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="far fa-star"></i>
-                <span>(15)</span>
-              </div>
-              <div class="product-price">
-                <span class="current-price">NT$ 1,800</span>
-              </div>
-              <button class="btn-add-cart">加入購物車</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+  <div id="footer-container"></div>
 
-    <div id="footer-container"></div>
+  <!-- <script src="js/main.js"></script> -->
+  <script src="js/header-auth.js"></script>
+  <script src="js/product-detail.js"></script>
+  <script src="js/include.js"></script>
+</body>
 
-    <!-- <script src="js/main.js"></script> -->
-    <script src="js/header-auth.js"></script>
-    <script src="js/product-detail.js"></script>
-    <script src="js/include.js"></script>
-  </body>
 </html>

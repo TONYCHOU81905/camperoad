@@ -491,6 +491,24 @@
                 display: none;
             }
         }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .site-footer,
+        footer {
+            margin-top: auto;
+        }
     </style>
 </head>
 
@@ -675,6 +693,7 @@
     <script src="js/view-counter.js"></script>
     <script src="js/articles.js"></script>
     <script src="js/header-auth.js"></script>
+    <script src="js/camp-data.js"></script>
     <script>
         // 初始化新手指南文章列表
         document.addEventListener('DOMContentLoaded', function () {
@@ -709,7 +728,7 @@
                 articlesContainer.innerHTML = '<div class="loading-message">搜尋中...</div>';
 
                 // 呼叫 Spring Boot API 進行進階搜尋（標題或內容）
-                const response = await fetch(`http://localhost:8081/CJA101G02/api/articles/search/advanced?keyword=${encodeURIComponent(searchTerm)}&acTypeId=30001`);
+                const response = await fetch(`${window.api_prefix}/api/articles/search/advanced?keyword=${encodeURIComponent(searchTerm)}&acTypeId=30001`);
                 const result = await response.json();
 
                 if (result.status === 'success' && result.data) {
