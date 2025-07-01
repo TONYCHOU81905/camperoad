@@ -4,111 +4,120 @@
 let productsData = [];
 let filteredProducts = [];
 let productTypesData = [];
-let productSpecificationsData = [
-  { id: 1, name: "小型" },
-  { id: 2, name: "中型" },
-  { id: 3, name: "大型" },
-  { id: 4, name: "特大型" }
-];
-
-let productColorsData = [
-  { id: 1, name: "紅色" },
-  { id: 2, name: "藍色" },
-  { id: 3, name: "綠色" },
-  { id: 4, name: "黑色" },
-  { id: 5, name: "白色" }
-];
+let productSpecificationsData = [];
+let productColorsData = [];
 
 let currentPage = 1;
 const itemsPerPage = 10;
 
-// 移除這個事件監聽器，因為我們已經在 HTML 文件中調用 loadProductsData()
-// document.addEventListener("DOMContentLoaded", function() {
-//   loadProductsData();
-// });
 
 // 載入商品數據
 async function loadProductsData() {
   try {
     console.log("開始載入商品數據...");
-    
-    // 確保 DOM 已完全載入
-    if (document.readyState === "loading") {
-      console.log("DOM 尚未完全載入，等待 DOMContentLoaded 事件...");
-      return new Promise(resolve => {
-        document.addEventListener("DOMContentLoaded", () => {
-          console.log("DOM 已載入，繼續執行 loadProductsData");
-          resolve(loadProductsData());
-        });
-      });
-    }
-    
-    // 顯示載入中提示
+
+    // 顯示載入提示
     const content = document.getElementById("product-management-content");
     if (!content) {
       console.error("找不到 product-management-content 元素");
-      setTimeout(() => {
-        // 再次嘗試獲取元素
-        const retryContent = document.getElementById("product-management-content");
-        if (!retryContent) {
-          console.error("重試後仍找不到 product-management-content 元素");
-          alert("頁面元素載入失敗，請重新整理頁面");
-          return;
-        }
-        loadProductsData(); // 重試載入
-      }, 300);
       return;
     }
-    
     content.innerHTML = `<div class="loading">載入商品數據中...</div>`;
+
+    // 1. 商品類型
+    const typeResponse = await fetch(`${window.api_prefix}/api/product-types`);
+    if (!typeResponse.ok) throw new Error(`商品類型錯誤: ${typeResponse.status}`);
+    const typeData = await typeResponse.json();
+    productTypesData = (typeData.data || []).map(t => ({
+      id: t.prodTypeId,
+      name: t.prodTypeName
+    }));
+    console.log("商品類型資料：", productTypesData);
+
+    // 2. 商品規格
+    const specResponse = await fetch(`${window.api_prefix}/api/prod-specs`);
+    if (!specResponse.ok) throw new Error(`商品規格錯誤: ${specResponse.status}`);
+    const specData = await specResponse.json();
+
+    console.log("商品規格原始資料：", specData);
+
+    productSpecificationsData = (specData.data || []).map(s => ({
+      id: s.prodSpecId || s.specId,
+      name: s.prodSpecName || s.specName
+    }));
+    console.log("商品規格資料：", productSpecificationsData);
+
+    // 3. 商品顏色
+    const colorResponse = await fetch(`${window.api_prefix}/api/prod-colors`);
+    if (!colorResponse.ok) throw new Error(`商品顏色錯誤: ${colorResponse.status}`);
+    const colorData = await colorResponse.json();
+    productColorsData = (colorData.data || []).map(c => ({
+      id: c.prodColorId || c.colorId,
+      name: c.colorName || c.name
+    }));
+    console.log("商品顏色資料：", productColorsData);
+
+    // 4. 商品主資料
+    const prodResponse = await fetch(`${window.api_prefix}/api/products`);
+    if (!prodResponse.ok) throw new Error(`商品資料錯誤: ${prodResponse.status}`);
+    const prodData = await prodResponse.json();
+    productsData = (prodData.data || []).map(p => ({
+      id: p.prodId,
+      name: p.prodName,
+      typeId: p.prodTypeId,
+      description: p.prodIntro,
+      discount: Number(p.prodDiscount),
+      createdAt: p.prodReleaseDate ? new Date(p.prodReleaseDate) : null,
+      status: p.prodStatus === 1 ? "上架中" : "已下架",
+      specifications: (p.prodSpecList || []).map(s => ({
+        name: s.prodSpecName || "無規格",
+        price: s.prodSpecPrice
+      })),      
+      colors: (p.prodColorList || []).map(c => ({
+        name: c.colorName
+        // ,imageUrl: c.prodColorPicBase64 ? `data:image/jpeg;base64,${c.prodColorPicBase64}` : "images/product-1.jpg"
+      })),
+      imageUrl: (p.prodPicList && p.prodPicList.length > 0)
+        ? `data:image/jpeg;base64,${p.prodPicList[0].prodPicBase64}`
+        : "images/product-1.jpg"
+    }));
     
-    // 模擬從API獲取數據
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        try {
-          console.log("生成模擬數據...");
-          // 生成模擬數據
-          productsData = generateMockProducts(30);
-          productTypesData = [
-            { id: 1, name: "帳篷" },
-            { id: 2, name: "睡袋" },
-            { id: 3, name: "炊具" },
-            { id: 4, name: "燈具" },
-            { id: 5, name: "戶外家具" }
-          ];
-          
-          // 初始化篩選後的商品為所有商品
-          filteredProducts = [...productsData];
-          
-          console.log("顯示商品數據...");
-          // 顯示商品數據
-          displayProducts();
-          
-          console.log("初始化商品類型篩選器...");
-          // 初始化商品類型篩選器
-          initProductTypeFilter();
-          
-          console.log("商品數據載入完成");
-          resolve(true);
-        } catch (innerError) {
-          console.error("在 setTimeout 回調中發生錯誤:", innerError);
-          const content = document.getElementById("product-management-content");
-          if (content) {
-            content.innerHTML = `<div class="error-message">載入商品數據失敗，請稍後再試</div>`;
-          }
-          resolve(false);
-        }
-      }, 500);
-    });
-  } catch (error) {
-    console.error("載入商品數據失敗:", error);
-    const content = document.getElementById("product-management-content");
-    if (content) {
-      content.innerHTML = `<div class="error-message">載入商品數據失敗，請稍後再試</div>`;
-    }
-    return Promise.resolve(false);
+    
+    filteredProducts = [...productsData];
+
+    // 顯示資料
+    displayProducts();
+    initProductTypeFilter();
+    console.log("商品資料載入完成");
+
+  } catch (err) {
+    console.error("API 載入失敗，改用模擬資料", err);
+
+    // 改用模擬資料
+    productsData = generateMockProducts(20);
+    productTypesData = [
+      { id: 1, name: "帳篷" },
+      { id: 2, name: "睡袋" },
+      { id: 3, name: "保溫杯" },
+      { id: 4, name: "野餐墊" }
+    ];
+    productSpecificationsData = [
+      { id: 1, name: "小型" },
+      { id: 2, name: "中型" },
+      { id: 3, name: "大型" }
+    ];
+    productColorsData = [
+      { id: 1, name: "紅色" },
+      { id: 2, name: "藍色" },
+      { id: 3, name: "綠色" }
+    ];
+    filteredProducts = [...productsData];
+    displayProducts();
+    initProductTypeFilter();
+    showNotification("載入遠端資料失敗，已載入模擬資料", "error");
   }
 }
+
 
 // 生成模擬商品數據
 function generateMockProducts(count) {
@@ -174,6 +183,7 @@ function displayProducts() {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + itemsPerPage, filteredProducts.length);
   const currentProducts = filteredProducts.slice(startIndex, endIndex);
+  
   
   // 如果沒有商品數據
   if (currentProducts.length === 0) {
@@ -247,8 +257,16 @@ function displayProducts() {
     const createdAtFormatted = formatDateTime(product.createdAt);
     
     // 將折扣從百分比轉換為 0~1 之間的小數
-    const discountValue = product.discount ? (product.discount / 100).toFixed(2) : 1.00;
-    
+    // const discountValue = product.discount && product.discount < 1 ? `${(product.discount * 100).toFixed(0)}%` : '無折扣';
+    let discountValue = "無折扣";
+    if (typeof product.discount === 'number' && product.discount > 0 && product.discount < 1) {
+      const discountNum = Math.round(product.discount * 100); // 0.85 → 85
+      const displayText = discountNum % 10 === 0
+        ? (discountNum / 10) + "折"   // 例如 90 → 9折
+        : discountNum + "折";         // 例如 85 → 85折
+      discountValue = displayText;
+    }
+
     html += `
       <tr>
         <td>${product.id}</td>
@@ -579,6 +597,11 @@ function generateSpecificationsHTML(specifications) {
   return html;
 }
 
+function getColorImageUrl(prodId, colorId) {
+  return `${window.api_prefix}/api/prod-colors/colorpic/${prodId}/${colorId}`;
+}
+
+
 // 生成顏色HTML
 function generateColorsHTML(colors) {
   if (!colors || colors.length === 0) {
@@ -590,25 +613,33 @@ function generateColorsHTML(colors) {
       </div>
     `;
   }
-  
+
   let html = '';
   colors.forEach((color, index) => {
+    const prodId = color.prodId || color.prod_id || 0; // 後台編輯時應該都有 prodId
+    const colorId = color.prodColorId || color.colorId || 0;
+    const colorName = color.colorName || color.name || `顏色${colorId}`;
+    const imgUrl = getColorImageUrl(prodId, colorId); // ✅ 使用 API 載入圖片
+
     html += `
       <div class="color-item">
-        <input type="text" placeholder="顏色名稱" class="color-name" value="${color.name}" required>
-        <input type="hidden" class="color-image-url" value="${color.imageUrl}">
+        <input type="text" placeholder="顏色名稱" class="color-name" value="${colorName}" required>
         <div class="color-preview">
-          <img src="${color.imageUrl}" alt="${color.name}" class="color-thumbnail">
+          <img src="${imgUrl}" alt="${colorName}" class="color-thumbnail" onerror="this.src='images/default-color.png'">
           <span>更換圖片:</span>
         </div>
         <input type="file" class="color-image" accept="image/*">
-        ${index === 0 ? '<button type="button" class="btn-add-color">+</button>' : '<button type="button" class="btn-remove-color">-</button>'}
+        ${index === 0
+          ? '<button type="button" class="btn-add-color">+</button>'
+          : '<button type="button" class="btn-remove-color">-</button>'}
       </div>
     `;
   });
-  
+
   return html;
 }
+
+
 
 // 添加規格欄位
 function addSpecificationField() {
@@ -787,32 +818,54 @@ async function saveProductChanges() {
   }
   
   try {
-    // 在實際應用中，這裡應該發送 PUT 請求到 API
-    // 模擬 API 請求
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // 構建請求數據
+    const productData = {
+      prodId: productId,
+      prodName: productName,
+      prodTypeId: productType,
+      prodDescription: productDescription,
+      prodDiscount: productDiscount / 100, // 轉換為小數
+      prodStatus: productStatus === "上架中" ? 1 : 0,
+      specifications: specifications,
+      colors: colors
+    };
     
-    // 更新本地數據
-    const productIndex = productsData.findIndex(p => p.id === productId);
-    if (productIndex !== -1) {
-      // 保留原有的上架時間
-      const createdAt = productsData[productIndex].createdAt;
-      
-      productsData[productIndex] = {
-        ...productsData[productIndex],
-        name: productName,
-        typeId: productType,
-        description: productDescription,
-        discount: productDiscount,
-        status: productStatus,
-        specifications: specifications,
-        colors: colors,
-        createdAt: createdAt // 保持原有的上架時間不變
-      };
-      
-      // 更新篩選後的商品
-      const filteredIndex = filteredProducts.findIndex(p => p.id === productId);
-      if (filteredIndex !== -1) {
-        filteredProducts[filteredIndex] = productsData[productIndex];
+    // 發送 PUT 請求到 API
+    const response = await fetch(`http://localhost:8081/CJA101G02/api/updateprod`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(productData)
+    });
+    
+    if (!response.ok) {
+      throw new Error(`更新商品失敗: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    
+    if (result.status === 'success') {
+      // 更新本地數據
+      const productIndex = productsData.findIndex(p => p.id === productId);
+      if (productIndex !== -1) {
+        // 更新本地數據
+        productsData[productIndex] = {
+          ...productsData[productIndex],
+          name: productName,
+          typeId: productType,
+          description: productDescription,
+          discount: productDiscount / 100,
+          status: productStatus,
+          specifications: specifications,
+          colors: colors
+        };
+        
+        // 更新篩選後的商品
+        const filteredIndex = filteredProducts.findIndex(p => p.id === productId);
+        if (filteredIndex !== -1) {
+          filteredProducts[filteredIndex] = productsData[productIndex];
+        }
       }
       
       // 關閉模態框
@@ -823,6 +876,8 @@ async function saveProductChanges() {
       
       // 顯示成功消息
       showNotification("商品更新成功", "success");
+    } else {
+      throw new Error(result.message || "更新商品失敗");
     }
   } catch (error) {
     console.error("更新商品失敗:", error);
@@ -1095,8 +1150,7 @@ async function addNewProduct() {
       const colorId = parseInt(colorSelect.value);
       const colorName = productColorsData.find(c => c.id === colorId)?.name || "未知顏色";
       
-      // 在實際應用中，這裡應該上傳圖片到伺服器並獲取URL
-      // 這裡僅模擬上傳過程
+      // 上傳圖片到伺服器並獲取URL
       const imageUrl = await simulateImageUpload(colorImageFile);
       
       colors.push({
@@ -1117,43 +1171,70 @@ async function addNewProduct() {
     // 上傳主圖
     const mainImageUrl = await simulateImageUpload(productMainImage);
     
-    // 在實際應用中，這裡應該發送 POST 請求到 API
-    // 模擬 API 請求
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    // 生成新商品ID
-    const newId = productsData.length > 0 ? Math.max(...productsData.map(p => p.id)) + 1 : 1;
-    
-    // 創建新商品對象
-    const newProduct = {
-      id: newId,
-      name: productName,
-      typeId: productType,
-      imageUrl: mainImageUrl,
-      description: productDescription,
-      discount: productDiscount,
-      status: productStatus,
+    // 構建請求數據
+    const productData = {
+      prodName: productName,
+      prodTypeId: productType,
+      prodImageUrl: mainImageUrl,
+      prodDescription: productDescription,
+      prodDiscount: productDiscount,
+      prodStatus: productStatus === "上架中" ? 1 : 0,
       specifications: specifications,
-      colors: colors,
-      createdAt: new Date()
+      colors: colors
     };
     
-    // 添加到本地數據
-    productsData.push(newProduct);
+    // 發送 POST 請求到 API
+    const response = await fetch(`http://localhost:8081/CJA101G02/api/addprod`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(productData)
+    });
     
-    // 更新篩選後的商品
-    if (shouldIncludeInFiltered(newProduct)) {
-      filteredProducts.push(newProduct);
+    if (!response.ok) {
+      throw new Error(`添加商品失敗: ${response.status}`);
     }
     
-    // 關閉模態框
-    closeModal();
+    const result = await response.json();
     
-    // 重新顯示商品
-    displayProducts();
-    
-    // 顯示成功消息
-    showNotification("商品添加成功", "success");
+    if (result.status === 'success') {
+      // 獲取新商品ID
+      const newId = result.data.prodId;
+      
+      // 創建新商品對象
+      const newProduct = {
+        id: newId,
+        name: productName,
+        typeId: productType,
+        imageUrl: mainImageUrl,
+        description: productDescription,
+        discount: productDiscount,
+        status: productStatus,
+        specifications: specifications,
+        colors: colors,
+        createdAt: new Date()
+      };
+      
+      // 添加到本地數據
+      productsData.push(newProduct);
+      
+      // 更新篩選後的商品
+      if (shouldIncludeInFiltered(newProduct)) {
+        filteredProducts.push(newProduct);
+      }
+      
+      // 關閉模態框
+      closeModal();
+      
+      // 重新顯示商品
+      displayProducts();
+      
+      // 顯示成功消息
+      showNotification("商品添加成功", "success");
+    } else {
+      throw new Error(result.message || "添加商品失敗");
+    }
   } catch (error) {
     console.error("添加商品失敗:", error);
     showNotification("添加商品失敗，請稍後再試", "error");
@@ -1176,18 +1257,35 @@ async function toggleProductStatus(productId) {
   }
   
   try {
-    // 在實際應用中，這裡應該發送 PATCH 請求到 API
-    // 模擬 API 請求
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // 發送 PATCH 請求到 API
+    const response = await fetch(`http://localhost:8081/CJA101G02/api/products/${productId}/status`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        status: newStatus === "上架中" ? 1 : 0
+      })
+    });
     
-    // 更新本地數據
-    product.status = newStatus;
+    if (!response.ok) {
+      throw new Error(`更新商品狀態失敗: ${response.status}`);
+    }
     
-    // 重新顯示商品
-    displayProducts();
+    const result = await response.json();
     
-    // 顯示成功消息
-    showNotification(`商品已${newStatus === "上架中" ? "上架" : "下架"}`, "success");
+    if (result.status === 'success') {
+      // 更新本地數據
+      product.status = newStatus;
+      
+      // 重新顯示商品
+      displayProducts();
+      
+      // 顯示成功消息
+      showNotification(`商品已${newStatus === "上架中" ? "上架" : "下架"}`, "success");
+    } else {
+      throw new Error(result.message || "更新商品狀態失敗");
+    }
   } catch (error) {
     console.error("更新商品狀態失敗:", error);
     showNotification("更新商品狀態失敗，請稍後再試", "error");
@@ -1222,14 +1320,38 @@ function closeModal() {
 
 // 模擬圖片上傳
 async function simulateImageUpload(file) {
-  // 在實際應用中，這裡應該將圖片上傳到伺服器
-  // 這裡僅返回一個模擬的URL
-  return new Promise(resolve => {
+  // 在實際應用中，這裡應該上傳圖片到伺服器並獲取URL
+  // 這裡僅模擬上傳過程
+  return new Promise((resolve) => {
     setTimeout(() => {
-      // 隨機選擇一個示例圖片URL
-      const randomIndex = Math.floor(Math.random() * 4) + 1;
-      resolve(`images/product-${randomIndex}.jpg`);
-    }, 300);
+      // 模擬返回圖片URL
+      const imageIndex = Math.floor(Math.random() * 4) + 1;
+      resolve(`images/product-${imageIndex}.jpg`);
+      
+      // 實際應用中，應該使用FormData上傳圖片
+      /*
+      const formData = new FormData();
+      formData.append('image', file);
+      
+      fetch('http://localhost:8081/CJA101G02/api/upload-image', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          resolve(data.imageUrl);
+        } else {
+          throw new Error(data.message || '上傳圖片失敗');
+        }
+      })
+      .catch(error => {
+        console.error('上傳圖片失敗:', error);
+        // 失敗時使用預設圖片
+        resolve('images/product-1.jpg');
+      });
+      */
+    }, 500);
   });
 }
 
@@ -1293,84 +1415,63 @@ async function addNewProductType(typeName) {
 // 添加新商品規格
 async function addNewProductSpecification(specName, selectElement) {
   try {
-    // 在實際應用中，這裡應該發送 POST 請求到 API
-    // 模擬 API 請求
+    // 檢查是否已存在同名規格
+    const alreadyExists = productSpecificationsData.some(s => s.name === specName);
+    if (alreadyExists) {
+      alert("已經有相同名稱的規格，請勿重複新增！");
+      return;
+    }
+
+    // 模擬新增
     await new Promise(resolve => setTimeout(resolve, 300));
-    
-    // 生成新規格ID
-    const newSpecId = productSpecificationsData.length > 0 ? Math.max(...productSpecificationsData.map(s => s.id)) + 1 : 1;
-    
-    // 創建新規格對象
-    const newSpec = {
-      id: newSpecId,
-      name: specName
-    };
-    
-    // 添加到本地數據
+
+    const newSpecId = Math.max(...productSpecificationsData.map(s => s.id)) + 1;
+    const newSpec = { id: newSpecId, name: specName };
     productSpecificationsData.push(newSpec);
-    
-    // 更新規格選擇器
+
     const newOption = document.createElement("option");
     newOption.value = newSpec.id;
     newOption.textContent = newSpec.name;
-    
-    // 插入到「新增規格」選項之前
     selectElement.insertBefore(newOption, selectElement.lastElementChild);
-    
-    // 選中新添加的規格
     selectElement.value = newSpec.id;
-    
-    // 隱藏新增規格輸入框
     selectElement.closest(".spec-selection-container").querySelector(".new-spec-input").style.display = "none";
-    
-    // 顯示成功消息
+
     showNotification("新規格添加成功", "success");
   } catch (error) {
-    console.error("添加規格失敗:", error);
-    showNotification("添加規格失敗，請稍後再試", "error");
+    showNotification("新增規格失敗", "error");
   }
 }
+
 
 // 添加新商品顏色
 async function addNewProductColor(colorName, selectElement) {
   try {
-    // 在實際應用中，這裡應該發送 POST 請求到 API
-    // 模擬 API 請求
+    // 檢查是否已存在同名顏色
+    const alreadyExists = productColorsData.some(c => c.name === colorName);
+    if (alreadyExists) {
+      alert("已經有相同名稱的顏色，請勿重複新增！");
+      return;
+    }
+
     await new Promise(resolve => setTimeout(resolve, 300));
-    
-    // 生成新顏色ID
-    const newColorId = productColorsData.length > 0 ? Math.max(...productColorsData.map(c => c.id)) + 1 : 1;
-    
-    // 創建新顏色對象
-    const newColor = {
-      id: newColorId,
-      name: colorName
-    };
-    
-    // 添加到本地數據
+
+    const newColorId = Math.max(...productColorsData.map(c => c.id)) + 1;
+    const newColor = { id: newColorId, name: colorName };
     productColorsData.push(newColor);
-    
-    // 更新顏色選擇器
+
     const newOption = document.createElement("option");
     newOption.value = newColor.id;
     newOption.textContent = newColor.name;
-    
-    // 插入到「新增顏色」選項之前
     selectElement.insertBefore(newOption, selectElement.lastElementChild);
-    
-    // 選中新添加的顏色
     selectElement.value = newColor.id;
-    
-    // 隱藏新增顏色輸入框
     selectElement.closest(".color-selection-container").querySelector(".new-color-input").style.display = "none";
-    
-    // 顯示成功消息
+
     showNotification("新顏色添加成功", "success");
   } catch (error) {
-    console.error("添加顏色失敗:", error);
-    showNotification("添加顏色失敗，請稍後再試", "error");
+    showNotification("新增顏色失敗", "error");
   }
 }
+
 
 // 顯示通知消息
 function showNotification(message, type = "success") {
