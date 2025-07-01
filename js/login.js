@@ -32,6 +32,46 @@ document.addEventListener("DOMContentLoaded", function () {
   if (adminLoginForm) {
     adminLoginForm.addEventListener("submit", handleAdminLogin);
   }
+
+  // 密碼強度檢測
+  const passwordInput = document.getElementById("camper-register-password");
+  const strengthBar = document.querySelector(".strength-fill");
+  const strengthText = document.querySelector(".strength-text");
+
+  if (passwordInput) {
+    passwordInput.addEventListener("input", function () {
+      const password = this.value;
+      let strength = 0;
+      let status = "";
+
+      if (password.length >= 6) strength += 20;
+      if (password.length >= 10) strength += 20;
+      if (/[A-Z]/.test(password)) strength += 20;
+      if (/[0-9]/.test(password)) strength += 20;
+      if (/[^A-Za-z0-9]/.test(password)) strength += 20;
+
+      strengthBar.style.width = strength + "%";
+
+      if (strength <= 20) {
+        strengthBar.style.backgroundColor = "#E76F51";
+        status = "非常弱";
+      } else if (strength <= 40) {
+        strengthBar.style.backgroundColor = "#E76F51";
+        status = "弱";
+      } else if (strength <= 60) {
+        strengthBar.style.backgroundColor = "#F4A261";
+        status = "中等";
+      } else if (strength <= 80) {
+        strengthBar.style.backgroundColor = "#A68A64";
+        status = "強";
+      } else {
+        strengthBar.style.backgroundColor = "#3A5A40";
+        status = "非常強";
+      }
+
+      strengthText.textContent = "密碼強度: " + status;
+    });
+  }
 });
 
 // 處理登入
@@ -39,53 +79,214 @@ async function handleLogin(e) {
   e.preventDefault();
 
   const formData = new FormData(e.target);
-  const memId = formData.get("mem_id") || formData.get("username");
+  const memAcc = formData.get("mem_acc") || formData.get("username");
   const password = formData.get("password");
   const remember = formData.get("remember");
 
-  console.log("登入請求：", { memId, password, remember });
+  console.log("登入請求：", { memAcc, password, remember });
 
-  if (!memId || !password) {
-    showMessage("請輸入會員ID和密碼", "error");
+  if (!memAcc || !password) {
+    showMessage("請輸入露營者帳號和密碼", "error");
     return;
   }
 
-  // 等待會員資料載入
-  if (!memberData || memberData.length === 0) {
-    await loadMemberData();
-  }
+  try {
+    console.log("memAcc:" + memAcc);
+    console.log("password:" + password);
+    // 使用API進行登入
 
-  // 驗證登入
-  const member = memberData.find(
-    (m) => m.mem_id == memId && m.mem_pwd == password
-  );
+    const response = await fetch(
+      "http://localhost:8081/CJA101G02/api/member/login",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          memAcc: memAcc,
+          memPwd: password,
+        }),
+        //credentials: "include", // 包含Cookie
+      }
+    );
 
-  if (member) {
-    // 登入成功
-    currentMember = member;
+    console.log("RESPONSE:"+response);
+    
 
-    // 根據remember checkbox決定存儲方式
-    if (remember) {
-      localStorage.setItem("currentMember", JSON.stringify(member));
-    } else {
-      sessionStorage.setItem("currentMember", JSON.stringify(member));
+    if (!response.ok) {
+      throw new Error("登入失敗");
     }
 
-    showMessage("登入成功！", "success");
+    const data = await response.json();
 
-    // 延遲跳轉到首頁
-    setTimeout(() => {
-      window.location.href = "index.html";
-    }, 1500);
-  } else {
-    showMessage("會員ID或密碼錯誤", "error");
+    console.log("response" + data.status);
+
+    if (data.status === "登入成功") {
+      // 登入成功
+      const member = data.member;
+      currentMember = member;
+
+      // 根據remember checkbox決定存儲方式
+      if (remember) {
+        localStorage.setItem("currentMember", JSON.stringify(member));
+      } else {
+        sessionStorage.setItem("currentMember", JSON.stringify(member));
+      }
+
+      showMessage("登入成功！", "success");
+
+      // 登入成功後合併未登入時的購物車資料
+      try {
+        const sessionCart = sessionStorage.getItem('sessionCart');
+        if (sessionCart) {
+          const cartList = JSON.parse(sessionCart);
+          if (cartList.length > 0) {
+            console.log('準備合併購物車:', cartList);
+            
+            const mergeResponse = await fetch('http://localhost:8081/CJA101G02/api/mergeCart', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                memId: member.memId,
+                cartList: cartList
+              })
+            });
+            
+            if (mergeResponse.ok) {
+              const mergeData = await mergeResponse.json();
+              console.log('購物車合併成功:', mergeData);
+              
+              // 只有在合併成功後才清空 sessionStorage
+              sessionStorage.removeItem('sessionCart');
+              
+              // 更新前端購物車顯示
+              if (window.globalCartManager) {
+                window.globalCartManager.updateCartCount();
+              }
+            } else {
+              console.error('購物車合併失敗: HTTP', mergeResponse.status);
+              // 合併失敗時保留 sessionCart，不刪除
+            }
+          } else {
+            console.log('sessionCart 為空，無需合併');
+          }
+        }
+      } catch (err) {
+        console.error('購物車合併過程發生錯誤:', err);
+        // 發生錯誤時保留 sessionCart，不刪除
+      }
+
+      setTimeout(() => {
+        window.location.href = "index.html";
+      }, 1500);
+    } else {
+      showMessage(data.message || "露營者帳號或密碼錯誤", "error");
+    }
+  } catch (error) {
+    console.error("登入錯誤：", error);
+    showMessage("登入失敗，請稍後再試", "error");
   }
 }
 
-// 處理註冊（簡化版）
-function handleRegister(e) {
+// 處理露營者註冊
+async function handleRegister(e) {
   e.preventDefault();
-  showMessage("註冊功能尚未開放，請使用現有會員帳號登入", "info");
+
+  const formData = new FormData(e.target);
+  const memData = {
+    mem_acc: formData.get("mem_acc"),
+    mem_pwd: formData.get("mem_pwd"),
+    mem_name: formData.get("mem_name"),
+    mem_gender: formData.get("mem_gender"),
+    mem_email: formData.get("mem_email"),
+    mem_mobile: formData.get("mem_mobile"),
+    mem_addr: formData.get("mem_addr"),
+    mem_nation: formData.get("mem_nation"),
+    mem_nation_id: formData.get("mem_nation_id"),
+    mem_birth: formData.get("mem_birth"),
+  };
+
+  // 驗證必填欄位
+  for (const [key, value] of Object.entries(memData)) {
+    if (!value || value.trim() === "") {
+      showMessage("請填寫所有必填欄位", "error");
+      return;
+    }
+  }
+
+  // 驗證確認密碼
+  const confirmPassword = formData.get("confirm-password");
+  if (memData.mem_pwd !== confirmPassword) {
+    showMessage("密碼與確認密碼不符", "error");
+    return;
+  }
+
+  // 驗證帳號與信箱是否相同
+  if (memData.mem_acc !== memData.mem_email) {
+    showMessage("帳號與信箱必須相同", "error");
+    return;
+  }
+
+  // 驗證Email格式
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(memData.mem_acc)) {
+    showMessage("請輸入正確的Email格式", "error");
+    return;
+  }
+
+  // 驗證手機格式
+  const mobileRegex = /^\d{4}-\d{3}-\d{3}$/;
+  if (!mobileRegex.test(memData.mem_mobile)) {
+    showMessage("請輸入正確的手機格式，如：0911-123-456", "error");
+    return;
+  }
+
+  // 驗證身分證格式（簡易版）
+  if (memData.mem_nation === "0") {
+    // 本國籍，驗證身分證格式
+    const idRegex = /^[A-Z][12]\d{8}$/;
+    if (!idRegex.test(memData.mem_nation_id)) {
+      showMessage("請輸入正確的身分證格式", "error");
+      return;
+    }
+  }
+
+  try {
+    // 使用API進行註冊
+    const response = await fetch(
+      "http://localhost:8081/CJA101G02/api/member/register",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(memData),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("註冊請求失敗");
+    }
+
+    const data = await response.json();
+
+    if (data.success) {
+      showMessage("露營者註冊成功！請使用註冊的帳號密碼登入", "success");
+
+      // 清空表單
+      e.target.reset();
+
+      // 3秒後切換到登入頁面
+      setTimeout(() => {
+        document.querySelector('[data-tab="login"]').click();
+      }, 3000);
+    } else {
+      showMessage(data.message || "註冊失敗，請檢查資料是否正確", "error");
+    }
+  } catch (error) {
+    console.error("註冊失敗：", error);
+    showMessage("註冊失敗，請稍後再試", "error");
+  }
 }
 
 // 處理營地主註冊
@@ -261,7 +462,7 @@ async function handleAdminLogin(e) {
       } else {
         sessionStorage.setItem("currentAdmin", JSON.stringify(admin));
       }
-      
+
       showMessage("管理員登入成功！", "success");
 
       // 延遲跳轉到管理員後台

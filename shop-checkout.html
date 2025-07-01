@@ -16,7 +16,7 @@
     />
     <link rel="stylesheet" href="css/style.css" />
     <link rel="stylesheet" href="css/cart-page.css" />
-    <link rel="stylesheet" href="css/checkout.css" />
+    <link rel="stylesheet" href="css/shop-checkout.css" />
   </head>
 
   <body>
@@ -91,43 +91,9 @@
               <h2>選擇付款方式</h2>
               
               <div class="payment-methods">
-                <div class="payment-method active" data-method="credit-card">
-                  <div class="payment-method-header">
-                    <input type="radio" name="payment-method" id="credit-card" checked />
-                    <label for="credit-card">信用卡付款</label>
-                    <div class="payment-icons">
-                      <i class="fab fa-cc-visa"></i>
-                      <i class="fab fa-cc-mastercard"></i>
-                      <i class="fab fa-cc-jcb"></i>
-                    </div>
-                  </div>
-                  <div class="payment-method-content">
-                    <form id="credit-card-form" class="payment-form">
-                      <div class="form-group">
-                        <label for="card-number">卡號</label>
-                        <input type="text" id="card-number" placeholder="1234 5678 9012 3456" maxlength="19" />
-                      </div>
-                      <div class="form-row">
-                        <div class="form-group">
-                          <label for="card-expiry">有效期限 (MM/YY)</label>
-                          <input type="text" id="card-expiry" placeholder="MM/YY" maxlength="5" />
-                        </div>
-                        <div class="form-group">
-                          <label for="card-cvc">安全碼</label>
-                          <input type="text" id="card-cvc" placeholder="CVC" maxlength="3" />
-                        </div>
-                      </div>
-                      <div class="form-group">
-                        <label for="card-name">持卡人姓名</label>
-                        <input type="text" id="card-name" placeholder="請輸入持卡人姓名" />
-                      </div>
-                    </form>
-                  </div>
-                </div>
-
                 <div class="payment-method" data-method="line-pay">
                   <div class="payment-method-header">
-                    <input type="radio" name="payment-method" id="line-pay" />
+                    <input type="radio" name="payment-method" id="line-pay"  value="1" checked />
                     <label for="line-pay">LINE Pay</label>
                     <div class="payment-icons">
                       <img src="images/line-pay-logo.png" alt="LINE Pay" class="line-pay-icon" />
@@ -140,10 +106,58 @@
                     </div>
                   </div>
                 </div>
+                <div class="payment-method" data-method="cod-home">
+                  <div class="payment-method-header">
+                    <input type="radio" name="payment-method" id="cod-home" value="2" />
+                    <label for="cod-home">宅配取貨付款</label>
+                  </div>
+                  <div class="payment-method-content">
+                    <div class="line-pay-info">
+                      <p>貨到付款，僅限宅配訂單。</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="payment-method" data-method="cod-cvs">
+                  <div class="payment-method-header">
+                    <input type="radio" name="payment-method" id="cod-cvs" value="3" />
+                    <label for="cod-cvs">超商取貨付款</label>
+                  </div>
+                  <div class="payment-method-content">
+                    <div class="line-pay-info">
+                      <p>取貨時付款，僅限超商取貨訂單。</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 出貨方式選擇（樣式與付款方式一致） -->
+              <div class="shipping-methods">
+                <h3>選擇出貨方式</h3>
+                <div class="shipping-method active" data-method="home-delivery">
+                  <div class="shipping-method-header">
+                    <input type="radio" name="shipping-method" id="home-delivery" value="1" checked />
+                    <label for="home-delivery">賣家宅配</label>
+                  </div>
+                </div>
+                <div class="shipping-method" data-method="cvs-delivery">
+                  <div class="shipping-method-header">
+                    <input type="radio" name="shipping-method" id="cvs-delivery" value="2" />
+                    <label for="cvs-delivery">超商取貨</label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 折扣碼選擇 -->
+              <div class="form-group" id="discount-code-group">
+                <label for="discount-code">折扣碼</label>
+                <select id="discount-code">
+                  <option value="">請選擇折扣碼</option>
+                  <!-- 由JS動態載入會員可用折扣碼 -->
+                </select>
               </div>
 
               <div class="customer-info">
-                <h2>訂購人資訊</h2>
+                <h2>收件人資訊</h2>
                 <form id="customer-form">
                   <div class="form-row">
                     <div class="form-group">
@@ -159,9 +173,13 @@
                     <label for="customer-email">電子郵件</label>
                     <input type="email" id="customer-email" placeholder="請輸入電子郵件" required />
                   </div>
-                  <div class="form-group">
+                  <div class="form-group" id="address-group">
                     <label for="customer-address">地址</label>
                     <input type="text" id="customer-address" placeholder="請輸入地址" required />
+                    <div id="cvs-store-select" style="display:none;">
+                      <button type="button" id="select-cvs-store" class="btn btn-secondary">選擇超商門市</button>
+                      <div id="selected-cvs-store" style="margin-top:8px;color:#388e3c;"></div>
+                    </div>
                   </div>
                   <div class="form-group">
                     <label for="customer-note">備註</label>
@@ -183,13 +201,21 @@
                     <span class="summary-label">商品總計</span>
                     <span id="order-subtotal" class="summary-value">NT$ 0</span>
                   </div>
+                  <div class="summary-row">
+                    <span class="summary-label">折扣</span>
+                    <span id="order-discount" class="summary-value">-NT$ 0</span>
+                  </div>
+                  <div class="summary-row">
+                    <span class="summary-label">運費</span>
+                    <span id="order-shipping" class="summary-value">NT$ 0</span>
+                  </div>
                   <div class="summary-row total">
                     <span class="summary-label">總計</span>
                     <span id="order-total" class="summary-value">NT$ 0</span>
                   </div>
                 </div>
                 <button id="submit-payment" class="btn-submit-payment">確認付款</button>
-                <a href="camp_cart.html" class="btn-back-to-cart">返回購物車</a>
+                <a href="shop_cart.html" class="btn-back-to-cart">返回購物車</a>
               </div>
             </div>
           </div>
@@ -271,6 +297,6 @@
     </footer>
 
     <script src="js/camp_cart.js"></script>
-    <script src="js/checkout.js"></script>
+    <script src="js/shop-checkout.js"></script>
   </body>
 </html>

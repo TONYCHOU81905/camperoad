@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>忘記密碼 - 露途</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/login.css" />
+    <style>
+      /* 忘記密碼頁面特定樣式 */
+      .auth-container {
+        max-width: 450px;
+      }
+      
+      .back-to-login {
+        display: inline-block;
+        margin-top: 20px;
+        color: #3a5a40;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+      }
+      
+      .back-to-login:hover {
+        color: #2d4731;
+        text-decoration: underline;
+      }
+      
+      .back-to-login i {
+        margin-right: 5px;
+      }
+      
+      .auth-subtitle {
+        margin-bottom: 20px;
+      }
+      
+      .auth-description {
+        color: #666;
+        margin-bottom: 30px;
+        font-size: 0.95rem;
+        line-height: 1.5;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container">
+        <div class="logo">
+          <a href="index.html">
+            <img src="images/logo.svg" alt="露途 Logo" />
+          </a>
+        </div>
+        <nav class="main-nav">
+          <ul>
+            <li><a href="campsites.html">營地預訂</a></li>
+            <li><a href="shop.html">裝備商城</a></li>
+            <li><a href="camp-guides.html">論壇攻略</a></li>
+            <li><a href="#">關於我們</a></li>
+          </ul>
+        </nav>
+        <div class="user-actions">
+          <a href="cart.html" class="btn-cart"
+            ><i class="fas fa-shopping-cart"></i
+            ><span class="cart-count">0</span></a
+          >
+          <a href="login.html" class="btn-login">登入 / 註冊</a>
+        </div>
+        <button class="mobile-menu-toggle">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+    </header>
+
+    <section class="auth-section">
+      <div class="container">
+        <div class="auth-container">
+          <div class="auth-logo">
+            <img src="images/logo.svg" alt="露途 Logo" />
+          </div>
+          <h1 class="auth-title">忘記密碼</h1>
+          <p class="auth-subtitle">重設您的密碼</p>
+          <p class="auth-description">
+            請輸入您註冊時使用的電子郵件地址，我們將發送一封含有重設密碼連結的郵件給您。
+          </p>
+
+          <form id="forgotPasswordForm" class="auth-form active">
+            <div class="form-group">
+              <label for="email">電子郵件</label>
+              <div class="input-with-icon">
+                <i class="fas fa-envelope input-icon"></i>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  required
+                  placeholder="請輸入您的電子郵件"
+                  autocomplete="email"
+                />
+              </div>
+            </div>
+            <button type="submit" class="btn-auth">發送重設密碼連結</button>
+            <a href="login.html" class="back-to-login">
+              <i class="fas fa-arrow-left"></i> 返回登入頁面
+            </a>
+          </form>
+        </div>
+
+        <div class="auth-info">
+          <div class="auth-benefits">
+            <h2>忘記密碼說明</h2>
+            <ul>
+              <li><i class="fas fa-check-circle"></i> 輸入您註冊時使用的電子郵件</li>
+              <li>
+                <i class="fas fa-check-circle"></i> 檢查您的收件匣和垃圾郵件資料夾
+              </li>
+              <li><i class="fas fa-check-circle"></i> 點擊郵件中的連結重設密碼</li>
+              <li>
+                <i class="fas fa-check-circle"></i> 設定新密碼後即可重新登入
+              </li>
+              <li>
+                <i class="fas fa-check-circle"></i> 如需協助，請聯繫客服
+              </li>
+            </ul>
+          </div>
+          <div class="auth-image">
+            <img src="images/camp-1.jpg" alt="露營場景" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="site-footer">
+      <div class="container">
+        <div class="footer-content">
+          <div class="footer-logo">
+            <img src="images/logo-white.svg" alt="露途 Logo" />
+            <p>探索自然，體驗野趣</p>
+          </div>
+          <div class="footer-links">
+            <div class="footer-column">
+              <h3>關於我們</h3>
+              <ul>
+                <li><a href="#">公司簡介</a></li>
+                <li><a href="#">服務條款</a></li>
+                <li><a href="#">隱私政策</a></li>
+                <li><a href="#">加入我們</a></li>
+              </ul>
+            </div>
+            <div class="footer-column">
+              <h3>營地資訊</h3>
+              <ul>
+                <li><a href="#">北部營地</a></li>
+                <li><a href="#">中部營地</a></li>
+                <li><a href="#">南部營地</a></li>
+                <li><a href="#">東部營地</a></li>
+              </ul>
+            </div>
+            <div class="footer-column">
+              <h3>商城服務</h3>
+              <ul>
+                <li><a href="#">裝備租借</a></li>
+                <li><a href="#">全新商品</a></li>
+                <li><a href="#">二手市集</a></li>
+                <li><a href="#">配送說明</a></li>
+              </ul>
+            </div>
+            <div class="footer-column">
+              <h3>幫助中心</h3>
+              <ul>
+                <li><a href="#">常見問題</a></li>
+                <li><a href="#">預訂指南</a></li>
+                <li><a href="#">聯絡客服</a></li>
+                <li><a href="#">緊急協助</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <div class="social-links">
+            <a href="#"><i class="fab fa-facebook-f"></i></a>
+            <a href="#"><i class="fab fa-instagram"></i></a>
+            <a href="#"><i class="fab fa-youtube"></i></a>
+            <a href="#"><i class="fab fa-line"></i></a>
+          </div>
+          <p class="copyright">© 2023 露途 All Rights Reserved.</p>
+        </div>
+      </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script src="js/password-reset.js"></script>
+  </body>
+</html>

@@ -224,3 +224,59 @@
     width: 100%;
   }
 }
+
+.product-color-select {
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.product-color-select .label {
+  font-weight: bold;
+}
+
+.color-box:hover,
+.color-box.active {
+  background-color: #3A5A40;
+  color: white;
+  border-color: #3A5A40;
+}
+
+.color-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.color-box.active {
+  background-color: #3A5A40;
+  color: white;
+  border-color: #3A5A40;
+}
+
+.color-box .color-thumbnail {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+/* 折扣商品選項樣式 */
+.discount-option {
+  color: #e57373; /* 柔和的紅色 */
+  font-weight: 500; /* 稍微加粗 */
+}
+
+/* 當選項被選中時保持紅色 */
+#sort option[value="discount"]:checked {
+  color: #e57373;
+  background-color: #fff;
+}

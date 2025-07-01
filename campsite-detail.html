@@ -296,12 +296,13 @@
     </style>
   </head>
   <body>
-    <header class="site-header">
+    <div id="header-container"></div>
+
+    <!-- <header class="site-header">
       <div class="container">
         <div class="logo">
           <a href="index.html">
             <img src="images/logo.svg" alt="露途 Logo" />
-            <span>露途</span>
           </a>
         </div>
         <nav class="main-nav">
@@ -320,7 +321,7 @@
           <a href="user-profile.html" class="btn-login"
             ><i class="fas fa-user"></i
           ></a> -->
-          <a href="user-profile.html" class="btn-login">登入 / 註冊</a>
+    <!-- <a href="user-profile.html" class="btn-login">登入 / 註冊</a>
         </div>
         <div class="campsite-actions">
           <button class="btn-favorite" id="btn-favorite">
@@ -336,7 +337,7 @@
           <span></span>
         </button>
       </div>
-    </header>
+    </header> -->
 
     <main class="campsite-detail">
       <div class="container">
@@ -657,7 +658,8 @@
       </div>
     </main>
 
-    <footer class="site-footer">
+    <div id="footer-container"></div>
+    <!-- <footer class="site-footer">
       <div class="container">
         <div class="footer-content">
           <div class="footer-logo">
@@ -713,7 +715,7 @@
           <p class="copyright">© 2023 露途 All Rights Reserved.</p>
         </div>
       </div>
-    </footer>
+    </footer> -->
 
     <!-- 懸浮聊天室 -->
     <div class="chat-widget">
@@ -748,7 +750,7 @@
         </div>
       </div>
     </div>
-    
+
     <!-- 隱藏的會員ID和營地主ID輸入框 -->
     <input type="hidden" id="memId" value="" />
     <input type="hidden" id="ownerId" value="" />
@@ -761,13 +763,13 @@
     <!-- WebSocket相關庫 -->
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
-    
+
     <script src="js/main.js"></script>
     <script src="js/camp-data.js"></script>
     <script>
       // 立即加載營地資料，不等待 DOMContentLoaded 事件
       console.log("立即加載營地資料");
-      loadCampData().then(data => {
+      loadCampData().then((data) => {
         console.log("營地資料預加載完成:", data.length, "筆資料");
         // 確保 window.campData 已設置
         window.campData = data;
@@ -776,6 +778,7 @@
     <script src="js/campsite-detail.js"></script>
     <script src="js/chat.js"></script>
     <script src="js/cart.js"></script>
+    <script src="js/include.js"></script>
     <link rel="stylesheet" href="css/chat.css" />
   </body>
 </html>

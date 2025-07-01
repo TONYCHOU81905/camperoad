@@ -19,36 +19,8 @@
     <link rel="stylesheet" href="css/login.css" />
   </head>
   <body>
-    <header class="site-header">
-      <div class="container">
-        <div class="logo">
-          <a href="index.html">
-            <img src="images/logo.svg" alt="露途 Logo" />
-            <span>露途</span>
-          </a>
-        </div>
-        <nav class="main-nav">
-          <ul>
-            <li><a href="campsites.html">營地預訂</a></li>
-            <li><a href="shop.html">裝備商城</a></li>
-            <li><a href="camp-guides.html">論壇攻略</a></li>
-            <li><a href="#">關於我們</a></li>
-          </ul>
-        </nav>
-        <div class="user-actions">
-          <a href="cart.html" class="btn-cart"
-            ><i class="fas fa-shopping-cart"></i
-            ><span class="cart-count">0</span></a
-          >
-          <a href="login.html" class="btn-login">登入 / 註冊</a>
-        </div>
-        <button class="mobile-menu-toggle">
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
-      </div>
-    </header>
+    <div id="header-container"></div>
+
 
     <section class="auth-section">
       <div class="container">
@@ -98,15 +70,15 @@
                 class="role-form active"
               >
                 <div class="form-group">
-                  <label for="camper-id">會員ID</label>
+                  <label for="camper-id">露營者帳號</label>
                   <div class="input-with-icon">
                     <i class="fas fa-user input-icon"></i>
                     <input
                       type="text"
                       id="camper-id"
-                      name="mem_id"
+                      name="mem_acc"
                       required
-                      placeholder="請輸入會員ID"
+                      placeholder="請輸入露營者帳號"
                       autocomplete="username"
                     />
                   </div>
@@ -127,7 +99,7 @@
                       <i class="fas fa-eye"></i>
                     </button>
                   </div>
-                  <a href="#" class="forgot-password">忘記密碼？</a>
+                  <a href="enter-mailbox.html" class="forgot-password">忘記密碼？</a>
                 </div>
                 <div class="form-group remember-me">
                   <label class="checkbox-label">
@@ -182,7 +154,7 @@
                       <i class="fas fa-eye"></i>
                     </button>
                   </div>
-                  <a href="#" class="forgot-password">忘記密碼？</a>
+                  <a href="enter-mailbox.html" class="forgot-password">忘記密碼？</a>
                 </div>
                 <div class="form-group remember-me">
                   <label class="checkbox-label">
@@ -237,7 +209,7 @@
                       <i class="fas fa-eye"></i>
                     </button>
                   </div>
-                  <a href="#" class="forgot-password">忘記密碼？</a>
+                  <a href="enter-mailbox.html" class="forgot-password">忘記密碼？</a>
                 </div>
                 <div class="form-group remember-me">
                   <label class="checkbox-label">
@@ -301,42 +273,16 @@
                 class="role-form active"
               >
                 <div class="form-group">
-                  <label for="camper-register-name">姓名</label>
+                  <label for="camper-register-account">帳號</label>
                   <div class="input-with-icon">
                     <i class="fas fa-user input-icon"></i>
                     <input
-                      type="text"
-                      id="camper-register-name"
-                      name="name"
-                      required
-                      placeholder="請輸入您的姓名"
-                    />
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label for="camper-register-email">電子郵件</label>
-                  <div class="input-with-icon">
-                    <i class="fas fa-envelope input-icon"></i>
-                    <input
                       type="email"
-                      id="camper-register-email"
-                      name="email"
+                      id="camper-register-account"
+                      name="mem_acc"
                       required
-                      placeholder="請輸入您的電子郵件"
+                      placeholder="信箱日後不可更改，信箱即為會員帳號"
                       autocomplete="email"
-                    />
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label for="camper-register-phone">手機號碼</label>
-                  <div class="input-with-icon">
-                    <i class="fas fa-phone input-icon"></i>
-                    <input
-                      type="tel"
-                      id="camper-register-phone"
-                      name="phone"
-                      required
-                      placeholder="請輸入您的手機號碼"
                     />
                   </div>
                 </div>
@@ -347,7 +293,7 @@
                     <input
                       type="password"
                       id="camper-register-password"
-                      name="password"
+                      name="mem_pwd"
                       required
                       placeholder="請設定6-20位密碼"
                       autocomplete="new-password"
@@ -378,6 +324,114 @@
                     <button type="button" class="toggle-password">
                       <i class="fas fa-eye"></i>
                     </button>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="camper-register-name">姓名</label>
+                  <div class="input-with-icon">
+                    <i class="fas fa-user input-icon"></i>
+                    <input
+                      type="text"
+                      id="camper-register-name"
+                      name="mem_name"
+                      required
+                      placeholder="請輸入您的姓名"
+                    />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>性別</label>
+                  <div class="radio-group">
+                    <label class="radio-label">
+                      <input type="radio" name="mem_gender" value="1" required />
+                      <span>男生</span>
+                    </label>
+                    <label class="radio-label">
+                      <input type="radio" name="mem_gender" value="2" required />
+                      <span>女生</span>
+                    </label>
+                    <label class="radio-label">
+                      <input type="radio" name="mem_gender" value="3" required />
+                      <span>其他</span>
+                    </label>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="camper-register-email">信箱</label>
+                  <div class="input-with-icon">
+                    <i class="fas fa-envelope input-icon"></i>
+                    <input
+                      type="email"
+                      id="camper-register-email"
+                      name="mem_email"
+                      required
+                      placeholder="請輸入與會員帳號相同"
+                      autocomplete="email"
+                    />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="camper-register-phone">手機</label>
+                  <div class="input-with-icon">
+                    <i class="fas fa-phone input-icon"></i>
+                    <input
+                      type="tel"
+                      id="camper-register-phone"
+                      name="mem_mobile"
+                      required
+                      placeholder="格式如0911-123-456"
+                    />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="camper-register-address">地址</label>
+                  <div class="input-with-icon">
+                    <i class="fas fa-map-marker-alt input-icon"></i>
+                    <input
+                      type="text"
+                      id="camper-register-address"
+                      name="mem_addr"
+                      required
+                      placeholder="請輸入您的地址"
+                    />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>國籍</label>
+                  <div class="radio-group">
+                    <label class="radio-label">
+                      <input type="radio" name="mem_nation" value="0" required />
+                      <span>本國籍</span>
+                    </label>
+                    <label class="radio-label">
+                      <input type="radio" name="mem_nation" value="1" required />
+                      <span>非本國籍</span>
+                    </label>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="camper-register-id">身分證</label>
+                  <div class="input-with-icon">
+                    <i class="fas fa-id-card input-icon"></i>
+                    <input
+                      type="text"
+                      id="camper-register-id"
+                      name="mem_nation_id"
+                      required
+                      placeholder="非本國籍請輸入護照號碼"
+                    />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="camper-register-birth">生日</label>
+                  <div class="input-with-icon">
+                    <i class="fas fa-calendar-alt input-icon"></i>
+                    <input
+                      type="date"
+                      id="camper-register-birth"
+                      name="mem_birth"
+                      required
+                    />
                   </div>
                 </div>
                 <div class="form-group terms-agree">
@@ -564,67 +618,13 @@
       </div>
     </section>
 
-    <footer class="site-footer">
-      <div class="container">
-        <div class="footer-content">
-          <div class="footer-logo">
-            <img src="images/logo-white.svg" alt="露途 Logo" />
-            <p>探索自然，體驗野趣</p>
-          </div>
-          <div class="footer-links">
-            <div class="footer-column">
-              <h3>關於我們</h3>
-              <ul>
-                <li><a href="#">公司簡介</a></li>
-                <li><a href="#">服務條款</a></li>
-                <li><a href="#">隱私政策</a></li>
-                <li><a href="#">加入我們</a></li>
-              </ul>
-            </div>
-            <div class="footer-column">
-              <h3>營地資訊</h3>
-              <ul>
-                <li><a href="#">北部營地</a></li>
-                <li><a href="#">中部營地</a></li>
-                <li><a href="#">南部營地</a></li>
-                <li><a href="#">東部營地</a></li>
-              </ul>
-            </div>
-            <div class="footer-column">
-              <h3>商城服務</h3>
-              <ul>
-                <li><a href="#">裝備租借</a></li>
-                <li><a href="#">全新商品</a></li>
-                <li><a href="#">二手市集</a></li>
-                <li><a href="#">配送說明</a></li>
-              </ul>
-            </div>
-            <div class="footer-column">
-              <h3>幫助中心</h3>
-              <ul>
-                <li><a href="#">常見問題</a></li>
-                <li><a href="#">預訂指南</a></li>
-                <li><a href="#">聯絡客服</a></li>
-                <li><a href="#">緊急協助</a></li>
-              </ul>
-            </div>
-          </div>
-        </div>
-        <div class="footer-bottom">
-          <div class="social-links">
-            <a href="#"><i class="fab fa-facebook-f"></i></a>
-            <a href="#"><i class="fab fa-instagram"></i></a>
-            <a href="#"><i class="fab fa-youtube"></i></a>
-            <a href="#"><i class="fab fa-line"></i></a>
-          </div>
-          <p class="copyright">© 2023 露途 All Rights Reserved.</p>
-        </div>
-      </div>
-    </footer>
+    <div id="footer-container"></div>
 
     <script src="js/main.js"></script>
     <script src="js/camp-data.js"></script>
     <script src="js/login.js"></script>
+    <script src="js/header-auth.js"></script>
+    <script src="js/include.js"></script>
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         // 切換登入/註冊頁籤

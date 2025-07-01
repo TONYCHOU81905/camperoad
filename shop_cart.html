@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>商品購物車 - 露途</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/role-system.css" />
+    <link rel="stylesheet" href="css/cart-page.css" />
+    <link rel="stylesheet" href="css/shop_cart.css" />
+  </head>
+
+  <body>
+    <div id="header-container"></div>
+
+    <div class="breadcrumb">
+      <div class="container">
+        <ul>
+          <li><a href="index.html">首頁</a></li>
+          <li><a href="shop.html">裝備商城</a></li>
+          <li>購物車</li>
+        </ul>
+      </div>
+    </div>
+
+    <section class="cart-section">
+      <div class="container">
+        <h1 class="section-title">商品購物車</h1>
+
+        <div class="cart-container">
+          <div class="cart-header">
+            <h1>購物車</h1>
+          </div>
+          
+          <!-- 購物車為空時顯示 -->
+          <div id="cart-empty" class="cart-empty">
+            <i class="fas fa-shopping-cart"></i>
+            <p>您的購物車是空的</p>
+            <a href="shop.html" class="btn-continue-shopping">繼續購物</a>
+          </div>
+          
+          <!-- 購物車項目 -->
+          <div id="cart-items-container" class="cart-items-container">
+            <!-- 購物車項目將由JavaScript動態生成 -->
+          </div>
+          
+          <!-- 訂單摘要 -->
+          <div id="order-summary" class="order-summary">
+            <h2>訂單摘要</h2>
+            <div class="summary-row">
+              <span class="summary-label">商品總計</span>
+              <span id="cart-subtotal" class="summary-value">NT$ 0</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">運費</span>
+              <span class="shipping-fee">NT$ 0</span>
+            </div>
+
+            <div class="summary-row total">
+              <span class="summary-label">總計</span>
+              <span id="cart-total" class="summary-value">NT$ 0</span>
+            </div>
+            <div class="cart-actions">
+              <button id="checkout-btn" class="btn-checkout" disabled>前往結帳</button>
+              <button id="clear-cart-btn" class="btn-clear-cart">清空購物車</button>
+              <a href="shop.html" class="btn-continue-shopping">繼續購物</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div id="footer-container"></div>
+
+    <!-- <script src="js/main.js"></script> -->
+    <script src="js/header-auth.js"></script>
+    <script src="js/shop_cart.js"></script>
+    <script src="js/include.js"></script>
+  </body>
+</html>
