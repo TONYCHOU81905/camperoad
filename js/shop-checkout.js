@@ -38,25 +38,18 @@ class CheckoutManager {
     }
     // 折扣碼下拉選單載入（先查會員擁有，再查全部折扣碼，前端比對）
     try {
-      // 1. 取得會員擁有的折扣碼ID
-      const userDiscountResp = await fetch(`http://localhost:8081/CJA101G02/api/userdiscount/search/${memId}`);
-      const userDiscountData = await userDiscountResp.json();
-      console.log('userDiscountData', userDiscountData);
-      const userDiscountIds = Array.isArray(userDiscountData) ? userDiscountData.map(d => d.id.discountCodeId) : [];
-      // 2. 取得所有折扣碼詳細資料  
-      const discountResp = await fetch('http://localhost:8081/CJA101G02/api/discount');
+      // 取得所有折扣碼詳細資料  
+      const discountResp = await fetch('http://localhost:8081/CJA101G02/api/discount/all');
       const discountData = await discountResp.json();
       console.log('discountData', discountData);
       this.allDiscounts = Array.isArray(discountData) ? discountData : [];
-      // 3. 過濾出會員可用的折扣碼詳細資料
-      const userDiscounts = this.allDiscounts.filter(d => userDiscountIds.includes(d.discountCodeId));
-      // 4. 渲染下拉選單
+      // 直接渲染所有折扣碼到下拉選單
       const select = document.getElementById('discount-code');
       if (select) {
         select.innerHTML = '<option value="">請選擇折扣碼</option>' +
-          userDiscounts.map(d =>
-            `<option value="${d.discountCodeId}" data-type="${d.discountType}" data-value="${d.discountValue}">
-              ${d.discountCode}（${d.discountExplain}）
+          this.allDiscounts.map(d =>
+            `<option value="${d.discountCodeId}" data-value="${d.discountValue}">
+              ${d.discountCode}（${d.discountCodeId}）
             </option>`
           ).join('');
         // 折扣碼選擇時即時更新訂單摘要
