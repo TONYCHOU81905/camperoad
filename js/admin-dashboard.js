@@ -943,7 +943,7 @@ function loadOrderManagement() {
     tableRows += `
       <tr>
         <td>${order.shopOrderId}</td>
-        <td style="min-width: 150px;">${order.orderName}</td>
+        <td style="min-width: 150px;">${order.memId}</td>
         <td>${orderDate}</td>
         <td style="min-width: 150px;">NT$ ${order.afterDiscountAmount}</td>
         <td><span class="status-badge ${statusClass}">${statusText}</span></td>
@@ -995,7 +995,7 @@ function loadOrderManagement() {
         <thead>
           <tr>
             <th>訂單編號</th>
-            <th style="min-width: 150px;">會員姓名</th>
+            <th style="min-width: 150px;">會員編號</th>
             <th>訂單日期</th>
             <th style="min-width: 150px;">訂單金額</th>
             <th>訂單狀態</th>
@@ -1265,7 +1265,7 @@ function updateShopOrdersTable(orders, pageNumber = 1) {
     tableRows += `
       <tr>
         <td>${order.shopOrderId}</td>
-        <td style="min-width: 150px;">${order.orderName}</td>
+        <td style="min-width: 150px;">${order.memId}</td>
         <td>${orderDate}</td>
         <td style="min-width: 150px;">NT$ ${order.afterDiscountAmount}</td>
         <td><span class="status-badge ${statusClass}">${statusText}</span></td>
@@ -1714,6 +1714,10 @@ function viewShopOrderDetails(orderId) {
             <span class="info-value">${order.shopOrderId}</span>
           </div>
           <div class="info-item">
+            <span class="info-label">會員編號:</span>
+            <span class="info-value">${order.memId}</span>
+          </div>
+          <div class="info-item">
             <span class="info-label">訂單日期:</span>
             <span class="info-value">${orderDate}</span>
           </div>
@@ -1739,7 +1743,7 @@ function viewShopOrderDetails(orderId) {
           </div>
           <div class="info-item">
             <span class="info-label">出貨日期:</span>
-            <span class="info-value">${order.shopOrderShipDate ? new Date(order.shopOrderShipDate).toISOString().split('T')[0] : ''}</span>
+            <span class="info-value">${order.shopOrderShipDate ? formatDateOnly(order.shopOrderShipDate) : ''}</span>
           </div>
         </div>
       </div>
@@ -1868,7 +1872,7 @@ function viewProductComment(productId, orderId) {
       </div>
       
       <div class="comment-content">
-        <h4>${orderDetail.productName}</h4>
+        <h4>${orderDetail.prodName}</h4>
         
         <div class="comment-info">
           <div class="rating">
@@ -2934,6 +2938,8 @@ function showEditShopOrderModal(orderId) {
   const canEditBasicFields = order.shopOrderStatus === 0; // 只有狀態0可以編輯基本欄位
   const canEditStatus = true; // 永遠可以修改訂單狀態
   const canEditReturnApply = order.shopOrderStatus === 3; // 只有狀態3可以編輯退貨申請
+  // 根據後端邏輯：出貨日期在訂單狀態為3、4、5時才無法編輯，其他時間都可以編輯
+  const canEditShipDate = ![3, 4, 5].includes(order.shopOrderStatus);
 
   // 建立 modal
   const modal = document.createElement('div');
@@ -3006,8 +3012,8 @@ function showEditShopOrderModal(orderId) {
         </div>
         <div class="form-group">
           <label>出貨日期</label>
-          <input type="date" id="edit-order-shipdate" value="${order.shopOrderShipDate ? order.shopOrderShipDate.split('T')[0] : ''}" ${canEditBasicFields ? '' : 'disabled'} />
-          ${!canEditBasicFields ? '<small style="color: #666;">只有等待賣家確認中的訂單才能修改此欄位</small>' : ''}
+          <input type="date" id="edit-order-shipdate" value="${order.shopOrderShipDate ? order.shopOrderShipDate.split('T')[0] : ''}" ${canEditShipDate ? '' : 'disabled'} />
+          ${!canEditShipDate ? '<small style="color: #666;">訂單狀態為已取貨完成、未取貨退回或已取消時無法修改出貨日期</small>' : ''}
         </div>
         <div class="form-group">
           <label>折扣碼ID</label>
@@ -3079,8 +3085,12 @@ async function submitEditShopOrder(orderId) {
     payload.orderEmail = document.getElementById('edit-order-email').value || null;
     payload.orderShippingAddress = document.getElementById('edit-order-address').value || null;
     payload.shopOrderNote = document.getElementById('edit-order-note').value || null;
-    payload.shopOrderShipDate = parseDateTime(shipDateVal);
     payload.discountCodeId = document.getElementById('edit-discount-code-id').value || null;
+  }
+
+  // 根據後端邏輯：出貨日期在訂單狀態為3、4、5時才無法編輯，其他時間都可以編輯
+  if (![3, 4, 5].includes(order.shopOrderStatus)) {
+    payload.shopOrderShipDate = parseDateTime(shipDateVal);
   }
 
   // 狀態為3時，允許修改退貨申請
@@ -3263,4 +3273,11 @@ function formatDateTime(dt) {
   const hh = String(d.getHours()).padStart(2, '0');
   const min = String(d.getMinutes()).padStart(2, '0');
   return `${yyyy}-${mm}-${dd} ${hh}:${min}`;
+}
+
+// 格式化日期（只包含日期部分）
+function formatDateOnly(dateStr) {
+  if (!dateStr) return '';
+  const [datePart, timePart] = dateStr.split('T');
+  return datePart;
 }

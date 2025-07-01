@@ -73,6 +73,36 @@ async function handleLogin(e) {
 
     showMessage("登入成功！", "success");
 
+    // 登入成功後合併未登入時的購物車資料
+    try {
+      const sessionCart = sessionStorage.getItem('sessionCart');
+      if (sessionCart) {
+        const guestCartList = JSON.parse(sessionCart);
+        if (guestCartList.length > 0) {
+          fetch('http://localhost:8081/CJA101G02/api/mergeCart', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              memId: member.mem_id,
+              guestCartList: guestCartList
+            })
+          })
+          .then(res => res.json())
+          .then(data => {
+            // 合併成功後清空 sessionStorage
+            sessionStorage.removeItem('sessionCart');
+            // 可選：更新前端購物車顯示
+            if (window.globalCartManager) window.globalCartManager.updateCartCount();
+          })
+          .catch(err => {
+            console.error('購物車合併失敗:', err);
+          });
+        }
+      }
+    } catch (err) {
+      console.error('購物車合併失敗:', err);
+    }
+
     // 延遲跳轉到首頁
     setTimeout(() => {
       window.location.href = "index.html";
