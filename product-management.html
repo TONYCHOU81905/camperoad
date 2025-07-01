@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>商品管理 - 露營趣</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/admin-dashboard.css" />
+    <link rel="stylesheet" href="css/product-management.css"> 
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <!-- Header -->
+    <header class="site-header">
+      <div class="container">
+        <div class="header-content">
+          <div class="logo">
+            <img src="images/logo.svg" alt="露營趣 Logo" />
+            <span>露營趣 - 商品管理</span>
+          </div>
+          <div class="user-actions" style="position: absolute; right: 20px; display: flex; align-items: center; gap: 10px;">
+            <span id="adminName">管理員</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Dashboard Container -->
+    <div class="dashboard-container">
+      <!-- Sidebar Toggle Button -->
+      <button id="sidebarToggle" class="sidebar-toggle">
+        <i class="fas fa-chevron-left" id="toggleIcon"></i>
+      </button>
+      
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <nav class="sidebar-nav">
+          <ul>
+            <li>
+              <a
+                href="admin-dashboard.html?section=account-management"
+                class="nav-link"
+                data-title="帳號管理"
+                ><i class="fas fa-users"></i> <span>帳號管理</span></a
+              >
+            </li>
+            <li>
+              <a
+                href="product-management.html"
+                class="nav-link active"
+                data-title="商品管理"
+                ><i class="fas fa-box"></i> <span>商品管理</span></a
+              >
+            </li>
+            <li>
+              <a
+                href="admin-dashboard.html?section=order-management"
+                class="nav-link"
+                data-title="商品訂單管理"
+                ><i class="fas fa-shopping-cart"></i> <span>商品訂單管理</span></a
+              >
+            </li>
+            <li>
+              <a
+                href="admin-dashboard.html?section=campsite-orders"
+                class="nav-link"
+                data-title="營地訂單管理"
+                ><i class="fas fa-clipboard-list"></i> <span>營地訂單管理</span></a
+              >
+            </li>
+            <li>
+              <a
+                href="admin-dashboard.html?section=customer-service"
+                class="nav-link"
+                data-title="客服管理"
+                ><i class="fas fa-headset"></i> <span>客服管理</span></a
+              >
+            </li>
+            <li>
+              <a
+                href="admin-dashboard.html?section=forum-management"
+                class="nav-link"
+                data-title="論壇管理"
+                ><i class="fas fa-comments"></i> <span>論壇管理</span></a
+              >
+            </li>
+            <li>
+              <a
+                href="admin-dashboard.html?section=discount-management"
+                class="nav-link"
+                data-title="折價券管理"
+                ><i class="fas fa-tags"></i> <span>折價券管理</span></a
+              >
+            </li>
+            <li>
+              <a href="#" onclick="logout()" 
+                  class="nav-link logout"
+                  data-title="登出"
+                ><i class="fas fa-sign-out-alt"></i> <span>登出</span></a
+              >
+            </li>
+          </ul>
+        </nav>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <div class="content-section active">
+          <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <h2><i class="fas fa-box"></i> 商品管理</h2>
+            <p style="margin: 0;">管理所有商品信息及庫存</p>
+          </div>
+          
+          <div class="action-bar">
+            <button class="action-btn btn-add" onclick="showAddProductModal()"><i class="fas fa-plus"></i> 添加新商品</button>
+            <div class="search-box">
+              <input type="text" id="product-search" placeholder="搜索商品..." onkeyup="searchProducts()">
+              <i class="fas fa-search"></i>
+            </div>
+          </div>
+          
+          <div id="product-management-content">
+            <!-- 動態加載商品管理內容 -->
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="js/product-management.js"></script>
+    <script src="js/camp-data.js"></script>
+    <script>
+    // 檢查管理員身份驗證
+    function checkAdminAuth() {
+      const adminData =
+        localStorage.getItem("currentAdmin") ||
+        sessionStorage.getItem("currentAdmin");
+    
+      if (!adminData) {
+        alert("請先登入管理員帳號");
+        window.location.href = "login.html";
+        return;
+      }
+    
+      currentAdmin = JSON.parse(adminData);
+      document.getElementById("adminName").textContent = currentAdmin.admin_name;
+    }
+    
+    // 登出功能
+    function logout() {
+      if (confirm('確定要登出嗎？')) {
+        // 清除存儲的管理員資訊
+        localStorage.removeItem("currentAdmin");
+        sessionStorage.removeItem("currentAdmin");
+        window.location.href = 'login.html';
+      }
+    }
+    </script>
+    <script>
+      // 頁面載入時初始化
+      document.addEventListener("DOMContentLoaded", function() {
+        // 檢查管理員身份驗證
+        checkAdminAuth();
+        
+        // 確保商品數據載入 - 不使用 setTimeout，直接調用
+        console.log("調用 loadProductsData 函數...");
+        loadProductsData().catch(err => {
+          console.error("載入商品數據時發生錯誤:", err);
+          alert("載入商品數據失敗，請重新整理頁面");
+        });
+        
+        // 側邊欄切換功能
+        document.getElementById('sidebarToggle').addEventListener('click', function() {
+          const sidebar = document.querySelector('.sidebar');
+          const mainContent = document.querySelector('.main-content');
+          const toggleIcon = document.getElementById('toggleIcon');
+          const sidebarToggle = document.querySelector('.sidebar-toggle');
+          
+          sidebar.classList.toggle('collapsed');
+          mainContent.classList.toggle('expanded');
+          sidebarToggle.classList.toggle('collapsed');
+          
+          if (sidebar.classList.contains('collapsed')) {
+            toggleIcon.classList.remove('fa-chevron-left');
+            toggleIcon.classList.add('fa-chevron-right');
+          } else {
+            toggleIcon.classList.remove('fa-chevron-right');
+            toggleIcon.classList.add('fa-chevron-left');
+          }
+        });
+      });
+      
+      // 登出功能
+      function logout() {
+        if (confirm('確定要登出嗎？')) {
+          // 清除存儲的管理員資訊
+          localStorage.removeItem("currentAdmin");
+          sessionStorage.removeItem("currentAdmin");
+          window.location.href = 'login.html';
+        }
+      }
+    </script>
+  </body>
+</html>

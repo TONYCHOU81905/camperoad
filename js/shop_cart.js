@@ -1,3 +1,48 @@
+// Session Cart 管理工具
+const sessionCartManager = {
+  getCart: function() {
+    const cart = sessionStorage.getItem('sessionCart');
+    return cart ? JSON.parse(cart) : [];
+  },
+  saveCart: function(cart) {
+    sessionStorage.setItem('sessionCart', JSON.stringify(cart));
+  },
+  addToCart: function(item) {
+    const cart = this.getCart();
+    const exist = cart.find(c =>
+      c.prodId === item.prodId &&
+      c.prodColorId === item.prodColorId &&
+      c.prodSpecId === item.prodSpecId
+    );
+    if (exist) {
+      exist.cartProdQty += item.cartProdQty;
+    } else {
+      cart.push(item);
+    }
+    this.saveCart(cart);
+  },
+  updateItem: function(prodId, prodColorId, prodSpecId, qty) {
+    let cart = this.getCart();
+    const existIndex = cart.findIndex(c => c.prodId === prodId);
+    if (existIndex !== -1) {
+      cart[existIndex].prodColorId = prodColorId;
+      cart[existIndex].prodSpecId = prodSpecId;
+      cart[existIndex].cartProdQty = qty;
+      this.saveCart(cart);
+    }
+  },
+  removeItem: function(prodId, prodColorId, prodSpecId) {
+    let cart = this.getCart();
+    cart = cart.filter(c =>
+      !(c.prodId === prodId && c.prodColorId === prodColorId && c.prodSpecId === prodSpecId)
+    );
+    this.saveCart(cart);
+  },
+  clearCart: function() {
+    sessionStorage.removeItem('sessionCart');
+  }
+};
+
 // 商品購物車頁面功能
 document.addEventListener('DOMContentLoaded', function() {
   // 初始化購物車頁面
@@ -43,57 +88,89 @@ async function initCartPage() {
   }
 }
 
-// 從API獲取購物車數據
+// 從API或sessionStorage獲取購物車數據
 async function fetchCartData() {
   try {
-    // 假設登入測試
-    let memId = 10000007;
-    localStorage.setItem('memberInfo', JSON.stringify({ memId }));
-
     // 取得會員ID
-    function getMemberId() {
-      const memberInfo = localStorage.getItem('memberInfo');
-      return memberInfo ? JSON.parse(memberInfo).memId : null;
-    }
-    
-    console.log('獲取購物車數據，會員ID:', memId);
-    
-    const response = await fetch(`http://localhost:8081/CJA101G02/api/getCart?memId=${memId}`);
-    if (!response.ok) {
-      throw new Error(`網路回應不正常: ${response.status} ${response.statusText}`);
-    }
-    const data = await response.json();
-    
-    console.log('購物車API回應:', data);
-    
-    if (data.status === 'success' && data.data) {
-      const cartItems = data.data;
-      const totalItems = cartItems.reduce((sum, item) => sum + item.cartProdQty, 0);
-      const subtotal = cartItems.reduce((sum, item) => sum + (item.prodPrice * item.cartProdQty), 0);
-      
-      console.log('購物車項目數量:', cartItems.length, '總數量:', totalItems, '小計:', subtotal);
-      
+    const memberInfo = sessionStorage.getItem('currentMember');
+    const member = memberInfo ? JSON.parse(memberInfo) : null;
+    const memId = member ? member.memId : null;
+    console.log('取得會員ID:', memId);
+
+    if (memId) {
+      // 已登入使用者，從 API 獲取資料
+      const response = await fetch(`http://localhost:8081/CJA101G02/api/getCart?memId=${memId}`);
+      if (!response.ok) {
+        throw new Error(`網路回應不正常: ${response.status} ${response.statusText}`);
+      }
+      const data = await response.json();
+      if (data.status === 'success' && data.data) {
+        const cartItems = data.data;
+        const totalItems = cartItems.reduce((sum, item) => sum + item.cartProdQty, 0);
+        const subtotal = cartItems.reduce((sum, item) => sum + (item.prodPrice * item.cartProdQty), 0);
+        console.log('送出API資料', { memId, data });
+        return {
+          items: cartItems,
+          totalItems: totalItems,
+          summary: {
+            subtotal: subtotal,
+            shipping: 0,
+            discount: 0,
+            total: subtotal
+          }
+        };
+      } else {
+        // 沒有資料，返回空的購物車
+        return {
+          items: [],
+          totalItems: 0,
+          summary: {
+            subtotal: 0,
+            shipping: 0,
+            discount: 0,
+            total: 0
+          }
+        };
+      }
+    } else {
+      // 未登入使用者，從 sessionStorage 獲取資料，並補全商品資訊
+      const cartItems = sessionCartManager.getCart();
+      // 依序補全每個商品的詳細資訊
+      const enrichedItems = await Promise.all(cartItems.map(async (item) => {
+        try {
+          const response = await fetch(`http://localhost:8081/CJA101G02/api/products/${item.prodId}`);
+          if (response.ok) {
+            const data = await response.json();
+            if (data.status === 'success' && data.data) {
+              const product = data.data;
+              // 找到對應的顏色與規格
+              const colorInfo = (product.prodColorList || []).find(c => c.prodColorId === item.prodColorId);
+              const specInfo = (product.prodSpecList || []).find(s => s.prodSpecId === item.prodSpecId);
+              return {
+                ...item,
+                prodName: product.prodName,
+                prodPrice: specInfo ? specInfo.prodSpecPrice : product.prodPrice,
+                colorName: colorInfo ? colorInfo.colorName : '',
+                specName: specInfo ? specInfo.prodSpecName : '',
+                prodImage: product.prodImage
+              };
+            }
+          }
+        } catch (e) {}
+        // 若查詢失敗，回傳原本資料
+        return { ...item, prodName: '', prodPrice: 0, colorName: '', specName: '', prodImage: '' };
+      }));
+      const totalItems = enrichedItems.reduce((sum, item) => sum + item.cartProdQty, 0);
+      const subtotal = enrichedItems.reduce((sum, item) => sum + (item.prodPrice ? item.prodPrice * item.cartProdQty : 0), 0);
+      console.log('送出API資料', { memId: null, enrichedItems });
       return {
-        items: cartItems,
+        items: enrichedItems,
         totalItems: totalItems,
         summary: {
           subtotal: subtotal,
-          shipping: 0, // 運費計算邏輯可以根據需求調整
-          discount: 0,
-          total: subtotal
-        }
-      };
-    } else {
-      console.log('購物車為空或API回應異常:', data);
-      // 如果沒有資料，返回空的購物車
-      return {
-        items: [],
-        totalItems: 0,
-        summary: {
-          subtotal: 0,
           shipping: 0,
           discount: 0,
-          total: 0
+          total: subtotal
         }
       };
     }
@@ -278,7 +355,7 @@ function bindCartItemEvents() {
   });
 }
 
-// 更新購物車項目（顏色/規格/數量）
+// 修改 updateCartItem，未登入時用 sessionCartManager
 async function updateCartItem(cartItem) {
   const prodId = parseInt(cartItem.dataset.id);
   const oldProdColorId = parseInt(cartItem.dataset.oldColorId);
@@ -286,116 +363,122 @@ async function updateCartItem(cartItem) {
   const prodColorId = parseInt(cartItem.querySelector('.color-select').value);
   const prodSpecId = parseInt(cartItem.querySelector('.spec-select').value);
   const quantity = parseInt(cartItem.querySelector('.quantity-selector input').value);
-  const memberInfo = localStorage.getItem('memberInfo');
-  const memId = memberInfo ? JSON.parse(memberInfo).memId : null;
+  const memberInfo = sessionStorage.getItem('currentMember');
+  const member = memberInfo ? JSON.parse(memberInfo) : null;
+  const memId = member ? member.memId : null;
+  console.log('取得會員ID:', memId);
 
-  try {
-    const response = await fetch('http://localhost:8081/CJA101G02/api/updateCart', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        memId, prodId,
-        oldProdColorId, oldProdSpecId,
-        prodColorId, prodSpecId,
-        cartProdQty: quantity
-      })
-    });
-    if (!response.ok) throw new Error('網路回應不正常');
-    const data = await response.json();
-    if (data.status === 'success') {
-      await initCartPage();
-    } else {
-      alert('更新失敗');
+  if (memId) {
+    // ...原本已登入API邏輯...
+    try {
+      const response = await fetch('http://localhost:8081/CJA101G02/api/updateCart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          memId, prodId,
+          oldProdColorId, oldProdSpecId,
+          prodColorId, prodSpecId,
+          cartProdQty: quantity
+        })
+      });
+      if (!response.ok) throw new Error('網路回應不正常');
+      const data = await response.json();
+      if (data.status === 'success') {
+        await initCartPage();
+      } else {
+        alert('更新失敗');
+      }
+    } catch (error) {
+      alert('更新失敗，請稍後再試');
     }
-  } catch (error) {
-    alert('更新失敗，請稍後再試');
+  } else {
+    // 未登入，直接操作 sessionStorage，傳入新選擇的顏色/規格
+    sessionCartManager.updateItem(prodId, prodColorId, prodSpecId, quantity);
+    await initCartPage();
   }
 }
 
-// 移除購物車項目
+// 修改 removeCartItem，未登入時用 sessionCartManager
 async function removeCartItem(cartItem) {
   if (!confirm('確定要移除這個商品嗎？')) {
     return;
   }
-  
   const prodId = parseInt(cartItem.dataset.id);
-  // 使用當前選擇的顏色和規格值，而不是舊的 dataset 值
   const prodColorId = parseInt(cartItem.querySelector('.color-select').value);
   const prodSpecId = parseInt(cartItem.querySelector('.spec-select').value);
-  
-  // 取得會員ID
-  const memberInfo = localStorage.getItem('memberInfo');
-  const memId = memberInfo ? JSON.parse(memberInfo).memId : null;
-  
-  console.log('移除購物車項目:', {
-    memId, prodId, prodColorId, prodSpecId
-  });
-  
-  try {
-    const response = await fetch('http://localhost:8081/CJA101G02/api/removeCart', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        memId: memId,
-        prodId: prodId,
-        prodColorId: prodColorId,
-        prodSpecId: prodSpecId
-      })
-    });
-    
-    if (!response.ok) {
-      throw new Error('網路回應不正常');
+  const memberInfo = sessionStorage.getItem('currentMember');
+  const member = memberInfo ? JSON.parse(memberInfo) : null;
+  const memId = member ? member.memId : null;
+  console.log('取得會員ID:', memId);
+
+  if (memId) {
+    // ...原本已登入API邏輯...
+    try {
+      const response = await fetch('http://localhost:8081/CJA101G02/api/removeCart', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          memId: memId,
+          prodId: prodId,
+          prodColorId: prodColorId,
+          prodSpecId: prodSpecId
+        })
+      });
+      if (!response.ok) {
+        throw new Error('網路回應不正常');
+      }
+      const data = await response.json();
+      if (data.status === 'success') {
+        await initCartPage();
+      } else {
+        alert('移除商品失敗');
+      }
+    } catch (error) {
+      alert('移除商品失敗，請稍後再試');
     }
-    
-    const data = await response.json();
-    console.log('移除購物車回應:', data);
-    
-    if (data.status === 'success') {
-      // 重新載入購物車資料
-      await initCartPage();
-    } else {
-      alert('移除商品失敗');
-    }
-  } catch (error) {
-    console.error('移除商品失敗:', error);
-    alert('移除商品失敗，請稍後再試');
+  } else {
+    // 未登入，直接操作 sessionStorage
+    sessionCartManager.removeItem(prodId, prodColorId, prodSpecId);
+    await initCartPage();
   }
 }
 
-// 清空購物車
+// 修改 clearCart，未登入時用 sessionCartManager
 async function clearCart() {
   if (!confirm('確定要清空購物車嗎？此操作無法復原。')) {
     return;
   }
-
-  // 取得會員ID
-  const memberInfo = localStorage.getItem('memberInfo');
-  const memId = memberInfo ? JSON.parse(memberInfo).memId : null;
-
-  try {
-    const response = await fetch(`http://localhost:8081/CJA101G02/api/clearCart?memId=${memId || ''}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
+  const memberInfo = sessionStorage.getItem('currentMember');
+  const member = memberInfo ? JSON.parse(memberInfo) : null;
+  const memId = member ? member.memId : null;
+  console.log('取得會員ID:', memId);
+  if (memId) {
+    // ...原本已登入API邏輯...
+    try {
+      const response = await fetch(`http://localhost:8081/CJA101G02/api/clearCart?memId=${memId || ''}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      if (!response.ok) {
+        throw new Error('網路回應不正常');
       }
-    });
-
-    if (!response.ok) {
-      throw new Error('網路回應不正常');
+      const data = await response.json();
+      if (data.status === 'success') {
+        await initCartPage();
+      } else {
+        alert('清空購物車失敗');
+      }
+    } catch (error) {
+      alert('清空購物車失敗，請稍後再試');
     }
-
-    const data = await response.json();
-    if (data.status === 'success') {
-      // 重新載入購物車資料
-      await initCartPage();
-    } else {
-      alert('清空購物車失敗');
-    }
-  } catch (error) {
-    console.error('清空購物車失敗:', error);
-    alert('清空購物車失敗，請稍後再試');
+  } else {
+    // 未登入，直接操作 sessionStorage
+    sessionCartManager.clearCart();
+    await initCartPage();
   }
 }
 
@@ -466,7 +549,7 @@ function checkEmptyCart(itemCount) {
 
 // 前往結帳
 function proceedToCheckout() {
-  window.location.href = 'checkout.html';
+  window.location.href = 'shop-checkout.html';
 }
 
 // 顯示載入畫面
@@ -533,3 +616,14 @@ function recalculateCartSummary() {
   // 總計
   document.getElementById('cart-total').textContent = `NT$ ${(subtotal + shipping).toLocaleString()}`;
 }
+
+// console.log('送出新增/修改購物車API', {memId, payload });
+fetch('/api/addCart', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(payload)
+})
+.then(res => res.json())
+.then(data => {
+  console.log('addCart API response', data);
+});

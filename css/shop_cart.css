@@ -11,6 +11,9 @@
 .product-info {
   flex: 2;
   min-width: 180px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .product-info h3 {
