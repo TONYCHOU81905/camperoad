@@ -879,17 +879,10 @@ class OwnerDashboard {
     // 根據不同頁面載入對應資料
     switch (tabName) {
       case "room-types":
-        // 只在沒有本地資料時才載入API
-        if (!this.campsiteTypeData || this.campsiteTypeData.length === 0) {
+        // 這裡改成每次都強制呼叫API
           this.renderRoomTypes(false, true).catch((error) => {
             console.error("載入房型資料失敗：", error);
           });
-        } else {
-          // 如果有本地資料，直接渲染
-          this.renderRoomTypes(true, true).catch((error) => {
-            console.error("渲染房型資料失敗：", error);
-          });
-        }
         break;
       case "bundle-items":
         this.renderBundleItems();
@@ -2934,25 +2927,13 @@ class OwnerDashboard {
           if (result.status === "success") {
             this.showMessage("房間刪除成功！", "success");
 
-            // 重新載入房間明細（如果房間明細modal還開著）
-            const roomDetailModal = document.getElementById("roomDetailModal");
-            if (roomDetailModal && roomDetailModal.classList.contains("show")) {
-              // 從modal的data屬性中獲取當前房型ID
-              const currentCampsiteTypeId = roomDetailModal.getAttribute(
-                "data-current-campsite-type-id"
-              );
-              if (currentCampsiteTypeId) {
-                // 延遲一下再重新載入，確保後端資料已更新
-                setTimeout(() => {
-                  this.showRoomDetails(currentCampsiteTypeId);
-                }, 500);
-              }
-            }
-
             // 立即從前端資料移除
             this.campsiteData = this.campsiteData.filter((room) => {
               return room.campsiteId != roomId && room.campsite_id != roomId;
             });
+
+            // 新增：刪除房間後即時更新房型主表格的間數
+            this.renderRoomTypes();
           } else {
             this.showMessage(
               "房間刪除失敗：" + (result.message || "未知錯誤"),
