@@ -235,8 +235,9 @@
 .btn-view-full {
   width: 100%;
   max-width: 100%;
-  border-radius: 0 0 8px 8px;
+  border-radius: 8px 8px 8px 8px;
   margin-top: 0;
+  margin-right: 12px;
   padding: 12px 20px;
   font-size: 1rem;
   text-align: center;
@@ -251,4 +252,15 @@
   background-color: #2d4531;
   transform: translateY(0);
   box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.1);
+}
+.btn-toggle-favorite {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #aaa;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+.btn-toggle-favorite.favorited {
+  color: red;
 }
