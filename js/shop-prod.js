@@ -182,7 +182,8 @@ document.addEventListener("DOMContentLoaded", function () {
         products.forEach((prod) => {
           const hasDiscount = prod.prodDiscount !== null && prod.prodDiscount !== undefined;
           const featuresHtml = generateProductFeatures(prod);
-          
+          const colorMap = new Map((prod.colorList || []).map(c => [c.colorId, c.colorName]));
+          const specMap = new Map((prod.specList || []).map(s => [s.specId, s.specName]));
           const colors = prod.prodColorList || [];
           let colorSelectHtml = '';
 
@@ -192,7 +193,7 @@ document.addEventListener("DOMContentLoaded", function () {
           
             colors.forEach((color, index) => {
               const colorId = color.prodColorId;
-              const colorName = color.colorName || `顏色${colorId}`;
+              const colorName = colorMap.get(colorId) || `顏色 ${colorId}`;
               const hasImage = color.hasPic === true; // 確認是否有圖片
           
               // 預設圖片內容為空
@@ -226,7 +227,9 @@ document.addEventListener("DOMContentLoaded", function () {
             specSelectHtml += `<select class="prod-spec-select" data-prod-id="${prod.prodId}">`;
             specs.forEach(spec => {
               // 修改这里，使用规格ID作为value，显示规格名称
-              specSelectHtml += `<option value="${spec.prodSpecId}" data-price="${spec.prodSpecPrice}">${spec.prodSpecName || `規格 ${spec.prodSpecId}`}</option>`;
+              const specId = spec.prodSpecId;
+              const specName = specMap.get(specId) || `規格 ${specId}`; 
+              specSelectHtml += `<option value="${spec.prodSpecId}" data-price="${spec.prodSpecPrice}">${specName || `規格 ${spec.prodSpecId}`}</option>`;
             });
             specSelectHtml += `</select>`;
           }
