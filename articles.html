@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>文章詳情 - 露營路</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/role-system.css" />
+    <style>
+        .forum-container {
+            padding: 40px 0;
+            background-color: #f9f7f4;
+        }
+
+        .forum-breadcrumb {
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .forum-breadcrumb a {
+            color: #3a5a40;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .forum-breadcrumb a:hover {
+            color: #a68a64;
+        }
+
+        .forum-post-container {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .forum-post {
+            display: flex;
+            border-bottom: 1px solid #eee;
+        }
+
+        .post-author {
+            width: 200px;
+            padding: 20px;
+            background-color: #f5f5f5;
+            border-right: 1px solid #eee;
+        }
+
+        .author-avatar {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .author-avatar img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .author-name {
+            font-size: 1.1rem;
+            font-weight: 500;
+            text-align: center;
+            margin-bottom: 10px;
+            color: #3a5a40;
+        }
+
+        .author-level {
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+
+        .author-stats {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .author-stats p {
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .author-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+
+        .author-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            background-color: rgba(58, 90, 64, 0.1);
+            color: #3a5a40;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .post-content {
+            flex: 1;
+            padding: 20px;
+        }
+
+        .post-header {
+            margin-bottom: 20px;
+        }
+
+        .post-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #3a5a40;
+            margin-bottom: 10px;
+        }
+
+        .delete-article-btn {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .delete-article-btn:hover {
+            background: #c82333;
+            transform: translateY(-1px);
+        }
+
+        .delete-article-btn i {
+            font-size: 0.8rem;
+        }
+
+        .post-header {
+            position: relative;
+        }
+
+        .post-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+
+        .post-date {
+            display: flex;
+            align-items: center;
+        }
+
+        .post-date i {
+            margin-right: 5px;
+        }
+
+        .post-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .post-tag {
+            display: inline-block;
+            padding: 4px 10px;
+            background-color: rgba(166, 138, 100, 0.1);
+            color: #a68a64;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+        }
+
+        .post-tag:hover {
+            background-color: rgba(166, 138, 100, 0.2);
+        }
+
+        .post-body {
+            line-height: 1.6;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .post-body p {
+            margin-bottom: 15px;
+        }
+
+        .post-body img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+            margin: 15px 0;
+        }
+
+        .post-body a {
+            color: #3a5a40;
+            text-decoration: underline;
+            transition: color 0.3s ease;
+        }
+
+        .post-body a:hover {
+            color: #a68a64;
+        }
+
+        .post-body h3 {
+            color: #3a5a40;
+            margin: 25px 0 15px 0;
+            font-size: 1.2rem;
+        }
+
+        .post-body ul {
+            margin: 15px 0;
+            padding-left: 20px;
+        }
+
+        .post-body li {
+            margin-bottom: 8px;
+        }
+
+        .post-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .post-reactions {
+            display: flex;
+            gap: 15px;
+        }
+
+        .reaction-btn {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 15px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            background: white;
+            color: #666;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .reaction-btn:hover {
+            background: #f0f0f0;
+            border-color: #bbb;
+        }
+
+        .reaction-btn.liked {
+            background: rgba(220, 53, 69, 0.1);
+            border-color: #dc3545;
+            color: #dc3545;
+        }
+
+        .post-share {
+            display: flex;
+            gap: 10px;
+        }
+
+        .share-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-decoration: none;
+            transition: transform 0.3s ease;
+        }
+
+        .share-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .share-facebook {
+            background: #1877f2;
+        }
+
+        .share-line {
+            background: #00c300;
+        }
+
+        .share-copy {
+            background: #666;
+        }
+
+        .comments-section {
+            margin-top: 30px;
+        }
+
+        .comments-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9edc9;
+        }
+
+        .comments-title {
+            color: #3a5a40;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .sort-comments {
+            padding: 5px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .comment-form {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .comment-form textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .comment-form-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .comment-tools {
+            display: flex;
+            gap: 10px;
+        }
+
+        .tool-btn {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 3px;
+        }
+
+        .tool-btn:hover {
+            background: #e9ecef;
+        }
+
+        .btn-submit-comment {
+            background: #3a5a40;
+            color: white;
+            padding: 8px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .btn-submit-comment:hover {
+            background: #2d4731;
+        }
+
+        .comments-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .comment-item {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .comment-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .comment-avatar img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .comment-author {
+            flex: 1;
+        }
+
+        .comment-author-name {
+            font-weight: 500;
+            color: #3a5a40;
+            margin-bottom: 2px;
+        }
+
+        .comment-date {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .comment-floor {
+            background: #e9edc9;
+            color: #3a5a40;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+
+        .comment-content {
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .comment-actions {
+            display: flex;
+            gap: 15px;
+            font-size: 0.9rem;
+        }
+
+        .comment-action {
+            color: #666;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: color 0.3s ease;
+        }
+
+        .comment-action:hover {
+            color: #3a5a40;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin-top: 30px;
+        }
+
+        .page-btn {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            color: #666;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .page-btn:hover,
+        .page-btn.active {
+            background: #3a5a40;
+            color: white;
+            border-color: #3a5a40;
+        }
+
+        @media (max-width: 768px) {
+            .forum-post {
+                flex-direction: column;
+            }
+
+            .post-author {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid #eee;
+            }
+
+            .author-avatar {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+                text-align: left;
+            }
+
+            .author-avatar img {
+                width: 60px;
+                height: 60px;
+            }
+
+            .author-stats {
+                display: flex;
+                gap: 20px;
+                flex-wrap: wrap;
+            }
+
+            .post-actions {
+                flex-direction: column;
+                gap: 15px;
+                align-items: stretch;
+            }
+
+            .comment-header {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="container">
+            <div class="logo">
+                <a href="index.html">
+                    <img src="images/logo.svg" alt="露營路Logo" />
+                    <!-- <span>露營路</span> -->
+                </a>
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="index.html">營地搜尋</a></li>
+                    <li><a href="shop.html">裝備商城</a></li>
+                    <li><a href="article-type.html" class="active">論壇攻略</a></li>
+                    <li><a href="user-profile.html">關於我們</a></li>
+                </ul>
+            </nav>
+            <div class="user-actions">
+                <a href="#" class="btn-search"><i class="fas fa-search"></i></a>
+                <a href="cart.html" class="btn-cart"><i class="fas fa-shopping-cart"></i><span
+                        class="cart-count">0</span></a>
+                <a href="login.html" class="btn-login">登入 / 註冊</a>
+            </div>
+            <button class="mobile-menu-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </header>
+
+    <main class="forum-container">
+        <div class="container">
+            <nav class="forum-breadcrumb">
+                <a href="index.html">首頁</a> &gt;
+                <a href="article-type.html">論壇攻略</a> &gt;
+                <a href="article-type.html">文章分類</a> &gt;
+                <span>載入中...</span>
+            </nav>
+
+            <div class="forum-post-container">
+                <div class="forum-post">
+                    <div class="post-author">
+                        <div class="author-avatar">
+                            <img src="images/user-1.jpg" alt="作者頭像" />
+                            <div>
+                                <div class="author-name">載入中...</div>
+                                <div class="author-level">露營愛好者</div>
+                            </div>
+                        </div>
+                        <div class="author-stats">
+                            <p><span>發文數:</span> <span>載入中...</span></p>
+                            <p><span>精華文:</span> <span>載入中...</span></p>
+                            <p><span>經驗值:</span> <span>載入中...</span></p>
+                            <p><span>註冊時間:</span> <span>載入中...</span></p>
+                        </div>
+                        <div class="author-badges">
+                            <span class="author-badge">載入中...</span>
+                        </div>
+                    </div>
+                    <div class="post-content">
+                        <div class="post-header">
+                            <h1 class="post-title">載入中...</h1>
+                            <div class="post-meta">
+                                <div class="post-date">
+                                    <i class="fas fa-calendar"></i>
+                                    發布時間：載入中...
+                                </div>
+                                <div class="post-stats">
+                                    <span><i class="fas fa-eye"></i> 2,456 次瀏覽</span>
+                                </div>
+                            </div>
+                            <div class="post-tags">
+                                <!-- 標籤將由 JavaScript 動態載入 -->
+                            </div>
+                        </div>
+
+                        <div class="post-body">
+                            <!-- 文章內容將由 JavaScript 動態載入 -->
+                            <p>載入中...</p>
+                        </div>
+
+                        <div class="post-actions">
+                            <div class="post-reactions">
+                                <button class="reaction-btn">
+                                    <i class="fas fa-thumbs-up"></i>
+                                    <span>89</span>
+                                </button>
+                                <button class="reaction-btn">
+                                    <i class="fas fa-bookmark"></i>
+                                    <span>收藏</span>
+                                </button>
+                            </div>
+                            <div class="post-share">
+                                <a href="#" class="share-btn share-facebook" title="分享到Facebook">
+                                    <i class="fab fa-facebook-f"></i>
+                                </a>
+                                <a href="#" class="share-btn share-line" title="分享到LINE">
+                                    <i class="fab fa-line"></i>
+                                </a>
+                                <a href="#" class="share-btn share-copy" title="複製連結">
+                                    <i class="fas fa-link"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="comments-section">
+                <div class="comments-header">
+                    <h3 class="comments-title">留言討論 (12)</h3>
+                    <select class="sort-comments">
+                        <option value="newest">最新回覆</option>
+                        <option value="oldest">最早回覆</option>
+                        <option value="most-liked">最多讚</option>
+                    </select>
+                </div>
+
+                <div class="comment-form">
+                    <textarea placeholder="分享你的露營經驗或提出問題..."></textarea>
+                    <div class="comment-form-actions">
+                        <div class="comment-tools">
+                            <button class="tool-btn" title="插入圖片"><i class="fas fa-image"></i></button>
+                            <button class="tool-btn" title="插入連結"><i class="fas fa-link"></i></button>
+                            <button class="tool-btn" title="表情符號"><i class="fas fa-smile"></i></button>
+                        </div>
+                        <button class="btn-submit-comment">發布留言</button>
+                    </div>
+                </div>
+
+                <div class="comments-list">
+                    <!-- 留言將由 JavaScript 動態載入 -->
+                    <div style="text-align: center; padding: 20px; color: #666;">載入留言中...</div>
+                </div>
+
+                <div class="pagination">
+                    <a href="#" class="page-btn active">1</a>
+                    <a href="#" class="page-btn">2</a>
+                    <a href="#" class="page-btn">3</a>
+                    <a href="#" class="page-btn">下一頁</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <img src="images/logo-white.svg" alt="露營路Logo" />
+                    <p>探索自然，體驗生活</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h3>關於我們</h3>
+                        <ul>
+                            <li><a href="#">公司簡介</a></li>
+                            <li><a href="#">服務條款</a></li>
+                            <li><a href="#">隱私政策</a></li>
+                            <li><a href="#">加入我們</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>營地資訊</h3>
+                        <ul>
+                            <li><a href="#">北部營地</a></li>
+                            <li><a href="#">中部營地</a></li>
+                            <li><a href="#">南部營地</a></li>
+                            <li><a href="#">東部營地</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>裝備商城</h3>
+                        <ul>
+                            <li><a href="#">全新商品</a></li>
+                            <li><a href="#">配送說明</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>幫助中心</h3>
+                        <ul>
+                            <li><a href="#">常見問題</a></li>
+                            <li><a href="#">使用教學</a></li>
+                            <li><a href="#">聯絡客服</a></li>
+                            <li><a href="#">緊急聯絡</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-youtube"></i></a>
+                    <a href="#"><i class="fab fa-line"></i></a>
+                </div>
+                <p class="copyright">© 2023 露營路 All Rights Reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script src="js/articles.js"></script>
+    <script src="js/header-auth.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>文章類別 - 露營路</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/role-system.css" />
+    <style>
+        /* 文章類別樣式 */
+        .article-type-hero {
+            background-color: #3A5A40;
+            color: white;
+            padding: 60px 0;
+            text-align: center;
+        }
+
+        .article-type-hero h1 {
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .article-type-hero p {
+            max-width: 700px;
+            margin: 0 auto;
+            font-size: 1.1rem;
+        }
+
+        .article-type-list {
+            padding: 60px 0;
+        }
+
+        .article-type-card {
+            display: flex;
+            margin-bottom: 40px;
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .article-type-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .article-type-image {
+            flex: 4;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .article-type-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            aspect-ratio: 10/3;
+            transition: transform 0.5s ease;
+        }
+
+        .article-type-card:hover .article-type-image img {
+            transform: scale(1.05);
+        }
+
+        .article-type-content {
+            flex: 6;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .article-type-content h3 {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            color: #3A5A40;
+        }
+
+        .article-type-content p {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .article-count {
+            display: inline-block;
+            background-color: #E9EDC9;
+            color: #3A5A40;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+
+        .btn-view-articles {
+            align-self: flex-start;
+            background-color: #3A5A40;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .btn-view-articles:hover {
+            background-color: #2d4731;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(58, 90, 64, 0.2);
+        }
+
+        @media (max-width: 768px) {
+            .article-type-card {
+                flex-direction: column;
+            }
+
+            .article-type-image,
+            .article-type-content {
+                flex: 1;
+            }
+
+            .article-type-content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="container">
+            <div class="logo">
+                <a href="index.html">
+                    <img src="images/logo.svg" alt="露營路Logo" />
+                    <!-- <span>露營路</span> -->
+                </a>
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="index.html">營地搜尋</a></li>
+                    <li><a href="shop.html">裝備商城</a></li>
+                    <li><a href="article-type.html" class="active">論壇攻略</a></li>
+                    <li><a href="user-profile.html">關於我們</a></li>
+                </ul>
+            </nav>
+            <div class="user-actions">
+                <a href="#" class="btn-search"><i class="fas fa-search"></i></a>
+                <a href="cart.html" class="btn-cart"><i class="fas fa-shopping-cart"></i><span
+                        class="cart-count">0</span></a>
+                <a href="login.html" class="btn-login">登入 / 註冊</a>
+            </div>
+            <button class="mobile-menu-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </header>
+
+    <section class="article-type-hero">
+        <div class="container">
+            <h1>文章類別</h1>
+            <p>探索各種露營相關主題，從新手入門技巧到進階營地推薦資訊</p>
+        </div>
+    </section>
+
+    <section class="article-type-list">
+        <div class="container">
+            <!-- 文章類別卡片 1 -->
+            <a href="articles-list-1.html" class="article-type-card">
+                <div class="article-type-image">
+                    <img src="images/camp-1.jpg" alt="新手指南" />
+                </div>
+                <div class="article-type-content">
+                    <span class="article-count" id="count-30001"><i class="fas fa-file-alt"></i> 載入中...</span>
+                    <h3>新手指南</h3>
+                    <p>露營新手入門必讀，包含基礎裝備選擇、搭帳技巧、安全須知等實用資訊，讓您第一次露營體驗就很愉快。準備好迎接這段令人興奮的戶外冒險之旅，讓我們帶您輕鬆踏入露營世界。</p>
+                    <div class="btn-view-articles">查看文章 <i class="fas fa-arrow-right"></i></div>
+                </div>
+            </a>
+
+            <!-- 文章類別卡片 2 -->
+            <a href="articles-list-2.html" class="article-type-card">
+                <div class="article-type-image">
+                    <img src="images/camp-2.jpg" alt="料理技巧" />
+                </div>
+                <div class="article-type-content">
+                    <span class="article-count" id="count-30002"><i class="fas fa-file-alt"></i> 載入中...</span>
+                    <h3>料理技巧</h3>
+                    <p>露營美食料理技巧，包含野外烹飪方法、食材準備、廚具選擇等實用資訊，讓您在野外也能享受美味佳餚。由經驗豐富的露營料理專家提供實用技巧與創意食譜。</p>
+                    <div class="btn-view-articles">查看文章 <i class="fas fa-arrow-right"></i></div>
+                </div>
+            </a>
+
+            <!-- 文章類別卡片 3 -->
+            <a href="articles-list-3.html" class="article-type-card">
+                <div class="article-type-image">
+                    <img src="images/camp-3.jpg" alt="裝備評測" />
+                </div>
+                <div class="article-type-content">
+                    <span class="article-count" id="count-30003"><i class="fas fa-file-alt"></i> 載入中...</span>
+                    <h3>裝備評測</h3>
+                    <p>深入測試各類露營裝備的性能與特點，包括帳篷、睡袋、爐具等專業評測，幫助您在眾多選擇中找到最適合自己需求的裝備。由經驗豐富的露營專家提供客觀評價與實用建議。</p>
+                    <div class="btn-view-articles">查看文章 <i class="fas fa-arrow-right"></i></div>
+                </div>
+            </a>
+        </div>
+    </section>
+
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <img src="images/logo-white.svg" alt="露營路Logo" />
+                    <p>探索自然，體驗生活</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h3>關於我們</h3>
+                        <ul>
+                            <li><a href="#">公司簡介</a></li>
+                            <li><a href="#">服務條款</a></li>
+                            <li><a href="#">隱私政策</a></li>
+                            <li><a href="#">加入我們</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>營地資訊</h3>
+                        <ul>
+                            <li><a href="#">北部營地</a></li>
+                            <li><a href="#">中部營地</a></li>
+                            <li><a href="#">南部營地</a></li>
+                            <li><a href="#">東部營地</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>裝備商城</h3>
+                        <ul>
+                            <li><a href="#">全新商品</a></li>
+                            <li><a href="#">配送說明</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>幫助中心</h3>
+                        <ul>
+                            <li><a href="#">常見問題</a></li>
+                            <li><a href="#">使用教學</a></li>
+                            <li><a href="#">聯絡客服</a></li>
+                            <li><a href="#">緊急聯絡</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-youtube"></i></a>
+                    <a href="#"><i class="fab fa-line"></i></a>
+                </div>
+                <p class="copyright">© 2023 露營路 All Rights Reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script src="js/header-auth.js"></script>
+    <script>
+        // 載入文章數量
+        async function loadArticleCounts() {
+            const articleTypes = [
+                { id: 30001, name: '新手指南' },
+                { id: 30002, name: '料理技巧' },
+                { id: 30003, name: '裝備評測' }
+            ];
+
+            for (const type of articleTypes) {
+                try {
+                    // 呼叫 Spring Boot API 查詢文章數量
+                    const response = await fetch(`http://localhost:8081/CJA101G02/api/articles/type/${type.id}/count`);
+                    const result = await response.json();
+
+                    if (result.status === 'success') {
+                        const countElement = document.getElementById(`count-${type.id}`);
+                        if (countElement) {
+                            countElement.innerHTML = `<i class="fas fa-file-alt"></i> ${result.data} 篇文章`;
+                        }
+                    } else {
+                        console.error(`載入 ${type.name} 文章數量失敗:`, result.message);
+                        const countElement = document.getElementById(`count-${type.id}`);
+                        if (countElement) {
+                            countElement.innerHTML = `<i class="fas fa-file-alt"></i> 0 篇文章`;
+                        }
+                    }
+                } catch (error) {
+                    console.error(`載入 ${type.name} 文章數量時發生錯誤:`, error);
+                    const countElement = document.getElementById(`count-${type.id}`);
+                    if (countElement) {
+                        countElement.innerHTML = `<i class="fas fa-file-alt"></i> 載入失敗`;
+                    }
+                }
+            }
+        }
+
+        // 頁面載入時執行
+        document.addEventListener('DOMContentLoaded', function () {
+            loadArticleCounts();
+        });
+    </script>
+</body>
+
+</html>

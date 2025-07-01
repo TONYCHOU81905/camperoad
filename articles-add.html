@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>新增文章 - 露營路</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/role-system.css" />
+    <link href="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.snow.css" rel="stylesheet" />
+    <style>
+        .article-add-hero {
+            background: linear-gradient(135deg, #3A5A40 0%, #588157 100%);
+            color: white;
+            padding: 60px 0;
+            text-align: center;
+        }
+
+        .article-add-hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        .article-add-hero p {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+
+        .article-add-content {
+            padding: 60px 0;
+            background: #f8f9fa;
+        }
+
+        .article-form-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+            padding: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #3A5A40;
+            font-size: 1.1rem;
+        }
+
+        #editor {
+            height: 400px;
+            margin-bottom: 20px;
+        }
+
+        .quill {
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .submit-btn {
+            padding: 15px 40px;
+            background: #3A5A40;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .submit-btn:hover {
+            background: #2d4731;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(58, 90, 64, 0.3);
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: #3A5A40;
+            box-shadow: 0 0 0 3px rgba(58, 90, 64, 0.1);
+        }
+
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .message {
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            display: none;
+            font-weight: 500;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .message.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .member-info {
+            background: linear-gradient(135deg, #E9EDC9 0%, #f8f9fa 100%);
+            border: 2px solid #3A5A40;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .member-info .member-name {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #3A5A40;
+            margin-bottom: 8px;
+        }
+
+        .member-info .member-id {
+            color: #6c757d;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .login-required {
+            text-align: center;
+            padding: 60px 20px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        .login-required h2 {
+            color: #3A5A40;
+            margin-bottom: 20px;
+            font-size: 2rem;
+        }
+
+        .login-required p {
+            color: #6c757d;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .btn-login {
+            display: inline-block;
+            padding: 15px 30px;
+            background: #3A5A40;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-login:hover {
+            background: #2d4731;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(58, 90, 64, 0.3);
+        }
+
+        .back-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #6c757d;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 6px;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .back-btn:hover {
+            background: #5a6268;
+            transform: translateY(-1px);
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #E9EDC9;
+        }
+
+        .form-header h2 {
+            color: #3A5A40;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .form-header p {
+            color: #6c757d;
+            font-size: 1.1rem;
+        }
+
+        @media (max-width: 768px) {
+            .article-form-container {
+                margin: 20px;
+                padding: 30px 20px;
+            }
+
+            .article-add-hero h1 {
+                font-size: 2rem;
+            }
+
+            .article-add-hero p {
+                font-size: 1rem;
+            }
+
+            .form-header h2 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="container">
+            <div class="logo">
+                <a href="index.html">
+                    <img src="images/logo.svg" alt="露營路Logo" />
+                    <!-- <span>露營路</span> -->
+                </a>
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="index.html">營地搜尋</a></li>
+                    <li><a href="shop.html">裝備商城</a></li>
+                    <li><a href="article-type.html" class="active">論壇攻略</a></li>
+                    <li><a href="user-profile.html">關於我們</a></li>
+                </ul>
+            </nav>
+            <div class="user-actions">
+                <a href="#" class="btn-search"><i class="fas fa-search"></i></a>
+                <a href="cart.html" class="btn-cart"><i class="fas fa-shopping-cart"></i><span
+                        class="cart-count">0</span></a>
+                <a href="login.html" class="btn-login">登入 / 註冊</a>
+            </div>
+            <button class="mobile-menu-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </header>
+
+    <section class="article-add-hero">
+        <div class="container">
+            <h1>新增文章</h1>
+            <p>分享您的露營經驗與心得，為社群貢獻優質內容</p>
+        </div>
+    </section>
+
+    <section class="article-add-content">
+        <div class="container">
+            <div class="article-form-container">
+                <a href="article-type.html" class="back-btn">← 返回文章分類</a>
+
+                <div class="form-header">
+                    <h2>撰寫新文章</h2>
+                    <p>請填寫以下資訊來發布您的文章</p>
+                </div>
+
+                <div id="message" class="message"></div>
+
+                <!-- 會員資訊顯示區域 -->
+                <div id="member-info" class="member-info" style="display: none;">
+                    <div class="member-name" id="member-name"></div>
+                    <div class="member-id">會員ID: <span id="member-id"></span></div>
+                </div>
+
+                <!-- 需要登入提示 -->
+                <div id="login-required" class="login-required">
+                    <h2>請先登入</h2>
+                    <p>您需要登入會員帳號才能新增文章</p>
+                    <a href="login.html" class="btn-login" onclick="setRedirectTarget()">前往登入</a>
+                </div>
+
+                <!-- 文章表單 -->
+                <form id="add-article-form" style="display: none;">
+                    <div class="form-group">
+                        <label class="form-label" for="title">文章標題</label>
+                        <input type="text" id="title" name="title" placeholder="請輸入文章標題..." required />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="type">文章分類</label>
+                        <select id="type" name="type" required>
+                            <option value="">請選擇分類</option>
+                            <option value="30001">新手指南</option>
+                            <option value="30002">料理技巧</option>
+                            <option value="30003">裝備評測</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">文章內容</label>
+                        <div id="editor"></div>
+                    </div>
+                    <div style="text-align:center;">
+                        <button type="submit" class="submit-btn" id="submit-btn">發布文章</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <img src="images/logo-white.svg" alt="露營路Logo" />
+                    <p>探索自然，體驗生活</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h3>關於我們</h3>
+                        <ul>
+                            <li><a href="#">公司簡介</a></li>
+                            <li><a href="#">服務條款</a></li>
+                            <li><a href="#">隱私政策</a></li>
+                            <li><a href="#">加入我們</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>營地資訊</h3>
+                        <ul>
+                            <li><a href="#">北部營地</a></li>
+                            <li><a href="#">中部營地</a></li>
+                            <li><a href="#">南部營地</a></li>
+                            <li><a href="#">東部營地</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>裝備商城</h3>
+                        <ul>
+                            <li><a href="#">全新商品</a></li>
+                            <li><a href="#">配送說明</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>幫助中心</h3>
+                        <ul>
+                            <li><a href="#">常見問題</a></li>
+                            <li><a href="#">使用教學</a></li>
+                            <li><a href="#">聯絡客服</a></li>
+                            <li><a href="#">緊急聯絡</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-youtube"></i></a>
+                    <a href="#"><i class="fab fa-line"></i></a>
+                </div>
+                <p class="copyright">© 2023 露營路 All Rights Reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Quill JS -->
+    <script src="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/header-auth.js"></script>
+    <script>
+        // 初始化 Quill 編輯器
+        const quill = new Quill('#editor', {
+            theme: 'snow',
+            placeholder: '請輸入文章內容...',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'color': [] }, { 'background': [] }],
+                    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                    [{ 'align': [] }],
+                    ['link', 'image'],
+                    ['clean']
+                ]
+            }
+        });
+
+        // 顯示訊息函數
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = message;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+
+            if (type === 'success') {
+                setTimeout(() => {
+                    messageDiv.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        // 檢查登入狀態
+        function checkLoginStatus() {
+            const memberData = localStorage.getItem("currentMember") || sessionStorage.getItem("currentMember");
+
+            if (memberData) {
+                const member = JSON.parse(memberData);
+                return member;
+            }
+
+            return null;
+        }
+
+        // 監聽登入狀態變化
+        function setupLoginStateListener() {
+            // 儲存初始登入狀態
+            let previousLoginState = checkLoginStatus();
+
+            // 定期檢查登入狀態變化
+            setInterval(() => {
+                const currentLoginState = checkLoginStatus();
+
+                // 如果從未登入變為已登入，重新載入頁面
+                if (!previousLoginState && currentLoginState) {
+                    console.log('檢測到登入狀態變化，重新載入頁面');
+                    window.location.reload();
+                }
+
+                previousLoginState = currentLoginState;
+            }, 1000); // 每秒檢查一次
+        }
+
+        // 設置登入後跳轉目標
+        function setRedirectTarget() {
+            sessionStorage.setItem('redirectAfterLogin', window.location.href);
+        }
+
+        // 覆蓋登入頁面的預設跳轉行為
+        function setupLoginRedirect() {
+            // 檢查是否有儲存的跳轉目標
+            const redirectTarget = sessionStorage.getItem('redirectAfterLogin');
+            if (redirectTarget) {
+                // 創建一個全局變數，讓 login.js 可以讀取
+                window.redirectAfterLogin = redirectTarget;
+
+                // 監聽頁面載入事件，在 login.js 載入後修改其行為
+                const checkLoginJS = setInterval(() => {
+                    if (window.handleLogin) {
+                        clearInterval(checkLoginJS);
+
+                        // 保存原始的 handleLogin 函數
+                        const originalHandleLogin = window.handleLogin;
+
+                        // 覆蓋 handleLogin 函數
+                        window.handleLogin = function (e) {
+                            // 調用原始函數
+                            const result = originalHandleLogin.call(this, e);
+
+                            // 如果登入成功，修改跳轉目標
+                            setTimeout(() => {
+                                if (window.redirectAfterLogin) {
+                                    window.location.href = window.redirectAfterLogin;
+                                    window.redirectAfterLogin = null;
+                                    sessionStorage.removeItem('redirectAfterLogin');
+                                }
+                            }, 1500);
+
+                            return result;
+                        };
+                    }
+                }, 100);
+            }
+        }
+
+        // 初始化頁面
+        function initPage() {
+            const currentMember = checkLoginStatus();
+
+            if (currentMember) {
+                // 已登入，顯示會員資訊和表單
+                document.getElementById('login-required').style.display = 'none';
+                document.getElementById('member-info').style.display = 'block';
+                document.getElementById('add-article-form').style.display = 'block';
+
+                // 顯示會員資訊
+                document.getElementById('member-name').textContent = currentMember.mem_name;
+                document.getElementById('member-id').textContent = currentMember.mem_id;
+
+                // 設定會員ID為隱藏欄位
+                window.currentMemberId = currentMember.mem_id;
+
+                // 檢查是否是從登入頁面跳轉回來的
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('from') === 'login') {
+                    showMessage('歡迎回來！您可以開始撰寫文章了。', 'success');
+                    // 清除 URL 參數
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }
+
+            } else {
+                // 未登入，顯示登入提示
+                document.getElementById('login-required').style.display = 'block';
+                document.getElementById('member-info').style.display = 'none';
+                document.getElementById('add-article-form').style.display = 'none';
+
+                // 儲存當前頁面 URL，用於登入後跳轉回來
+                const currentUrl = window.location.href;
+                sessionStorage.setItem('redirectAfterLogin', currentUrl);
+            }
+        }
+
+        // 檢查內容是否包含圖片
+        function hasImages(content) {
+            return content.includes('<img') || content.includes('data:image');
+        }
+
+        // 表單送出事件
+        document.getElementById('add-article-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const submitBtn = document.getElementById('submit-btn');
+            const form = document.getElementById('add-article-form');
+
+            // 取得表單資料
+            const title = document.getElementById('title').value;
+            const acTypeId = parseInt(document.getElementById('type').value);
+            const content = quill.root.innerHTML; // 取得 HTML 格式內容
+            const memId = window.currentMemberId; // 使用當前登入會員的ID
+
+            // 驗證資料
+            if (!title || !acTypeId || !content.trim()) {
+                showMessage('請填寫所有必要欄位', 'error');
+                return;
+            }
+
+            // 準備發送的資料 (符合 ArticlesDTO 格式)
+            const articleData = {
+                acTitle: title,
+                acContext: content,
+                memId: memId,
+                acTypeId: acTypeId
+            };
+
+            try {
+                // 顯示載入狀態
+                submitBtn.textContent = '發布中...';
+                submitBtn.classList.add('loading');
+                form.classList.add('loading');
+
+                // 檢查是否包含圖片，決定使用哪個 API
+                const apiUrl = hasImages(content)
+                    ? 'http://localhost:8081/CJA101G02/api/articles/with-images'
+                    : 'http://localhost:8081/CJA101G02/api/articles';
+
+                // 發送到 Spring Boot API
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(articleData)
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.status === 'success') {
+                    if (hasImages(content)) {
+                        showMessage('文章新增成功！圖片內容已自動處理。', 'success');
+                    } else {
+                        showMessage('文章新增成功！', 'success');
+                    }
+                    // 清空表單
+                    form.reset();
+                    quill.setText('');
+                } else {
+                    showMessage(`新增失敗: ${result.message || '未知錯誤'}`, 'error');
+                }
+
+            } catch (error) {
+                console.error('發送請求時發生錯誤:', error);
+                showMessage('發送請求時發生錯誤，請檢查網路連線或伺服器狀態', 'error');
+            } finally {
+                // 恢復按鈕狀態
+                submitBtn.textContent = '發布文章';
+                submitBtn.classList.remove('loading');
+                form.classList.remove('loading');
+            }
+        });
+
+        // 頁面載入時初始化
+        document.addEventListener('DOMContentLoaded', function () {
+            initPage();
+            setupLoginStateListener();
+            setupLoginRedirect();
+        });
+    </script>
+</body>
+
+</html>
