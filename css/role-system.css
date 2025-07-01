@@ -2761,3 +2761,21 @@ input:checked+.toggle-slider:before {
     align-items: flex-start;
   }
 }
+
+/* 圖片狀態樣式 */
+.image-status {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.image-status.pending {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
