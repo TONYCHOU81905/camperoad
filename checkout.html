@@ -89,11 +89,16 @@
             <!-- 左側：付款表單 -->
             <div class="payment-section">
               <h2>選擇付款方式</h2>
-              
+
               <div class="payment-methods">
                 <div class="payment-method active" data-method="credit-card">
                   <div class="payment-method-header">
-                    <input type="radio" name="payment-method" id="credit-card" checked />
+                    <input
+                      type="radio"
+                      name="payment-method"
+                      id="credit-card"
+                      checked
+                    />
                     <label for="credit-card">信用卡付款</label>
                     <div class="payment-icons">
                       <i class="fab fa-cc-visa"></i>
@@ -105,21 +110,40 @@
                     <form id="credit-card-form" class="payment-form">
                       <div class="form-group">
                         <label for="card-number">卡號</label>
-                        <input type="text" id="card-number" placeholder="1234 5678 9012 3456" maxlength="19" />
+                        <input
+                          type="text"
+                          id="card-number"
+                          placeholder="1234 5678 9012 3456"
+                          maxlength="19"
+                        />
                       </div>
                       <div class="form-row">
                         <div class="form-group">
                           <label for="card-expiry">有效期限 (MM/YY)</label>
-                          <input type="text" id="card-expiry" placeholder="MM/YY" maxlength="5" />
+                          <input
+                            type="text"
+                            id="card-expiry"
+                            placeholder="MM/YY"
+                            maxlength="5"
+                          />
                         </div>
                         <div class="form-group">
                           <label for="card-cvc">安全碼</label>
-                          <input type="text" id="card-cvc" placeholder="CVC" maxlength="3" />
+                          <input
+                            type="text"
+                            id="card-cvc"
+                            placeholder="CVC"
+                            maxlength="3"
+                          />
                         </div>
                       </div>
                       <div class="form-group">
                         <label for="card-name">持卡人姓名</label>
-                        <input type="text" id="card-name" placeholder="請輸入持卡人姓名" />
+                        <input
+                          type="text"
+                          id="card-name"
+                          placeholder="請輸入持卡人姓名"
+                        />
                       </div>
                     </form>
                   </div>
@@ -130,12 +154,19 @@
                     <input type="radio" name="payment-method" id="line-pay" />
                     <label for="line-pay">LINE Pay</label>
                     <div class="payment-icons">
-                      <img src="images/line-pay-logo.png" alt="LINE Pay" class="line-pay-icon" />
+                      <img
+                        src="images/line-pay-logo.png"
+                        alt="LINE Pay"
+                        class="line-pay-icon"
+                      />
                     </div>
                   </div>
                   <div class="payment-method-content">
                     <div class="line-pay-info">
-                      <p>選擇 LINE Pay 付款後，您將被導向 LINE Pay 付款頁面完成交易。</p>
+                      <p>
+                        選擇 LINE Pay 付款後，您將被導向 LINE Pay
+                        付款頁面完成交易。
+                      </p>
                       <p>交易完成後，系統會自動將您導回本網站。</p>
                     </div>
                   </div>
@@ -148,24 +179,47 @@
                   <div class="form-row">
                     <div class="form-group">
                       <label for="customer-name">姓名</label>
-                      <input type="text" id="customer-name" placeholder="請輸入姓名" required />
+                      <input
+                        type="text"
+                        id="customer-name"
+                        placeholder="請輸入姓名"
+                        required
+                      />
                     </div>
                     <div class="form-group">
                       <label for="customer-phone">電話</label>
-                      <input type="tel" id="customer-phone" placeholder="請輸入電話" required />
+                      <input
+                        type="tel"
+                        id="customer-phone"
+                        placeholder="請輸入電話"
+                        required
+                      />
                     </div>
                   </div>
                   <div class="form-group">
                     <label for="customer-email">電子郵件</label>
-                    <input type="email" id="customer-email" placeholder="請輸入電子郵件" required />
+                    <input
+                      type="email"
+                      id="customer-email"
+                      placeholder="請輸入電子郵件"
+                      required
+                    />
                   </div>
                   <div class="form-group">
                     <label for="customer-address">地址</label>
-                    <input type="text" id="customer-address" placeholder="請輸入地址" required />
+                    <input
+                      type="text"
+                      id="customer-address"
+                      placeholder="請輸入地址"
+                      required
+                    />
                   </div>
                   <div class="form-group">
                     <label for="customer-note">備註</label>
-                    <textarea id="customer-note" placeholder="有什麼想告訴我們的嗎？"></textarea>
+                    <textarea
+                      id="customer-note"
+                      placeholder="有什麼想告訴我們的嗎？"
+                    ></textarea>
                   </div>
                 </form>
               </div>
@@ -188,7 +242,9 @@
                     <span id="order-total" class="summary-value">NT$ 0</span>
                   </div>
                 </div>
-                <button id="submit-payment" class="btn-submit-payment">確認付款</button>
+                <button id="submit-payment" class="btn-submit-payment">
+                  確認付款
+                </button>
                 <a href="camp_cart.html" class="btn-back-to-cart">返回購物車</a>
               </div>
             </div>
@@ -222,7 +278,9 @@
           <p>很抱歉，處理您的付款時發生錯誤。</p>
           <p id="failure-reason"></p>
           <button id="retry-payment" class="btn-retry-payment">重試付款</button>
-          <button id="back-to-checkout" class="btn-back-to-checkout">返回結帳頁面</button>
+          <button id="back-to-checkout" class="btn-back-to-checkout">
+            返回結帳頁面
+          </button>
         </div>
       </div>
     </div>
@@ -271,6 +329,7 @@
     </footer>
 
     <script src="js/camp_cart.js"></script>
+    <script src="js/camp-data.js"></script>
     <script src="js/checkout.js"></script>
   </body>
 </html>

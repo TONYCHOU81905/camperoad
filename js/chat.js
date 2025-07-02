@@ -147,8 +147,8 @@ class ChatWidget {
 
     if (memberData) {
       const member = JSON.parse(memberData);
-      document.getElementById("memId").value = member.mem_id;
-      console.log("設置會員ID:", member.mem_id);
+      document.getElementById("memId").value = member.memId;
+      console.log("設置會員ID:", member.memId);
     } else {
       // 如果未登入，可以設置一個預設值或提示用戶登入
       document.getElementById("memId").value = "guest";
@@ -239,7 +239,7 @@ class ChatWidget {
     }
 
     try {
-      const socket = new SockJS("http://localhost:8081/CJA101G02/ws-chat");
+      const socket = new SockJS(`${window.api_prefix}/ws-chat`);
       this.stompClient = Stomp.over(socket);
 
       // 啟用 STOMP 客戶端的調試模式
