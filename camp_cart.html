@@ -69,24 +69,24 @@
           <div class="cart-header">
             <h1>購物車</h1>
           </div>
-          
+
           <!-- 購物車為空時顯示 -->
           <div id="cart-empty" class="cart-empty">
             <i class="fas fa-shopping-cart"></i>
             <p>您的購物車是空的</p>
             <a href="index.html" class="btn-continue-shopping">繼續購物</a>
           </div>
-          
+
           <!-- 購物車項目 -->
           <div id="cart-items-container" class="cart-items-container">
             <!-- 購物車項目將由JavaScript動態生成 -->
           </div>
-          
+
           <!-- 加購商品區域 -->
           <div id="bundle-items-container" class="bundle-items-container">
             <!-- 加購商品將由JavaScript動態生成 -->
           </div>
-          
+
           <!-- 訂單摘要 -->
           <div id="order-summary" class="order-summary">
             <h2>訂單摘要</h2>
@@ -99,8 +99,12 @@
               <span id="cart-total" class="summary-value">NT$ 0</span>
             </div>
             <div class="cart-actions">
-              <button id="checkout-btn" class="btn-checkout" disabled>前往結帳</button>
-              <button id="clear-cart-btn" class="btn-clear-cart">清空購物車</button>
+              <button id="checkout-btn" class="btn-checkout" disabled>
+                前往結帳
+              </button>
+              <button id="clear-cart-btn" class="btn-clear-cart">
+                清空購物車
+              </button>
               <a href="index.html" class="btn-continue-shopping">繼續購物</a>
             </div>
           </div>
@@ -238,10 +242,6 @@
       </div>
     </footer>
 
-    <script src="js/main.js"></script>
-    <script src="js/camp_cart.js"></script>
-    <script src="js/cart-page.js"></script>
-    <script src="js/role-system.js"></script>
     <script>
       // 購物車頁面特定的JavaScript
       document.addEventListener("DOMContentLoaded", function () {
@@ -390,5 +390,10 @@
         }
       }
     </script>
+    <script src="js/main.js"></script>
+    <script src="js/camp-data.js"></script>
+    <script src="js/camp_cart.js"></script>
+    <script src="js/cart-page.js"></script>
+    <script src="js/role-system.js"></script>
   </body>
 </html>

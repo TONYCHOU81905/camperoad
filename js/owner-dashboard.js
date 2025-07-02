@@ -34,7 +34,7 @@ class OwnerDashboard {
       // 從 localStorage 獲取上次訪問的頁面，如果沒有則顯示房型管理頁面
       const lastTab =
         localStorage.getItem("ownerDashboardLastTab") || "room-types";
-      this.showTabContent(lastTab);
+      await this.showTabContent(lastTab);
 
       // 更新選單狀態
       document.querySelectorAll(".profile-menu-item").forEach((menuItem) => {
@@ -182,7 +182,7 @@ class OwnerDashboard {
           }
 
           // 3. 切換到營地基本資料分頁，並 render
-          this.showTabContent("camp-info");
+          await this.showTabContent("camp-info");
           // loading 隱藏，表單顯示
           if (campInfoLoading) campInfoLoading.style.display = "none";
           if (campInfoForm) campInfoForm.style.display = "";
@@ -203,9 +203,7 @@ class OwnerDashboard {
       }
       console.log("GGGGG:");
       // 載入營地資料，只載入當前營地主的營地
-      const campResponse = await fetch(
-        `${window.api_prefix}/api/getallcamps`
-      );
+      const campResponse = await fetch(`${window.api_prefix}/api/getallcamps`);
       if (!campResponse.ok) {
         throw new Error(`載入營地資料失敗：${campResponse.status}`);
       }
@@ -528,10 +526,10 @@ class OwnerDashboard {
     document
       .querySelectorAll(".profile-menu-item[data-tab]")
       .forEach((item) => {
-        item.addEventListener("click", (e) => {
+        item.addEventListener("click", async (e) => {
           e.preventDefault();
           const tab = item.getAttribute("data-tab");
-          this.showTabContent(tab);
+          await this.showTabContent(tab);
 
           // 更新選單狀態
           document
@@ -963,11 +961,11 @@ class OwnerDashboard {
     // 訂單狀態篩選
     const orderStatusFilter = document.getElementById("orderStatusFilter");
     if (orderStatusFilter) {
-      orderStatusFilter.addEventListener("change", () => this.renderOrders());
+      orderStatusFilter.addEventListener("change", async () => await this.renderOrders());
     }
   }
 
-  showTabContent(tabName) {
+  async showTabContent(tabName) {
     // 隱藏所有內容
     document.querySelectorAll(".profile-section").forEach((content) => {
       content.classList.remove("active");
@@ -1002,7 +1000,7 @@ class OwnerDashboard {
         this.renderBundleItems();
         break;
       case "orders":
-        this.renderOrders();
+        await this.renderOrders();
         break;
       case "discount-codes":
         this.renderDiscountCodes();
@@ -1047,7 +1045,9 @@ class OwnerDashboard {
                 if (pic && pic.length > 0) {
                   return `
                   <div class="carousel-item${idx === 0 ? " active" : ""}">
-                    <img src="${window.api_prefix}/campsitetype/${campsiteTypeId}/${campId}/images/${index}" 
+                    <img src="${
+                      window.api_prefix
+                    }/campsitetype/${campsiteTypeId}/${campId}/images/${index}" 
                          class="d-block w-100 roomtype-carousel-img" 
                          style="width:100%;height:100%;object-fit:cover;" 
                          onerror="this.style.display='none'; this.parentElement.style.display='none';" />
@@ -1319,7 +1319,9 @@ class OwnerDashboard {
                   if (pic && pic.length > 0) {
                     return `
                     <div class="carousel-item${idx === 0 ? " active" : ""}">
-                      <img src="${window.api_prefix}/campsitetype/${campsiteTypeId}/${campId}/images/${index}${tsParam}" 
+                      <img src="${
+                        window.api_prefix
+                      }/campsitetype/${campsiteTypeId}/${campId}/images/${index}${tsParam}" 
                            class="d-block w-100 roomtype-carousel-img" 
                            style="width:100%;height:100%;object-fit:cover;" 
                            onerror="this.style.display='none'; this.parentElement.style.display='none';" />
@@ -1452,7 +1454,7 @@ class OwnerDashboard {
     tableBody.innerHTML = html;
   }
 
-  renderOrders() {
+  async renderOrders() {
     const tableBody = document.getElementById("ordersTableBody");
     const statusFilter = document.getElementById("orderStatusFilter");
     if (!tableBody) return;
@@ -1470,15 +1472,21 @@ class OwnerDashboard {
       return;
     }
 
-    const html = filteredOrders
-      .map((order) => {
-        // 獲取該訂單的詳細資料
-        const orderDetails = this.orderDetails
-          ? this.orderDetails.filter(
-              (detail) => detail.campsiteOrderId === order.campsiteOrderId
-            )
-          : [];
-        console.log("orderDetails:" + orderDetails);
+    const htmlPromises = filteredOrders.map(async (order) => {
+      // 使用 API 獲取該訂單的詳細資料
+      let orderDetails = [];
+      try {
+        const response = await fetch(`${window.api_prefix}/api/campsite/order/getone/${order.campsiteOrderId}`);
+        if (response.ok) {
+          const result = await response.json();
+          if (result.status === "success" && result.data && result.data.orderDetails) {
+            orderDetails = result.data.orderDetails;
+          }
+        }
+      } catch (error) {
+        console.error(`獲取訂單 ${order.campsiteOrderId} 詳細資料失敗:`, error);
+      }
+      console.log("orderDetails:", orderDetails);
         // 獲取會員姓名
         const member = this.memberData.find((m) => m.memId === order.memId);
         const memberName = member ? member.mem_name : `會員${order.memId}`;
@@ -1536,8 +1544,10 @@ class OwnerDashboard {
         </td>
       </tr>
     `;
-      })
-      .join("");
+      });
+
+    const htmlArray = await Promise.all(htmlPromises);
+    const html = htmlArray.join("");
 
     tableBody.innerHTML = html;
   }
@@ -2911,41 +2921,41 @@ class OwnerDashboard {
   }
 
   // 訂單操作
-  cancelOrder(orderId) {
+  async cancelOrder(orderId) {
     if (confirm("確定要取消此訂單嗎？")) {
       const order = this.orderData.find((o) => o.campsiteOrderId === orderId);
       if (order && order.campsiteOrderStatus === 1) {
         order.campsiteOrderStatus = 4;
         console.log("取消訂單：", orderId);
         this.showMessage("訂單已取消", "success");
-        this.renderOrders();
+        await this.renderOrders();
       } else {
         this.showMessage("只有待付款的訂單才能取消", "error");
       }
     }
   }
 
-  checkInOrder(orderId) {
+  async checkInOrder(orderId) {
     if (confirm("確定客人已入住嗎？")) {
       const order = this.orderData.find((o) => o.campsiteOrderId === orderId);
       if (order && order.campsiteOrderStatus === 2) {
         console.log("入住確認：", orderId);
         this.showMessage("入住確認完成", "success");
-        this.renderOrders();
+        await this.renderOrders();
       } else {
         this.showMessage("只有已付款的訂單才能確認入住", "error");
       }
     }
   }
 
-  checkOutOrder(orderId) {
+  async checkOutOrder(orderId) {
     if (confirm("確定客人已退房嗎？")) {
       const order = this.orderData.find((o) => o.campsiteOrderId === orderId);
       if (order && order.campsiteOrderStatus === 2) {
         order.campsiteOrderStatus = 3;
         console.log("退房確認：", orderId);
         this.showMessage("退房確認完成", "success");
-        this.renderOrders();
+        await this.renderOrders();
       } else {
         this.showMessage("只有已付款的訂單才能確認退房", "error");
       }
@@ -3455,7 +3465,9 @@ class OwnerDashboard {
           await this.loadCampsiteTypesByCampId(campIdSelect.value);
 
           // 重新載入該營地的相關資料
-          const campsiteResponse = await fetch("data/campsite.json");
+          const campsiteResponse = await fetch(
+            `${window.api_prefix}/campsite/getAllCampsite`
+          );
           if (!campsiteResponse.ok) {
             throw new Error(`載入營地房間資料失敗：${campsiteResponse.status}`);
           }
@@ -3493,7 +3505,7 @@ class OwnerDashboard {
             console.error("重新渲染房型列表失敗：", error);
           });
           this.renderBundleItems();
-          this.renderOrders();
+          await this.renderOrders();
         } catch (error) {
           console.error("切換營地時發生錯誤：", error);
           this.showMessage(`切換營地失敗：${error.message}`, "error");
@@ -3815,7 +3827,9 @@ class OwnerDashboard {
                       if (pic && pic.length > 0) {
                         return `
                         <div class="carousel-item${idx === 0 ? " active" : ""}">
-                          <img src="${window.api_prefix}/campsitetype/${campsiteTypeId}/${campId}/images/${index}${tsParam}" 
+                          <img src="${
+                            window.api_prefix
+                          }/campsitetype/${campsiteTypeId}/${campId}/images/${index}${tsParam}" 
                                class="d-block w-100 roomtype-carousel-img" 
                                style="width:100%;height:100%;object-fit:cover;" 
                                onerror="this.style.display='none'; this.parentElement.style.display='none';" />
@@ -3991,7 +4005,9 @@ class OwnerDashboard {
                   if (pic && pic.length > 0) {
                     return `
                     <div class="carousel-item${idx === 0 ? " active" : ""}">
-                      <img src="${window.api_prefix}/campsitetype/${campsiteTypeId}/${campId}/images/${index}${tsParam}" 
+                      <img src="${
+                        window.api_prefix
+                      }/campsitetype/${campsiteTypeId}/${campId}/images/${index}${tsParam}" 
                            class="d-block w-100 roomtype-carousel-img" 
                            style="width:100%;height:100%;object-fit:cover;" 
                            onerror="this.style.display='none'; this.parentElement.style.display='none';" />
