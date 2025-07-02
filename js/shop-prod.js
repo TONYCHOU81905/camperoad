@@ -433,7 +433,7 @@ document.querySelectorAll(".btn-add-cart").forEach((btn) => {
     // 判斷登入
     const memberInfo = sessionStorage.getItem('currentMember');
     const member = memberInfo ? JSON.parse(memberInfo) : null;
-    const memId = member ? member.mem_id : null;
+    const memId = member ? member.memId : null;
     console.log('取得會員ID:', memId);
 
     if (memId) {
