@@ -260,9 +260,10 @@ class UserProfileManager {
     await this.loadData();
     this.initTabs();
     this.loadMemberData();
-    // this.loadCampsiteOrders();
     this.loadFavoriteCamps();
     this.loadCoupons();
+    this.loadCampsiteOrders();
+
     this.loadMemberAvatar();
   }
 
@@ -379,11 +380,22 @@ class UserProfileManager {
       }
 
       // 載入營地收藏
-      const favoritesResponse = await fetch(
-        `${window.api_prefix}/camptracklist/${memId}/getCampTrackLists`
-      );
-      this.favoriteCamps = await favoritesResponse.json();
-      console.log("favoriteCamps:" + this.favoriteCamps);
+      try {
+        const favoritesResponse = await fetch(
+          `${window.api_prefix}/camptracklist/${memId}/getCampTrackLists`
+        );
+        if (favoritesResponse.ok) {
+          const favoriteCampsJson = await favoritesResponse.json();
+          this.favoriteCamps = favoriteCampsJson; // 保持完整的響應結構
+          console.log("favoriteCamps:", this.favoriteCamps);
+        } else {
+          console.error("獲取收藏營地失敗:", favoritesResponse.status);
+          this.favoriteCamps = { data: [] }; // 保持一致的數據結構
+        }
+      } catch (error) {
+        console.error("載入收藏營地時發生錯誤:", error);
+        this.favoriteCamps = { data: [] }; // 保持一致的數據結構
+      }
 
       // 載入折價券清單
       const couponResponse = await fetch(
@@ -661,7 +673,13 @@ class UserProfileManager {
     bindCommentButtons();
   }
 
-  
+
+  // 載入營地訂單
+  loadCampsiteOrders() {
+    // 初始顯示所有訂單（不篩選狀態）
+    this.renderOrders(this.campsiteOrders);
+  }
+
 
   loadMemberData() {
     if (!this.currentMember) return;
@@ -785,14 +803,22 @@ class UserProfileManager {
   }
 
   async loadFavoriteCamps() {
+    console.log("loadFavoriteCamps 方法開始執行");
     const favoritesGrid = document.getElementById("favorite-camps-grid");
-    if (!favoritesGrid) return;
-
+    console.log("favoritesGrid 元素:", favoritesGrid);
+    if (!favoritesGrid) {
+      console.log("找不到 favorite-camps-grid 元素，方法提前返回");
+      return;
+    }
+    console.log("memberInfo11:");
     // 取得會員ID
     let memId = null;
     const memberInfo =
       localStorage.getItem("currentMember") ||
       sessionStorage.getItem("currentMember");
+
+    console.log("memberInfo11:", memberInfo);
+
     if (memberInfo) {
       try {
         const memberObj = JSON.parse(memberInfo);
@@ -801,15 +827,21 @@ class UserProfileManager {
         memId = null;
       }
     }
+
+    console.log("memId1", memId);
+
     if (!memId) {
       favoritesGrid.innerHTML = `<div class="empty-state"><i class="fas fa-heart"></i><h3>請先登入會員以查看收藏營地</h3></div>`;
       return;
     }
 
     try {
-      // 假設 this.favoriteCamps 已經是從 API 拿到的資料（你可以自行改為 fetch）
-      const camps = this.favoriteCamps.data;
-      console.log("this.favoriteCamps", camps);
+      // 檢查 favoriteCamps 的資料結構
+      let camps = [];
+      if (this.favoriteCamps) {
+        // 如果有 data 屬性，使用 data；否則直接使用 favoriteCamps
+        camps = this.favoriteCamps.data || this.favoriteCamps;
+      }
 
       if (!Array.isArray(camps) || camps.length === 0) {
         favoritesGrid.innerHTML = `<div class="empty-state"><i class="fas fa-heart"></i><h3>尚無收藏營地</h3></div>`;
@@ -822,7 +854,7 @@ class UserProfileManager {
           (camp) => `
         <div class="favorite-camp-item" data-camp-id="${camp.campId}">
           <div class="camp-image">
-            <img src="${window.api_prefix}/api/camps1/${camp.campId}/1" alt="${
+            <img src="${window.api_prefix}/api/camps/${camp.campId}/1" alt="${
             camp.campName || ""
           }" />
             <button class="btn-remove-favorite" data-camp-id="${
@@ -857,17 +889,20 @@ class UserProfileManager {
           if (!confirmDelete) return;
 
           try {
-            const res = await fetch(`${window.api_prefix}/camptracklist/deleteCampTrackList`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json"
-              },
-              body: JSON.stringify({
-                campId: parseInt(campId),
-                memId: parseInt(memId)
-              })
-            });
-  
+            const res = await fetch(
+              `${window.api_prefix}/camptracklist/deleteCampTrackList`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  campId: parseInt(campId),
+                  memId: parseInt(memId),
+                }),
+              }
+            );
+
             const result = await res.json();
 
             if (result.status === "success") {

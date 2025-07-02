@@ -1069,6 +1069,7 @@ function loadOrderManagement() {
           <option value="3">已取貨，完成訂單</option>
           <option value="4">未取貨，退回賣家</option>
           <option value="5">已取消</option>
+          <option value="6">付款失敗</option>
         </select>
       </div>
       <div class="filter-group">
