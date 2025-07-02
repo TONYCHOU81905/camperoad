@@ -385,6 +385,10 @@ class UserProfileManager {
       console.log("favoriteCamps:" + this.favoriteCamps);
 
       // 載入營地資料
+<<<<<<< HEAD
+=======
+
+>>>>>>> 8ec3edb298c67c97f1d22c90c50e9c51d3b1502e
       const campsResponse = await fetch(`${window.api_prefix}/api/getallcamps`);
       const campsData = await campsResponse.json();
 
@@ -845,6 +849,7 @@ class UserProfileManager {
           if (!confirmDelete) return;
 
           try {
+<<<<<<< HEAD
             const res = await fetch(
               `${window.api_prefix}/camptracklist/deleteCampTrackList`,
               {
@@ -859,6 +864,19 @@ class UserProfileManager {
               }
             );
 
+=======
+            const res = await fetch(`${window.api_prefix}/camptracklist/deleteCampTrackList`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({
+                campId: parseInt(campId),
+                memId: parseInt(memId)
+              })
+            });
+  
+>>>>>>> 8ec3edb298c67c97f1d22c90c50e9c51d3b1502e
             const result = await res.json();
 
             if (result.status === "success") {
