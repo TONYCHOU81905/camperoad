@@ -12,6 +12,7 @@ class CartManager {
   // 初始化資料
   async init() {
     try {
+      console.log("init:", this.campId);
       await Promise.all([this.loadCampsiteTypes(), this.loadBundleItems()]);
       this.initialized = true;
       console.log("購物車資料初始化完成");
@@ -31,11 +32,23 @@ class CartManager {
   // 載入房型資料
   async loadCampsiteTypes() {
     try {
-      const response = await fetch("/data/campsite_type.json");
+      // 確保 api_prefix 已設置
+      if (!window.api_prefix) {
+        console.log("api_prefix 未設置，使用預設值");
+        window.api_prefix = "http://localhost:8081/CJA101G02";
+      }
+      const url = `${window.api_prefix}/campsitetype/getAllCampsiteTypes`;
+      console.log("url:", url);
+      const response = await fetch(
+        `${window.api_prefix}/campsitetype/getAllCampsiteTypes`
+      );
+      console.log("載入房型資料", response.status);
       if (!response.ok) {
         throw new Error("Failed to fetch campsite types");
       }
-      this.campsiteTypes = await response.json();
+
+      const dataJson = await response.json();
+      this.campsiteTypes = dataJson.data;
       console.log("房型資料載入成功", this.campsiteTypes.length);
       return this.campsiteTypes;
     } catch (error) {
@@ -48,7 +61,23 @@ class CartManager {
   // 載入加購商品資料
   async loadBundleItems() {
     try {
-      const response = await fetch("/data/bundle_item.json");
+      // 從 localStorage 的 campingCart 中取得 campId
+      const campingCart = JSON.parse(localStorage.getItem("campingCart")) || [];
+      const campId = campingCart.length > 0 ? campingCart[0].id : null;
+      
+      console.log("loadBundleItems:", campId);
+      
+      // 如果沒有 campId，返回空陣列
+      if (!campId) {
+        console.warn("沒有找到 campId，無法載入加購商品");
+        this.bundleItems = [];
+        return this.bundleItems;
+      }
+
+      // const response = await fetch("/data/bundle_item.json");
+      const response = await fetch(
+        `${window.api_prefix}/bundleitem/${campId}/getBundleItems`
+      );
       if (!response.ok) {
         throw new Error("Failed to fetch bundle items");
       }
@@ -73,7 +102,7 @@ class CartManager {
       guests,
       tentType,
       image,
-      campsite_type_id,
+      campsiteTypeId,
     } = campsiteData;
 
     // 檢查是否有不同營地或不同日期的項目
@@ -103,7 +132,7 @@ class CartManager {
         item.campId === id &&
         item.checkIn === checkIn &&
         item.checkOut === checkOut &&
-        item.campsite_type_id === campsite_type_id
+        item.campsiteTypeId === campsiteTypeId
     );
 
     if (existingIndex > -1) {
@@ -120,7 +149,7 @@ class CartManager {
         guests,
         tentType,
         image,
-        campsite_type_id,
+        campsiteTypeId,
         addedAt: new Date().toISOString(),
       });
     }
@@ -222,8 +251,8 @@ class CartManager {
       const nights = this.calculateNights(item.checkIn, item.checkOut);
 
       // 從campsiteTypes中獲取房型價格
-      const campsiteType = this.getCampsiteTypeById(item.campsite_type_id);
-      let itemPrice = campsiteType.campsite_price * nights;
+      const campsiteType = this.getCampsiteTypeById(item.campsiteTypeId);
+      let itemPrice = campsiteType.campsitePrice * nights;
 
       // 添加帳篷租借費用
       if (item.tentType && item.tentType.includes("rent")) {
@@ -344,7 +373,7 @@ class CartManager {
     }
 
     const campsiteType = this.campsiteTypes.find(
-      (type) => type.campsite_type_id == id
+      (type) => type.campsiteTypeId == id
     );
     if (!campsiteType) {
       console.warn(`找不到ID為${id}的房型資料`);

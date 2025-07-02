@@ -311,6 +311,8 @@
         // 從 localStorage 獲取訂單資訊
         const pendingOrder = JSON.parse(localStorage.getItem("pendingOrder"));
 
+        console.log("pendingOrder:", pendingOrder);
+
         if (pendingOrder) {
           // 顯示訂單資訊
           document.getElementById("order-id").textContent =
@@ -332,9 +334,9 @@
               <tr>
                 <td colspan="3">
                   <div class="order-item">
-                    <div>${item.bundle_name}</div>
+                    <div>${item.bundleName}</div>
                     <div>${item.quantity || 1}</div>
-                    <div>NT$ ${item.bundle_price.toLocaleString()}</div>
+                    <div>NT$ ${item.bundlePrice.toLocaleString()}</div>
                   </div>
                 </td>
               </tr>
@@ -347,9 +349,7 @@
                   <div class="order-item">
                     <div>
                       ${
-                        item.campsite_type_name ||
-                        item.campsite_name ||
-                        "營地項目"
+                        item.campsiteTypeName || item.campsiteName || "營地項目"
                       }
                       <div class="item-date">${item.checkIn} - ${
                 item.checkOut
@@ -357,8 +357,8 @@
                     </div>
                     <div>1</div>
                     <div>NT$ ${
-                      item.campsite_type_price
-                        ? item.campsite_type_price.toLocaleString()
+                      item.campsiteTypePrice
+                        ? item.campsiteTypePrice.toLocaleString()
                         : "10"
                     }</div>
                   </div>
