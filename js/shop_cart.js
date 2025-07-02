@@ -99,7 +99,7 @@ async function fetchCartData() {
 
     if (memId) {
       // 已登入使用者，從 API 獲取資料
-      const response = await fetch(`http://localhost:8081/CJA101G02/api/getCart?memId=${memId}`);
+      const response = await fetch(`${window.api_prefix}/api/getCart?memId=${memId}`);
       if (!response.ok) {
         throw new Error(`網路回應不正常: ${response.status} ${response.statusText}`);
       }
@@ -138,7 +138,7 @@ async function fetchCartData() {
       // 依序補全每個商品的詳細資訊
       const enrichedItems = await Promise.all(cartItems.map(async (item) => {
         try {
-          const response = await fetch(`http://localhost:8081/CJA101G02/api/products/${item.prodId}`);
+          const response = await fetch(`${window.api_prefix}/api/products/${item.prodId}`);
           if (response.ok) {
             const data = await response.json();
             if (data.status === 'success' && data.data) {
@@ -192,7 +192,7 @@ async function renderCartItems(items) {
     let colorOptions = [];
     let specOptions = [];
     try {
-      const res = await fetch(`http://localhost:8081/CJA101G02/api/products/${item.prodId}`);
+      const res = await fetch(`${window.api_prefix}/api/products/${item.prodId}`);
       if (res.ok) {
         const data = await res.json();
         if (data.status === 'success' && data.data) {
@@ -371,7 +371,7 @@ async function updateCartItem(cartItem) {
   if (memId) {
     // ...原本已登入API邏輯...
     try {
-      const response = await fetch('http://localhost:8081/CJA101G02/api/updateCart', {
+      const response = await fetch(`${window.api_prefix}/api/updateCart`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -414,7 +414,7 @@ async function removeCartItem(cartItem) {
   if (memId) {
     // ...原本已登入API邏輯...
     try {
-      const response = await fetch('http://localhost:8081/CJA101G02/api/removeCart', {
+      const response = await fetch(`${window.api_prefix}/api/removeCart`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -457,7 +457,7 @@ async function clearCart() {
   if (memId) {
     // ...原本已登入API邏輯...
     try {
-      const response = await fetch(`http://localhost:8081/CJA101G02/api/clearCart?memId=${memId || ''}`, {
+      const response = await fetch(`${window.api_prefix}/api/clearCart?memId=${memId || ''}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

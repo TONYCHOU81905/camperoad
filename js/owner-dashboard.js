@@ -9,6 +9,8 @@ class OwnerDashboard {
     this.discountCodeData = [];
     this.justUpdatedRoomTypeId = null; // 新增：記錄剛剛有上傳圖片的房型ID
     this.pendingCampImages = {}; // 新增：暫存待上傳的營地圖片
+    this.deletedCampImages = {}; // 新增：記錄被刪除的營地圖片索引
+    this.imageExistsCache = {}; // 新增：圖片存在性緩存
     this.init();
   }
 
@@ -97,13 +99,17 @@ class OwnerDashboard {
           .join("");
         // 設定預設值
         if (this.campData) ownerProfileSelect.value = this.campData.campId;
-        console.log("LLLLLLL:");
+
         // 綁定切換事件
         ownerProfileSelect.onchange = async () => {
-          console.log("GGGGGG:");
           const campId = ownerProfileSelect.value;
+
           // 更新 campData
           this.campData = this.allCamps.find((camp) => camp.campId == campId);
+          // 清空圖片刪除標記
+          this.deletedCampImages = {};
+          // 清除圖片存在性快取
+          this.imageExistsCache = {};
 
           // 1. 只顯示/隱藏 loading 區塊，不覆蓋 camp-info
           let campInfoLoading = document.getElementById("campInfoLoading");
@@ -155,7 +161,7 @@ class OwnerDashboard {
           await this.renderRoomTypes(false, true); // 房型
           await this.loadBundleItemsByCampId(campId); // 加購商品
           const orderResponse = await fetch(
-            "http://localhost:8081/CJA101G02/api/campsite/order/all"
+            `${window.api_prefix}/api/campsite/order/all`
           );
           console.log("orderResponse:" + orderResponse);
 
@@ -198,7 +204,7 @@ class OwnerDashboard {
       console.log("GGGGG:");
       // 載入營地資料，只載入當前營地主的營地
       const campResponse = await fetch(
-        "http://localhost:8081/CJA101G02/api/getallcamps"
+        `${window.api_prefix}/api/getallcamps`
       );
       if (!campResponse.ok) {
         throw new Error(`載入營地資料失敗：${campResponse.status}`);
@@ -221,28 +227,34 @@ class OwnerDashboard {
 
       // 預設選擇第一個營地
       this.campData = this.allCamps[0];
-      console.log("asdasd:" + this.allCamps);
+      // 清空圖片刪除標記
+      this.deletedCampImages = {};
+      // 清除圖片存在性快取
+      this.imageExistsCache = {};
+
       // 載入營地房間資料
       const campsiteResponse = await fetch(
-        "http://localhost:8081/CJA101G02/api/getallcampsites"
+        `${window.api_prefix}/campsite/getAllCampsite`
       );
-      console.log("campsiteResponse:" + campsiteResponse);
+
       if (!campsiteResponse.ok) {
         throw new Error(`載入營地房間資料失敗：${campsiteResponse.status}`);
       }
-      console.log("33333:");
+
       const allCampsitesJson = await campsiteResponse.json();
       const allCampsites = allCampsitesJson.data;
       this.campsiteData = allCampsites.filter(
         (campsite) => this.campData && campsite.campId === this.campData.campId
       );
-      console.log("2222222:");
+
       // 載入加購商品資料 - 使用API
+      console.log("載入加購商品資料:", this.campData.campId);
+
       await this.loadBundleItemsByCampId(this.campData.campId);
-      console.log("1111111:");
+
       // 載入訂單資料
       const orderResponse = await fetch(
-        "http://localhost:8081/CJA101G02/api/campsite/order/all"
+        `${window.api_prefix}/api/campsite/order/all`
       );
       if (!orderResponse.ok) {
         throw new Error(`載入訂單資料失敗：${orderResponse.status}`);
@@ -310,7 +322,7 @@ class OwnerDashboard {
       }
 
       const response = await fetch(
-        `http://localhost:8081/CJA101G02/bundleitem/${campId}/getBundleItems`
+        `${window.api_prefix}/bundleitem/${campId}/getBundleItems`
       );
       if (!response.ok) {
         throw new Error(`載入加購項目失敗：${response.status}`);
@@ -398,17 +410,40 @@ class OwnerDashboard {
 
   // 檢查圖片是否存在的輔助函數
   checkImageExists(url) {
+    // 檢查緩存
+    if (this.imageExistsCache.hasOwnProperty(url)) {
+      return Promise.resolve(this.imageExistsCache[url]);
+    }
+
     return new Promise((resolve) => {
       try {
         const img = new Image();
-        img.onload = () => resolve(true);
-        img.onerror = () => resolve(false);
+        img.onload = () => {
+          this.imageExistsCache[url] = true;
+          resolve(true);
+        };
+        img.onerror = () => {
+          this.imageExistsCache[url] = false;
+          resolve(false);
+        };
         img.src = url;
       } catch (error) {
         console.error("檢查圖片存在性時發生錯誤：", error);
+        this.imageExistsCache[url] = false;
         resolve(false);
       }
     });
+  }
+
+  // 清除圖片存在性緩存
+  clearImageCache(url = null) {
+    if (url) {
+      // 清除特定URL的緩存
+      delete this.imageExistsCache[url];
+    } else {
+      // 清除所有緩存
+      this.imageExistsCache = {};
+    }
   }
 
   async renderCampImages() {
@@ -418,7 +453,6 @@ class OwnerDashboard {
       }
 
       const campId = this.campData.campId;
-      const defaultImagePath = "images/camp-1.jpg";
 
       for (let i = 1; i <= 4; i++) {
         const container = document.getElementById(`campImage${i}Container`);
@@ -433,7 +467,7 @@ class OwnerDashboard {
             <div class="image-container">
               <img src="${pendingImage.previewUrl}" class="thumbnail" onclick="ownerDashboard.showCampImageModal('${pendingImage.previewUrl}', ${i})" />
               <div class="image-actions">
-                <button class="btn btn-sm btn-camping" onclick="ownerDashboard.uploadCampImage(${i})"><i class="fas fa-upload"></i></button>
+                <button class="btn btn-sm btn-camping" onclick="ownerDashboard.uploadCampImage(${i}, event)"><i class="fas fa-upload"></i></button>
                 <button class="btn btn-sm btn-danger" onclick="ownerDashboard.deleteCampImage(${i})"><i class="fas fa-trash"></i></button>
               </div>
               <div class="image-status pending">待保存</div>
@@ -443,32 +477,39 @@ class OwnerDashboard {
           // 檢查是否有現有圖片數據
           const hasImageData = true;
           if (hasImageData) {
-            // 構建API圖片URL
-            const apiImageUrl = `http://localhost:8081/CJA101G02/api/camps/${campId}/${i}`;
-            console.log("apiImageUrl:" + apiImageUrl);
+            // 構建API圖片URL，添加時間戳破除快取
+            const timestamp = new Date().getTime();
+            const apiImageUrl = `${window.api_prefix}/api/camps/${campId}/${i}`;
+            const apiImageUrlWithCache = `${apiImageUrl}?t=${timestamp}`;
+            console.log("apiImageUrl:" + apiImageUrlWithCache);
 
-            // 檢查API圖片是否可訪問
+            // 檢查API圖片是否可訪問（使用原始URL檢查）
             const apiImageExists = await this.checkImageExists(apiImageUrl);
             console.log(i + ":" + apiImageExists);
 
-            // 決定使用哪個圖片URL
-            const imageUrl = apiImageExists ? apiImageUrl : defaultImagePath;
-            const imageSource = apiImageExists
-              ? apiImageUrl
-              : this.campData[`camp_pic${i}`] || defaultImagePath;
-
-            container.innerHTML = `
-               <div class="image-container">
-                 <img src="${imageUrl}" class="thumbnail" onclick="ownerDashboard.showCampImageModal('${imageSource}', ${i})" />
-                 <div class="image-actions">
-                   <button class="btn btn-sm btn-camping" onclick="ownerDashboard.uploadCampImage(${i})"><i class="fas fa-upload"></i></button>
-                   <button class="btn btn-sm btn-danger" onclick="ownerDashboard.deleteCampImage(${i})"><i class="fas fa-trash"></i></button>
+            if (apiImageExists) {
+              // 如果API圖片存在，顯示圖片（使用帶時間戳的URL）
+              container.innerHTML = `
+                 <div class="image-container">
+                   <img src="${apiImageUrlWithCache}" class="thumbnail" onclick="ownerDashboard.showCampImageModal('${apiImageUrlWithCache}', ${i})" />
+                   <div class="image-actions">
+                     <button class="btn btn-sm btn-camping" onclick="ownerDashboard.uploadCampImage(${i}, event)"><i class="fas fa-upload"></i></button>
+                     <button class="btn btn-sm btn-danger" onclick="ownerDashboard.deleteCampImage(${i})"><i class="fas fa-trash"></i></button>
+                   </div>
                  </div>
-               </div>
-             `;
+               `;
+            } else {
+              // 如果API圖片不存在，顯示上傳佔位符
+              container.innerHTML = `
+                 <div class="image-placeholder" onclick="ownerDashboard.uploadCampImage(${i}, event)">
+                   <i class="fas fa-plus"></i>
+                   <span>上傳圖片</span>
+                 </div>
+               `;
+            }
           } else {
             container.innerHTML = `
-               <div class="image-placeholder" onclick="ownerDashboard.uploadCampImage(${i})">
+               <div class="image-placeholder" onclick="ownerDashboard.uploadCampImage(${i}, event)">
                  <i class="fas fa-plus"></i>
                  <span>上傳圖片</span>
                </div>
@@ -613,7 +654,7 @@ class OwnerDashboard {
         };
         try {
           const response = await fetch(
-            "http://localhost:8081/CJA101G02/campsite/addCampsite",
+            `${window.api_prefix}/campsite/addCampsite`,
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -672,7 +713,7 @@ class OwnerDashboard {
         };
         try {
           const response = await fetch(
-            "http://localhost:8081/CJA101G02/campsite/updateCampsite",
+            `${window.api_prefix}/campsite/updateCampsite`,
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -953,9 +994,9 @@ class OwnerDashboard {
     switch (tabName) {
       case "room-types":
         // 這裡改成每次都強制呼叫API
-          this.renderRoomTypes(false, true).catch((error) => {
-            console.error("載入房型資料失敗：", error);
-          });
+        this.renderRoomTypes(false, true).catch((error) => {
+          console.error("載入房型資料失敗：", error);
+        });
         break;
       case "bundle-items":
         this.renderBundleItems();
@@ -1006,7 +1047,7 @@ class OwnerDashboard {
                 if (pic && pic.length > 0) {
                   return `
                   <div class="carousel-item${idx === 0 ? " active" : ""}">
-                    <img src="http://localhost:8081/CJA101G02/campsitetype/${campsiteTypeId}/${campId}/images/${index}" 
+                    <img src="${window.api_prefix}/campsitetype/${campsiteTypeId}/${campId}/images/${index}" 
                          class="d-block w-100 roomtype-carousel-img" 
                          style="width:100%;height:100%;object-fit:cover;" 
                          onerror="this.style.display='none'; this.parentElement.style.display='none';" />
@@ -1114,7 +1155,7 @@ class OwnerDashboard {
         return;
       }
 
-      const apiUrl = `http://localhost:8081/CJA101G02/campsitetype/${campsiteTypeId}/${campId}/getcampsites`;
+      const apiUrl = `${window.api_prefix}/campsitetype/${campsiteTypeId}/${campId}/getcampsites`;
       console.log(`載入房間數量 API: ${apiUrl}`);
 
       const response = await fetch(apiUrl);
@@ -1182,7 +1223,7 @@ class OwnerDashboard {
       this.campsiteTypeData.length === 0
     ) {
       try {
-        const apiUrl = `http://localhost:8081/CJA101G02/campsitetype/${campId}/getCampsiteTypes`;
+        const apiUrl = `${window.api_prefix}/campsitetype/${campId}/getCampsiteTypes`;
         const response = await fetch(apiUrl);
         if (!response.ok) throw new Error(`API回應失敗：${response.status}`);
         const result = await response.json();
@@ -1217,7 +1258,7 @@ class OwnerDashboard {
         // 驗證參數
         if (roomTypeId && campId) {
           try {
-            const apiUrl = `http://localhost:8081/CJA101G02/campsitetype/${roomTypeId}/${campId}/getcampsites`;
+            const apiUrl = `${window.api_prefix}/campsitetype/${roomTypeId}/${campId}/getcampsites`;
             console.log(`載入房型 ${roomTypeId} 房間數量: ${apiUrl}`);
             const response = await fetch(apiUrl);
             if (response.ok) {
@@ -1278,7 +1319,7 @@ class OwnerDashboard {
                   if (pic && pic.length > 0) {
                     return `
                     <div class="carousel-item${idx === 0 ? " active" : ""}">
-                      <img src="http://localhost:8081/CJA101G02/campsitetype/${campsiteTypeId}/${campId}/images/${index}${tsParam}" 
+                      <img src="${window.api_prefix}/campsitetype/${campsiteTypeId}/${campId}/images/${index}${tsParam}" 
                            class="d-block w-100 roomtype-carousel-img" 
                            style="width:100%;height:100%;object-fit:cover;" 
                            onerror="this.style.display='none'; this.parentElement.style.display='none';" />
@@ -2040,8 +2081,6 @@ class OwnerDashboard {
     // 獲取營地主ID
     const ownerId = this.currentOwner.owner_id;
 
-    console.log("campData", this.campData);
-
     // 創建FormData對象用於API請求
     const apiFormData = new FormData();
     apiFormData.append("campId", this.campData.campId);
@@ -2056,19 +2095,40 @@ class OwnerDashboard {
     apiFormData.append("campCommentSumScore", 0);
     apiFormData.append("campRegDate", campRegDate);
 
+    console.log("apiFormData", apiFormData);
+
     console.log("campId", this.campData.campId);
     console.log("ownerId", ownerId);
     console.log("上傳圖片");
 
     // 處理營地圖片
     try {
+      console.log("刪除的圖片索引:", this.deletedCampImages);
       const imageResults = await this.handleCampImageUpload();
+      console.log("圖片處理結果:", imageResults);
 
-      // 將圖片添加到FormData
-      imageResults.forEach((result) => {
-        const filename = result.filename || `campPic${result.index}.jpg`;
-        apiFormData.append(`campPic${result.index}`, result.file, filename);
-      });
+      // 處理所有4個圖片位置，被刪除的傳送null
+      for (let i = 1; i <= 4; i++) {
+        console.log("deletedCampImages:", this.deletedCampImages[i], i);
+
+        if (this.deletedCampImages[i]) {
+          // 被刪除的圖片傳送null
+          apiFormData.append(`campPic${i}`, null);
+          console.log(`添加圖片到FormData: campPic${i} = null (已刪除)`);
+        } else {
+          // 查找對應的圖片結果
+          const result = imageResults.find((r) => r.index === i);
+          if (result) {
+            const filename = result.filename || `campPic${i}.jpg`;
+            apiFormData.append(`campPic${i}`, result.file, filename);
+            console.log(`添加圖片到FormData: campPic${i} (${filename})`);
+          } else {
+            // 如果沒有圖片，也傳送null
+            apiFormData.append(`campPic${i}`, null);
+            console.log(`添加圖片到FormData: campPic${i} = null (無圖片)`);
+          }
+        }
+      }
 
       console.log("所有圖片已處理完成");
     } catch (error) {
@@ -2077,13 +2137,16 @@ class OwnerDashboard {
       return;
     }
 
+    console.log("apiFormData", apiFormData, apiFormData.campPic4);
+
     // 發送API請求
     fetch(
       //create
       // "http://localhost:8081/CJA101G02/api/camps/createonecamp?withOrders=false",
 
       //update
-      "http://localhost:8081/CJA101G02/api/camps/updateonecamp?withOrders=false",
+      // "http://localhost:8081/CJA101G02/api/camps/updateonecamp",
+      `${window.api_prefix}/api/camps/updateonecamp`,
       {
         method: "POST",
         body: apiFormData,
@@ -2113,10 +2176,13 @@ class OwnerDashboard {
           // 清空暫存的圖片
           this.pendingCampImages = {};
 
+          // 清除圖片存在性快取，確保重新檢查圖片
+          this.imageExistsCache = {};
+
           // 重新渲染營地圖片
           this.renderCampImages();
 
-          console.log("營地資料和圖片更新完成");
+          console.log("營地資料和圖片更新完成，已清除圖片快取");
         } else {
           // 更新失敗
           console.error("營地資料更新失敗：", data);
@@ -2239,7 +2305,7 @@ class OwnerDashboard {
 
       try {
         const res = await fetch(
-          `http://localhost:8081/CJA101G02/campsitetype/${this.campData.campId}/addCampsiteType`,
+          `${window.api_prefix}/campsitetype/${this.campData.campId}/addCampsiteType`,
           {
             method: "POST",
             body: apiFormData, // 不要加headers，瀏覽器自動處理
@@ -2489,7 +2555,7 @@ class OwnerDashboard {
       };
 
       const basicRes = await fetch(
-        "http://localhost:8081/CJA101G02/campsitetype/updateCampsiteType",
+        `${window.api_prefix}/campsitetype/updateCampsiteType`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -2555,7 +2621,7 @@ class OwnerDashboard {
       console.log("FormData entries數量:", picFormData.entries().length);
       console.log("FormData keys:", Array.from(picFormData.keys()));
 
-      const imageUpdateUrl = `http://localhost:8081/CJA101G02/campsitetype/${parseInt(
+      const imageUpdateUrl = `${window.api_prefix}/campsitetype/${parseInt(
         typeId
       )}/${parseInt(campId)}/update-images`;
       console.log("圖片更新API URL:", imageUpdateUrl);
@@ -2597,7 +2663,7 @@ class OwnerDashboard {
 
           // 重新載入房型資料來驗證更新
           const verifyResponse = await fetch(
-            `http://localhost:8081/CJA101G02/campsitetype/${parseInt(
+            `${window.api_prefix}/campsitetype/${parseInt(
               campId
             )}/getCampsiteTypes`
           );
@@ -2716,7 +2782,7 @@ class OwnerDashboard {
           bundlePrice: bundlePrice,
         };
         const response = await fetch(
-          "http://localhost:8081/CJA101G02/bundleitem/updateBundleItem",
+          `${window.api_prefix}/bundleitem/updateBundleItem`,
           {
             method: "POST",
             headers: {
@@ -2740,13 +2806,13 @@ class OwnerDashboard {
       // 新增模式 - 使用API
       try {
         const bundleData = {
-          campId: this.campData.camp_id,
+          campId: this.campData.campId,
           bundleName: bundleName,
           bundlePrice: bundlePrice,
         };
 
         const response = await fetch(
-          "http://localhost:8081/CJA101G02/bundleitem/addBundleItem",
+          `${window.api_prefix}/bundleitem/addBundleItem`,
           {
             method: "POST",
             headers: {
@@ -2765,7 +2831,7 @@ class OwnerDashboard {
         this.showMessage("加購商品新增成功！", "success");
 
         // 重新載入加購項目列表
-        await this.loadBundleItemsByCampId(this.campData.camp_id);
+        await this.loadBundleItemsByCampId(this.campData.campId);
       } catch (error) {
         console.error("新增加購項目失敗：", error);
         this.showMessage(`新增加購項目失敗：${error.message}`, "error");
@@ -2929,7 +2995,7 @@ class OwnerDashboard {
     if (confirm("確定要刪除此加購商品嗎？")) {
       try {
         const response = await fetch(
-          "http://localhost:8081/CJA101G02/bundleitem/deleteBundleItem",
+          `${window.api_prefix}/bundleitem/deleteBundleItem`,
           {
             method: "POST",
             headers: {
@@ -2943,7 +3009,7 @@ class OwnerDashboard {
         }
         this.showMessage("加購商品已刪除", "success");
         // 重新載入加購商品列表
-        await this.loadBundleItemsByCampId(this.campData.camp_id);
+        await this.loadBundleItemsByCampId(this.campData.campId);
         this.renderBundleItems();
       } catch (error) {
         console.error("刪除加購商品失敗：", error);
@@ -2994,7 +3060,7 @@ class OwnerDashboard {
       console.log(`載入房型 ${campsiteTypeId} 的房間資料，營地ID: ${campId}`);
 
       const response = await fetch(
-        `http://localhost:8081/CJA101G02/campsitetype/${campsiteTypeId}/${campId}/getcampsites`
+        `${window.api_prefix}/campsitetype/${campsiteTypeId}/${campId}/getcampsites`
       );
 
       if (!response.ok) {
@@ -3228,7 +3294,7 @@ class OwnerDashboard {
       console.log("API請求資料:", requestData);
 
       // 呼叫刪除房間API
-      fetch("http://localhost:8081/CJA101G02/campsite/deleteCampsite", {
+      fetch(`${window.api_prefix}/campsite/deleteCampsite`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestData),
@@ -3437,7 +3503,7 @@ class OwnerDashboard {
 
       console.log("開始呼叫API獲取房型資料");
       const response = await fetch(
-        `http://localhost:8081/CJA101G02/campsitetype/${campId}/getCampsiteTypes`
+        `${window.api_prefix}/campsitetype/${campId}/getCampsiteTypes`
       );
       if (!response.ok) {
         throw new Error(`載入房型資料失敗：${response.status}`);
@@ -3483,7 +3549,7 @@ class OwnerDashboard {
       campsiteTypeId: parseInt(campsiteTypeId),
     };
 
-    fetch("http://localhost:8081/CJA101G02/campsitetype/deleteCampsiteType", {
+    fetch(`${window.api_prefix}/campsitetype/deleteCampsiteType`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(deleteData),
@@ -3734,7 +3800,7 @@ class OwnerDashboard {
                       if (pic && pic.length > 0) {
                         return `
                         <div class="carousel-item${idx === 0 ? " active" : ""}">
-                          <img src="http://localhost:8081/CJA101G02/campsitetype/${campsiteTypeId}/${campId}/images/${index}${tsParam}" 
+                          <img src="${window.api_prefix}/campsitetype/${campsiteTypeId}/${campId}/images/${index}${tsParam}" 
                                class="d-block w-100 roomtype-carousel-img" 
                                style="width:100%;height:100%;object-fit:cover;" 
                                onerror="this.style.display='none'; this.parentElement.style.display='none';" />
@@ -3814,7 +3880,7 @@ class OwnerDashboard {
       this.campsiteTypeData.length === 0
     ) {
       try {
-        const apiUrl = `http://localhost:8081/CJA101G02/campsitetype/${campId}/getCampsiteTypes`;
+        const apiUrl = `${window.api_prefix}/campsitetype/${campId}/getCampsiteTypes`;
         const response = await fetch(apiUrl);
         if (!response.ok) throw new Error(`API回應失敗：${response.status}`);
         const result = await response.json();
@@ -3849,7 +3915,7 @@ class OwnerDashboard {
         // 驗證參數
         if (roomTypeId && campId) {
           try {
-            const apiUrl = `http://localhost:8081/CJA101G02/campsitetype/${roomTypeId}/${campId}/getcampsites`;
+            const apiUrl = `${window.api_prefix}/campsitetype/${roomTypeId}/${campId}/getcampsites`;
             console.log(`載入房型 ${roomTypeId} 房間數量: ${apiUrl}`);
             const response = await fetch(apiUrl);
             if (response.ok) {
@@ -3910,7 +3976,7 @@ class OwnerDashboard {
                   if (pic && pic.length > 0) {
                     return `
                     <div class="carousel-item${idx === 0 ? " active" : ""}">
-                      <img src="http://localhost:8081/CJA101G02/campsitetype/${campsiteTypeId}/${campId}/images/${index}${tsParam}" 
+                      <img src="${window.api_prefix}/campsitetype/${campsiteTypeId}/${campId}/images/${index}${tsParam}" 
                            class="d-block w-100 roomtype-carousel-img" 
                            style="width:100%;height:100%;object-fit:cover;" 
                            onerror="this.style.display='none'; this.parentElement.style.display='none';" />
@@ -4024,7 +4090,13 @@ class OwnerDashboard {
   }
 
   // 營地圖片選擇功能
-  uploadCampImage(imageIndex) {
+  uploadCampImage(imageIndex, event) {
+    // 防止事件冒泡和默認行為
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
     const input = document.createElement("input");
     input.type = "file";
     input.accept = "image/*";
@@ -4061,6 +4133,11 @@ class OwnerDashboard {
         previewUrl: previewUrl,
       };
 
+      // 清除刪除標記（如果存在）
+      if (this.deletedCampImages[imageIndex]) {
+        delete this.deletedCampImages[imageIndex];
+      }
+
       // 更新頁面顯示
       const container = document.getElementById(
         `campImage${imageIndex}Container`
@@ -4070,7 +4147,7 @@ class OwnerDashboard {
           <div class="image-container">
             <img src="${previewUrl}" class="thumbnail" onclick="ownerDashboard.showCampImageModal('${previewUrl}', ${imageIndex})" />
             <div class="image-actions">
-              <button class="btn btn-sm btn-camping" onclick="ownerDashboard.uploadCampImage(${imageIndex})"><i class="fas fa-upload"></i></button>
+              <button class="btn btn-sm btn-camping" onclick="ownerDashboard.uploadCampImage(${imageIndex}, event)"><i class="fas fa-upload"></i></button>
               <button class="btn btn-sm btn-danger" onclick="ownerDashboard.deleteCampImage(${imageIndex})"><i class="fas fa-trash"></i></button>
             </div>
             <div class="image-status pending">待保存</div>
@@ -4092,6 +4169,7 @@ class OwnerDashboard {
       if (!this.campData) {
         throw new Error("找不到營地資料");
       }
+      console.log("handleCampImageUpload");
 
       // 處理圖片文件，返回所有圖片的Promise數組
       const imagePromises = [];
@@ -4105,11 +4183,14 @@ class OwnerDashboard {
               filename: `campPic${i}.jpg`,
             })
           );
+        } else if (this.deletedCampImages[i]) {
+          // 如果圖片被標記為刪除，返回null
+          imagePromises.push(Promise.resolve(null));
         } else {
           // 嘗試從API獲取現有圖片
           const promise = (async () => {
             try {
-              const apiImageUrl = `http://localhost:8081/CJA101G02/api/camps/${this.campData.campId}/${i}`;
+              const apiImageUrl = `${window.api_prefix}/api/camps/${this.campData.campId}/${i}`;
               const imageResponse = await fetch(apiImageUrl);
               if (imageResponse.ok) {
                 const imageBlob = await imageResponse.blob();
@@ -4158,8 +4239,9 @@ class OwnerDashboard {
         }
       }
 
-      // 等待所有圖片處理完成並返回結果
-      return await Promise.all(imagePromises);
+      // 等待所有圖片處理完成並過濾掉null值
+      const results = await Promise.all(imagePromises);
+      return results.filter((result) => result !== null);
     } catch (error) {
       console.error("圖片處理錯誤:", error);
       throw error;
@@ -4178,13 +4260,16 @@ class OwnerDashboard {
         delete this.pendingCampImages[imageIndex];
       }
 
+      // 標記圖片為已刪除
+      this.deletedCampImages[imageIndex] = true;
+
       // 更新頁面顯示為空白狀態
       const container = document.getElementById(
         `campImage${imageIndex}Container`
       );
       if (container) {
         container.innerHTML = `
-          <div class="image-placeholder" onclick="ownerDashboard.uploadCampImage(${imageIndex})">
+          <div class="image-placeholder" onclick="ownerDashboard.uploadCampImage(${imageIndex}, event)">
             <i class="fas fa-plus"></i>
             <span>上傳圖片</span>
           </div>
@@ -4214,7 +4299,7 @@ class OwnerDashboard {
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>
-              <button type="button" class="btn btn-camping" onclick="ownerDashboard.uploadCampImage(${imageIndex}); bootstrap.Modal.getInstance(document.getElementById('campImageModal')).hide();">更換圖片</button>
+              <button type="button" class="btn btn-camping" onclick="ownerDashboard.uploadCampImage(${imageIndex}, event); bootstrap.Modal.getInstance(document.getElementById('campImageModal')).hide();">更換圖片</button>
               <button type="button" class="btn btn-danger" onclick="ownerDashboard.deleteCampImage(${imageIndex}); bootstrap.Modal.getInstance(document.getElementById('campImageModal')).hide();">刪除圖片</button>
             </div>
           </div>
@@ -4269,7 +4354,7 @@ function initRoomTypeImagePreview(roomType) {
 
       if (campsiteTypeId && campId) {
         // 使用新的API端點
-        const apiUrl = `http://localhost:8081/CJA101G02/campsitetype/${campsiteTypeId}/${campId}/images/${i}`;
+        const apiUrl = `${window.api_prefix}/campsitetype/${campsiteTypeId}/${campId}/images/${i}`;
         console.log(`圖片${i} API URL:`, apiUrl);
         previewImg.src = apiUrl;
         previewImg.style.display = "block";

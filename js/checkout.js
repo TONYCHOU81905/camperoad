@@ -430,10 +430,8 @@ class CheckoutManager {
 
         redirectUrls: {
           confirmUrl:
-            "http://localhost:8081/CJA101G02/api/confirmpayment/" +
-            orderId +
-            "/true",
-          cancelUrl: "http://127.0.0.1:5501/linepay-cancel.html",
+            `${window.api_prefix}/api/confirmpayment/${orderId}/true`,
+          cancelUrl: "http://127.0.0.1:5503/linepay-cancel.html",
         },
       };
 
@@ -586,7 +584,7 @@ class CheckoutManager {
   async getOrderIdFromServer() {
     try {
       const response = await fetch(
-        "http://localhost:8081/CJA101G02/api/campsite/newordernumber"
+        `${window.api_prefix}/api/campsite/newordernumber`
       );
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -606,7 +604,7 @@ class CheckoutManager {
   async sendPaymentRequest(requestBody) {
     try {
       const response = await fetch(
-        "http://localhost:8081/CJA101G02/api/linepay/true",
+        `${window.api_prefix}/api/linepay/true`,
         {
           method: "POST",
           headers: {

@@ -2442,7 +2442,7 @@ input:checked+.toggle-slider:before {
   border-radius: 6px;
   text-decoration: none;
   text-align: center;
-  font-size: 14px;
+  font-size: 1rem;
   font-weight: 500;
   transition: all 0.3s ease;
   cursor: pointer;
@@ -2778,4 +2778,16 @@ input:checked+.toggle-slider:before {
   background: #fff3cd;
   color: #856404;
   border: 1px solid #ffeaa7;
+}
+
+.btn-toggle-favorite {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #aaa;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+.btn-toggle-favorite.favorited {
+  color: red;
 }

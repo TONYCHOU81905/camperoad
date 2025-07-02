@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // 載入商品詳情
   function loadProductDetail(prodId) {
-    fetch(`http://localhost:8081/CJA101G02/api/products/${prodId}`)
+    fetch(`${window.api_prefix}/api/products/${prodId}`)
       .then(response => response.json())
       .then(data => {
         if (data.status === 'success' && data.data) {
@@ -224,7 +224,7 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('加入購物車數據:', cartData);
     
     // 使用fetch API發送請求
-    fetch('http://localhost:8081/CJA101G02/api/addCart', {
+    fetch(`${window.api_prefix}/api/addCart`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
