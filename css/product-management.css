@@ -235,8 +235,8 @@ div.modal-content .modal-header h3 {
 
 /* 商品縮略圖樣式 */
 .product-thumbnail {
-  width: 150px; /* 從100px調整為150px */
-  height: 100px; /* 保持原高度 */
+  width: 450px; 
+  /* height: 100px; 保持原高度 */
   object-fit: cover;
   border-radius: 8px;
   border: 2px solid #e8f5e8;

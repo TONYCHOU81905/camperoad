@@ -87,8 +87,8 @@ async function loadProductsData() {
         // ,imageUrl: c.prodColorPicBase64 ? `data:image/jpeg;base64,${c.prodColorPicBase64}` : "images/product-1.jpg"
       })),
       imageUrl: (p.prodPicList && p.prodPicList.length > 0)
-        ? `data:image/jpeg;base64,${p.prodPicList[0].prodPicBase64}`
-        : "images/product-1.jpg"
+      ? `${window.api_prefix}/api/prodpics/${p.prodPicList[0].prodPicId}`
+      : "images/product-1.jpg"
     }));
     
     
@@ -183,13 +183,11 @@ function displayProducts() {
   
   // 添加商品行
   currentProducts.forEach(product => {
-    // 獲取第一個顏色的圖片作為商品主圖
-    const mainImage = product.colors && product.colors.length > 0 ? 
-      product.colors[0].imageUrl : (product.imageUrl || 'images/product-1.jpg');
+    // 獲取第一個商品圖片作為商品主圖
+    const mainImage = product.imageUrl || 'images/product-1.jpg';
     
     // 獲取顏色和規格信息
     let colorAndSpecText = '';
-    
     // 處理顏色信息
     if (product.colors && product.colors.length > 0) {
       const colorNames = product.colors.map(color => color.name).join(', ');
@@ -479,20 +477,14 @@ function showEditProductModal(productId) {
             <input type="number" id="product-discount" min="0" max="100" value="${product.discount || 100}">
           </div>
           
-          <div class="form-group">
-            <label for="product-status">商品狀態</label>
-            <select id="product-status" required>
-              <option value="上架中" ${product.status === '上架中' ? 'selected' : ''}>上架中</option>
-              <option value="已下架" ${product.status === '已下架' ? 'selected' : ''}>已下架</option>
-            </select>
-          </div>
+          <!-- 商品狀態選項已移除，改用 action-btn btn-deactivate 按鈕控制 -->
           
           <div class="form-group">
             <label>商品規格</label>
             <div id="specs-container">
               ${generateSpecificationsHTML(product.specs)}
             </div>
-            <button type="button" class="btn-add" onclick="addSpecificationField()">添加規格</button>
+            <button type="button" class="btn-add" onclick="addSpecField()">添加規格</button>
           </div>
           
           <div class="form-group">
@@ -593,7 +585,7 @@ function generateColorsHTML(colors) {
 
 
 // 添加規格欄位
-function addSpecificationField() {
+function addSpecField() {
   // 檢查是否已經選擇了單一規格
   const existingSelects = document.querySelectorAll(".spec-select");
   for (let i = 0; i < existingSelects.length; i++) {
@@ -746,7 +738,8 @@ async function saveProductChanges() {
   const productType = parseInt(document.getElementById("product-type").value);
   const productDescription = document.getElementById("product-description").value;
   const productDiscount = parseInt(document.getElementById("product-discount").value) || 100;
-  const productStatus = document.getElementById("product-status").value;
+  // 移除獲取商品狀態的代碼
+  // const productStatus = document.getElementById("product-status").value;
   
   // 獲取規格資料
   const specs = [];
@@ -806,7 +799,8 @@ async function saveProductChanges() {
       prodTypeId: productType,
       prodDescription: productDescription,
       prodIntro: productDiscount / 100, // 轉換為小數
-      prodStatus: productStatus === "上架中" ? 1 : 0,
+      // 移除 prodStatus 屬性，或使用原有商品的狀態
+      // prodStatus: productStatus === "上架中" ? 1 : 0,
       prodSpecList: specs,      
       prodColorList: colors 
     };
@@ -837,7 +831,6 @@ async function saveProductChanges() {
           typeId: productType,
           description: productDescription,
           discount: productDiscount / 100,
-          status: productStatus,
           specs: specs,
           colors: colors
         };
@@ -1036,7 +1029,7 @@ async function showAddProductModal() {
   document.body.appendChild(modal);
   
   // 綁定添加規格按鈕事件
-  document.querySelector(".btn-add-spec").addEventListener("click", addSpecificationField);
+  document.querySelector(".btn-add-spec").addEventListener("click", addSpecField);
   
   // 綁定添加顏色按鈕事件
   document.querySelector(".btn-add-color").addEventListener("click", addColorField);
