@@ -163,7 +163,7 @@ class ChatWidget {
     }
 
     // 建立WebSocket連接
-    const socket = new SockJS("http://localhost:8081/CJA101G02/ws");
+    const socket = new SockJS(`${window.api_prefix}/ws`);
     this.stompClient = Stomp.over(socket);
 
     // 禁用調試日誌

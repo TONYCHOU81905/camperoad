@@ -143,7 +143,7 @@ async function handleResetPassword(e) {
 
   try {
     // 使用API重設密碼
-    const response = await fetch("{window.api_prefix}/api/member/changePassword", {
+    const response = await fetch("${window.api_prefix}/api/member/changePassword", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"

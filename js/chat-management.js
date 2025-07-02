@@ -167,7 +167,7 @@ async function fetchChatList(memId) {
     try {
       // 嘗試從API獲取數據
       const response = await fetch(
-        "http://localhost:8081/CJA101G02/api/cto/getonecto",
+        `${window.api_prefix}/api/cto/getonecto`,
         {
           method: "POST",
           headers: {
@@ -250,7 +250,7 @@ async function fetchOwnerChatList(ownerId) {
     try {
       // 嘗試從API獲取數據
       const response = await fetch(
-        "http://localhost:8081/CJA101G02/api/cto/getonecto",
+        `${window.api_prefix}/api/cto/getonecto`,
         {
           method: "POST",
           headers: {
@@ -695,7 +695,7 @@ function initSimpleWebSocketConnection() {
   isSimpleWebSocketMode = true;
 
   try {
-    const socket = new SockJS("http://localhost:8081/CJA101G02/ws");
+    const socket = new SockJS(`${window.api_prefix}/ws`);
     simpleStompClient = Stomp.over(socket);
 
     console.log("嘗試連接 WebSocket...");
