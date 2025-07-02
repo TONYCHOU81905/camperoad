@@ -15,6 +15,7 @@
 4. articles-favorites.html
 - 將所有 fetch API 連結改為 `${window.api_prefix}/api/...` 格式。
 - 於 <head> 加入 <script src="js/camp-data.js"></script>。
+- 移除測試帳號登入設定，恢復正常登入狀態檢查。
 
 5. articles-list-1.html
 - 將所有 fetch API 連結改為 `${window.api_prefix}/api/...` 格式。
@@ -31,8 +32,17 @@
 8. articles.html
 - 將所有 fetch API 連結改為 `${window.api_prefix}/api/...` 格式。
 - 於 <head> 加入 <script src="js/camp-data.js"></script>。
+- 移除測試API端點功能的調試程式碼。
+
+9. js/articles.js
+- 將所有留言相關的 fetch API 路徑改為 `${window.api_prefix}/api/...` 格式。
 
 說明：
 - 所有原本硬編碼的 API 網址（如 http://localhost:8081/CJA101G02/api/...）已改為動態 `${window.api_prefix}/api/...`。
 - 為確保 window.api_prefix 可用，所有檔案於 <head> 區塊加入 <script src="js/camp-data.js"></script>。
-- 若需復原，請將上述檔案的 fetch 連結與 <script src="js/camp-data.js"></script> 的修改還原即可。 
+- 若需復原，請將上述檔案的 fetch 連結與 <script src="js/camp-data.js"></script> 的修改還原即可。
+
+2025-01-02 更新：移除測試帳號登入設定
+- articles-favorites.html: 移除預設測試用戶設定，恢復正常登入狀態檢查
+- articles.html: 移除測試API端點功能的調試程式碼
+- 所有檔案現在都使用正常的登入流程，不再自動設定測試帳號 

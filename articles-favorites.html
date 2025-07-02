@@ -803,15 +803,8 @@
                     this.currentMember = JSON.parse(memberData);
                     this.updateUserInfo();
                 } else {
-                    // 未登入，使用預設用戶（僅用於測試）
-                    console.log('未檢測到登入狀態，使用預設用戶進行測試');
-                    this.currentMember = {
-                        mem_id: 10000002,
-                        mem_name: "測試用戶",
-                        mem_email: "test@example.com",
-                        mem_avatar: "images/user-2.jpg"
-                    };
-                    this.updateUserInfo();
+                    // 未登入，顯示登入提示
+                    this.showEmptyState('請先登入才能查看收藏');
                 }
             }
 
@@ -1341,31 +1334,8 @@
         `;
         document.head.appendChild(style);
 
-        // 預設登入用戶
-        const defaultMember = {
-            mem_id: 10000002,
-            mem_name: "測試用戶",
-            mem_email: "test@example.com",
-            mem_avatar: "images/user-2.jpg"
-        };
-
         // 初始化收藏管理器
         const favoritesManager = new FavoritesManager();
-
-        // 自動設置登入狀態
-        document.addEventListener('DOMContentLoaded', function () {
-            // 檢查是否已經有登入狀態
-            const existingMember = localStorage.getItem("currentMember") || sessionStorage.getItem("currentMember");
-
-            if (!existingMember) {
-                // 設置預設登入狀態
-                localStorage.setItem("currentMember", JSON.stringify(defaultMember));
-                console.log('已設置預設登入用戶:', defaultMember.mem_name);
-
-                // 重新初始化收藏管理器
-                favoritesManager.checkLoginStatus();
-            }
-        });
 
         // 處理搜尋功能
         function handleSearch(event) {

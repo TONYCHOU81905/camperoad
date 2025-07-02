@@ -1178,37 +1178,6 @@
         // 初始化收藏管理器
         const favoriteManager = new ArticleFavoriteManager();
 
-        // 測試API端點功能（已找到正確端點，保留用於調試）
-        async function testApiEndpoints() {
-            console.log('=== 收藏API端點已確認: /api/favorites ===');
-
-            // 測試收藏列表端點
-            try {
-                const response = await fetch(`${window.api_prefix}/api/favorites`);
-                console.log('收藏列表端點狀態:', response.status);
-                if (response.ok) {
-                    const result = await response.json();
-                    console.log('收藏列表數據:', result);
-
-                    // 詳細分析收藏數據結構
-                    if (result.data && result.data.length > 0) {
-                        console.log('=== 收藏數據結構分析 ===');
-                        console.log('第一個收藏記錄:', result.data[0]);
-                        console.log('所有收藏記錄的鍵:', Object.keys(result.data[0]));
-
-                        // 檢查是否有重複的ac_id
-                        const acIds = result.data.map(item => item.ac_id || item.acId || item.articleId);
-                        console.log('所有文章ID:', acIds);
-
-                        const memIds = result.data.map(item => item.mem_id || item.memId || item.memberId);
-                        console.log('所有會員ID:', memIds);
-                    }
-                }
-            } catch (error) {
-                console.error('測試收藏列表端點失敗:', error);
-            }
-        }
-
         // 當文章載入完成後設置文章ID
         document.addEventListener('DOMContentLoaded', function () {
             // 從URL獲取文章ID
@@ -1217,16 +1186,6 @@
 
             if (articleId) {
                 favoriteManager.setCurrentArticleId(articleId);
-            }
-
-            // 延遲執行API測試，確保頁面完全載入
-            setTimeout(testApiEndpoints, 2000);
-        });
-
-        // 監聽文章載入完成事件
-        window.addEventListener('articleLoaded', function (event) {
-            if (event.detail && event.detail.articleId) {
-                favoriteManager.setCurrentArticleId(event.detail.articleId);
             }
         });
     </script>
