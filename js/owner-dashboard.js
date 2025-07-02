@@ -3027,6 +3027,21 @@ class OwnerDashboard {
     }
   }
 
+  // 處理登出
+  handleLogout() {
+    if (confirm("確定要登出嗎？")) {
+      // 清除所有相關的儲存資料
+      localStorage.removeItem("currentOwner");
+      sessionStorage.removeItem("currentOwner");
+      // 也清除可能的其他相關資料
+      localStorage.removeItem("ownerRememberMe");
+      sessionStorage.removeItem("ownerRememberMe");
+
+      // 跳轉到登入頁面
+      window.location.href = "login.html";
+    }
+  }
+
   // 房型操作
   getRoomNumbers(campsiteTypeId) {
     // 根據房型ID獲取所有房間號碼
