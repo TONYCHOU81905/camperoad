@@ -95,23 +95,19 @@ async function handleLogin(e) {
     console.log("password:" + password);
     // 使用API進行登入
 
-    const response = await fetch(
-      "http://localhost:8081/CJA101G02/api/member/login",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          memAcc: memAcc,
-          memPwd: password,
-        }),
-        //credentials: "include", // 包含Cookie
-      }
-    );
+    const response = await fetch(`${window.api_prefix}/api/member/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        memAcc: memAcc,
+        memPwd: password,
+      }),
+      //credentials: "include", // 包含Cookie
+    });
 
-    console.log("RESPONSE:"+response);
-    
+    console.log("RESPONSE:" + response);
 
     if (!response.ok) {
       throw new Error("登入失敗");
@@ -137,42 +133,45 @@ async function handleLogin(e) {
 
       // 登入成功後合併未登入時的購物車資料
       try {
-        const sessionCart = sessionStorage.getItem('sessionCart');
+        const sessionCart = sessionStorage.getItem("sessionCart");
         if (sessionCart) {
           const cartList = JSON.parse(sessionCart);
           if (cartList.length > 0) {
-            console.log('準備合併購物車:', cartList);
-            
-            const mergeResponse = await fetch('http://localhost:8081/CJA101G02/api/mergeCart', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                memId: member.memId,
-                cartList: cartList
-              })
-            });
-            
+            console.log("準備合併購物車:", cartList);
+
+            const mergeResponse = await fetch(
+              `${window.api_prefix}/api/mergeCart`,
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  memId: member.memId,
+                  cartList: cartList,
+                }),
+              }
+            );
+
             if (mergeResponse.ok) {
               const mergeData = await mergeResponse.json();
-              console.log('購物車合併成功:', mergeData);
-              
+              console.log("購物車合併成功:", mergeData);
+
               // 只有在合併成功後才清空 sessionStorage
-              sessionStorage.removeItem('sessionCart');
-              
+              sessionStorage.removeItem("sessionCart");
+
               // 更新前端購物車顯示
               if (window.globalCartManager) {
                 window.globalCartManager.updateCartCount();
               }
             } else {
-              console.error('購物車合併失敗: HTTP', mergeResponse.status);
+              console.error("購物車合併失敗: HTTP", mergeResponse.status);
               // 合併失敗時保留 sessionCart，不刪除
             }
           } else {
-            console.log('sessionCart 為空，無需合併');
+            console.log("sessionCart 為空，無需合併");
           }
         }
       } catch (err) {
-        console.error('購物車合併過程發生錯誤:', err);
+        console.error("購物車合併過程發生錯誤:", err);
         // 發生錯誤時保留 sessionCart，不刪除
       }
 
@@ -253,16 +252,13 @@ async function handleRegister(e) {
 
   try {
     // 使用API進行註冊
-    const response = await fetch(
-      "http://localhost:8081/CJA101G02/api/member/register",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(memData),
-      }
-    );
+    const response = await fetch(`${window.api_prefix}/api/member/register`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(memData),
+    });
 
     if (!response.ok) {
       throw new Error("註冊請求失敗");

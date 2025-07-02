@@ -27,12 +27,12 @@
         <ul>
           <li><a href="campsites.html">營地預訂</a></li>
           <li><a href="shop.html">裝備商城</a></li>
-          <li><a href="article-type.html">論壇攻略</a></li>
+          <li><a href="camp-guides.html">論壇攻略</a></li>
           <li><a href="user-profile.html">關於我們</a></li>
         </ul>
       </nav>
       <div class="user-actions">
-        <a href="camp_cart.html" class="btn-cart">
+        <a href="shop_cart.html" class="btn-cart">
           <i class="fas fa-shopping-cart"></i>
           <span class="cart-count">0</span>
         </a>
@@ -50,7 +50,7 @@
     <div class="container">
       <ul>
         <li><a href="index.html">首頁</a></li>
-        <li><a href="camp_cart.html">購物車</a></li>
+        <li><a href="shop_cart.html">購物車</a></li>
         <li>結帳</li>
       </ul>
     </div>
@@ -142,13 +142,13 @@
             </div>
 
             <!-- 折扣碼選擇 -->
-            <div class="form-group" id="discount-code-group">
-              <label for="discount-code">折扣碼</label>
-              <select id="discount-code">
-                <option value="">請選擇折扣碼</option>
-                <!-- 由JS動態載入會員可用折扣碼 -->
-              </select>
-            </div>
+            <!-- <div class="form-group" id="discount-code-group">
+                <label for="discount-code">折扣碼</label>
+                <select id="discount-code">
+                  <option value="">請選擇折扣碼</option>
+                  <!-- 由JS動態載入會員可用折扣碼 -->
+            <!-- </select>
+              </div> -->
 
             <div class="customer-info">
               <h2>收件人資訊</h2>
@@ -169,11 +169,8 @@
                 </div>
                 <div class="form-group" id="address-group">
                   <label for="customer-address">地址</label>
+                  <div id="cvs-select-area"></div>
                   <input type="text" id="customer-address" placeholder="請輸入地址" required />
-                  <div id="cvs-store-select" style="display:none;">
-                    <button type="button" id="select-cvs-store" class="btn btn-secondary">選擇超商門市</button>
-                    <div id="selected-cvs-store" style="margin-top:8px;color:#388e3c;"></div>
-                  </div>
                 </div>
                 <div class="form-group">
                   <label for="customer-note">備註</label>
@@ -290,7 +287,8 @@
     </div>
   </footer>
 
-  <script src="js/camp_cart.js"></script>
+  <script src="js/shop_cart.js"></script>
+  <script src="js/camp-data.js"></script>
   <script src="js/shop-checkout.js"></script>
 </body>
 

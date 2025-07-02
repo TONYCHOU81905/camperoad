@@ -5,87 +5,71 @@
 // 結帳頁面管理
 class CheckoutManager {
   constructor() {
-    if (cartManager.isInitialized()) {
-      this.init();
-    } else {
-      console.log("等待CartManager初始化完成...");
-      document.addEventListener("cartManagerInitialized", () => {
-        console.log("CartManager初始化完成，開始初始化CheckoutManager");
-        this.init();
-      });
-    }
+    this.init(); // 直接初始化，不再依賴 cartManager
   }
 
   async init() {
     // 取得會員ID - 檢查 localStorage 和 sessionStorage
     let memberInfo = localStorage.getItem('currentMember') || sessionStorage.getItem('currentMember');
     let memId = null;
-    
     if (memberInfo) {
       try {
         const member = JSON.parse(memberInfo);
-        // 檢查 mem_id 或 memId（支援兩種命名方式）
         memId = member.mem_id || member.memId;
       } catch (e) {
         console.error('解析會員資料失敗:', e);
       }
     }
-    
     if (!memId) {
       console.log('未找到會員資料，跳轉到登入頁面');
       window.location.href = 'login.html';
       return;
     }
+    // === 以下為折扣碼相關程式碼，已註解 ===
+    /*
     // 折扣碼下拉選單載入（先查會員擁有，再查全部折扣碼，前端比對）
     try {
-      // 1. 取得會員擁有的折扣碼ID
-      const userDiscountResp = await fetch(`http://localhost:8081/CJA101G02/api/userdiscount/search/${memId}`);
-      const userDiscountData = await userDiscountResp.json();
-      console.log('userDiscountData', userDiscountData);
-      const userDiscountIds = Array.isArray(userDiscountData) ? userDiscountData.map(d => d.id.discountCodeId) : [];
-      // 2. 取得所有折扣碼詳細資料  
-      const discountResp = await fetch('http://localhost:8081/CJA101G02/api/discount');
+      // 取得所有折扣碼詳細資料  
+      const discountResp = await fetch(`${window.api_prefix}/api/discount/all`);
       const discountData = await discountResp.json();
       console.log('discountData', discountData);
       this.allDiscounts = Array.isArray(discountData) ? discountData : [];
-      // 3. 過濾出會員可用的折扣碼詳細資料
-      const userDiscounts = this.allDiscounts.filter(d => userDiscountIds.includes(d.discountCodeId));
-      // 4. 渲染下拉選單
+      // 直接渲染所有折扣碼到下拉選單
       const select = document.getElementById('discount-code');
       if (select) {
         select.innerHTML = '<option value="">請選擇折扣碼</option>' +
-          userDiscounts.map(d =>
-            `<option value="${d.discountCodeId}" data-type="${d.discountType}" data-value="${d.discountValue}">
-              ${d.discountCode}（${d.discountExplain}）
+          this.allDiscounts.map(d =>
+            `<option value="${d.discountCodeId}" data-value="${d.discountValue}">
+              ${d.discountCode}（${d.discountCodeId}）
             </option>`
           ).join('');
         // 折扣碼選擇時即時更新訂單摘要
         select.addEventListener('change', () => this.renderOrderSummary());
       }
     } catch (e) {}
-    // 從API取得購物車資料
+    */
+    // === 折扣碼程式碼註解結束 ===
+    // 取得購物車資料
     let cartItems = [];
-
     try {
-      const response = await fetch(`http://localhost:8081/CJA101G02/api/getCart?memId=${memId}`);
+      const response = await fetch(`${window.api_prefix}/api/getCart?memId=${memId}`);
       if (response.ok) {
         const data = await response.json();
         if (data.status === 'success' && data.data) {
           cartItems = data.data;
         }
       }
-    } catch (e) {}
-    // 直接使用API取得的商品資料
+    } catch (e) {
+      console.error('取得購物車資料失敗:', e);
+    }
     this.cartItems = cartItems;
     this.totalPrice = this.cartItems.reduce((sum, item) => sum + (item.prodPrice * item.cartProdQty), 0);
     this.selectedPaymentMethod = "line-pay";
     this.isProcessing = false;
-
     if (this.cartItems.length === 0) {
       window.location.href = "shop_cart.html";
       return;
     }
-
     this.renderOrderSummary();
     this.bindEvents();
   }
@@ -97,11 +81,7 @@ class CheckoutManager {
     const orderTotalElement = document.getElementById("order-total");
     const orderDiscountElement = document.getElementById("order-discount");
     const orderShippingElement = document.getElementById("order-shipping");
-
-    // 清空容器
     orderItemsContainer.innerHTML = "";
-
-    // 渲染訂單項目（直接從購物車取得）
     this.cartItems.forEach((item) => {
       const orderItemElement = document.createElement("div");
       orderItemElement.className = "order-item";
@@ -115,14 +95,12 @@ class CheckoutManager {
       `;
       orderItemsContainer.appendChild(orderItemElement);
     });
-
-    // 金額計算
+    // 金額計算全部來自 API 取得的 cartItems
     const productTotal = this.cartItems.reduce((sum, item) => sum + (item.prodPrice * item.cartProdQty), 0);
-
-    // 折扣金額計算（舉例，實際要根據折扣碼型態）
     let discountAmount = 0;
+    /*
     const discountCodeSelect = document.getElementById('discount-code');
-    if (discountCodeSelect && discountCodeSelect.value) {
+    if (discountCodeSelect && discountCodeSelect.value && this.allDiscounts) {
       const selectedDiscount = this.allDiscounts.find(d => d.discountCodeId === discountCodeSelect.value);
       if (selectedDiscount) {
         if (selectedDiscount.discountType === 0) {
@@ -132,11 +110,9 @@ class CheckoutManager {
         }
       }
     }
-
+    */
     const shippingFee = 60;
     const orderTotal = productTotal - discountAmount + shippingFee;
-
-    // 訂單摘要渲染
     if (orderSubtotalElement) orderSubtotalElement.textContent = `NT$ ${productTotal.toLocaleString()}`;
     if (orderShippingElement) orderShippingElement.textContent = `NT$ ${shippingFee.toLocaleString()}`;
     if (orderDiscountElement) orderDiscountElement.textContent = `-NT$ ${discountAmount.toLocaleString()}`;
@@ -145,16 +121,20 @@ class CheckoutManager {
 
   // 綁定事件
   bindEvents() {
-    // 付款方式選擇
+    // 付款方式整條可點選
     const paymentMethods = document.querySelectorAll(".payment-method-header");
     paymentMethods.forEach((method) => {
       method.addEventListener("click", (e) => {
         const methodElement = method.closest(".payment-method");
         const methodId = methodElement.dataset.method;
-        this.selectPaymentMethod(methodId);
+        // 切換active樣式
+        document.querySelectorAll('.payment-method').forEach(m => m.classList.remove('active'));
+        methodElement.classList.add('active');
+        // 切換radio
+        const radio = method.querySelector("input[type='radio']");
+        if (radio) radio.checked = true;
       });
     });
-
 
     // 提交付款按鈕
     const submitPaymentBtn = document.getElementById("submit-payment");
@@ -185,82 +165,95 @@ class CheckoutManager {
       });
     }
 
-    // 超商門市選擇
-    const selectCvsBtn = document.getElementById("select-cvs-store");
-    if (selectCvsBtn) {
-      selectCvsBtn.addEventListener("click", async () => {
-        // 呼叫ECPay門市API
-        try {
-          const resp = await fetch("https://logistics-stage.ecpay.com.tw/Helper/GetStoreList", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              MerchantID: "2000132", // 測試用
-              LogisticsType: "CVS",
-              LogisticsSubType: "UNIMART", // 可根據需求切換7-11/全家/萊爾富/OK等
-              IsCollection: "N"
-            })
-          });
-          const result = await resp.json();
-          if (result && result.length > 0) {
-            // 這裡僅做簡單選擇第一家，實際應彈窗讓用戶選
-            const store = result[0];
-            document.getElementById("selected-cvs-store").textContent = `已選擇：${store.StoreName} (${store.StoreAddress})`;
-            // 你可將store資料存到this.selectedCvsStore
-            this.selectedCvsStore = store;
-          } else {
-            document.getElementById("selected-cvs-store").textContent = "查無門市，請稍後再試";
-          }
-        } catch (err) {
-          document.getElementById("selected-cvs-store").textContent = "門市查詢失敗";
-        }
-      });
-    }
-
     // 出貨方式選擇
     const shippingMethods = document.querySelectorAll(".shipping-method-header");
     shippingMethods.forEach((method) => {
       method.addEventListener("click", (e) => {
         const methodElement = method.closest(".shipping-method");
-        const methodId = methodElement.dataset.method;
-        // 切換active樣式
         document.querySelectorAll('.shipping-method').forEach(m => m.classList.remove('active'));
         methodElement.classList.add('active');
-        // 切換radio
         const radio = method.querySelector("input[type='radio']");
-        if (radio) radio.checked = true;
+        if (radio && !radio.checked) {
+          radio.checked = true;
+          handleCvsSelectVisibility(); // 只有在 radio 狀態真的有變化時才呼叫
+        }
       });
     });
-  }
 
-  // 選擇付款方式
-  selectPaymentMethod(methodId) {
-    this.selectedPaymentMethod = methodId;
-
-    // 更新UI
-    const paymentMethods = document.querySelectorAll(".payment-method");
-    paymentMethods.forEach((method) => {
-      if (method.dataset.method === methodId) {
-        method.classList.add("active");
-        const radio = method.querySelector("input[type='radio']");
-        if (radio) radio.checked = true;
-      } else {
-        method.classList.remove("active");
-        const radio = method.querySelector("input[type='radio']");
-        if (radio) radio.checked = false;
-      }
+    // 仍保留 change 事件
+    document.querySelectorAll('input[name="shipping-method"]').forEach(radio => {
+      radio.addEventListener('change', handleCvsSelectVisibility);
     });
 
-    // 切換地址/超商門市選擇UI
-    const addressInput = document.getElementById("customer-address");
-    const cvsSelectDiv = document.getElementById("cvs-store-select");
-    if (methodId === "cod-cvs") {
-      if (addressInput) addressInput.style.display = "none";
-      if (cvsSelectDiv) cvsSelectDiv.style.display = "block";
-    } else {
-      if (addressInput) addressInput.style.display = "";
-      if (cvsSelectDiv) cvsSelectDiv.style.display = "none";
+    // 門市選擇區塊插入與邏輯
+    let all711Stores = [];
+    let filteredStores = [];
+    const cvsArea = document.getElementById('cvs-select-area');
+    let citySelect, storeSelect;
+
+    async function load711Stores() {
+      if (all711Stores.length > 0) return;
+      try {
+        const resp = await fetch('data/711.json');
+        all711Stores = await resp.json();
+      } catch (e) {
+        all711Stores = [];
+      }
     }
+
+    function renderCityOptions() {
+      if (!citySelect) return;
+      const cities = [...new Set(all711Stores.map(s => s.city))];
+      citySelect.innerHTML = '<option value="">請選擇城市</option>' + cities.map(city => `<option value="${city}">${city}</option>`).join('');
+      storeSelect.innerHTML = '<option value="">請先選擇城市</option>';
+    }
+
+    function renderStoreOptions() {
+      if (!storeSelect) return;
+      const city = citySelect.value;
+      filteredStores = all711Stores.filter(s => s.city === city);
+      storeSelect.innerHTML = '<option value="">請選擇門市</option>' + filteredStores.map(s => `<option value="${s.id}">${s.store}</option>`).join('');
+    }
+
+    function handleStoreSelected() {
+      const storeId = storeSelect.value;
+      const store = filteredStores.find(s => s.id === storeId);
+      if (store) {
+        document.getElementById('customer-address').value = store.address;
+      }
+    }
+
+    async function handleCvsSelectVisibility() {
+      console.trace('handleCvsSelectVisibility called');
+      const selectedShipping = document.querySelector('input[name="shipping-method"]:checked').value;
+      if (cvsArea) {
+        cvsArea.innerHTML = ''; // 先清空，避免重複
+      }
+      if (selectedShipping === '2') {
+        await load711Stores();
+        // 建立下拉選單
+        const cvsDiv = document.createElement('div');
+        cvsDiv.innerHTML = `
+          <label>選擇城市：<select id="city-select"></select></label>
+          <label>選擇門市：<select id="store-select"></select></label>
+        `;
+        cvsArea.appendChild(cvsDiv);
+        citySelect = document.getElementById('city-select');
+        storeSelect = document.getElementById('store-select');
+        citySelect.addEventListener('change', () => {
+          renderStoreOptions();
+          document.getElementById('customer-address').value = '';
+        });
+        storeSelect.addEventListener('change', handleStoreSelected);
+        renderCityOptions();
+        console.log('插入711門市下拉選單');
+      } else {
+        console.log('未選擇超商取貨，清空711門市下拉選單');
+      }
+    }
+
+    // 頁面載入時同步一次
+    handleCvsSelectVisibility();
   }
 
   // 驗證表單
@@ -328,8 +321,17 @@ class CheckoutManager {
     const orderShippingAddress = document.getElementById("customer-address").value.trim();
     const shopOrderNote = document.getElementById("customer-note").value.trim();
 
-    // 出貨方式、付款方式、運費
-    const shopOrderShipment = Number(document.querySelector('input[name="shipping-method"]:checked')?.value || 1);
+    // 出貨方式
+    let shopOrderShipment = 1; // 1: 賣家宅配, 2: 超商取貨
+    const shippingRadio = document.querySelector('input[name="shipping-method"]:checked');
+    if (shippingRadio) {
+      if (shippingRadio.value === '1') {
+        shopOrderShipment = 1;
+      } else if (shippingRadio.value === '2') {
+        shopOrderShipment = 2;
+      }
+    }
+    // 付款方式
     let shopOrderPayment = 1; // 1: LINE Pay, 2: 宅配取貨付款, 3: 超商取貨付款
     if (this.selectedPaymentMethod === 'line-pay') shopOrderPayment = 1;
     else if (this.selectedPaymentMethod === 'cod-home') shopOrderPayment = 2;
@@ -400,17 +402,17 @@ class CheckoutManager {
         ],
         redirectUrls: {
           confirmUrl:
-            "http://localhost:8081/CJA101G02/api/confirmpayment/" +
+            `${window.api_prefix}/api/confirmpayment/` +
             orderId +
             "/true",
-          cancelUrl: "http://127.0.0.1:5501/linepay-cancel.html",
+          cancelUrl: `${window.api_prefix}/linepay-cancel.html`,
         },
       };
 
       // 組商品訂單 DTO 所需欄位
       // 會員ID、收件人資訊、付款/出貨方式、折扣碼等都來自使用者互動
       const memberInfo = sessionStorage.getItem('memberInfo');
-      const memId = memberInfo ? JSON.parse(memberInfo).memId : null; 
+      const memId = memberInfo ? JSON.parse(memberInfo).memId : null;
       const orderName = document.getElementById('receiver-name').value;
       const orderEmail = document.getElementById('receiver-email').value;
       const orderPhone = document.getElementById('receiver-phone').value;
@@ -492,7 +494,7 @@ class CheckoutManager {
   async getOrderIdFromServer() {
     try {
       const response = await fetch(
-        "http://localhost:8081/CJA101G02/api/campsite/newordernumber"
+        `${window.api_prefix}/api/campsite/newordernumber`
       );
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -512,7 +514,7 @@ class CheckoutManager {
   async sendPaymentRequest(requestBody) {
     try {
       const response = await fetch(
-        "http://localhost:8081/CJA101G02/api/linepay/true",
+        `${window.api_prefix}/api/linepay/true`,
         {
           method: "POST",
           headers: {
@@ -556,7 +558,7 @@ class CheckoutManager {
     this.showPaymentResultModal();
 
     // 清空購物車和加購商品
-    cartManager.clearAll();
+    this.clearCart();
 
     // 創建訂單 (在實際應用中，這裡會發送API請求到伺服器)
     this.createOrder(result);
@@ -590,7 +592,7 @@ class CheckoutManager {
       paymentMethod: paymentResult.paymentMethod,
       items: this.cartItems,
       bundleItems: this.bundleItems,
-      totalPrice: cartManager.getTotalPrice(),
+      totalPrice: this.totalPrice,
       customer: {
         name: document.getElementById("customer-name").value.trim(),
         phone: document.getElementById("customer-phone").value.trim(),
@@ -658,6 +660,28 @@ class CheckoutManager {
         orderNumber: Math.floor(Math.random() * 1000000)
       });
     }, 1200);
+  }
+
+  // 清空購物車（已登入呼叫API，未登入用sessionCartManager）
+  async clearCart() {
+    let memberInfo = localStorage.getItem('currentMember') || sessionStorage.getItem('currentMember');
+    let memId = null;
+    if (memberInfo) {
+      try {
+        const member = JSON.parse(memberInfo);
+        memId = member.mem_id || member.memId;
+      } catch (e) {}
+    }
+    if (memId) {
+      try {
+        await fetch(`${window.api_prefix}/api/clearCart?memId=${memId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+      } catch (e) {}
+    } else if (window.sessionCartManager) {
+      window.sessionCartManager.clearCart();
+    }
   }
 }
 

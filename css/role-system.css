@@ -2442,7 +2442,7 @@ input:checked+.toggle-slider:before {
   border-radius: 6px;
   text-decoration: none;
   text-align: center;
-  font-size: 14px;
+  font-size: 1rem;
   font-weight: 500;
   transition: all 0.3s ease;
   cursor: pointer;
@@ -2760,4 +2760,34 @@ input:checked+.toggle-slider:before {
     gap: 5px;
     align-items: flex-start;
   }
+}
+
+/* 圖片狀態樣式 */
+.image-status {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.image-status.pending {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+.btn-toggle-favorite {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #aaa;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+.btn-toggle-favorite.favorited {
+  color: red;
 }

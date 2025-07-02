@@ -154,9 +154,14 @@ function initBookingButton() {
 
       try {
         // 使用fetch API獲取可用房型數據
-        await getAvailableRoomTypesFromAPI(campsiteId, guests, checkInDate, checkOutDate);
+        await getAvailableRoomTypesFromAPI(
+          campsiteId,
+          guests,
+          checkInDate,
+          checkOutDate
+        );
       } catch (error) {
-        console.error('獲取可用房型失敗:', error);
+        console.error("獲取可用房型失敗:", error);
         // 如果API調用失敗，回退到原有邏輯
         loadCampsiteTypesByGuestCount();
       }
@@ -388,11 +393,17 @@ async function addToCart(campsite_type_id) {
 
   try {
     // 檢查剩餘房型數量
-    const remainingCount = await checkRemainingRoomCount(campId, campsite_type_id, guests, checkInDate, checkOutDate);
-    
+    const remainingCount = await checkRemainingRoomCount(
+      campId,
+      campsite_type_id,
+      guests,
+      checkInDate,
+      checkOutDate
+    );
+
     // 檢查購物車中是否已有該房型
     let cart = JSON.parse(localStorage.getItem("campingCart")) || [];
-    
+
     // 檢查是否已有不同營地或日期的項目
     const hasDifferentCampsite = cart.some(
       (item) =>
@@ -404,7 +415,9 @@ async function addToCart(campsite_type_id) {
     if (hasDifferentCampsite) {
       // 詢問用戶是否要清空購物車
       if (
-        confirm("購物車中已有不同營地或日期的項目，是否清空購物車並添加新項目？")
+        confirm(
+          "購物車中已有不同營地或日期的項目，是否清空購物車並添加新項目？"
+        )
       ) {
         cart = [];
       } else {
@@ -419,15 +432,19 @@ async function addToCart(campsite_type_id) {
 
     // 檢查是否會超過剩餘數量
     if (existingCount + 1 > remainingCount) {
-      alert(`抱歉，該房型剩餘數量為 ${remainingCount} 間，購物車中已有 ${existingCount} 間，無法再添加。`);
-      
+      alert(
+        `抱歉，該房型剩餘數量為 ${remainingCount} 間，購物車中已有 ${existingCount} 間，無法再添加。`
+      );
+
       // 禁用加入購物車按鈕
-      const addToCartBtn = document.querySelector(`[data-type-id="${campsite_type_id}"]`);
+      const addToCartBtn = document.querySelector(
+        `[data-type-id="${campsite_type_id}"]`
+      );
       if (addToCartBtn) {
         addToCartBtn.disabled = true;
-        addToCartBtn.innerHTML = '數量已達上限';
-        addToCartBtn.style.backgroundColor = '#ccc';
-        addToCartBtn.style.cursor = 'not-allowed';
+        addToCartBtn.innerHTML = "數量已達上限";
+        addToCartBtn.style.backgroundColor = "#ccc";
+        addToCartBtn.style.cursor = "not-allowed";
       }
       return;
     }
@@ -457,10 +474,9 @@ async function addToCart(campsite_type_id) {
     // 顯示添加成功消息
     showAddToCartMessage();
     console.log("已添加到購物車");
-    
   } catch (error) {
-    console.error('檢查剩餘房型數量失敗:', error);
-    alert('無法檢查房型可用性，請稍後再試。');
+    console.log("檢查剩餘房型數量失敗:", error);
+    alert("無法檢查房型可用性，請稍後再試。");
   }
 }
 
@@ -547,39 +563,50 @@ function showAddToCartMessage() {
  * @param {string} checkOut - 退房日期
  * @returns {Promise<number>} 剩餘房型數量
  */
-async function checkRemainingRoomCount(campId, campsiteTypeId, guests, checkIn, checkOut) {
+async function checkRemainingRoomCount(
+  campId,
+  campsiteTypeId,
+  guests,
+  checkIn,
+  checkOut
+) {
   try {
     const requestBody = new URLSearchParams({
       campIds: campId,
       people: guests,
       checkIn: checkIn,
-      checkOut: checkOut
+      checkOut: checkOut,
     });
 
-    const response = await fetch('http://localhost:8081/CJA101G02/api/ca/available/Remaing', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: requestBody
-    });
+    const response = await fetch(
+      `${window.api_prefix}/api/ca/available/Remaing`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: requestBody,
+      }
+    );
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const data = await response.json();
-    console.log('API回應數據:', data);
+    const dataJson = await response.json();
+    const data = dataJson.data;
+    console.log("API回應數據:", dataJson);
 
     // 查找對應房型的剩餘數量
-    const roomTypeData = data.find(item => 
-      item.campId === parseInt(campId) && 
-      item.campsiteTypeId === parseInt(campsiteTypeId)
+    const roomTypeData = data.find(
+      (item) =>
+        item.campId === parseInt(campId) &&
+        item.campsiteTypeId === parseInt(campsiteTypeId)
     );
 
     return roomTypeData ? roomTypeData.remaing : 0;
   } catch (error) {
-    console.error('檢查剩餘房型數量失敗:', error);
+    console.error("檢查剩餘房型數量失敗:", error);
     throw error;
   }
 }
@@ -597,27 +624,30 @@ async function getAvailableRoomTypesFromAPI(campId, guests, checkIn, checkOut) {
       campIds: campId,
       people: guests,
       checkIn: checkIn,
-      checkOut: checkOut
+      checkOut: checkOut,
     });
 
-    const response = await fetch('http://localhost:8081/CJA101G02/api/ca/available/Remaing', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: requestBody
-    });
+    const response = await fetch(
+      `${window.api_prefix}/api/ca/available/Remaing`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: requestBody,
+      }
+    );
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const availableData = await response.json();
-    console.log('可用房型API回應:', availableData);
+    console.log("可用房型API回應:", availableData);
 
     // 過濾出該營地的可用房型
-    const campAvailableTypes = availableData.filter(item => 
-      item.campId === parseInt(campId) && item.remaing > 0
+    const campAvailableTypes = availableData.filter(
+      (item) => item.campId === parseInt(campId) && item.remaing > 0
     );
 
     if (campAvailableTypes.length === 0) {
@@ -627,16 +657,16 @@ async function getAvailableRoomTypesFromAPI(campId, guests, checkIn, checkOut) {
 
     // 從原始房型數據中獲取詳細信息
     if (window.campsiteTypes && window.campsiteTypes.length > 0) {
-      const availableTypes = window.campsiteTypes.filter(type => 
-        campAvailableTypes.some(available => 
-          available.campsiteTypeId === type.campsite_type_id
+      const availableTypes = window.campsiteTypes.filter((type) =>
+        campAvailableTypes.some(
+          (available) => available.campsiteTypeId === type.campsite_type_id
         )
       );
 
       // 添加剩餘數量信息
-      availableTypes.forEach(type => {
-        const availableInfo = campAvailableTypes.find(available => 
-          available.campsiteTypeId === type.campsite_type_id
+      availableTypes.forEach((type) => {
+        const availableInfo = campAvailableTypes.find(
+          (available) => available.campsiteTypeId === type.campsite_type_id
         );
         if (availableInfo) {
           type.remaing = availableInfo.remaing;
@@ -648,9 +678,8 @@ async function getAvailableRoomTypesFromAPI(campId, guests, checkIn, checkOut) {
       // 如果沒有詳細房型數據，顯示基本信息
       displayBasicAvailableRooms(campAvailableTypes, guests);
     }
-
   } catch (error) {
-    console.error('獲取可用房型失敗:', error);
+    console.error("獲取可用房型失敗:", error);
     throw error;
   }
 }
@@ -733,7 +762,9 @@ function displayAvailableRoomTypes(availableTypes, guests) {
       <p>適合人數: ${type.campsite_people}人</p>
       <p>價格: NT$ ${type.campsite_price.toLocaleString()} / 晚</p>
       <p>剩餘數量: <span class="remaining-count">${type.remaing}</span>間</p>
-      <button class="btn-add-to-cart" data-type-id="${type.campsite_type_id}">加入購物車</button>
+      <button class="btn-add-to-cart" data-type-id="${
+        type.campsite_type_id
+      }">加入購物車</button>
     `;
 
     roomCard.appendChild(roomImages);
@@ -774,13 +805,17 @@ function displayBasicAvailableRooms(availableData, guests) {
   roomTypesSection.innerHTML = `
     <h3>可用房型查詢結果</h3>
     <div class="available-rooms-list">
-      ${availableData.map(item => `
+      ${availableData
+        .map(
+          (item) => `
         <div class="available-room-item">
           <p>房型ID: ${item.campsiteTypeId}</p>
           <p>剩餘數量: ${item.remaing} 間</p>
           <button class="btn-add-to-cart" data-type-id="${item.campsiteTypeId}">加入購物車</button>
         </div>
-      `).join('')}
+      `
+        )
+        .join("")}
     </div>
   `;
 
