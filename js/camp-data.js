@@ -480,7 +480,7 @@ function updateMemberDisplay() {
     // 替換登入按鈕為會員資訊
     loginBtn.innerHTML = `
       <img src="images/user-3.jpg" alt="會員頭像" class="user-avatar">
-      <span class="user-name">${currentMember.mem_name}</span>
+      <span class="user-name">${currentMember.memName}</span>
     `;
     loginBtn.href = "user-profile.html";
     loginBtn.classList.add("logged-in");
