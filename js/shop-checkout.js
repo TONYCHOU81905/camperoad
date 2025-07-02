@@ -135,6 +135,7 @@ class CheckoutManager {
         if (radio) radio.checked = true;
       });
     });
+   
 
     // 提交付款按鈕
     const submitPaymentBtn = document.getElementById("submit-payment");
@@ -146,7 +147,7 @@ class CheckoutManager {
     const viewOrderBtn = document.getElementById("view-order");
     if (viewOrderBtn) {
       viewOrderBtn.addEventListener("click", () => {
-        window.location.href = "campsite_order.html";
+        window.location.href = "user-profile.html#shop-orders";
       });
     }
 
@@ -265,7 +266,7 @@ class CheckoutManager {
     const customerAddress = document.getElementById("customer-address").value.trim();
 
     if (!customerName || !customerPhone || !customerEmail || (this.selectedPaymentMethod !== "cod-cvs" && !customerAddress)) {
-      alert("請填寫完整的訂購人資訊");
+      alert("請填寫完整的收件人資訊");
       return false;
     }
 
@@ -300,7 +301,7 @@ class CheckoutManager {
 
     // 根據付款方式處理
     if (this.selectedPaymentMethod === "line-pay") {
-      this.processServerPayment(orderData);
+      this.processServerPayment(orderData, false);  //處理商城訂單
     } else if (this.selectedPaymentMethod === "cod-home" || this.selectedPaymentMethod === "cod-cvs") {
       this.processCODPayment(orderData);
     }
@@ -311,7 +312,7 @@ class CheckoutManager {
     // 會員ID
     const memberInfo = sessionStorage.getItem('currentMember');
     const member = memberInfo ? JSON.parse(memberInfo) : null;
-    const memId = member ? member.mem_id : null;
+    const memId = member ? member.memId : null;
     console.log('取得會員ID:', memId);
 
     // 收件人資訊
@@ -325,17 +326,15 @@ class CheckoutManager {
     let shopOrderShipment = 1; // 1: 賣家宅配, 2: 超商取貨
     const shippingRadio = document.querySelector('input[name="shipping-method"]:checked');
     if (shippingRadio) {
-      if (shippingRadio.value === '1') {
-        shopOrderShipment = 1;
-      } else if (shippingRadio.value === '2') {
-        shopOrderShipment = 2;
-      }
+      shopOrderShipment = Number(shippingRadio.value);
     }
+
     // 付款方式
     let shopOrderPayment = 1; // 1: LINE Pay, 2: 宅配取貨付款, 3: 超商取貨付款
     if (this.selectedPaymentMethod === 'line-pay') shopOrderPayment = 1;
     else if (this.selectedPaymentMethod === 'cod-home') shopOrderPayment = 2;
     else if (this.selectedPaymentMethod === 'cod-cvs') shopOrderPayment = 3;
+    
     const shopOrderShipFee = 60; // 固定運費
 
     // 折扣碼
@@ -368,15 +367,31 @@ class CheckoutManager {
   }
 
   // 處理伺服器付款
-  async processServerPayment(orderData) {
+  async processServerPayment(orderData, isCamp = false) {
     console.log("處理伺服器付款", orderData);
 
     try {
-      // 從伺服器獲取訂單ID
-      const orderId = await this.getOrderIdFromServer();
-      if (!orderId) {
-        throw new Error("無法獲取訂單ID");
-      }
+      // 計算總金額
+      const totalAmount = this.cartItems.reduce((sum, item) => sum + (item.prodPrice * item.cartProdQty), 0) + 60;
+
+      // LinePay付款請求參數
+      const linepayBody = {
+        amount: totalAmount,
+        currency: "TWD",
+        packages: this.cartItems.map(item => ({
+          id: `pkg-${item.prodId}`,
+          amount: item.prodPrice * item.cartProdQty,
+          products: [{
+            name: item.prodName || `商品ID:${item.prodId}`,
+            quantity: item.cartProdQty,
+            price: item.prodPrice
+          }]
+        })),
+        redirectUrls: {
+          confirmUrl: `${window.api_prefix}/api/confirmpayment/{orderId}/${isCamp}`,
+          cancelUrl: `${window.api_prefix}/linepay-cancel.html`
+        }
+      };
 
       // 準備商品資訊（僅商品明細，不含房型/加購/天數等）
       const products = this.cartItems.map(item => ({
@@ -385,14 +400,12 @@ class CheckoutManager {
         price: item.prodPrice
       }));
 
-      // 計算總金額
-      const totalAmount = this.cartItems.reduce((sum, item) => sum + (item.prodPrice * item.cartProdQty), 0);
+      
 
       // 構建付款請求參數（保留原有付款/交易相關程式碼）
       const linepay_body = {
         amount: totalAmount,
         currency: "TWD",
-        orderId: orderId,
         packages: [
           {
             id: "pkg-001",

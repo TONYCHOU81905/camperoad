@@ -260,8 +260,10 @@ class UserProfileManager {
     await this.loadData();
     this.initTabs();
     this.loadMemberData();
-    // this.loadCampsiteOrders();
     this.loadFavoriteCamps();
+    this.loadCoupons();
+    this.loadCampsiteOrders();
+
     this.loadMemberAvatar();
   }
 
@@ -378,17 +380,32 @@ class UserProfileManager {
       }
 
       // 載入營地收藏
-      const favoritesResponse = await fetch(
-        `${window.api_prefix}/camptracklist/${memId}/getCampTrackLists`
+      try {
+        const favoritesResponse = await fetch(
+          `${window.api_prefix}/camptracklist/${memId}/getCampTrackLists`
+        );
+        if (favoritesResponse.ok) {
+          const favoriteCampsJson = await favoritesResponse.json();
+          this.favoriteCamps = favoriteCampsJson; // 保持完整的響應結構
+          console.log("favoriteCamps:", this.favoriteCamps);
+        } else {
+          console.error("獲取收藏營地失敗:", favoritesResponse.status);
+          this.favoriteCamps = { data: [] }; // 保持一致的數據結構
+        }
+      } catch (error) {
+        console.error("載入收藏營地時發生錯誤:", error);
+        this.favoriteCamps = { data: [] }; // 保持一致的數據結構
+      }
+
+      // 載入折價券清單
+      const couponResponse = await fetch(
+        `${window.api_prefix}/api/userdiscount/search/${memId}`
       );
-      this.favoriteCamps = await favoritesResponse.json();
-      console.log("favoriteCamps:" + this.favoriteCamps);
+      this.memberCoupons = await couponResponse.json(); 
+      console.log("memberCoupons:", this.memberCoupons);
+
 
       // 載入營地資料
-<<<<<<< HEAD
-=======
-
->>>>>>> 8ec3edb298c67c97f1d22c90c50e9c51d3b1502e
       const campsResponse = await fetch(`${window.api_prefix}/api/getallcamps`);
       const campsData = await campsResponse.json();
 
@@ -655,6 +672,14 @@ class UserProfileManager {
     bindCommentButtons();
   }
 
+
+  // 載入營地訂單
+  loadCampsiteOrders() {
+    // 初始顯示所有訂單（不篩選狀態）
+    this.renderOrders(this.campsiteOrders);
+  }
+
+
   loadMemberData() {
     if (!this.currentMember) return;
 
@@ -777,14 +802,22 @@ class UserProfileManager {
   }
 
   async loadFavoriteCamps() {
+    console.log("loadFavoriteCamps 方法開始執行");
     const favoritesGrid = document.getElementById("favorite-camps-grid");
-    if (!favoritesGrid) return;
-
+    console.log("favoritesGrid 元素:", favoritesGrid);
+    if (!favoritesGrid) {
+      console.log("找不到 favorite-camps-grid 元素，方法提前返回");
+      return;
+    }
+    console.log("memberInfo11:");
     // 取得會員ID
     let memId = null;
     const memberInfo =
       localStorage.getItem("currentMember") ||
       sessionStorage.getItem("currentMember");
+
+    console.log("memberInfo11:", memberInfo);
+
     if (memberInfo) {
       try {
         const memberObj = JSON.parse(memberInfo);
@@ -793,15 +826,21 @@ class UserProfileManager {
         memId = null;
       }
     }
+
+    console.log("memId1", memId);
+
     if (!memId) {
       favoritesGrid.innerHTML = `<div class="empty-state"><i class="fas fa-heart"></i><h3>請先登入會員以查看收藏營地</h3></div>`;
       return;
     }
 
     try {
-      // 假設 this.favoriteCamps 已經是從 API 拿到的資料（你可以自行改為 fetch）
-      const camps = this.favoriteCamps.data;
-      console.log("this.favoriteCamps", camps);
+      // 檢查 favoriteCamps 的資料結構
+      let camps = [];
+      if (this.favoriteCamps) {
+        // 如果有 data 屬性，使用 data；否則直接使用 favoriteCamps
+        camps = this.favoriteCamps.data || this.favoriteCamps;
+      }
 
       if (!Array.isArray(camps) || camps.length === 0) {
         favoritesGrid.innerHTML = `<div class="empty-state"><i class="fas fa-heart"></i><h3>尚無收藏營地</h3></div>`;
@@ -814,7 +853,7 @@ class UserProfileManager {
           (camp) => `
         <div class="favorite-camp-item" data-camp-id="${camp.campId}">
           <div class="camp-image">
-            <img src="${window.api_prefix}/api/camps1/${camp.campId}/1" alt="${
+            <img src="${window.api_prefix}/api/camps/${camp.campId}/1" alt="${
             camp.campName || ""
           }" />
             <button class="btn-remove-favorite" data-camp-id="${
@@ -849,7 +888,7 @@ class UserProfileManager {
           if (!confirmDelete) return;
 
           try {
-<<<<<<< HEAD
+
             const res = await fetch(
               `${window.api_prefix}/camptracklist/deleteCampTrackList`,
               {
@@ -864,19 +903,9 @@ class UserProfileManager {
               }
             );
 
-=======
-            const res = await fetch(`${window.api_prefix}/camptracklist/deleteCampTrackList`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json"
-              },
-              body: JSON.stringify({
-                campId: parseInt(campId),
-                memId: parseInt(memId)
-              })
-            });
+
   
->>>>>>> 8ec3edb298c67c97f1d22c90c50e9c51d3b1502e
+
             const result = await res.json();
 
             if (result.status === "success") {
@@ -909,6 +938,126 @@ class UserProfileManager {
     } catch (err) {
       favoritesGrid.innerHTML = `<div class="empty-state"><i class="fas fa-heart"></i><h3>無法取得收藏列表，請稍後再試</h3></div>`;
     }
+  }
+
+  async loadCoupons() {
+    const couponsGrid = document.getElementById("coupon-grid");
+    if (!couponsGrid) return;
+  
+    const coupons = this.memberCoupons;
+  
+    if (!Array.isArray(coupons) || coupons.length === 0) {
+      couponsGrid.innerHTML = `
+        <div class="empty-state">
+          <i class="fas fa-ticket-alt"></i>
+          <h3>尚無可用折價券</h3>
+        </div>`;
+      return;
+    }
+  
+    // 渲染折價券卡片
+    couponsGrid.innerHTML = coupons
+      .map((coupon) => {
+        const now = new Date();
+        const end = new Date(coupon.endDate);
+        const isExpired = end < now;
+        const isUsed = coupon.usedDate != null;
+  
+        let statusClass = "available";
+        let statusText = "可使用";
+        if (isUsed) {
+          statusClass = "used";
+          statusText = "已使用";
+        } else if (isExpired) {
+          statusClass = "expired";
+          statusText = "已過期";
+        }
+  
+        const typeText = coupon.discountCodeType === 0 ? "營地折價券" : "商城折價券";
+  
+        return `
+          <div class="coupon-card ${statusClass}">
+            <div class="coupon-header">
+              <div class="coupon-type">${typeText}</div>
+              <div class="coupon-status">${statusText}</div>
+            </div>
+            <div class="coupon-content">
+              <div class="coupon-title">活動名稱:${coupon.discountCode}</div>
+              <div class="coupon-description">單筆滿 NT$${coupon.minOrderAmount} 可使用</div>
+              <div class="coupon-valid">使用期限：${coupon.startDate.substring(0,10)} ~ ${coupon.endDate.substring(0,10)}</div>
+            </div>
+            <div class="coupon-footer">
+              <div class="coupon-code">請使用優惠碼：${coupon.discountCodeId}</div>
+              ${
+                !isExpired && !isUsed
+                  ? `<button class="btn-copy-code" data-code="${coupon.discountCodeId}">複製代碼</button>`
+                  : ""
+              }
+              ${
+                isUsed
+                  ? `<div class="coupon-used-date">使用日期：${coupon.usedDate.substring(0,10)}</div>`
+                  : ""
+              }
+            </div>
+          </div>`;
+      })
+      .join("");
+  
+    // 複製按鈕功能
+    document.querySelectorAll(".btn-copy-code").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const code = btn.dataset.code;
+        navigator.clipboard.writeText(code).then(() => {
+          alert(`已複製折價券代碼：${code}`);
+        });
+      });
+    });
+  
+    this.setupCouponFilters();
+  }
+  
+
+  setupCouponFilters() {
+    const filterTabs = document.querySelectorAll(".filter-tab");
+    
+  
+    filterTabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        const status = tab.getAttribute("data-status");
+  
+        // 切換 active 樣式
+        filterTabs.forEach((t) => t.classList.remove("active"));
+        tab.classList.add("active");
+  
+         // ✅ 每次點擊重新取得卡片（動態渲染的才抓得到）
+        const couponCards = document.querySelectorAll(".coupon-card");
+
+
+        couponCards.forEach((card) => {
+          const isUsed = card.classList.contains("used");
+          const isExpired = card.classList.contains("expired");
+          const isAvailable = card.classList.contains("available");
+  
+          let show = false;
+          switch (status) {
+            case "all":
+              show = true;
+              break;
+            case "available":
+              show = isAvailable;
+              break;
+            case "used":
+              show = isUsed;
+              break;
+            case "expired":
+              show = isExpired;
+              break;
+          }
+  
+          card.style.display = show ? "block" : "none";
+        });
+      });
+    });
   }
 
   getOrderStatusText(status) {

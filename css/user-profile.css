@@ -727,3 +727,7 @@
   transform: scale(0.95);
   transition: all 0.3s ease;
 }
+
+.coupon-card.available { background-color: #f0fff0; }
+.coupon-card.expired { background-color: #fdf0f0; opacity: 0.6; }
+.coupon-card.used { background-color: #f0f0f0; opacity: 0.7; }
