@@ -91,13 +91,35 @@
               <h2>選擇付款方式</h2>
 
               <div class="payment-methods">
-                <div class="payment-method active" data-method="credit-card">
+                <div class="payment-method active" data-method="line-pay">
+                  <div class="payment-method-header">
+                    <input type="radio" name="payment-method" id="line-pay" checked />
+                    <label for="line-pay">LINE Pay</label>
+                    <div class="payment-icons">
+                      <img
+                        src="images/linepay.png"
+                        alt="LINE Pay"
+                        class="line-pay-icon-large"
+                      />
+                    </div>
+                  </div>
+                  <div class="payment-method-content">
+                    <div class="line-pay-info">
+                      <p>
+                        選擇 LINE Pay 付款後，您將被導向 LINE Pay
+                        付款頁面完成交易。
+                      </p>
+                      <p>交易完成後，系統會自動將您導回本網站。</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="payment-method" data-method="credit-card">
                   <div class="payment-method-header">
                     <input
                       type="radio"
                       name="payment-method"
                       id="credit-card"
-                      checked
                     />
                     <label for="credit-card">信用卡付款</label>
                     <div class="payment-icons">
@@ -146,29 +168,6 @@
                         />
                       </div>
                     </form>
-                  </div>
-                </div>
-
-                <div class="payment-method" data-method="line-pay">
-                  <div class="payment-method-header">
-                    <input type="radio" name="payment-method" id="line-pay" />
-                    <label for="line-pay">LINE Pay</label>
-                    <div class="payment-icons">
-                      <img
-                        src="images/line-pay-logo.png"
-                        alt="LINE Pay"
-                        class="line-pay-icon"
-                      />
-                    </div>
-                  </div>
-                  <div class="payment-method-content">
-                    <div class="line-pay-info">
-                      <p>
-                        選擇 LINE Pay 付款後，您將被導向 LINE Pay
-                        付款頁面完成交易。
-                      </p>
-                      <p>交易完成後，系統會自動將您導回本網站。</p>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -328,8 +327,8 @@
       </div>
     </footer>
 
-    <script src="js/camp_cart.js"></script>
     <script src="js/camp-data.js"></script>
+    <script src="js/camp_cart.js"></script>
     <script src="js/checkout.js"></script>
   </body>
 </html>

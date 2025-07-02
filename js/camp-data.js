@@ -13,8 +13,9 @@ async function loadCampData() {
     // const json = await response.json();
     // window.campData = json.data; // 這裡就是你要的陣列
     // console.log(window.campData);
-    const response = await fetch("/data/camp.json");
-    window.campData = await response.json();
+    const response = await fetch(`${window.api_prefix}/api/getallcamps`);
+    const campDataJson = await response.json();
+    window.campData = campDataJson.data;
     console.log("營地資料載入成功:", window.campData.length, "筆資料");
     return window.campData;
   } catch (error) {
@@ -71,33 +72,37 @@ function updateSearchResultsCount(count) {
 
 // 初始化營地收藏清單，獲取會員資料與會員
 async function initFavoriteCampIds() {
-  const saved = localStorage.getItem("currentMember") || sessionStorage.getItem("currentMember");
+  const saved =
+    localStorage.getItem("currentMember") ||
+    sessionStorage.getItem("currentMember");
   if (!saved) return;
 
   const currentMember = JSON.parse(saved);
   const memId = currentMember.mem_id || currentMember.memId || currentMember.id;
 
   try {
-    const response = await fetch(`${window.api_prefix}/camptracklist/${memId}/getCampTrackLists`);
+    const response = await fetch(
+      `${window.api_prefix}/camptracklist/${memId}/getCampTrackLists`
+    );
     const json = await response.json();
     // 假設 API 回傳格式為 { status: "success", data: [{ campId: 1001 }, ...] }
-    window.favoriteCampIds = json.data.map(item => item.campId);
+    window.favoriteCampIds = json.data.map((item) => item.campId);
   } catch (error) {
     console.error("載入會員收藏清單失敗", error);
     window.favoriteCampIds = [];
   }
 }
 
-
-
 // 建立營地卡片
 async function createCampCard(camp) {
+  console.log("createCampCard:", camp);
+
   const card = document.createElement("div");
   card.className = "camp-card";
 
   const rating = calculateRating(
-    camp.camp_comment_sun_score,
-    camp.camp_comment_number_count
+    camp.campCommentSumScore,
+    camp.campCommentNumberCount
   );
   const starsHtml = generateStarsHtml(rating);
 
@@ -106,30 +111,32 @@ async function createCampCard(camp) {
   const checkIn = urlParams.get("check-in");
   const checkOut = urlParams.get("check-out");
 
-  const campsiteTypes = await getCampsiteTypesByCampId(camp.camp_id, guests);
+  const campsiteTypes = await getCampsiteTypesByCampId(camp.campId, guests);
   const priceListHtml = generatePriceListHtml(campsiteTypes);
-  const formattedContent = formatCampContent(camp.camp_content, 80);
-  const regDate = formatDate(camp.camp_reg_date);
+  const formattedContent = formatCampContent(camp.campContent, 80);
+  const regDate = formatDate(camp.campRegDate);
 
-  const isFavorited = window.favoriteCampIds?.includes?.(camp.camp_id);
+  const isFavorited = window.favoriteCampIds?.includes?.(camp.campId);
 
   card.innerHTML = `
     <div class="camp-image">
-      <img src="images/camp-1.jpg" alt="${camp.camp_name}" />
+      <img src= "${window.api_prefix}/api/camps/${camp.campId}/1" alt="${
+    camp.campName
+  }" />
       <span class="camp-tag">熱門</span>
     </div>
     <div class="camp-info">
-      <h3>${camp.camp_name}</h3>
+      <h3>${camp.campName}</h3>
       <p>${formattedContent}</p>
       <p class="camp-location">
-        <i class="fas fa-map-marker-alt"></i> ${camp.camp_city + camp.camp_dist}
+        <i class="fas fa-map-marker-alt"></i> ${camp.campCity + camp.campDist}
       </p>
       <p class="camp-date">
         <i class="far fa-calendar-alt"></i> 上架日期: ${regDate}
       </p>
       <div class="camp-rating">
         <div class="stars">${starsHtml}</div>
-        <span class="rating-count">(${camp.camp_comment_number_count || 0})</span>
+        <span class="rating-count">(${camp.campCommentNumberCount || 0})</span>
       </div>
       <div class="camp-features">
         <span><i class="fas fa-mountain"></i> 山景</span>
@@ -140,11 +147,13 @@ async function createCampCard(camp) {
         <div class="camp-price-list">${priceListHtml}</div>
       </div>
       <div class="camp-actions">
-        <a href="campsite-detail.html?id=${camp.camp_id}&guests=${guests}&check-in=${checkIn}&check-out=${checkOut}" class="btn-view btn-view-enhanced btn-view-full">
+        <a href="campsite-detail.html?id=${
+          camp.campId
+        }&guests=${guests}&check-in=${checkIn}&check-out=${checkOut}" class="btn-view btn-view-enhanced btn-view-full">
           <i class="fas fa-search-plus"></i> 查看詳情
         </a>
         <button class="btn-toggle-favorite ${isFavorited ? "favorited" : ""}" 
-                data-camp-id="${camp.camp_id}" 
+                data-camp-id="${camp.campId}" 
                 title="${isFavorited ? "已收藏" : "加入收藏"}">
           <i class="fas fa-heart"></i>
         </button>
@@ -155,15 +164,20 @@ async function createCampCard(camp) {
   const favBtn = card.querySelector(".btn-toggle-favorite");
   if (favBtn) {
     favBtn.addEventListener("click", async () => {
-      const saved = localStorage.getItem("currentMember") || sessionStorage.getItem("currentMember");
+      const saved =
+        localStorage.getItem("currentMember") ||
+        sessionStorage.getItem("currentMember");
       if (!saved) return alert("請先登入才能收藏");
       const currentMember = JSON.parse(saved);
-      const memId = currentMember.mem_id || currentMember.memId || currentMember.id;
+      const memId =
+        currentMember.mem_id || currentMember.memId || currentMember.id;
       const campId = parseInt(favBtn.dataset.campId);
       if (!Array.isArray(window.favoriteCampIds)) window.favoriteCampIds = [];
       try {
         const isFav = favBtn.classList.contains("favorited");
-        const url = `${window.api_prefix}/camptracklist/${isFav ? "deleteCampTrackList" : "addCampTrackList"}`;
+        const url = `${window.api_prefix}/camptracklist/${
+          isFav ? "deleteCampTrackList" : "addCampTrackList"
+        }`;
         const response = await fetch(url, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -176,7 +190,9 @@ async function createCampCard(camp) {
         favBtn.classList.toggle("favorited", !isFav);
         favBtn.title = isFav ? "加入收藏" : "已收藏";
         if (isFav) {
-          window.favoriteCampIds = window.favoriteCampIds.filter(id => id !== campId);
+          window.favoriteCampIds = window.favoriteCampIds.filter(
+            (id) => id !== campId
+          );
         } else if (!window.favoriteCampIds.includes(campId)) {
           window.favoriteCampIds.push(campId);
         }
@@ -191,23 +207,26 @@ async function createCampCard(camp) {
 
 // 初始化營地收藏清單，獲取會員資料與會員
 async function initFavoriteCampIds() {
-  const saved = localStorage.getItem("currentMember") || sessionStorage.getItem("currentMember");
+  const saved =
+    localStorage.getItem("currentMember") ||
+    sessionStorage.getItem("currentMember");
   if (!saved) return;
 
   const currentMember = JSON.parse(saved);
   const memId = currentMember.mem_id || currentMember.memId || currentMember.id;
 
   try {
-    const response = await fetch(`${window.api_prefix}/camptracklist/${memId}/getCampTrackLists`);
+    const response = await fetch(
+      `${window.api_prefix}/camptracklist/${memId}/getCampTrackLists`
+    );
     const json = await response.json();
     // 假設 API 回傳格式為 { status: "success", data: [{ campId: 1001 }, ...] }
-    window.favoriteCampIds = json.data.map(item => item.campId);
+    window.favoriteCampIds = json.data.map((item) => item.campId);
   } catch (error) {
     console.error("載入會員收藏清單失敗", error);
     window.favoriteCampIds = [];
   }
 }
-
 
 // 載入營地房型資料
 let campsiteTypesData = null;
@@ -218,8 +237,11 @@ async function loadCampsiteTypesData() {
   }
 
   try {
-    const response = await fetch("/data/campsite_type.json");
-    campsiteTypesData = await response.json();
+    const response = await fetch(
+      `${window.api_prefix}/campsitetype/getAllCampsiteTypes`
+    );
+    const campsiteTypesDataJson = await response.json();
+    campsiteTypesData = campsiteTypesDataJson.data;
     return campsiteTypesData;
   } catch (error) {
     console.error("載入房型資料失敗:", error);
@@ -234,7 +256,7 @@ async function getCampsiteTypesByCampId(campId, guestCount) {
 
   const allTypeFilter = allTypes.filter(
     (type) =>
-      type.camp_id == campId && parseInt(type.campsite_people) >= guestCount
+      type.campId == campId && parseInt(type.campsitePeople) >= guestCount
   );
   return allTypeFilter;
 }
@@ -249,9 +271,9 @@ function generatePriceListHtml(campsiteTypes) {
     .map((type) => {
       return `
       <div class="price-item">
-        <span class="room-type">${type.campsite_name}</span>
-        <span class="room-people">(${type.campsite_people}人)</span>
-        <span class="room-price">NT$ ${type.campsite_price.toLocaleString()}</span>
+        <span class="room-type">${type.campsiteName}</span>
+        <span class="room-people">(${type.campsitePeople}人)</span>
+        <span class="room-price">NT$ ${type.campsitePrice.toLocaleString()}</span>
         <span class="price-unit">/ 晚</span>
       </div>
     `;
@@ -557,7 +579,6 @@ async function initCampData() {
     console.log("首頁顯示3個營地卡片");
   } else if (currentPath.includes("campsites.html")) {
     console.log("營地列表頁");
-
 
     // 營地列表頁顯示所有營地
     renderCampCards(campData);

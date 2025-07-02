@@ -103,10 +103,10 @@ class CartPageManager {
       try {
         // 從cartManager獲取最新房型資料
         const campsiteType = cartManager.getCampsiteTypeById(
-          item.campsite_type_id
+          item.campsiteTypeId
         );
         if (!campsiteType) {
-          console.error("找不到房型資料:", item.campsite_type_id);
+          console.error("找不到房型資料:", item.campsiteTypeId);
           return;
         }
 
@@ -115,26 +115,29 @@ class CartPageManager {
           item.tentType && item.tentType.includes("rent")
             ? cartManager.getTentPrice(item.tentType)
             : 0;
-        const totalPrice = (campsiteType.campsite_price + tentPrice) * nights;
+        const totalPrice = (campsiteType.campsitePrice + tentPrice) * nights;
 
         const cartItemElement = document.createElement("div");
         cartItemElement.className = "cart-item";
         cartItemElement.dataset.index = index;
+        console.log(
+          "createIMG:",
+          `${window.api_prefix}/campsitetype/${item.campsiteTypeId}/${item.campId}/images/1`
+        );
 
         cartItemElement.innerHTML = `
           <div class="cart-item-image">
             <img src="${
-              item.image || "/images/campsites/" + campsiteType.campsite_image
-            }" alt="${campsiteType.campsite_name}">
+              item.image ||
+              `${window.api_prefix}/campsitetype/${item.campsiteTypeId}/${item.campId}/images/1`
+            }" alt="${campsiteType.campsiteName}">
           </div>
           <div class="cart-item-details">
-            <h3 class="cart-item-title">${campsiteType.campsite_name}</h3>
+            <h3 class="cart-item-title">${campsiteType.campsiteName}</h3>
             <div class="cart-item-info">
               <div class="info-row">
                 <span class="info-label">人數：</span>
-                <span class="info-value">${
-                  campsiteType.campsite_people
-                }人</span>
+                <span class="info-value">${campsiteType.campsitePeople}人</span>
               </div>
               ${
                 item.tentType
@@ -154,7 +157,7 @@ class CartPageManager {
               <div class="price-row">
                 <span class="price-label">房型價格：</span>
                 <span class="price-value">NT$ ${
-                  campsiteType.campsite_price
+                  campsiteType.campsitePrice
                 }</span>
               </div>
               ${
@@ -209,14 +212,16 @@ class CartPageManager {
     storedBundleItems.forEach((item) => {
       const cartItemElement = document.createElement("div");
       cartItemElement.className = "cart-item bundle-item";
-      cartItemElement.dataset.bundleId = item.bundle_id;
+      cartItemElement.dataset.bundleId = item.bundleId;
 
       cartItemElement.innerHTML = `
         <div class="cart-item-image">
-          <img src="/images/bundles/bundle-${item.bundle_id}.jpg" alt="${item.bundle_name}">
+          <img src="/images/bundles/bundle-${item.bundleId}.jpg" alt="${
+        item.bundleName
+      }">
         </div>
         <div class="cart-item-details">
-          <h3 class="cart-item-title">${item.bundle_name}</h3>
+          <h3 class="cart-item-title">${item.bundleName}</h3>
           <div class="cart-item-info">
             <div class="info-row">
               <span class="info-label">類型：</span>
@@ -228,26 +233,34 @@ class CartPageManager {
           <div class="price-details">
             <div class="price-row">
               <span class="price-label">單價：</span>
-              <span class="price-value">NT$ ${item.bundle_price.toLocaleString()}</span>
+              <span class="price-value">NT$ ${item.bundlePrice.toLocaleString()}</span>
             </div>
             <div class="price-row">
               <span class="price-label">數量：</span>
               <span class="price-value">
                 <div class="quantity-selector">
-                  <button class="quantity-btn minus" data-bundle-id="${item.bundle_id}">-</button>
-                  <input type="number" class="quantity-input" value="${item.quantity || 1}" min="1" max="10" data-bundle-id="${item.bundle_id}">
-                  <button class="quantity-btn plus" data-bundle-id="${item.bundle_id}">+</button>
+                  <button class="quantity-btn minus" data-bundle-id="${
+                    item.bundleId
+                  }">-</button>
+                  <input type="number" class="quantity-input" value="${
+                    item.quantity || 1
+                  }" min="1" max="10" data-bundle-id="${item.bundleId}">
+                  <button class="quantity-btn plus" data-bundle-id="${
+                    item.bundleId
+                  }">+</button>
                 </div>
               </span>
             </div>
             <div class="price-row total">
               <span class="price-label">小計：</span>
-              <span class="price-value">NT$ ${(item.bundle_price * (item.quantity || 1)).toLocaleString()}</span>
+              <span class="price-value">NT$ ${(
+                item.bundlePrice * (item.quantity || 1)
+              ).toLocaleString()}</span>
             </div>
           </div>
         </div>
         <div class="cart-item-remove">
-          <button class="remove-btn" data-bundle-id="${item.bundle_id}">
+          <button class="remove-btn" data-bundle-id="${item.bundleId}">
             <i class="fas fa-trash-alt"></i>
           </button>
         </div>
@@ -279,15 +292,15 @@ class CartPageManager {
       bundleCard.className = "bundle-card";
       bundleCard.innerHTML = `
         <div class="bundle-image">
-          <img src="/images/bundles/bundle-${item.bundle_id}.jpg" alt="${
-        item.bundle_name
+          <img src="/images/bundles/bundle-${item.bundleId}.jpg" alt="${
+        item.bundleName
       }">
         </div>
         <div class="bundle-details">
-          <h3 class="bundle-name">${item.bundle_name}</h3>
-          <div class="bundle-price">NT$ ${item.bundle_price.toLocaleString()}</div>
+          <h3 class="bundle-name">${item.bundleName}</h3>
+          <div class="bundle-price">NT$ ${item.bundlePrice.toLocaleString()}</div>
           <button class="add-bundle-btn" data-bundle-id="${
-            item.bundle_id
+            item.bundleId
           }">加入購物車</button>
         </div>
       `;
@@ -302,7 +315,7 @@ class CartPageManager {
       btn.addEventListener("click", () => {
         const bundleId = btn.dataset.bundleId;
         const bundleItem = bundleItems.find(
-          (item) => item.bundle_id == bundleId
+          (item) => item.bundleId == bundleId
         );
         if (bundleItem) {
           cartManager.addBundleItem(bundleItem);
@@ -316,7 +329,7 @@ class CartPageManager {
   updateCartItemCount(bundleId, newCount) {
     let bundleItemsStorage = cartManager.getBundleItems();
     const bundleIndex = bundleItemsStorage.findIndex(
-      (item) => item.bundle_id === bundleId
+      (item) => item.bundleId === bundleId
     );
 
     if (bundleIndex > -1) {
