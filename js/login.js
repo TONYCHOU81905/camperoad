@@ -95,23 +95,19 @@ async function handleLogin(e) {
     console.log("password:" + password);
     // 使用API進行登入
 
-    const response = await fetch(
-      "{window.api_prefix}/api/member/login",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          memAcc: memAcc,
-          memPwd: password,
-        }),
-        //credentials: "include", // 包含Cookie
-      }
-    );
+    const response = await fetch(`${window.api_prefix}/api/member/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        memAcc: memAcc,
+        memPwd: password,
+      }),
+      //credentials: "include", // 包含Cookie
+    });
 
-    console.log("RESPONSE:"+response);
-    
+    console.log("RESPONSE:" + response);
 
     if (!response.ok) {
       throw new Error("登入失敗");
@@ -137,42 +133,45 @@ async function handleLogin(e) {
 
       // 登入成功後合併未登入時的購物車資料
       try {
-        const sessionCart = sessionStorage.getItem('sessionCart');
+        const sessionCart = sessionStorage.getItem("sessionCart");
         if (sessionCart) {
           const cartList = JSON.parse(sessionCart);
           if (cartList.length > 0) {
-            console.log('準備合併購物車:', cartList);
-            
-            const mergeResponse = await fetch('{window.api_prefix}/api/mergeCart', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                memId: member.memId,
-                cartList: cartList
-              })
-            });
-            
+            console.log("準備合併購物車:", cartList);
+
+            const mergeResponse = await fetch(
+              `${window.api_prefix}/api/mergeCart`,
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  memId: member.memId,
+                  cartList: cartList,
+                }),
+              }
+            );
+
             if (mergeResponse.ok) {
               const mergeData = await mergeResponse.json();
-              console.log('購物車合併成功:', mergeData);
-              
+              console.log("購物車合併成功:", mergeData);
+
               // 只有在合併成功後才清空 sessionStorage
-              sessionStorage.removeItem('sessionCart');
-              
+              sessionStorage.removeItem("sessionCart");
+
               // 更新前端購物車顯示
               if (window.globalCartManager) {
                 window.globalCartManager.updateCartCount();
               }
             } else {
-              console.error('購物車合併失敗: HTTP', mergeResponse.status);
+              console.error("購物車合併失敗: HTTP", mergeResponse.status);
               // 合併失敗時保留 sessionCart，不刪除
             }
           } else {
-            console.log('sessionCart 為空，無需合併');
+            console.log("sessionCart 為空，無需合併");
           }
         }
       } catch (err) {
-        console.error('購物車合併過程發生錯誤:', err);
+        console.error("購物車合併過程發生錯誤:", err);
         // 發生錯誤時保留 sessionCart，不刪除
       }
 
@@ -253,16 +252,13 @@ async function handleRegister(e) {
 
   try {
     // 使用API進行註冊
-    const response = await fetch(
-      "{window.api_prefix}/api/member/register",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(memData),
-      }
-    );
+    const response = await fetch(`${window.api_prefix}/api/member/register`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(memData),
+    });
 
     if (!response.ok) {
       throw new Error("註冊請求失敗");
@@ -333,46 +329,39 @@ async function handleOwnerRegister(e) {
   }
 
   try {
-    // 載入現有營地主資料
-    const response = await fetch("data/owner.json");
-    const owners = await response.json();
+    // 使用API註冊營地主
+    const response = await fetch(`${window.api_prefix}/api/owner/register`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(ownerData),
+      credentials: "include", // 包含Cookie
+    });
 
-    // 檢查帳號是否已存在
-    const existingOwner = owners.find(
-      (owner) => owner.owner_acc === ownerData.owner_acc
-    );
-    if (existingOwner) {
-      showMessage("此Email帳號已被註冊", "error");
-      return;
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "註冊請求失敗");
     }
 
-    // 生成新的owner_id
-    const maxId = Math.max(...owners.map((owner) => parseInt(owner.owner_id)));
-    const newOwnerId = (maxId + 1).toString().padStart(3, "0");
+    const data = await response.json();
 
-    // 建立新營地主資料
-    const newOwner = {
-      owner_id: newOwnerId,
-      ...ownerData,
-      owner_status: "1", // 預設啟用狀態
-      owner_reg_date: new Date().toISOString().split("T")[0], // 今天日期
-      owner_pic: "", // 預設空白圖片
-    };
+    if (data.success) {
+      showMessage("營地主註冊成功！請使用註冊的帳號密碼登入", "success");
 
-    // 模擬新增到JSON（實際應用需要後端API）
-    console.log("新營地主資料：", newOwner);
-    showMessage("營地主註冊成功！請使用註冊的帳號密碼登入", "success");
+      // 清空表單
+      e.target.reset();
 
-    // 清空表單
-    e.target.reset();
-
-    // 3秒後切換到營地主登入頁面
-    setTimeout(() => {
-      document.querySelector('[data-tab="owner-login"]').click();
-    }, 2000);
+      // 3秒後切換到營地主登入頁面
+      setTimeout(() => {
+        document.querySelector('[data-tab="owner-login"]').click();
+      }, 2000);
+    } else {
+      showMessage(data.message || "註冊失敗，請檢查資料是否正確", "error");
+    }
   } catch (error) {
     console.error("註冊失敗：", error);
-    showMessage("註冊失敗，請稍後再試", "error");
+    showMessage(error.message || "註冊失敗，請稍後再試", "error");
   }
 }
 
@@ -393,18 +382,30 @@ async function handleOwnerLogin(e) {
   }
 
   try {
-    // 載入營地主資料
-    const response = await fetch("data/owner.json");
-    const owners = await response.json();
+    // 使用API登入營地主
+    const response = await fetch(`${window.api_prefix}/api/owner/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        owner_acc: ownerAcc,
+        owner_pwd: ownerPwd
+      }),
+      credentials: "include", // 包含Cookie
+    });
 
-    // 驗證登入
-    const owner = owners.find(
-      (o) =>
-        o.owner_acc == ownerAcc && o.owner_pwd == ownerPwd && o.acc_status == 1
-    );
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "登入請求失敗");
+    }
 
-    if (owner) {
+    const data = await response.json();
+
+    if (data.success) {
       // 登入成功
+      const owner = data.owner;
+      
       // 根據remember checkbox決定存儲方式
       if (remember) {
         localStorage.setItem("currentOwner", JSON.stringify(owner));
@@ -419,11 +420,11 @@ async function handleOwnerLogin(e) {
         window.location.href = "owner-dashboard.html";
       }, 1500);
     } else {
-      showMessage("營地主帳號或密碼錯誤，或帳號已被停用", "error");
+      showMessage(data.message || "營地主帳號或密碼錯誤，或帳號已被停用", "error");
     }
   } catch (error) {
     console.error("登入失敗：", error);
-    showMessage("登入失敗，請稍後再試", "error");
+    showMessage(error.message || "登入失敗，請稍後再試", "error");
   }
 }
 
@@ -442,20 +443,30 @@ async function handleAdminLogin(e) {
   }
 
   try {
-    // 載入管理員資料
-    const response = await fetch("data/administrator.json");
-    const admins = await response.json();
+    // 使用API登入管理員
+    const response = await fetch(`${window.api_prefix}/api/admin/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        admin_acc: adminAcc,
+        admin_pwd: adminPwd
+      }),
+      credentials: "include", // 包含Cookie
+    });
 
-    // 驗證登入
-    const admin = admins.find(
-      (a) =>
-        a.admin_acc == adminAcc &&
-        a.admin_pwd == adminPwd &&
-        a.admin_status == 1
-    );
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "登入請求失敗");
+    }
 
-    if (admin) {
+    const data = await response.json();
+
+    if (data.success) {
       // 登入成功
+      const admin = data.admin;
+      
       // 根據remember checkbox決定存儲方式
       if (remember) {
         localStorage.setItem("currentAdmin", JSON.stringify(admin));
@@ -470,11 +481,11 @@ async function handleAdminLogin(e) {
         window.location.href = "admin-dashboard.html";
       }, 1500);
     } else {
-      showMessage("管理員帳號或密碼錯誤，或帳號已被停用", "error");
+      showMessage(data.message || "管理員帳號或密碼錯誤，或帳號已被停用", "error");
     }
   } catch (error) {
     console.error("登入失敗：", error);
-    showMessage("登入失敗，請稍後再試", "error");
+    showMessage(error.message || "登入失敗，請稍後再試", "error");
   }
 }
 

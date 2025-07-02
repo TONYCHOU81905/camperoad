@@ -68,7 +68,7 @@ async function filterCampsBySearchCriteria() {
 
     if (regionCounties) {
       filteredCamps = filteredCamps.filter((camp) =>
-        regionCounties.includes(camp.camp_city)
+        regionCounties.includes(camp.campCity)
       );
     }
   }
@@ -76,7 +76,7 @@ async function filterCampsBySearchCriteria() {
   // 根據縣市篩選
   const county = urlParams.get("county");
   if (county) {
-    filteredCamps = filteredCamps.filter((camp) => camp.camp_city == county);
+    filteredCamps = filteredCamps.filter((camp) => camp.campCity == county);
   }
 
   // 根據鄉鎮市區篩選
@@ -116,10 +116,10 @@ async function filterCampsBySearchCriteria() {
 
     // 篩選出有符合人數條件房型的營地
     filteredCamps = filteredCamps.filter(async (camp) => {
-      console.log("camp_id1:" + camp.camp_id);
+      console.log("campId1:" + camp.campId);
 
       const campsiteTypes = await getCampsiteTypesByCampId(
-        camp.camp_id,
+        camp.campId,
         guestCount
       );
 
@@ -145,7 +145,7 @@ async function getAvailableCampsFromAPI(
 ) {
   try {
     // 從篩選後的營地中提取campId列表
-    const campIds = filteredCamps.map((camp) => camp.camp_id);
+    const campIds = filteredCamps.map((camp) => camp.campId);
     console.log("準備查詢的營地ID列表:", campIds);
 
     // 構建API請求參數
@@ -161,7 +161,7 @@ async function getAvailableCampsFromAPI(
 
     // 調用API
     const response = await fetch(
-      "http://localhost:8081/CJA101G02/api/ca/available/Remaing",
+      `${window.api_prefix}/api/ca/available/Remaing`,
       {
         method: "POST",
         headers: {
@@ -187,7 +187,7 @@ async function getAvailableCampsFromAPI(
 
       // 篩選出有可用房型的營地
       const availableCamps = filteredCamps.filter((camp) =>
-        availableCampIds.includes(parseInt(camp.camp_id))
+        availableCampIds.includes(parseInt(camp.campId))
       );
 
       console.log("最終可用營地數量:", availableCamps.length);
@@ -293,8 +293,8 @@ function initSorting() {
 function sortCampsByPrice(camps, ascending) {
   return camps.sort((a, b) => {
     // 基於營地ID生成固定的價格，確保排序一致性
-    const priceA = generateFixedPrice(a.camp_id);
-    const priceB = generateFixedPrice(b.camp_id);
+    const priceA = generateFixedPrice(a.campId);
+    const priceB = generateFixedPrice(b.campId);
     return ascending ? priceA - priceB : priceB - priceA;
   });
 }
@@ -311,12 +311,12 @@ function generateFixedPrice(campId) {
 function sortCampsByRating(camps) {
   return camps.sort((a, b) => {
     const ratingA = calculateRating(
-      a.camp_comment_sun_score,
-      a.camp_comment_number_count
+      a.campCommentSumScore,
+      a.campCommentNumberCount
     );
     const ratingB = calculateRating(
-      b.camp_comment_sun_score,
-      b.camp_comment_number_count
+      b.campCommentSumScore,
+      b.campCommentNumberCount
     );
     return ratingB - ratingA;
   });
@@ -325,8 +325,8 @@ function sortCampsByRating(camps) {
 // 按人氣（評論數）排序（針對營地資料物件）
 function sortCampsByPopularity(camps) {
   return camps.sort((a, b) => {
-    const reviewsA = parseInt(a.camp_comment_number_count) || 0;
-    const reviewsB = parseInt(b.camp_comment_number_count) || 0;
+    const reviewsA = parseInt(a.campCommentNumberCount) || 0;
+    const reviewsB = parseInt(b.campCommentNumberCount) || 0;
     return reviewsB - reviewsA;
   });
 }
@@ -334,8 +334,8 @@ function sortCampsByPopularity(camps) {
 // 按新上架排序（針對營地資料物件）
 function sortCampsByNew(camps) {
   return camps.sort((a, b) => {
-    const dateA = new Date(a.camp_reg_date);
-    const dateB = new Date(b.camp_reg_date);
+    const dateA = new Date(a.campRegDate);
+    const dateB = new Date(b.campRegDate);
     return dateB - dateA; // 最新的在前面
   });
 }
@@ -440,12 +440,10 @@ async function renderPaginatedResults(camps) {
   generatePagination(totalPages);
 }
 
-
-
 // 顯示當前頁面的營地
 async function displayCurrentPage() {
   await initFavoriteCampIds();
-  
+
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentPageCamps = allCampCards.slice(startIndex, endIndex);
@@ -455,9 +453,6 @@ async function displayCurrentPage() {
   if (searchResults) {
     searchResults.innerHTML = "";
 
-
-    
-    
     // 使用Promise.all來並行處理所有營地卡片的創建
     const campCardPromises = currentPageCamps.map((camp) =>
       createCampCard(camp)

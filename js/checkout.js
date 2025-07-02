@@ -23,7 +23,7 @@ class CheckoutManager {
     // 使用 cartManager.getBundleItems() 獲取加購商品
     this.bundleItems = cartManager.getBundleItems();
     this.totalPrice = cartManager.getTotalPrice();
-    this.selectedPaymentMethod = "credit-card"; // 預設付款方式
+    this.selectedPaymentMethod = "line-pay"; // 預設付款方式
     this.isProcessing = false; // 付款處理中標誌
 
     // 如果購物車為空，重定向到購物車頁面
@@ -33,7 +33,43 @@ class CheckoutManager {
     }
 
     this.renderOrderSummary();
+    this.loadMemberData();
     this.bindEvents();
+  }
+
+  // 載入會員資料
+  loadMemberData() {
+    try {
+      // 從 localStorage 獲取會員資料
+      const memberData = JSON.parse(localStorage.getItem('memberData'));
+      
+      if (memberData) {
+        // 自動填入會員資料到表單
+        const customerNameInput = document.getElementById('customer-name');
+        const customerPhoneInput = document.getElementById('customer-phone');
+        const customerEmailInput = document.getElementById('customer-email');
+        const customerAddressInput = document.getElementById('customer-address');
+        
+        if (customerNameInput && memberData.name) {
+          customerNameInput.value = memberData.name;
+        }
+        if (customerPhoneInput && memberData.phone) {
+          customerPhoneInput.value = memberData.phone;
+        }
+        if (customerEmailInput && memberData.email) {
+          customerEmailInput.value = memberData.email;
+        }
+        if (customerAddressInput && memberData.address) {
+          customerAddressInput.value = memberData.address;
+        }
+        
+        console.log('會員資料已自動載入');
+      } else {
+        console.log('未找到會員資料');
+      }
+    } catch (error) {
+      console.error('載入會員資料時發生錯誤:', error);
+    }
   }
 
   // 渲染訂單摘要
@@ -44,7 +80,7 @@ class CheckoutManager {
 
     // 清空容器
     orderItemsContainer.innerHTML = "";
-
+    console.log("清空容器:", this.cartItems);
     // 渲染訂單項目
     this.cartItems.forEach((item) => {
       const orderItemElement = document.createElement("div");
@@ -54,40 +90,41 @@ class CheckoutManager {
         // 加購商品
         orderItemElement.innerHTML = `
           <div class="order-item-image">
-            <img src="/images/bundles/bundle-${item.bundle_id}.jpg" alt="${
-          item.bundle_name
+            <img src="/images/bundles/bundle-${item.bundleId}.jpg" alt="${
+          item.bundleName
         }">
           </div>
           <div class="order-item-details">
-            <div class="order-item-title">${item.bundle_name}</div>
+            <div class="order-item-title">${item.bundleName}</div>
             <div class="order-item-info">數量: ${item.quantity || 1}</div>
             <div class="order-item-price">NT$ ${(
-              item.bundle_price * (item.quantity || 1)
+              item.bundlePrice * (item.quantity || 1)
             ).toLocaleString()}</div>
           </div>
         `;
       } else {
         // 營地項目
-        console.log("campsite_type_id_check_out:" + item.campsite_type_id);
+        console.log("campsite_type_id_check_out:" + item.campsiteTypeId);
 
         const campsiteType = cartManager.getCampsiteTypeById(
-          item.campsite_type_id
+          item.campsiteTypeId
         );
         const nights = cartManager.calculateNights(item.checkIn, item.checkOut);
         const tentPrice =
           item.tentType && item.tentType.includes("rent")
             ? cartManager.getTentPrice(item.tentType)
             : 0;
-        const totalPrice = (campsiteType.campsite_price + tentPrice) * nights;
+        const totalPrice = (campsiteType.campsitePrice + tentPrice) * nights;
 
         orderItemElement.innerHTML = `
           <div class="order-item-image">
             <img src="${
-              item.image || "/images/campsites/" + campsiteType.image
+              item.image ||
+              `${window.api_prefix}/campsitetype/${item.campsiteTypeId}/${item.campId}/images/1`
             }" alt="${campsiteType.name}">
           </div>
           <div class="order-item-details">
-            <div class="order-item-title">${campsiteType.campsite_name}</div>
+            <div class="order-item-title">${campsiteType.campsiteName}</div>
             <div class="order-item-info">${this.formatDate(
               item.checkIn
             )} - ${this.formatDate(item.checkOut)} (${nights}晚)</div>
@@ -106,15 +143,15 @@ class CheckoutManager {
 
       orderItemElement.innerHTML = `
         <div class="order-item-image">
-          <img src="/images/bundles/bundle-${item.bundle_id}.jpg" alt="${
-        item.bundle_name
+          <img src="/images/bundles/bundle-${item.bundleId}.jpg" alt="${
+        item.bundleName
       }">
         </div>
         <div class="order-item-details">
-          <div class="order-item-title">${item.bundle_name}</div>
+          <div class="order-item-title">${item.bundleName}</div>
           <div class="order-item-info">數量: ${item.quantity || 1}</div>
           <div class="order-item-price">NT$ ${(
-            item.bundle_price * (item.quantity || 1)
+            item.bundlePrice * (item.quantity || 1)
           ).toLocaleString()}</div>
         </div>
       `;
@@ -378,7 +415,7 @@ class CheckoutManager {
       this.cartItems.forEach((item) => {
         if (!item.isBundle) {
           const campsiteType = cartManager.getCampsiteTypeById(
-            item.campsite_type_id
+            item.campsiteTypeId
           );
           const nights = cartManager.calculateNights(
             item.checkIn,
@@ -388,10 +425,10 @@ class CheckoutManager {
             item.tentType && item.tentType.includes("rent")
               ? cartManager.getTentPrice(item.tentType)
               : 0;
-          const totalPrice = (campsiteType.campsite_price + tentPrice) * nights;
+          const totalPrice = (campsiteType.campsitePrice + tentPrice) * nights;
 
           products.push({
-            name: `${campsiteType.campsite_name} (${this.formatDate(
+            name: `${campsiteType.campsiteName} (${this.formatDate(
               item.checkIn
             )} - ${this.formatDate(item.checkOut)})`,
             quantity: 1,
@@ -403,9 +440,9 @@ class CheckoutManager {
       // 添加加購商品
       this.bundleItems.forEach((item) => {
         products.push({
-          name: item.bundle_name,
+          name: item.bundleName,
           quantity: item.quantity || 1,
-          price: item.bundle_price,
+          price: item.bundlePrice,
         });
       });
 
@@ -429,29 +466,26 @@ class CheckoutManager {
         ],
 
         redirectUrls: {
-          confirmUrl:
-            "http://localhost:8081/CJA101G02/api/confirmpayment/" +
-            orderId +
-            "/true",
-          cancelUrl: "http://127.0.0.1:5501/linepay-cancel.html",
+          confirmUrl: `${window.api_prefix}/api/confirmpayment/${orderId}/true`,
+          cancelUrl: "http://127.0.0.1:5503/linepay-cancel.html",
         },
       };
 
       // 計算各種金額
       const campsiteAmount = this.cartItems.reduce((total, item) => {
         const campsiteType = cartManager.getCampsiteTypeById(
-          item.campsite_type_id
+          item.campsiteTypeId
         );
         const nights = cartManager.calculateNights(item.checkIn, item.checkOut);
         const tentPrice =
           item.tentType && item.tentType.includes("rent")
             ? cartManager.getTentPrice(item.tentType)
             : 0;
-        return total + (campsiteType.campsite_price + tentPrice) * nights;
+        return total + (campsiteType.campsitePrice + tentPrice) * nights;
       }, 0);
 
       const bundleAmount = this.bundleItems.reduce((total, item) => {
-        return total + item.bundle_price * (item.quantity || 1);
+        return total + item.bundlePrice * (item.quantity || 1);
       }, 0);
 
       const befAmount = campsiteAmount + bundleAmount;
@@ -503,7 +537,7 @@ class CheckoutManager {
         details: this.cartItems.map((item) => {
           // 獲取房型資料
           const campsiteType = cartManager.getCampsiteTypeById(
-            item.campsite_type_id
+            item.campsiteTypeId
           );
           // 計算住宿天數
           const nights = cartManager.calculateNights(
@@ -516,11 +550,10 @@ class CheckoutManager {
               ? cartManager.getTentPrice(item.tentType)
               : 0;
           // 計算總金額
-          const totalAmount =
-            (campsiteType.campsite_price + tentPrice) * nights;
+          const totalAmount = (campsiteType.campsitePrice + tentPrice) * nights;
 
           return {
-            campsiteTypeId: item.campsite_type_id,
+            campsiteTypeId: item.campsiteTypeId,
             campsiteNum: 1, // 預設為1，如果需要可以從item中獲取
             campsiteAmount: totalAmount,
           };
@@ -544,12 +577,12 @@ class CheckoutManager {
         const cartItemsWithTypeName = this.cartItems.map((item) => {
           if (!item.isBundle) {
             const campsiteType = cartManager.getCampsiteTypeById(
-              item.campsite_type_id
+              item.campsiteTypeId
             );
             return {
               ...item,
-              campsite_type_name: campsiteType.campsite_name,
-              campsite_type_price: campsiteType.campsite_price,
+              campsiteTypeName: campsiteType.campsiteName,
+              campsiteTypePrice: campsiteType.campsitePrice,
             };
           }
           return item;
@@ -586,7 +619,7 @@ class CheckoutManager {
   async getOrderIdFromServer() {
     try {
       const response = await fetch(
-        "http://localhost:8081/CJA101G02/api/campsite/newordernumber"
+        `${window.api_prefix}/api/campsite/newordernumber`
       );
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -605,16 +638,13 @@ class CheckoutManager {
   // 發送付款請求到伺服器
   async sendPaymentRequest(requestBody) {
     try {
-      const response = await fetch(
-        "http://localhost:8081/CJA101G02/api/linepay/true",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(requestBody),
-        }
-      );
+      const response = await fetch(`${window.api_prefix}/api/linepay/true`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
+      });
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);

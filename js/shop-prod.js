@@ -243,12 +243,11 @@ document.addEventListener("DOMContentLoaded", function () {
           const discountedPrice = Math.round(originalPrice * discountRate);
           
           // 動態取得商品圖片（取第一張為主圖）
-          // 動態取得商品圖片（取第一張為主圖）
           let productImageHtml = '';
           if (prod.prodPicList && prod.prodPicList.length > 0) {
             const firstPicId = prod.prodPicList[0].prodPicId;
             // 添加錯誤處理
-            productImageHtml = `<img src="${window.api_prefix}/api/products/prodpic/${firstPicId}" alt="${prod.prodName}" onerror="this.onerror=null; this.src='images/default-product.jpg';" />`;
+            productImageHtml = `<img src="${window.api_prefix}/api/prodpics/${firstPicId}" alt="${prod.prodName}" onerror="this.onerror=null; this.src='images/default-product.jpg';" />`;
           } else {
             productImageHtml = `<img src="images/default-product.jpg" alt="無圖片" />`;
           }

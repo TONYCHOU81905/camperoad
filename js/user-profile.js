@@ -137,7 +137,7 @@ class UserProfileManager {
         try {
           // 使用API更改密碼
           const response = await fetch(
-            "{window.api_prefix}/api/member/changePassword",
+            `${window.api_prefix}/api/member/changePassword`,
             {
               method: "POST",
               headers: {
@@ -236,13 +236,10 @@ class UserProfileManager {
   async logout() {
     try {
       // 呼叫登出API
-      const response = await fetch(
-        "{window.api_prefix}/api/member/logout",
-        {
-          method: "POST",
-          credentials: "include", // 包含Cookie
-        }
-      );
+      const response = await fetch(`${window.api_prefix}/api/member/logout`, {
+        method: "POST",
+        credentials: "include", // 包含Cookie
+      });
 
       // 無論API回應如何，都清除本地儲存的會員資訊
       localStorage.removeItem("currentMember");
@@ -330,8 +327,8 @@ class UserProfileManager {
       const memberData =
         localStorage.getItem("currentMember") ||
         sessionStorage.getItem("currentMember");
-      console.log("loadData:"+memberData);
-      
+      console.log("loadData:" + memberData);
+
       if (memberData) {
         // 如果有會員資料，解析並設定為當前會員
         this.currentMember = JSON.parse(memberData);
@@ -345,10 +342,10 @@ class UserProfileManager {
 
       // 載入營地訂單 - 從API獲取
       const memId = this.currentMember.memId;
-      console.log("memId:"+memId);
-      
+      console.log("memId:" + memId);
+
       const ordersResponse = await fetch(
-        `http://localhost:8081/CJA101G02/member/${memId}/orders`
+        `${window.api_prefix}/member/${memId}/orders`
       );
       const ordersData = await ordersResponse.json();
 
@@ -381,15 +378,15 @@ class UserProfileManager {
       }
 
       // 載入營地收藏
-      const favoritesResponse = await fetch(`http://localhost:8081/CJA101G02/camptracklist/${memId}/getCampTrackLists`);
+      const favoritesResponse = await fetch(
+        `${window.api_prefix}/camptracklist/${memId}/getCampTrackLists`
+      );
       this.favoriteCamps = await favoritesResponse.json();
-      console.log("favoriteCamps:"+this.favoriteCamps);
-      
+      console.log("favoriteCamps:" + this.favoriteCamps);
 
       // 載入營地資料
-      const campsResponse = await fetch(
-        "http://localhost:8081/CJA101G02/api/getallcamps"
-      );
+
+      const campsResponse = await fetch(`${window.api_prefix}/api/getallcamps`);
       const campsData = await campsResponse.json();
 
       if (campsData.status.trim() === "success") {
@@ -667,6 +664,13 @@ class UserProfileManager {
       });
     }
 
+    // 設置隱藏的memId輸入框，供WebSocket連接使用
+    const memIdInput = document.getElementById("memId");
+    if (memIdInput) {
+      memIdInput.value = this.currentMember.memId || "";
+      console.log("設置memId隱藏輸入框:", this.currentMember.memId);
+    }
+
     // 填入基本資料
     document.getElementById("profile-id").value =
       this.currentMember.memId || "";
@@ -721,17 +725,14 @@ class UserProfileManager {
 
     try {
       // 使用API更新會員資料
-      const response = await fetch(
-        "{window.api_prefix}v/api/member/update",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(memData),
-          credentials: "include", // 包含Cookie
-        }
-      );
+      const response = await fetch(`${window.api_prefix}/api/member/update`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(memData),
+        credentials: "include", // 包含Cookie
+      });
 
       if (!response.ok) {
         throw new Error("更新請求失敗");
@@ -775,10 +776,12 @@ class UserProfileManager {
   async loadFavoriteCamps() {
     const favoritesGrid = document.getElementById("favorite-camps-grid");
     if (!favoritesGrid) return;
-  
+
     // 取得會員ID
     let memId = null;
-    const memberInfo = localStorage.getItem("currentMember") || sessionStorage.getItem("currentMember");
+    const memberInfo =
+      localStorage.getItem("currentMember") ||
+      sessionStorage.getItem("currentMember");
     if (memberInfo) {
       try {
         const memberObj = JSON.parse(memberInfo);
@@ -791,48 +794,59 @@ class UserProfileManager {
       favoritesGrid.innerHTML = `<div class="empty-state"><i class="fas fa-heart"></i><h3>請先登入會員以查看收藏營地</h3></div>`;
       return;
     }
-  
+
     try {
       // 假設 this.favoriteCamps 已經是從 API 拿到的資料（你可以自行改為 fetch）
       const camps = this.favoriteCamps.data;
-  
+      console.log("this.favoriteCamps", camps);
+
       if (!Array.isArray(camps) || camps.length === 0) {
         favoritesGrid.innerHTML = `<div class="empty-state"><i class="fas fa-heart"></i><h3>尚無收藏營地</h3></div>`;
         return;
       }
-  
+
       // 渲染收藏卡片
-      favoritesGrid.innerHTML = camps.map(camp => `
+      favoritesGrid.innerHTML = camps
+        .map(
+          (camp) => `
         <div class="favorite-camp-item" data-camp-id="${camp.campId}">
           <div class="camp-image">
-            <img src="http://localhost:8081/CJA101G02/api/camps1/${camp.campId}/1" alt="${camp.campName || ''}" />
-            <button class="btn-remove-favorite" data-camp-id="${camp.campId}"><i class="fas fa-heart"></i></button>
+            <img src="${window.api_prefix}/api/camps1/${camp.campId}/1" alt="${
+            camp.campName || ""
+          }" />
+            <button class="btn-remove-favorite" data-camp-id="${
+              camp.campId
+            }"><i class="fas fa-heart"></i></button>
           </div>
           <div class="camp-info">
-            <h4>${camp.campName || ''}</h4>
-            <p class="camp-description">${camp.campContent || ''}</p>
+            <h4>${camp.campName || ""}</h4>
+            <p class="camp-description">${camp.campContent || ""}</p>
             <div class="camp-actions">
-              <a href="campsite-detail.html?id=${camp.campId}" class="btn-view">查看詳情</a>
+              <a href="campsite-detail.html?id=${
+                camp.campId
+              }" class="btn-view">查看詳情</a>
             </div>
           </div>
         </div>
-      `).join("");
-  
+      `
+        )
+        .join("");
+
       // 綁定每個愛心按鈕點擊事件
-      favoritesGrid.querySelectorAll(".btn-remove-favorite").forEach(btn => {
+      favoritesGrid.querySelectorAll(".btn-remove-favorite").forEach((btn) => {
         btn.addEventListener("click", async (e) => {
           const campId = btn.dataset.campId;
-  
+
           if (!campId || !memId) {
             alert("資料錯誤，請重新登入或刷新頁面");
             return;
           }
-  
+
           const confirmDelete = confirm("確定要移除這個收藏營地嗎？");
           if (!confirmDelete) return;
-  
+
           try {
-            const res = await fetch("http://localhost:8081/CJA101G02/camptracklist/deleteCampTrackList", {
+            const res = await fetch(`${window.api_prefix}/camptracklist/deleteCampTrackList`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json"
@@ -844,19 +858,22 @@ class UserProfileManager {
             });
   
             const result = await res.json();
-  
+
             if (result.status === "success") {
               const card = btn.closest(".favorite-camp-item");
-            
+
               // ✅ 加上動畫 class
               card.classList.add("removing");
-            
+
               // ✅ 動畫結束後再移除 DOM
               setTimeout(() => card.remove(), 300);
-            
+
               // ✅ 如果全部都刪完了，顯示空狀態（延後一點再判斷）
               setTimeout(() => {
-                if (favoritesGrid.querySelectorAll(".favorite-camp-item").length === 0) {
+                if (
+                  favoritesGrid.querySelectorAll(".favorite-camp-item")
+                    .length === 0
+                ) {
                   favoritesGrid.innerHTML = `<div class="empty-state"><i class="fas fa-heart"></i><h3>尚無收藏營地</h3></div>`;
                 }
               }, 350);
@@ -869,7 +886,6 @@ class UserProfileManager {
           }
         });
       });
-  
     } catch (err) {
       favoritesGrid.innerHTML = `<div class="empty-state"><i class="fas fa-heart"></i><h3>無法取得收藏列表，請稍後再試</h3></div>`;
     }
@@ -964,7 +980,7 @@ class UserProfileManager {
     this.currentOwnerId = this.ownerId;
 
     try {
-      const socket = new SockJS("http://localhost:8081/CJA101G02/ws-chat");
+      const socket = new SockJS(`${window.api_prefix}/ws-chat`);
       this.stompClient = Stomp.over(socket);
 
       console.log("嘗試連接 WebSocket...");
@@ -1268,7 +1284,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }, 100);
 
       // 發送 AJAX 請求
-      fetch(`http://localhost:8081/CJA101G02/member/${memId}/picture`, {
+      fetch(`${window.api_prefix}/member/${memId}/picture`, {
         method: "POST",
         body: formData,
         // 不需要設定 Content-Type，fetch 會自動設定正確的 multipart/form-data 格式
@@ -1315,9 +1331,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             // 從服務器獲取最新頭像
-            fetch(
-              `http://localhost:8081/CJA101G02/member/${memId}/pic?t=${timestamp}`
-            )
+            fetch(`${window.api_prefix}/member/${memId}/pic?t=${timestamp}`)
               .then((response) => {
                 if (!response.ok) {
                   throw new Error("更新頭像載入失敗");
@@ -1574,10 +1588,11 @@ function viewShopOrderDetail(orderId) {
             const unitPrice =
               detail.prodOrderPrice != null ? detail.prodOrderPrice : 0;
             const subtotal = detail.shopOrderQty * unitPrice;
-            const commentSatis = detail.commentSatis != null ? detail.commentSatis : '';
-            const commentContent = detail.commentContent || '';
+            const commentSatis =
+              detail.commentSatis != null ? detail.commentSatis : "";
+            const commentContent = detail.commentContent || "";
             // 只有訂單狀態為3時才顯示評論按鈕
-            const canComment = order.shopOrderStatus === 3 && order.shopReturnApply === 0;
+            const canComment = order.shopOrderStatus === 3;
 
             productRows += `
               <tr>
@@ -1591,17 +1606,22 @@ function viewShopOrderDetail(orderId) {
                 <td>${commentContent}</td>
 
                 <td>
-                  ${canComment
-                    ? `<button class="btn-comment"
+                  ${
+                    canComment
+                      ? `<button class="btn-comment"
                         data-order-id="${order.shopOrderId}"
                         data-prod-id="${detail.prodId}"
-                        data-prod-color-id="${detail.prodColorId != null ? detail.prodColorId : ''}"
-                        data-prod-spec-id="${detail.prodSpecId != null ? detail.prodSpecId : ''}"
-                        data-comment-satis="${detail.commentSatis || ''}"
-                        data-comment-content="${detail.commentContent || ''}">
+                        data-prod-color-id="${
+                          detail.prodColorId != null ? detail.prodColorId : ""
+                        }"
+                        data-prod-spec-id="${
+                          detail.prodSpecId != null ? detail.prodSpecId : ""
+                        }"
+                        data-comment-satis="${detail.commentSatis || ""}"
+                        data-comment-content="${detail.commentContent || ""}">
                         評分/評論
                       </button>`
-                    : `<span class="text-muted"> </span>`
+                      : `<span class="text-muted"> </span>`
                   }
                 </td>
 
@@ -1715,7 +1735,7 @@ function viewShopOrderDetail(orderId) {
           }
 
           if (order.shopOrderStatus === 3 && order.shopReturnApply === 0) {
-            btnReturn.style.display = '';
+            btnReturn.style.display = "";
           }
           // 綁定事件
           if (btnCancel) {
@@ -1883,14 +1903,11 @@ if (document.getElementById("commentForm")) {
       return;
     }
     try {
-      const resp = await fetch(
-        `${window.api_prefix}/api/updateComments`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
-        }
-      );
+      const resp = await fetch(`${window.api_prefix}/api/updateComments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
       const result = await resp.json();
       if (!resp.ok || result.error) {
         throw new Error(result.message || "更新失敗");
@@ -1905,12 +1922,12 @@ if (document.getElementById("commentForm")) {
 }
 
 // 自動關閉商城訂單詳情視窗（只要點擊商城訂單管理以外的區域）
-document.addEventListener('click', function (e) {
-  const modal = document.getElementById('shop-order-detail-modal');
-  const shopOrderSection = document.getElementById('shop-orders');
+document.addEventListener("click", function (e) {
+  const modal = document.getElementById("shop-order-detail-modal");
+  const shopOrderSection = document.getElementById("shop-orders");
   if (
     modal &&
-    modal.style.display !== 'none' &&
+    modal.style.display !== "none" &&
     !modal.contains(e.target) &&
     shopOrderSection &&
     !shopOrderSection.contains(e.target)
