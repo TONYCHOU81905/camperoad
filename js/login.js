@@ -104,7 +104,7 @@ async function handleLogin(e) {
         memAcc: memAcc,
         memPwd: password,
       }),
-      //credentials: "include", // 包含Cookie
+      // credentials: "include", // 包含Cookie
     });
 
     console.log("RESPONSE:" + response);
@@ -389,10 +389,10 @@ async function handleOwnerLogin(e) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        owner_acc: ownerAcc,
-        owner_pwd: ownerPwd
+        ownerAcc: ownerAcc,
+        ownerPwd: ownerPwd
       }),
-      credentials: "include", // 包含Cookie
+      // credentials: "include", // 包含Cookie
     });
 
     if (!response.ok) {
@@ -405,6 +405,9 @@ async function handleOwnerLogin(e) {
     if (data.success) {
       // 登入成功
       const owner = data.owner;
+
+      console.log("營地主登入成功：", owner);
+      
       
       // 根據remember checkbox決定存儲方式
       if (remember) {
@@ -450,18 +453,20 @@ async function handleAdminLogin(e) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        admin_acc: adminAcc,
-        admin_pwd: adminPwd
+        adminAcc: adminAcc,
+        adminPwd: adminPwd
       }),
-      credentials: "include", // 包含Cookie
+      // credentials: "include", // 包含Cookie
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || "登入請求失敗");
-    }
-
+    // if (!response.ok) {
+    //   const errorData = await response.json();
+    //   throw new Error(errorData.message || "登入請求失敗");
+    // }
+    console.log("response22211" + response);
     const data = await response.json();
+    console.log("response11111" + data);
+    
 
     if (data.success) {
       // 登入成功
