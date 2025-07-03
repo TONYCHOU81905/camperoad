@@ -37,7 +37,10 @@
       <div class="profile-container">
         <div class="profile-sidebar">
           <div class="profile-menu">
-            <a href="#camp-info" class="profile-menu-item active" data-tab="camp-info">
+            <a href="#owner-info" class="profile-menu-item active" data-tab="owner-info">
+              <i class="fas fa-user"></i> 營地主基本資料
+            </a>
+            <a href="#camp-info" class="profile-menu-item" data-tab="camp-info">
               <i class="fas fa-campground"></i> 營地基本資料
             </a>
             <a href="#room-types" class="profile-menu-item" data-tab="room-types">
@@ -63,8 +66,99 @@
         </div>
 
         <div class="profile-content">
+          <!-- 營地主基本資料 -->
+          <div class="profile-section active" id="owner-info">
+            <h2 class="section-header">營地主基本資料</h2>
+            <form class="profile-form" id="ownerInfoForm">
+              <div class="avatar-upload">
+                <div class="avatar-preview">
+                  <img src="images/default-avatar.png" alt="營地主頭像" id="avatar-preview" />
+                </div>
+                <div class="avatar-edit">
+                  <label for="avatar-input" class="btn-upload btn btn-camping">更換頭像</label>
+                  <input type="file" id="avatar-input" accept="image/*" />
+                  <p class="upload-hint">建議使用 1:1 比例的圖片，檔案大小不超過 2MB</p>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="ownerId">營地主編號</label>
+                  <input type="text" id="ownerId" name="ownerId" value="" readonly />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="storeName">店家名稱</label>
+                  <input type="text" id="storeName" name="storeName" value="" readonly />
+                </div>
+                <div class="form-group">
+                  <label for="taxId">統一編號</label>
+                  <input type="text" id="taxId" name="taxId" value="" readonly />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="ownerName">負責人</label>
+                  <input type="text" id="ownerName" name="ownerName" value="" />
+                </div>
+                <div class="form-group">
+                  <label for="ownerPhone">負責人電話</label>
+                  <input type="text" id="ownerPhone" name="ownerPhone" value="" />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="contactName">聯絡人</label>
+                  <input type="text" id="contactName" name="contactName" value="" />
+                </div>
+                <div class="form-group">
+                  <label for="contactPhone">聯絡人電話</label>
+                  <input type="text" id="contactPhone" name="contactPhone" value="" />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="address">登記地址</label>
+                  <input type="text" id="address" name="address" value="" readonly />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="email">電子郵件</label>
+                  <input type="email" id="email" name="email" value="" readonly placeholder="電子郵件為您的登入帳號，無法修改" />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="password">密碼</label>
+                  <div class="password-field">
+                    <input type="password" id="password" value="********" readonly />
+                    <button type="button" class="btn btn-warning btn-change-password">更改密碼</button>
+                  </div>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="bankAccount">轉帳帳號</label>
+                  <input type="text" id="bankAccount" name="bankAccount" value="" />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group full-width">
+                  <label for="ownerIntro">營地主簡介</label>
+                  <textarea id="ownerIntro" name="ownerIntro" rows="4"></textarea>
+                </div>
+              </div>
+              <div class="form-actions">
+                <button type="submit" class="btn btn-camping">儲存變更</button>
+                <button type="button" class="btn btn-outline-secondary btn-cancel">取消變更</button>
+              </div>
+            </form>
+          </div>
+
           <!-- 營地基本資料管理 -->
-          <div class="profile-section active" id="camp-info">
+          <div class="profile-section" id="camp-info">
             <h2 class="section-header">營地基本資料管理</h2>
             <div class="camp-info-form">
               <form id="campInfoForm">
@@ -679,6 +773,40 @@
               <button type="submit" class="btn btn-camping">
                 新增折價券
               </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 更改密碼模態框 -->
+  <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="changePasswordModalLabel">更改密碼</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="changePasswordForm">
+            <div class="form-group mb-3">
+              <label for="currentPassword">目前密碼</label>
+              <input type="password" class="form-control" id="currentPassword" name="currentPassword" required>
+            </div>
+            <div class="form-group mb-3">
+              <label for="newPassword">新密碼</label>
+              <input type="password" class="form-control" id="newPassword" name="newPassword" required>
+              <small class="form-text text-muted">密碼長度至少8個字元，需包含大小寫字母和數字</small>
+            </div>
+            <div class="form-group mb-3">
+              <label for="confirmPassword">確認新密碼</label>
+              <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
+            </div>
+            <div class="alert alert-danger d-none" id="passwordError"></div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+              <button type="submit" class="btn btn-camping">確認更改</button>
             </div>
           </form>
         </div>
