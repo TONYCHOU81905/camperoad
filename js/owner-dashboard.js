@@ -65,7 +65,7 @@ class OwnerDashboard {
 
       this.currentOwner = JSON.parse(savedOwner);
 
-      if (!this.currentOwner || !this.currentOwner.owner_id) {
+      if (!this.currentOwner || !this.currentOwner.ownerId) {
         alert("營地主登入資料無效，請重新登入");
         localStorage.removeItem("currentOwner");
         sessionStorage.removeItem("currentOwner");
@@ -177,7 +177,7 @@ class OwnerDashboard {
           if (discountResponse.ok) {
             const allDiscountCodes = await discountResponse.json();
             this.discountCodeData = allDiscountCodes.filter(
-              (code) => code.owner_id === this.currentOwner.owner_id
+              (code) => code.ownerId === this.currentOwner.ownerId
             );
           }
 
@@ -197,7 +197,7 @@ class OwnerDashboard {
 
   async loadAllData() {
     try {
-      if (!this.currentOwner || !this.currentOwner.owner_id) {
+      if (!this.currentOwner || !this.currentOwner.ownerId) {
         console.error("無法載入資料：缺少營地主資料");
         return;
       }
@@ -213,7 +213,7 @@ class OwnerDashboard {
       // 根據登入的營地主ID篩選營地
 
       this.allCamps = allCamps.filter(
-        (camp) => String(camp.ownerId) == String(this.currentOwner.owner_id)
+        (camp) => String(camp.ownerId) == String(this.currentOwner.ownerId)
       );
 
       // 如果該營地主沒有營地，顯示提示訊息
@@ -298,7 +298,7 @@ class OwnerDashboard {
       }
       const allDiscountCodes = await discountResponse.json();
       this.discountCodeData = allDiscountCodes.filter(
-        (code) => code.owner_id === this.currentOwner.owner_id
+        (code) => code.ownerId === this.currentOwner.ownerId
       );
 
       console.log("所有資料載入完成");
@@ -2089,7 +2089,7 @@ class OwnerDashboard {
           )}-${String(today.getDate()).padStart(2, "0")}`;
 
     // 獲取營地主ID
-    const ownerId = this.currentOwner.owner_id;
+    const ownerId = this.currentOwner.ownerId;
 
     // 創建FormData對象用於API請求
     const apiFormData = new FormData();
@@ -2898,7 +2898,7 @@ class OwnerDashboard {
     const discountData = {
       discount_code_id: discountCodeId,
       discount_code: formData.get("discount_code"),
-      owner_id: this.currentOwner.owner_id,
+      owner_id: this.currentOwner.ownerId,
       admin_id: null,
       discount_type: discountType,
       discount_value: discountValue,
@@ -3652,11 +3652,11 @@ class OwnerDashboard {
     console.log("當前營地主資料:", this.currentOwner);
 
     // 檢查營地主資料是否存在
-    if (!this.currentOwner || !this.currentOwner.owner_id) {
+    if (!this.currentOwner || !this.currentOwner.ownerId) {
       console.error("營地主資料不存在，無法初始化聊天管理");
       // 嘗試重新檢查登入狀態
       this.checkLoginStatus();
-      if (!this.currentOwner || !this.currentOwner.owner_id) {
+      if (!this.currentOwner || !this.currentOwner.ownerId) {
         console.error("重新檢查後仍無法獲取營地主資料");
         return;
       }
@@ -3665,8 +3665,8 @@ class OwnerDashboard {
     // 設置營地主ID到隱藏輸入框
     const ownerIdInput = document.getElementById("ownerId");
     if (ownerIdInput) {
-      ownerIdInput.value = this.currentOwner.owner_id;
-      console.log("設置營地主ID:", this.currentOwner.owner_id);
+      ownerIdInput.value = this.currentOwner.ownerId;
+      console.log("設置營地主ID:", this.currentOwner.ownerId);
     } else {
       console.error("找不到ownerId輸入框");
     }

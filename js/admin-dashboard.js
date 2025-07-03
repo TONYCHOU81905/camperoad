@@ -1603,46 +1603,51 @@ function createDiscount() {
   const form = document.getElementById("discountForm");
   const formData = new FormData(form);
 
-  // 生成新的折價券ID
-  const newId = "A" + String(discountCodesData.length + 1).padStart(5, "0");
-
   const discountType = formData.get("type") === "percentage" ? 1 : 0;
   let discountValue = parseFloat(formData.get("value"));
 
-  // 如果是百分比，轉換為小數
   if (discountType === 1) {
-    discountValue = discountValue / 100;
+    discountValue = discountValue / 100; // 百分比轉成小數
   }
 
   const newDiscount = {
-    discount_code_id: newId,
-    discount_code: formData.get("code"),
-    owner_id: null,
-    admin_id: currentAdmin.admin_id,
-    discount_type: discountType,
-    discount_value: discountValue,
-    discount_explain: formData.get("name"),
-    min_order_amount: parseFloat(formData.get("min_amount")),
-    start_date: new Date().toISOString().replace("T", " ").split(".")[0],
-    end_date: formData.get("expiry_date") + " 23:59:59",
-    created: new Date().toISOString().replace("T", " ").split(".")[0],
-    updated: null,
+    discountCode: formData.get("code"),
+    ownerId: null, // 或指定 ownerId，如 20000001
+    adminId: currentAdmin.admin_id,
+    discountType: discountType,
+    discountValue: discountValue,
+    discountExplain: formData.get("name"),
+    minOrderAmount: parseFloat(formData.get("min_amount")),
+    startDate: new Date().toISOString().replace("T", " ").split(".")[0],
+    endDate: formData.get("expiry_date") + " 23:59:59"
   };
 
-  // 檢查代碼是否重複
-  if (
-    discountCodesData.some((d) => d.discount_code === newDiscount.discount_code)
-  ) {
-    alert("折價券代碼已存在，請使用其他代碼");
-    return;
-  }
-
-  discountCodesData.push(newDiscount);
-  loadDiscountTable();
-  hideCreateDiscountForm();
-  form.reset();
-
-  alert("折價券建立成功！");
+  fetch(`${window.api_prefix}/api/discount/add?prefix=A`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(newDiscount)
+  })
+    .then(response => {
+      if (!response.ok) {
+        return response.json().then(err => {
+          throw new Error(err.message || "新增失敗");
+        });
+      }
+      return response.json();
+    })
+    .then(data => {
+      alert("折價券建立成功！");
+      hideCreateDiscountForm();
+      form.reset();
+      // 你可重新呼叫 API 載入折價券資料（如果有）
+      loadDiscountTable(); // 或改成 fetchDiscountList() -> 更新 discountCodesData
+    })
+    .catch(error => {
+      console.error("新增失敗", error);
+      alert("新增折價券失敗：" + error.message);
+    });
 }
 
 // 刪除折價券
