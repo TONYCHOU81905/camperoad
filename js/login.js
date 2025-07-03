@@ -395,6 +395,8 @@ async function handleOwnerLogin(e) {
       // credentials: "include", // 包含Cookie
     });
 
+    console.log("RESPONSE:" + response);
+
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.message || "登入請求失敗");
