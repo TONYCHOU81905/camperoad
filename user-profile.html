@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>個人資料設定 - 露途1</title>
+  <title>個人資料設定 - 露途</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono&display=swap"
@@ -261,67 +261,8 @@
                 </button>
               </div>
             </div>
-            <div class="coupons-grid">
-              <!-- 示範折價券 -->
-              <div class="coupon-card available">
-                <div class="coupon-header">
-                  <div class="coupon-type">營地折價券</div>
-                  <div class="coupon-status">可使用</div>
-                </div>
-                <div class="coupon-content">
-                  <div class="coupon-title">新會員專享</div>
-                  <div class="coupon-discount">9折優惠</div>
-                  <div class="coupon-description">
-                    適用於所有營地預訂，單筆消費滿NT$2,000可用
-                  </div>
-                </div>
-                <div class="coupon-footer">
-                  <div class="coupon-code">優惠碼: NEWBIE90</div>
-                  <div class="coupon-expiry">有效期限: 2024/12/31</div>
-                </div>
-                <div class="coupon-actions">
-                  <button class="btn-use-coupon">立即使用</button>
-                  <button class="btn-copy-code">複製代碼</button>
-                </div>
-              </div>
-
-              <div class="coupon-card available">
-                <div class="coupon-header">
-                  <div class="coupon-type">商城折價券</div>
-                  <div class="coupon-status">可使用</div>
-                </div>
-                <div class="coupon-content">
-                  <div class="coupon-title">裝備特惠</div>
-                  <div class="coupon-discount">NT$200</div>
-                  <div class="coupon-description">
-                    購買露營裝備滿NT$1,500立減NT$200
-                  </div>
-                </div>
-                <div class="coupon-footer">
-                  <div class="coupon-code">優惠碼: GEAR200</div>
-                  <div class="coupon-expiry">有效期限: 2024/11/30</div>
-                </div>
-                <div class="coupon-actions">
-                  <button class="btn-use-coupon">立即使用</button>
-                  <button class="btn-copy-code">複製代碼</button>
-                </div>
-              </div>
-
-              <div class="coupon-card used">
-                <div class="coupon-header">
-                  <div class="coupon-type">營地折價券</div>
-                  <div class="coupon-status">已使用</div>
-                </div>
-                <div class="coupon-content">
-                  <div class="coupon-title">週末特惠</div>
-                  <div class="coupon-discount">85折優惠</div>
-                  <div class="coupon-description">週末營地預訂專用優惠券</div>
-                </div>
-                <div class="coupon-footer">
-                  <div class="coupon-code">優惠碼: WEEKEND85</div>
-                  <div class="coupon-used-date">使用日期: 2024/10/15</div>
-                </div>
-              </div>
+            <div class="coupons-grid" id="coupon-grid">
+              <!-- 折價券卡片會透過 JS 動態加入 -->
             </div>
           </div>
 

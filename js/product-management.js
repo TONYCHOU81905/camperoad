@@ -54,7 +54,11 @@ async function loadProductsData() {
     const colorResponse = await fetch(`${window.api_prefix}/api/colors`);
     if (!colorResponse.ok) throw new Error(`商品顏色錯誤: ${colorResponse.status}`);
     const colorData = await colorResponse.json();
+<<<<<<< HEAD
     productSpecsData = (colorData.data || []).map(c => ({
+=======
+    productColorsData = (colorData.data || []).map(c => ({
+>>>>>>> 8ec3edb298c67c97f1d22c90c50e9c51d3b1502e
       id: c.colorId,
       name: c.colorName
     }));
@@ -87,8 +91,8 @@ async function loadProductsData() {
         // ,imageUrl: c.prodColorPicBase64 ? `data:image/jpeg;base64,${c.prodColorPicBase64}` : "images/product-1.jpg"
       })),
       imageUrl: (p.prodPicList && p.prodPicList.length > 0)
-        ? `data:image/jpeg;base64,${p.prodPicList[0].prodPicBase64}`
-        : "images/product-1.jpg"
+      ? `${window.api_prefix}/api/prodpics/${p.prodPicList[0].prodPicId}`
+      : "images/product-1.jpg"
     }));
     
     
@@ -183,13 +187,11 @@ function displayProducts() {
   
   // 添加商品行
   currentProducts.forEach(product => {
-    // 獲取第一個顏色的圖片作為商品主圖
-    const mainImage = product.colors && product.colors.length > 0 ? 
-      product.colors[0].imageUrl : (product.imageUrl || 'images/product-1.jpg');
+    // 獲取第一個商品圖片作為商品主圖
+    const mainImage = product.imageUrl || 'images/product-1.jpg';
     
     // 獲取顏色和規格信息
     let colorAndSpecText = '';
-    
     // 處理顏色信息
     if (product.colors && product.colors.length > 0) {
       const colorNames = product.colors.map(color => color.name).join(', ');
@@ -479,20 +481,14 @@ function showEditProductModal(productId) {
             <input type="number" id="product-discount" min="0" max="100" value="${product.discount || 100}">
           </div>
           
-          <div class="form-group">
-            <label for="product-status">商品狀態</label>
-            <select id="product-status" required>
-              <option value="上架中" ${product.status === '上架中' ? 'selected' : ''}>上架中</option>
-              <option value="已下架" ${product.status === '已下架' ? 'selected' : ''}>已下架</option>
-            </select>
-          </div>
+          <!-- 商品狀態選項已移除，改用 action-btn btn-deactivate 按鈕控制 -->
           
           <div class="form-group">
             <label>商品規格</label>
             <div id="specs-container">
               ${generateSpecificationsHTML(product.specs)}
             </div>
-            <button type="button" class="btn-add" onclick="addSpecificationField()">添加規格</button>
+            <button type="button" class="btn-add" onclick="addSpecField()">添加規格</button>
           </div>
           
           <div class="form-group">
@@ -549,10 +545,10 @@ function generateSpecificationsHTML(specs) {
   return html;
 }
 
+// 生成顏色圖片URL
 function getColorImageUrl(prodId, colorId) {
   return `${window.api_prefix}/api/prod-colors/colorpic/${prodId}/${colorId}`;
 }
-
 
 // 生成顏色HTML
 function generateColorsHTML(colors) {
@@ -592,9 +588,21 @@ function generateColorsHTML(colors) {
 }
 
 
-
 // 添加規格欄位
+<<<<<<< HEAD
 function addSpecificationField() {
+=======
+function addSpecField() {
+  // 檢查是否已經選擇了單一規格
+  const existingSelects = document.querySelectorAll(".spec-select");
+  for (let i = 0; i < existingSelects.length; i++) {
+    if (existingSelects[i].value === "1") { // 假設 ID 為 1 的規格是「單一規格」
+      alert("選擇單一規格時，不能添加多個規格");
+      return;
+    }
+  }
+  
+>>>>>>> 8ec3edb298c67c97f1d22c90c50e9c51d3b1502e
   const container = document.getElementById("specs-container");
   
   // 生成規格選項
@@ -624,6 +632,8 @@ function addSpecificationField() {
   // 綁定移除按鈕事件
   newItem.querySelector(".btn-remove-spec").addEventListener("click", function() {
     container.removeChild(newItem);
+    // 檢查移除後是否還有單一規格
+    checkSingleSpecAfterRemoval();
   });
   
   // 綁定規格選擇事件
@@ -633,6 +643,22 @@ function addSpecificationField() {
       newSpecInput.style.display = "block";
     } else {
       newSpecInput.style.display = "none";
+    }
+    
+    // 檢查是否選擇了單一規格
+    const isSingleSpec = this.value === "1";
+    const addSpecButton = document.querySelector(".btn-add-spec");
+    
+    if (isSingleSpec) {
+      // 如果選擇了單一規格，隱藏添加規格按鈕
+      if (addSpecButton) {
+        addSpecButton.style.display = "none";
+      }
+    } else {
+      // 如果選擇了其他規格，顯示添加規格按鈕
+      if (addSpecButton) {
+        addSpecButton.style.display = "inline-block";
+      }
     }
   });
   
@@ -655,7 +681,10 @@ function addColorField() {
   // 生成顏色選項
   let colorOptions = '';
   productColorsData.forEach(color => {
-    colorOptions += `<option value="${color.id}">${color.name}</option>`;
+    // 排除 ID 為 1 的單一顏色選項
+    if (color.id !== 1) {
+      colorOptions += `<option value="${color.id}">${color.name}</option>`;
+    }
   });
   
   const newItem = document.createElement("div");
@@ -717,7 +746,8 @@ async function saveProductChanges() {
   const productType = parseInt(document.getElementById("product-type").value);
   const productDescription = document.getElementById("product-description").value;
   const productDiscount = parseInt(document.getElementById("product-discount").value) || 100;
-  const productStatus = document.getElementById("product-status").value;
+  // 移除獲取商品狀態的代碼
+  // const productStatus = document.getElementById("product-status").value;
   
   // 獲取規格資料
   const specs = [];
@@ -747,7 +777,7 @@ async function saveProductChanges() {
       
       if (colorImageFile) {
         // 上傳新圖片
-        imageUrl = await simulateImageUpload(colorImageFile);
+        imageUrl = await imageUpload(colorImageFile);
       } else if (colorImageUrlElement) {
         // 使用現有圖片
         imageUrl = colorImageUrlElement.value;
@@ -757,7 +787,7 @@ async function saveProductChanges() {
       }
       
       colors.push({
-        name: colorName,
+        colorName: colorName,
         imageUrl: imageUrl
       });
     }
@@ -777,9 +807,16 @@ async function saveProductChanges() {
       prodTypeId: productType,
       prodDescription: productDescription,
       prodIntro: productDiscount / 100, // 轉換為小數
+<<<<<<< HEAD
       prodStatus: productStatus === "上架中" ? 1 : 0,
       specs: specs,
       colors: colors
+=======
+      // 移除 prodStatus 屬性，或使用原有商品的狀態
+      // prodStatus: productStatus === "上架中" ? 1 : 0,
+      prodSpecList: specs,      
+      prodColorList: colors 
+>>>>>>> 8ec3edb298c67c97f1d22c90c50e9c51d3b1502e
     };
     
     // 發送 PUT 請求到 API
@@ -808,7 +845,10 @@ async function saveProductChanges() {
           typeId: productType,
           description: productDescription,
           discount: productDiscount / 100,
+<<<<<<< HEAD
           status: productStatus,
+=======
+>>>>>>> 8ec3edb298c67c97f1d22c90c50e9c51d3b1502e
           specs: specs,
           colors: colors
         };
@@ -880,7 +920,10 @@ async function showAddProductModal() {
   // 生成顏色選項
   let colorOptions = '';
   productColorsData.forEach(color => {
-    colorOptions += `<option value="${color.id}">${color.name}</option>`;
+    // 排除 ID 為 1 的單一顏色選項
+    if (color.id !== 1) {
+      colorOptions += `<option value="${color.id}">${color.name}</option>`;
+    }
   });
   
   modal.innerHTML = `
@@ -900,6 +943,7 @@ async function showAddProductModal() {
             <label for="product-type">商品類型</label>
             <div class="type-selection-container">
               <select id="product-type" required>
+                <option value="" selected disabled>請選擇商品類型</option>
                 ${typeOptions}
                 <option value="new">+ 新增類型</option>
               </select>
@@ -982,7 +1026,7 @@ async function showAddProductModal() {
                     <button type="button" class="btn-add add-new-color-btn">確認新增</button>
                   </div>
                 </div>
-                <input type="file" class="color-image" accept="image/*" required>
+                <input type="file" class="color-image" accept="image/*">
                 <div class="color-preview"></div>
                 <button type="button" class="btn-add-color">+</button>
               </div>
@@ -1003,7 +1047,7 @@ async function showAddProductModal() {
   document.body.appendChild(modal);
   
   // 綁定添加規格按鈕事件
-  document.querySelector(".btn-add-spec").addEventListener("click", addSpecificationField);
+  document.querySelector(".btn-add-spec").addEventListener("click", addSpecField);
   
   // 綁定添加顏色按鈕事件
   document.querySelector(".btn-add-color").addEventListener("click", addColorField);
@@ -1026,6 +1070,22 @@ async function showAddProductModal() {
         newSpecInput.style.display = "block";
       } else {
         newSpecInput.style.display = "none";
+      }
+      
+      // 檢查是否選擇了單一規格（假設 ID 為 1 的規格是「單一規格」）
+      const isSingleSpec = this.value === "1";
+      const addSpecButton = document.querySelector(".btn-add-spec");
+      
+      if (isSingleSpec) {
+        // 如果選擇了單一規格，隱藏添加規格按鈕
+        if (addSpecButton) {
+          addSpecButton.style.display = "none";
+        }
+      } else {
+        // 如果選擇了其他規格，顯示添加規格按鈕
+        if (addSpecButton) {
+          addSpecButton.style.display = "inline-block";
+        }
       }
     });
   });
@@ -1113,13 +1173,36 @@ async function showAddProductModal() {
 // 添加新商品
 async function addNewProduct() {
   const productName = document.getElementById("product-name").value.trim();
+<<<<<<< HEAD
   const productType = parseInt(document.getElementById("product-type").value);
+=======
+  // 驗證商品名稱
+  if (!productName) {
+    showNotification("請輸入商品名稱", "error");
+    return;
+  }
+
+  // 驗證商品類型
+  const productTypeRaw = document.getElementById("product-type").value;
+  const productType = parseInt(productTypeRaw);
+
+  if (isNaN(productType)) {
+    showNotification("請選擇有效的商品類型", "error");
+    return;
+  }
+
+  
+>>>>>>> 8ec3edb298c67c97f1d22c90c50e9c51d3b1502e
   const productMainImage = document.getElementById("product-main-image").files[0];
   const productDescription = document.getElementById("product-description").value;
   const productDiscount = parseFloat(document.getElementById("product-discount").value) || 1;
   const productStatus = document.getElementById("product-status").value;
   const hasColor = document.querySelector('input[name="has-color"]:checked').value === 'yes';
+<<<<<<< HEAD
 
+=======
+  console.log(productMainImage)
+>>>>>>> 8ec3edb298c67c97f1d22c90c50e9c51d3b1502e
   // 驗證商品名稱
   if (productName.length < 1 || productName.length > 50) {
     showNotification("商品名稱長度必須介於 1 到 50 字之間", "error");
@@ -1127,7 +1210,11 @@ async function addNewProduct() {
   }
 
   
+<<<<<<< HEAD
   // 獲取規格資料
+=======
+  // =====規格資料=====
+>>>>>>> 8ec3edb298c67c97f1d22c90c50e9c51d3b1502e
   const specs = [];
   document.querySelectorAll(".specification-item").forEach(item => {
     const specSelect = item.querySelector(".spec-select");
@@ -1138,6 +1225,7 @@ async function addNewProduct() {
       const specName = productSpecsData.find(s => s.id === specId)?.name || "未知規格";
       
       specs.push({
+<<<<<<< HEAD
         id: specId,
         name: specName,
         price: specPrice
@@ -1179,26 +1267,101 @@ async function addNewProduct() {
   // 如果有顏色但沒有添加顏色資料，顯示錯誤
   if (hasColor && colors.length === 0) {
     alert("請至少添加一個商品顏色");
+=======
+        prodSpecId: specId,
+        prodSpecPrice: specPrice,
+        prodSpecName: specName  // ← 可選，後端有欄位才傳
+      });
+    }
+  });
+
+  if (specs.length === 0) {
+    showNotification("請至少新增一個商品規格", "error");
+>>>>>>> 8ec3edb298c67c97f1d22c90c50e9c51d3b1502e
     return;
   }
   
-  try {
-    // 上傳主圖
-    const mainImageUrl = await simulateImageUpload(productMainImage);
+  // =====顏色資料=====
+  const colors = [];
+  if (hasColor) {
+    const colorItems = document.querySelectorAll(".color-item");
+    // 檢查是否有任何顏色欄位
+    if (colorItems.length === 0) {
+      alert("請至少添加一個商品顏色");
+      return;
+    }
+  
+    for (let i = 0; i < colorItems.length; i++) {
+      const item = colorItems[i];
+      // 跳過整個 block 若沒有有效選擇
+      const colorSelect = item.querySelector(".color-select");
+      if (!colorSelect || colorSelect.value === "new" || !colorSelect.value) {
+        alert(`第 ${i + 1} 筆顏色：請選擇有效的顏色`);
+        return;
+      }
+  
+      const colorImageFile = item.querySelector(".color-image").files[0];
+      // 如果顏色為 "1"（單一顏色）就不用上傳圖片，其它顏色才需要圖片
+      if (!colorSelect || colorSelect.value === "new" || !colorImageFile) {
+        showNotification(`第 ${i + 1} 筆顏色：選擇錯誤或未上傳圖片`, "error");
+        return;
+      }
+
+      const colorId = parseInt(colorSelect.value);
+      const colorName = productColorsData.find(c => c.id === colorId)?.name || "未知顏色";
+      const imageUrl = await imageUpload(colorImageFile);
+      
+      colors.push({ 
+        prodColorId: colorId,
+        colorName: colorName, 
+        prodColorPic : imageUrl
+      });
+
+    }
+  } else {
+    // 如果沒有顏色，傳送單一顏色至後端
+    // 假設 ID 為 1 的顏色是「單一顏色」
+    const singleColorId = 1;
+    const singleColorName = productColorsData.find(c => c.id === singleColorId)?.name || "單一顏色";
     
-    // 構建請求數據
+    colors.push({
+      prodColorId: singleColorId,
+      colorName: singleColorName,
+      imageUrl: "" // 單一顏色不需要圖片
+    });
+  }
+  
+  // 表單驗證
+  if (!productName || isNaN(productType) || !productMainImage || specs.length === 0) {
+    alert("請填寫所有必填欄位，並至少添加一個商品規格");
+    return;
+  }
+  
+
+  try {
+    
+    // === 步驟 1：送出商品主資料，取得新商品 ID ===
     const productData = {
       prodName: productName,
       prodTypeId: productType,
+<<<<<<< HEAD
       prodImageUrl: mainImageUrl,
+=======
+      // prodImageUrl: mainImageUrl,
+>>>>>>> 8ec3edb298c67c97f1d22c90c50e9c51d3b1502e
       prodIntro: productDescription,
       prodDiscount: productDiscount,
       prodStatus: productStatus === "上架中" ? 1 : 0,
       prodColorOrNot: hasColor ? 1 : 0,
+<<<<<<< HEAD
       specs: specs,
       colors: colors
+=======
+      prodSpecList: specs,       
+      prodColorList: colors
+>>>>>>> 8ec3edb298c67c97f1d22c90c50e9c51d3b1502e
     };
-    
+
     // 發送 POST 請求到 API
     const response = await fetch(`${window.api_prefix}/api/addprod`, {
       method: 'POST',
@@ -1211,19 +1374,35 @@ async function addNewProduct() {
     if (!response.ok) {
       throw new Error(`添加商品失敗: ${response.status}`);
     }
-    
+
     const result = await response.json();
-    
     if (result.status === 'success') {
       // 獲取新商品ID
       const newId = result.data.prodId;
+
+      // === 步驟 2：主圖上傳（用 newId）===
+      if (productMainImage && productMainImage.size > 0) {
+        await imageUpload(productMainImage, newId);
+      }
       
+      // === 步驟 3：顏色圖片上傳（每個顏色）===
+      if (hasColor) {
+        const colorItems = document.querySelectorAll(".color-item");
+        for (let i = 0; i < colors.length; i++) {
+          const file = colorItems[i].querySelector(".color-image").files[0];
+          const colorId = colors[i].prodColorId;
+          if (file && colorId) {
+            await uploadColorImage(file, newId, colorId); 
+          }
+        }
+      }
+
       // 創建新商品對象
       const newProduct = {
         id: newId,
         name: productName,
         typeId: productType,
-        imageUrl: mainImageUrl,
+        // imageUrl: mainImageUrl,
         description: productDescription,
         discount: productDiscount,
         status: productStatus,
@@ -1240,17 +1419,16 @@ async function addNewProduct() {
         filteredProducts.push(newProduct);
       }
       
+      // 顯示成功消息
+      showNotification("商品添加成功", "success");
       // 關閉模態框
       closeModal();
-      
+      // 重新加載商品數據
+      loadProductsData();
       // 重新顯示商品
       displayProducts();
       
-      // 顯示成功消息
-      showNotification("商品添加成功", "success");
-    } else {
-      throw new Error(result.message || "添加商品失敗");
-    }
+    } 
   } catch (error) {
     console.error("添加商品失敗:", error);
     showNotification("添加商品失敗，請稍後再試", "error");
@@ -1334,6 +1512,7 @@ function closeModal() {
   }
 }
 
+<<<<<<< HEAD
 // 模擬圖片上傳
 async function simulateImageUpload(file) {
   // 在實際應用中，這裡應該上傳圖片到伺服器並獲取URL
@@ -1369,7 +1548,57 @@ async function simulateImageUpload(file) {
       */
     }, 500);
   });
+=======
+//商品圖片上傳功能
+async function imageUpload(file, prodId) {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  try {
+    const response = await fetch(`${window.api_prefix}/api/prodpics/upload/${prodId}`, {
+      method: "POST",
+      body: formData,
+    });
+
+    const result = await response.json();
+    if (result.status === "success") {
+      return true;
+    } else {
+      showNotification("商品圖片上傳失敗，請重新嘗試", "error");
+      return null;
+    }
+  } catch (error) {
+    console.error("商品圖片上傳失敗", error);
+    return null;
+  }
+>>>>>>> 8ec3edb298c67c97f1d22c90c50e9c51d3b1502e
 }
+
+// 上傳顏色圖片（指定 prodId + colorId）
+async function uploadColorImage(file, prodId, colorId) {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  try {
+    const response = await fetch(`${window.api_prefix}/api/prod-colors/colorpic/${prodId}/${colorId}`, {
+      method: "POST",
+      body: formData,
+    });
+
+    const result = await response.json();
+    if (result.status === "success") {
+      console.log("顏色圖片上傳成功");
+      return true;
+    } else {
+      showNotification("顏色圖片上傳失敗，請重新嘗試", "error");
+      return false;
+    }
+  } catch (error) {
+    console.error("顏色圖片上傳錯誤:", error);
+    return false;
+  }
+}
+
 
 // 預覽圖片
 function previewImage(input, previewElement) {
@@ -1386,9 +1615,10 @@ function previewImage(input, previewElement) {
   }
 }
 
-// 添加新商品類型
+// 添加新商品類型（呼叫後端 API）
 async function addNewProductType(typeName) {
   try {
+<<<<<<< HEAD
     // 在實際應用中，這裡應該發送 POST 請求到 API
     // 模擬 API 請求
     await new Promise(resolve => setTimeout(resolve, 300));
@@ -1438,6 +1668,77 @@ async function addNewProductSpec(specName, selectElement) {
       return;
     }
 
+=======
+    // 1. 驗證輸入
+    if (!typeName || typeName.trim().length === 0) {
+      showNotification("請輸入類型名稱", "error");
+      return;
+    }
+
+    // 2. 防止重複名稱（前端暫時過濾）
+    const exists = productTypesData.some(t => t.name === typeName);
+    if (exists) {
+      showNotification("此類型名稱已存在", "error");
+      return;
+    }
+
+    // 3. 呼叫後端 API 寫入資料庫
+    const response = await fetch(`${window.api_prefix}/api/product-types`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ prodTypeName: typeName }) 
+    });
+
+    if (!response.ok) {
+      throw new Error("新增類型失敗");
+    }
+
+    const result = await response.json();
+    const newType = result.data; // 假設後端會回傳包含 prodTypeId 和 prodTypeName 的物件
+
+    // 4. 加到前端陣列
+    productTypesData.push({
+      id: newType.prodTypeId,
+      name: newType.prodTypeName
+    });
+
+    // 5. 插入選單中
+    const typeSelect = document.getElementById("product-type");
+    const newOption = document.createElement("option");
+    newOption.value = newType.prodTypeId;
+    newOption.textContent = newType.prodTypeName;
+
+    // 插入到「+新增類型」前
+    typeSelect.insertBefore(newOption, typeSelect.querySelector('option[value="new"]'));
+    typeSelect.value = newType.prodTypeId;
+
+    // 清空輸入框與隱藏輸入區
+    document.getElementById("new-type-container").style.display = "none";
+    document.getElementById("new-type-name").value = "";
+
+    showNotification("新類型添加成功", "success");
+
+  } catch (err) {
+    console.error("新增類型失敗：", err);
+    showNotification("新增類型失敗，請稍後再試", "error");
+  }
+}
+
+
+
+// 添加新商品規格
+async function addNewProductSpec(specName, selectElement) {
+  try {
+    // 先檢查是否已存在相同名稱
+    const exists = productSpecsData.some(s => s.name === specName);
+    if (exists) {
+      alert("此規格名稱已存在，請勿重複新增");
+      return;
+    }
+
+>>>>>>> 8ec3edb298c67c97f1d22c90c50e9c51d3b1502e
     // 模擬 API 請求
     await new Promise(resolve => setTimeout(resolve, 300));
 
@@ -1516,3 +1817,24 @@ function showNotification(message, type = "success") {
   }, 3000);
 }
 
+<<<<<<< HEAD
+=======
+// 檢查移除規格後是否還有單一規格
+function checkSingleSpecAfterRemoval() {
+  const existingSelects = document.querySelectorAll(".spec-select");
+  let hasSingleSpec = false;
+  
+  for (let i = 0; i < existingSelects.length; i++) {
+    if (existingSelects[i].value === "1") {
+      hasSingleSpec = true;
+      break;
+    }
+  }
+  
+  const addSpecButton = document.querySelector(".btn-add-spec");
+  if (addSpecButton) {
+    addSpecButton.style.display = hasSingleSpec ? "none" : "inline-block";
+  }
+}
+
+>>>>>>> 8ec3edb298c67c97f1d22c90c50e9c51d3b1502e

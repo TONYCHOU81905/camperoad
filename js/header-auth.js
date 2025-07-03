@@ -214,96 +214,74 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // 全域購物車管理器
-class GlobalCartManager {
-  constructor() {
-    this.init();
-  }
+// class GlobalCartManager {
+//   constructor() {
+//     this.init();
+//   }
 
-  init() {
-    // 初始化購物車數量顯示
-    this.updateCartCount();
-  }
+//   init() {
+//     // 初始化購物車數量顯示
+//     this.updateCartCount();
+//   }
 
-  // 取得會員ID（從localStorage或session）
-  getMemberId() {
-    const memberInfo = localStorage.getItem('memberInfo');
-    if (memberInfo) {
-      const member = JSON.parse(memberInfo);
-      return member.memId || null;
-    }
-    return null;
-  }
+//   // 取得會員ID（從localStorage或session）
+//   getMemberId() {
+//     const memberInfo = localStorage.getItem('memberInfo');
+//     if (memberInfo) {
+//       const member = JSON.parse(memberInfo);
+//       return member.memId || null;
+//     }
+//     return null;
+//   }
 
-  // 更新購物車數量顯示
-  updateCartCount(count = null) {
-    const cartCountElements = document.querySelectorAll('.cart-count');
-    if (count !== null) {
-      cartCountElements.forEach(element => {
-        element.textContent = count;
-        element.style.display = count > 0 ? 'inline' : 'none';
-      });
-    } else {
-      // 如果沒有傳入數量，可以從後端取得購物車數量
-      this.fetchCartCount();
-    }
-  }
+//   // 更新購物車數量顯示
+//   updateCartCount(count = null) {
+//     const cartCountElements = document.querySelectorAll('.cart-count');
+//     if (count !== null) {
+//       cartCountElements.forEach(element => {
+//         element.textContent = count;
+//         element.style.display = count > 0 ? 'inline' : 'none';
+//       });
+//     } else {
+//       // 如果沒有傳入數量，可以從後端取得購物車數量
+//       this.fetchCartCount();
+//     }
+//   }
 
-  // 從後端取得購物車數量
-  fetchCartCount() {
-    const memId = this.getMemberId();
-    fetch(`${window.api_prefix}/api/getCart?memId=${memId || ''}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.status === 'success' && data.data) {
-        const cartItems = data.data;
-        const totalCount = cartItems.reduce((sum, item) => sum + item.cartProdQty, 0);
-        this.updateCartCount(totalCount);
-      } else {
-        this.updateCartCount(0);
-      }
-    })
-    .catch(error => {
-      console.error('取得購物車數量失敗:', error);
-      this.updateCartCount(0);
-    });
-  }
+//   // 從後端取得購物車數量
+//   fetchCartCount() {
+//     const memId = this.getMemberId();
+//     fetch(`${window.api_prefix}/api/getCart?memId=${memId || ''}`, {
+//       method: 'GET',
+//       headers: {
+//         'Content-Type': 'application/json'
+//       }
+//     })
+//     .then(response => response.json())
+//     .then(data => {
+//       if (data.status === 'success' && data.data) {
+//         const cartItems = data.data;
+//         const totalCount = cartItems.reduce((sum, item) => sum + item.cartProdQty, 0);
+//         this.updateCartCount(totalCount);
+//       } else {
+//         this.updateCartCount(0);
+//       }
+//     })
+//     .catch(error => {
+//       console.error('取得購物車數量失敗:', error);
+//       this.updateCartCount(0);
+//     });
+//   }
 
-  // 加入購物車
-  addToCart(cartData) {
-    return fetch(`${window.api_prefix}/api/addCart`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(cartData)
-    })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('網路回應不正常');
-      }
-      return response.json();
-    })
-    .then(data => {
-      if (data.status === 'success') {
-        this.updateCartCount(); // 重新取得購物車數量
-      }
-      return data;
-    });
-  }
-}
+// }
 
-// 建立全域購物車管理實例
-const globalCartManager = new GlobalCartManager();
+// // 建立全域購物車管理實例
+// const globalCartManager = new GlobalCartManager();
 
-// 頁面載入時初始化購物車數量
-document.addEventListener('DOMContentLoaded', function() {
-  globalCartManager.updateCartCount();
-});
+// // 頁面載入時初始化購物車數量
+// document.addEventListener('DOMContentLoaded', function() {
+//   globalCartManager.updateCartCount();
+// });
 
 // 導出供其他模組使用
 window.globalCartManager = globalCartManager;

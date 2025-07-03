@@ -85,9 +85,28 @@
             <h2>選擇付款方式</h2>
 
             <div class="payment-methods">
-              <div class="payment-method active" data-method="credit-card">
+              <div class="payment-method active" data-method="line-pay">
                 <div class="payment-method-header">
-                  <input type="radio" name="payment-method" id="credit-card" checked />
+                  <input type="radio" name="payment-method" id="line-pay" checked />
+                  <label for="line-pay">LINE Pay</label>
+                  <div class="payment-icons">
+                    <img src="images/linepay.png" alt="LINE Pay" class="line-pay-icon-large" />
+                  </div>
+                </div>
+                <div class="payment-method-content">
+                  <div class="line-pay-info">
+                    <p>
+                      選擇 LINE Pay 付款後，您將被導向 LINE Pay
+                      付款頁面完成交易。
+                    </p>
+                    <p>交易完成後，系統會自動將您導回本網站。</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="payment-method" data-method="credit-card">
+                <div class="payment-method-header">
+                  <input type="radio" name="payment-method" id="credit-card" />
                   <label for="credit-card">信用卡付款</label>
                   <div class="payment-icons">
                     <i class="fab fa-cc-visa"></i>
@@ -118,121 +137,63 @@
                   </form>
                 </div>
               </div>
-              <div class="checkout-content">
-                <!-- 左側：付款表單 -->
-                <div class="payment-section">
-                  <h2>選擇付款方式</h2>
+            </div>
 
-                  <div class="payment-methods">
-                    <div class="payment-method active" data-method="credit-card">
-                      <div class="payment-method-header">
-                        <input type="radio" name="payment-method" id="credit-card" checked />
-                        <label for="credit-card">信用卡付款</label>
-                        <div class="payment-icons">
-                          <i class="fab fa-cc-visa"></i>
-                          <i class="fab fa-cc-mastercard"></i>
-                          <i class="fab fa-cc-jcb"></i>
-                        </div>
-                      </div>
-                      <div class="payment-method-content">
-                        <form id="credit-card-form" class="payment-form">
-                          <div class="form-group">
-                            <label for="card-number">卡號</label>
-                            <input type="text" id="card-number" placeholder="1234 5678 9012 3456" maxlength="19" />
-                          </div>
-                          <div class="form-row">
-                            <div class="form-group">
-                              <label for="card-expiry">有效期限 (MM/YY)</label>
-                              <input type="text" id="card-expiry" placeholder="MM/YY" maxlength="5" />
-                            </div>
-                            <div class="form-group">
-                              <label for="card-cvc">安全碼</label>
-                              <input type="text" id="card-cvc" placeholder="CVC" maxlength="3" />
-                            </div>
-                          </div>
-                          <div class="form-group">
-                            <label for="card-name">持卡人姓名</label>
-                            <input type="text" id="card-name" placeholder="請輸入持卡人姓名" />
-                          </div>
-                        </form>
-                      </div>
-                    </div>
-
-                    <div class="payment-method" data-method="line-pay">
-                      <div class="payment-method-header">
-                        <input type="radio" name="payment-method" id="line-pay" />
-                        <label for="line-pay">LINE Pay</label>
-                        <div class="payment-icons">
-                          <img src="images/line-pay-logo.png" alt="LINE Pay" class="line-pay-icon" />
-                        </div>
-                      </div>
-                      <div class="payment-method-content">
-                        <div class="line-pay-info">
-                          <p>
-                            選擇 LINE Pay 付款後，您將被導向 LINE Pay
-                            付款頁面完成交易。
-                          </p>
-                          <p>交易完成後，系統會自動將您導回本網站。</p>
-                        </div>
-                      </div>
-                    </div>
+            <div class="customer-info">
+              <h2>訂購人資訊</h2>
+              <form id="customer-form">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="customer-name">姓名</label>
+                    <input type="text" id="customer-name" placeholder="請輸入姓名" required />
                   </div>
-
-                  <div class="customer-info">
-                    <h2>訂購人資訊</h2>
-                    <form id="customer-form">
-                      <div class="form-row">
-                        <div class="form-group">
-                          <label for="customer-name">姓名</label>
-                          <input type="text" id="customer-name" placeholder="請輸入姓名" required />
-                        </div>
-                        <div class="form-group">
-                          <label for="customer-phone">電話</label>
-                          <input type="tel" id="customer-phone" placeholder="請輸入電話" required />
-                        </div>
-                      </div>
-                      <div class="form-group">
-                        <label for="customer-email">電子郵件</label>
-                        <input type="email" id="customer-email" placeholder="請輸入電子郵件" required />
-                      </div>
-                      <div class="form-group">
-                        <label for="customer-address">地址</label>
-                        <input type="text" id="customer-address" placeholder="請輸入地址" required />
-                      </div>
-                      <div class="form-group">
-                        <label for="customer-note">備註</label>
-                        <textarea id="customer-note" placeholder="有什麼想告訴我們的嗎？"></textarea>
-                      </div>
-                    </form>
+                  <div class="form-group">
+                    <label for="customer-phone">電話</label>
+                    <input type="tel" id="customer-phone" placeholder="請輸入電話" required />
                   </div>
                 </div>
-
-                <!-- 右側：訂單摘要 -->
-                <div class="order-summary-section">
-                  <div class="order-summary-card">
-                    <h2>訂單摘要</h2>
-                    <div id="order-items" class="order-items">
-                      <!-- 訂單項目將由JavaScript動態生成 -->
-                    </div>
-                    <div class="summary-totals">
-                      <div class="summary-row">
-                        <span class="summary-label">商品總計</span>
-                        <span id="order-subtotal" class="summary-value">NT$ 0</span>
-                      </div>
-                      <div class="summary-row total">
-                        <span class="summary-label">總計</span>
-                        <span id="order-total" class="summary-value">NT$ 0</span>
-                      </div>
-                    </div>
-                    <button id="submit-payment" class="btn-submit-payment">
-                      確認付款
-                    </button>
-                    <a href="camp_cart.html" class="btn-back-to-cart">返回購物車</a>
-                  </div>
+                <div class="form-group">
+                  <label for="customer-email">電子郵件</label>
+                  <input type="email" id="customer-email" placeholder="請輸入電子郵件" required />
                 </div>
-              </div>
+                <div class="form-group">
+                  <label for="customer-address">地址</label>
+                  <input type="text" id="customer-address" placeholder="請輸入地址" required />
+                </div>
+                <div class="form-group">
+                  <label for="customer-note">備註</label>
+                  <textarea id="customer-note" placeholder="有什麼想告訴我們的嗎？"></textarea>
+                </div>
+              </form>
             </div>
           </div>
+
+          <!-- 右側：訂單摘要 -->
+          <div class="order-summary-section">
+            <div class="order-summary-card">
+              <h2>訂單摘要</h2>
+              <div id="order-items" class="order-items">
+                <!-- 訂單項目將由JavaScript動態生成 -->
+              </div>
+              <div class="summary-totals">
+                <div class="summary-row">
+                  <span class="summary-label">商品總計</span>
+                  <span id="order-subtotal" class="summary-value">NT$ 0</span>
+                </div>
+                <div class="summary-row total">
+                  <span class="summary-label">總計</span>
+                  <span id="order-total" class="summary-value">NT$ 0</span>
+                </div>
+              </div>
+              <button id="submit-payment" class="btn-submit-payment">
+                確認付款
+              </button>
+              <a href="camp_cart.html" class="btn-back-to-cart">返回購物車</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </section>
 
   <!-- 付款處理中彈窗 -->
@@ -310,8 +271,8 @@
     </div>
   </footer>
 
-  <script src="js/camp_cart.js"></script>
   <script src="js/camp-data.js"></script>
+  <script src="js/camp_cart.js"></script>
   <script src="js/checkout.js"></script>
 </body>
 

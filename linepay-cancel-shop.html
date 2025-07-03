@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -60,7 +59,6 @@
     }
   </style>
 </head>
-
 <body>
   <!-- 頁頭 -->
   <header class="site-header">
@@ -75,8 +73,8 @@
           <ul>
             <li><a href="campsites.html">營地</a></li>
             <li><a href="shop.html">商店</a></li>
-            <li><a href="article-type.html">露營指南</a></li>
-            <li><a href="camp_cart.html" class="cart-link">購物車 <span class="cart-count">0</span></a></li>
+            <li><a href="camp-guides.html">露營指南</a></li>
+            <li><a href="shop_cart.html" class="cart-link">購物車 <span class="cart-count">0</span></a></li>
             <li><a href="login.html" class="login-link">登入</a></li>
           </ul>
         </nav>
@@ -89,21 +87,20 @@
     <div class="cancel-container">
       <div class="cancel-icon">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-          <path
-            d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z" />
+          <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/>
         </svg>
       </div>
       <h1 class="cancel-title">付款已取消</h1>
       <p>您的 LINE Pay 付款已取消或未完成。</p>
-
+      
       <div class="cancel-message">
         <p>您可以返回結帳頁面重新嘗試付款，或返回購物車修改您的訂單。</p>
         <p>如果您遇到任何問題，請聯絡我們的客戶服務。</p>
       </div>
-
+      
       <div class="action-buttons">
-        <a href="checkout.html" class="btn primary-btn">返回結帳</a>
-        <a href="camp_cart.html" class="btn secondary-btn">返回購物車</a>
+        <a href="shop-checkout.html" class="btn primary-btn">返回結帳</a>
+        <a href="shop_cart.html" class="btn secondary-btn">返回購物車</a>
       </div>
     </div>
   </main>
@@ -149,7 +146,7 @@
   </footer>
 
   <script src="js/camp-data.js"></script>
-  <script src="js/camp_cart.js"></script>
+  <script src="js/shop_cart.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       // 更新購物車數量
@@ -160,11 +157,10 @@
           cartManager.updateCartCount();
         });
       }
-
+      
       // 清除 localStorage 中的訂單資訊
       localStorage.removeItem('pendingOrder');
     });
   </script>
 </body>
-
 </html>

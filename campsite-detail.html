@@ -25,7 +25,10 @@
       border-radius: 8px;
       overflow: hidden;
       margin-bottom: 15px;
-      height: 400px;
+      width: 1080px;
+      height: 608px;
+      max-width: 100%;
+      aspect-ratio: 16/9;
     }
 
     .gallery-main img {
@@ -38,6 +41,8 @@
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 15px;
+      width: 1080px;
+      max-width: 100%;
     }
 
     .gallery-thumb {
@@ -340,19 +345,8 @@
         <div class="gallery-main">
           <img src="images/product-1.jpg" alt="山林星空營地主圖" id="main-image" />
         </div>
-        <div class="gallery-thumbs">
-          <div class="gallery-thumb" onclick="changeImage('images/product-1.jpg')">
-            <img src="images/product-1.jpg" alt="山林星空營地測試圖1" />
-          </div>
-          <div class="gallery-thumb" onclick="changeImage('images/product-2.jpg')">
-            <img src="images/product-2.jpg" alt="山林星空營地測試圖2" />
-          </div>
-          <div class="gallery-thumb" onclick="changeImage('images/product-3.jpg')">
-            <img src="images/product-3.jpg" alt="山林星空營地測試圖3" />
-          </div>
-          <div class="gallery-thumb" onclick="changeImage('images/product-4.jpg')">
-            <img src="images/product-4.jpg" alt="山林星空營地測試圖4" />
-          </div>
+        <div class="gallery-thumbs" id="gallery-thumbs">
+          <!-- 縮圖將通過JavaScript動態載入 -->
         </div>
       </div>
 
@@ -719,6 +713,111 @@
   <script>
     function changeImage(src) {
       document.getElementById("main-image").src = src;
+    }
+
+    // 載入營地圖片
+    async function loadCampImages() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const campId = urlParams.get("id") || "1";
+      const galleryThumbsContainer = document.getElementById("gallery-thumbs");
+      const mainImage = document.getElementById("main-image");
+
+      if (!galleryThumbsContainer) {
+        console.log("找不到gallery-thumbs容器");
+        return;
+      }
+
+      // 確保api_prefix已設置
+      if (!window.api_prefix) {
+        console.log("api_prefix未設置，使用預設值");
+        window.api_prefix = "http://localhost:8081/CJA101G02";
+      }
+
+      let validImages = [];
+      let firstValidImage = null;
+
+      console.log(`開始載入營地 ${campId} 的圖片`);
+
+      // 檢查最多4張圖片
+      for (let i = 1; i <= 4; i++) {
+        const imageUrl = `${window.api_prefix}/api/camps/${campId}/${i}`;
+        console.log(`檢查圖片 ${i}: ${imageUrl}`);
+
+        // 使用圖片載入方式檢查，而不是HEAD請求
+        const isImageValid = await checkImageExists(imageUrl);
+
+        if (isImageValid) {
+          console.log(`圖片 ${i} 載入成功`);
+          validImages.push({ index: i, url: imageUrl });
+
+          // 設置第一張有效圖片為主圖
+          if (!firstValidImage) {
+            firstValidImage = imageUrl;
+            mainImage.src = imageUrl;
+            console.log(`設置主圖: ${imageUrl}`);
+          }
+
+          // 創建縮圖
+          const thumbDiv = document.createElement("div");
+          thumbDiv.className = "gallery-thumb";
+          thumbDiv.onclick = () => changeImage(imageUrl);
+
+          const thumbImg = document.createElement("img");
+          thumbImg.src = imageUrl;
+          thumbImg.alt = `營地圖片${i}`;
+          thumbImg.onerror = () => {
+            console.log(`縮圖 ${i} 載入失敗，移除縮圖`);
+            thumbDiv.remove();
+          };
+
+          thumbDiv.appendChild(thumbImg);
+          galleryThumbsContainer.appendChild(thumbDiv);
+        } else {
+          console.log(`圖片 ${i} 不存在或載入失敗`);
+        }
+      }
+
+      // 如果沒有找到任何有效圖片，使用預設圖片
+      if (validImages.length === 0) {
+        console.log("未找到有效的營地圖片，使用預設圖片");
+        const defaultImageUrl = "images/product-1.jpg";
+        mainImage.src = defaultImageUrl;
+
+        // 創建預設縮圖
+        const thumbDiv = document.createElement("div");
+        thumbDiv.className = "gallery-thumb";
+        thumbDiv.onclick = () => changeImage(defaultImageUrl);
+
+        const thumbImg = document.createElement("img");
+        thumbImg.src = defaultImageUrl;
+        thumbImg.alt = "預設營地圖片";
+
+        thumbDiv.appendChild(thumbImg);
+        galleryThumbsContainer.appendChild(thumbDiv);
+      }
+
+      console.log(`成功載入了 ${validImages.length} 張營地圖片`);
+    }
+
+    // 檢查圖片是否存在的輔助函數
+    function checkImageExists(imageUrl) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          console.log(`圖片載入成功: ${imageUrl}`);
+          resolve(true);
+        };
+        img.onerror = () => {
+          console.log(`圖片載入失敗: ${imageUrl}`);
+          resolve(false);
+        };
+        // 設置超時
+        setTimeout(() => {
+          console.log(`圖片載入超時: ${imageUrl}`);
+          resolve(false);
+        }, 5000);
+        img.src = imageUrl;
+      });
     }
   </script>
   <!-- WebSocket相關庫 -->
