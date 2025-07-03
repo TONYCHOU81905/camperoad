@@ -70,6 +70,8 @@ button,
   box-shadow: 0 6px 12px rgba(58, 90, 64, 0.2);
 }
 
+
+
 .camp-tag,
 .product-tag {
   background-color: #e76f51;
@@ -1761,4 +1763,53 @@ h4 {
 }
 .data-table tr {
   height: 67.59px;
+}
+
+/* 表格樣式微調 */
+.data-table td, .data-table th {
+  padding: 10px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+
+/* 折價券詳細區塊樣式 */
+.discount-details-row {
+  background-color: #f9f9f9;
+}
+
+.discount-detail-cell {
+  padding: 10px;
+  font-size: 14px;
+  color: #444;
+}
+
+/* 展開箭頭按鈕 */
+.toggle-details-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  transform: rotate(0deg);
+  transition: transform 0.3s ease;
+  margin-right: 5px;
+}
+
+/* 旋轉狀態 */
+.toggle-details-btn.expanded {
+  transform: rotate(180deg);
+}
+
+/* 折價券編輯按鈕 */
+.btn-edit-discount {
+  background-color: #3a5a40;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-edit-discount:hover {
+  background-color: #678e6f;
 }
