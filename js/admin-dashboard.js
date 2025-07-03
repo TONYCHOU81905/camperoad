@@ -11,6 +11,8 @@ let campData = [];
 let campsiteTypeData = [];
 let reportsData = [];
 let discountCodesData = [];
+let isEdit = false;
+let currentEditDiscountId = null;
 let campReportsData = [];
 let shopOrdersData = [];
 let shopOrderDetailsData = [];
@@ -172,14 +174,7 @@ async function loadAllData() {
       shopOrderDetailsData = [];
     }
 
-    // 載入折價券資料
-    try {
-      const discountResponse = await fetch("data/discount_code.json");
-      discountCodesData = await discountResponse.json();
-    } catch (error) {
-      console.log("折價券資料載入失敗，使用空陣列");
-      discountCodesData = [];
-    }
+    
 
     // 載入營地檢舉資料
     try {
@@ -206,6 +201,9 @@ async function loadAllData() {
       console.log("重新載入商品訂單管理頁面");
       loadOrderManagement();
     }
+
+  
+
   } catch (error) {
     console.error("資料載入失敗:", error);
     alert("資料載入失敗，請重新整理頁面");
@@ -1433,6 +1431,27 @@ function updateShopOrdersTable(orders, pageNumber = 1) {
   window.currentOrderPage = currentPage;
 }
 
+
+// 載入折價券資料
+async function fetchDiscountList() {
+  try {
+    const discountResponse = await fetch(`${window.api_prefix}/api/discount/all`);
+    discountCodesData = await discountResponse.json();
+    console.log("折價券資料", discountCodesData);
+  } catch (error) {
+    console.log("折價券資料載入失敗，使用空陣列");
+    discountCodesData = [];
+  }
+
+  console.log("目前折價券筆數：", discountCodesData.length);
+  console.log("discount-table-body 是否存在：", !!document.getElementById("discount-table-body"));
+
+
+  loadDiscountTable(); // ⬅️ 抓完資料後渲染表格
+}
+
+
+
 // 載入折價券管理
 function loadDiscountManagement() {
   const content = document.getElementById("discount-management-content");
@@ -1444,14 +1463,11 @@ function loadDiscountManagement() {
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th>折價券代碼</th>
                         <th>折價券名稱</th>
-                        <th>折扣類型</th>
-                        <th>折扣值</th>
-                        <th>最低消費</th>
-                        <th>建立日期</th>
-                        <th>使用期限</th>
-                        <th>使用次數</th>
+                        <th>折扣說明</th>
+                        <th>折扣金額/折扣百分比</th>
+                        <th>最低消費金額</th>
+                        <th>生效期間</th>
                         <th>狀態</th>
                         <th>操作</th>
                     </tr>
@@ -1468,12 +1484,12 @@ function loadDiscountManagement() {
                 <h3>建立新折價券</h3>
                 <form id="discountForm">
                     <div class="form-group">
-                        <label>折價券代碼:</label>
+                        <label>折價券名稱:</label>
                         <input type="text" name="code" required>
                     </div>
                     <div class="form-group">
-                        <label>折價券名稱:</label>
-                        <input type="text" name="name" required>
+                        <label>折扣說明:</label>
+                        <input type="text" name="explain" required>
                     </div>
                     <div class="form-group">
                         <label>折扣類型:</label>
@@ -1483,15 +1499,19 @@ function loadDiscountManagement() {
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>折扣值:</label>
-                        <input type="number" name="value" required>
+                        <label>折扣金額/折扣百分比:</label>
+                        <input type="number" name="value" required step="0.01" min="0">
                     </div>
                     <div class="form-group">
-                        <label>最低消費:</label>
+                        <label>最低消費金額:</label>
                         <input type="number" name="min_amount" required>
                     </div>
                     <div class="form-group">
-                        <label>使用期限:</label>
+                        <label>生效日期:</label>
+                        <input type="date" name="start_date" required>
+                    </div>
+                    <div class="form-group">
+                        <label>失效日期:</label>
                         <input type="date" name="expiry_date" required>
                     </div>
                     <div class="form-actions">
@@ -1503,11 +1523,37 @@ function loadDiscountManagement() {
         </div>
     `;
 
-  loadDiscountTable();
+    fetchDiscountList(); // ✅ 抓資料 + 渲染畫面;
 }
 
+
+//折價券日期轉換
+function formatDate(dateString) {
+  if (!dateString) return "-";
+  const date = new Date(dateString);
+  if (isNaN(date)) return "-";
+
+  // YYYY-MM-DD
+  const year = date.getFullYear();
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const day = date.getDate().toString().padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+
+let isDiscountFormBound = false;
 // 載入折價券表格
 function loadDiscountTable() {
+
+  // 失效日期由遠到近排序
+  discountCodesData.sort((a, b) => {
+    const dateA = new Date(a.endDate);
+    const dateB = new Date(b.endDate);
+    return dateB - dateA; 
+  });
+
+
   const tbody = document.getElementById("discount-table-body");
   if (!tbody) return;
 
@@ -1516,7 +1562,7 @@ function loadDiscountTable() {
   if (discountCodesData.length === 0) {
     tbody.innerHTML = `
             <tr>
-                <td colspan="10" class="empty-state">
+                <td colspan="7" class="empty-state">
                     <i class="fas fa-tags"></i>
                     <h3>暫無折價券</h3>
                     <p>目前沒有建立任何折價券</p>
@@ -1525,10 +1571,12 @@ function loadDiscountTable() {
         `;
     return;
   }
+  console.log("discountCodesData", discountCodesData);
 
-  discountCodesData.forEach((discount) => {
+  discountCodesData.forEach((discount, index) => {
+    
     const currentDate = new Date();
-    const endDate = new Date(discount.end_date);
+    const endDate = new Date(discount.endDate);
     const isActive = endDate > currentDate;
     const isExpiredToday =
       endDate.toDateString() === currentDate.toDateString() &&
@@ -1536,62 +1584,132 @@ function loadDiscountTable() {
     const discountTypeText =
       discount.discount_type === 1 ? "百分比" : "固定金額";
     const discountValueText =
-      discount.discount_type === 1
-        ? `${discount.discount_value * 100}%`
-        : `${discount.discount_value}元`;
+      discount.discountType === 1
+        ? `${discount.discountValue * 100}%`
+        : `${discount.discountValue}元`;
 
-    // 格式化建立日期
-    const createdDate = discount.created
-      ? discount.created.split(" ")[0]
-      : "未知";
+    // 格式化折價券建立日期、生效日期、失效日期、生效期間、更新日期
+    const formattedStartDate = formatDate(discount.startDate);
+    const formattedEndDate = formatDate(discount.endDate);
+    const dateRangeText = `${formattedStartDate} ~ ${formattedEndDate}`;
+    const formattedUpdateDate = formatDate(discount.updated);
 
     // 判斷是否顯示刪除按鈕（當日已過期則不顯示）
     const showDeleteButton = !isExpiredToday && endDate > currentDate;
 
     const row = document.createElement("tr");
     row.innerHTML = `
-            <td>${discount.discount_code}</td>
-            <td>${discount.discount_explain}</td>
-            <td>${discountTypeText}</td>
-            <td>${discountValueText}</td>
-            <td>${discount.min_order_amount}元</td>
-            <td>${createdDate}</td>
-            <td>${discount.start_date.split(" ")[0]} ~ ${
-      discount.end_date.split(" ")[0]
-    }</td>
-            <td>-</td>
-            <td><span class="status-badge ${
-              isActive ? "status-active" : "status-inactive"
-            }">${isActive ? "有效" : "已過期"}</span></td>
+             <td>
+               <button class="toggle-details-btn" id="toggle-btn-${index}" onclick="toggleDetails(${index})">▼</button>
+               ${discount.discountCode}
+            </td> 
+            <td>${discount.discountExplain}</td>
+            <td>${discountValueText}</td>  
+            <td>${discount.minOrderAmount}元</td>  
+            <td>${dateRangeText}</td>  
+            <td>${isActive ? "有效" : "已過期"}</td> 
             <td>
-                ${
-                  showDeleteButton
-                    ? `
-                <button class="btn btn-danger" onclick="deleteDiscount('${discount.discount_code_id}')">
-                    <i class="fas fa-trash"></i> 刪除
-                </button>
-                `
-                    : `
-                <span class="text-muted">已過期</span>
-                `
-                }
+            ${
+              showDeleteButton
+                ? `
+              <button class="btn btn-edit-discount" onclick="editDiscount('${discount.discountCodeId}')">
+                  <i class="fas fa-edit"></i> 編輯
+              </button>
+              `
+                : `
+              <span class="text-muted">已過期</span>
+              `
+              }
             </td>
         `;
     tbody.appendChild(row);
+
+    // 折疊區塊（預設隱藏）
+  const detailRow = document.createElement("tr");
+  detailRow.classList.add("discount-details-row");
+  detailRow.style.display = "none";
+  detailRow.id = `detail-row-${index}`;
+
+  detailRow.innerHTML = `
+    <td colspan="7" class="discount-detail-cell">
+      <div><strong>折價券編號：</strong>${discount.discountCodeId}</div>
+      <div><strong>折扣類型：</strong>${discountTypeText}</div>
+      <div><strong>建立日期：</strong>${formatDate(discount.created)}</div>
+      <div><strong>更新日期：</strong>${formattedUpdateDate}</div>
+    </td>
+  `;
+
+  tbody.appendChild(detailRow);
+
   });
 }
+
+function toggleDetails(index) {
+  const detailRow = document.getElementById(`detail-row-${index}`);
+  const toggleBtn = document.getElementById(`toggle-btn-${index}`);
+
+  if (!detailRow || !toggleBtn) return;
+
+  const isVisible = detailRow.style.display !== "none";
+  detailRow.style.display = isVisible ? "none" : "table-row";
+
+  toggleBtn.classList.toggle("expanded", !isVisible);
+}
+
 
 // 顯示建立折價券表單
 function showCreateDiscountForm() {
   document.getElementById("create-discount-form").style.display = "block";
 
-  // 綁定表單提交事件
-  document
-    .getElementById("discountForm")
-    .addEventListener("submit", function (e) {
-      e.preventDefault();
-      createDiscount();
+  const todayStr = new Date().toISOString().split("T")[0]; // 取得今天 yyyy-MM-dd 格式
+
+  const startDateInput = document.querySelector('input[name="start_date"]');
+  const endDateInput = document.querySelector('input[name="expiry_date"]');
+
+  startDateInput.min = todayStr;
+  startDateInput.value = todayStr;
+
+  endDateInput.min = todayStr; // 預設先設為今天，等使用者選了生效日再變動
+
+  // 當使用者選擇生效日期時，自動調整失效日期的 min 值
+  startDateInput.addEventListener("change", function () {
+    endDateInput.min = this.value;
+    if (endDateInput.value < this.value) {
+      endDateInput.value = this.value; // 若原本日期小於，強制調整
+    }
+  });
+
+
+    const typeSelect = document.querySelector('select[name="type"]');
+    const valueInput = document.querySelector('input[name="value"]');
+  
+    typeSelect.addEventListener("change", function () {
+      if (this.value === "percentage") {
+        valueInput.step = "0.1";
+        valueInput.min = "0.1";
+        valueInput.max = "100";
+        valueInput.placeholder = "請輸入百分比（例如 12.5）";
+      } else {
+        valueInput.step = "1";
+        valueInput.min = "1";
+        valueInput.removeAttribute("max");
+        valueInput.placeholder = "請輸入整數金額";
+      }
+  
+      valueInput.value = "";
     });
+  
+    // ✅ 預設觸發一次以設定初始格式
+    typeSelect.dispatchEvent(new Event("change"));
+
+     // ✅ 只綁定一次 submit 事件
+    if (!isDiscountFormBound) {
+      document.getElementById("discountForm").addEventListener("submit", function (e) {
+        e.preventDefault();
+        createDiscount();
+      });
+    isDiscountFormBound = true;
+  }
 }
 
 // 隱藏建立折價券表單
@@ -1599,31 +1717,77 @@ function hideCreateDiscountForm() {
   document.getElementById("create-discount-form").style.display = "none";
 }
 
-// 建立折價券
+// 建立折價券(驗證)
 function createDiscount() {
   const form = document.getElementById("discountForm");
   const formData = new FormData(form);
 
-  const discountType = formData.get("type") === "percentage" ? 1 : 0;
-  let discountValue = parseFloat(formData.get("value"));
+  const discountTypeRaw = formData.get("type"); // "percentage" 或 "fixed"
+  const discountType = discountTypeRaw === "percentage" ? 1 : 0;
 
+  let discountValue = formData.get("value");
+
+  // ✅ 檢查金額格式
   if (discountType === 1) {
-    discountValue = discountValue / 100; // 百分比轉成小數
+    // 百分比，允許小數但需在 0~100 範圍內
+    const valueNum = parseFloat(discountValue);
+    if (isNaN(valueNum) || valueNum <= 0 || valueNum > 100) {
+      alert("百分比折扣請輸入 0~100 的數值");
+      return;
+    }
+    discountValue = valueNum / 100; // 轉換成小數儲存
+  } else {
+    // 固定金額，只允許整數
+    if (!/^\d+$/.test(discountValue)) {
+      alert("固定金額折扣只能輸入整數金額");
+      return;
+    }
+    discountValue = parseInt(discountValue);
   }
 
+  // ✅ 日期驗證
+  const startDate = formData.get("start_date") + " 00:00:00";
+  const endDate = formData.get("expiry_date") + " 23:59:59";
+
+  const today = new Date().setHours(0, 0, 0, 0);
+  const startTime = new Date(startDate).getTime();
+  const endTime = new Date(endDate).getTime();
+
+  if (startTime < today) {
+    alert("生效日期不可早於今天");
+    return;
+  }
+
+  if (endTime <= startTime) {
+    alert("失效日期必須晚於生效日期");
+    return;
+  }
+
+  // ✅ 建立折價券物件
   const newDiscount = {
     discountCode: formData.get("code"),
-    ownerId: null, // 或指定 ownerId，如 20000001
-    adminId: currentAdmin.admin_id,
+    discountExplain: formData.get("explain"),
     discountType: discountType,
     discountValue: discountValue,
-    discountExplain: formData.get("name"),
     minOrderAmount: parseFloat(formData.get("min_amount")),
-    startDate: new Date().toISOString().replace("T", " ").split(".")[0],
-    endDate: formData.get("expiry_date") + " 23:59:59"
+    startDate: startDate,
+    endDate: endDate,
+    adminId: currentAdmin.adminId,
+    ownerId: null
   };
 
-  fetch(`${window.api_prefix}/api/discount/add?prefix=A`, {
+  // 若是編輯，補上 discountCodeId
+  if (isEdit) {
+    newDiscount.discountCodeId = currentEditDiscountId;
+  }
+
+  const url = isEdit
+    ? `${window.api_prefix}/api/discount/updateDiscount`
+    : `${window.api_prefix}/api/discount/add?prefix=A`;
+
+  const successMessage = isEdit ? "折價券更新成功！" : "折價券建立成功！";
+
+  fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -1633,37 +1797,72 @@ function createDiscount() {
     .then(response => {
       if (!response.ok) {
         return response.json().then(err => {
-          throw new Error(err.message || "新增失敗");
+          throw new Error(err.message || (isEdit ? "更新失敗" : "新增失敗"));
         });
       }
       return response.json();
     })
     .then(data => {
-      alert("折價券建立成功！");
+      alert(successMessage);
       hideCreateDiscountForm();
       form.reset();
       // 你可重新呼叫 API 載入折價券資料（如果有）
-      loadDiscountTable(); // 或改成 fetchDiscountList() -> 更新 discountCodesData
+      fetchDiscountList(); 
+      // 重置編輯狀態
+      isEdit = false;
+      currentEditDiscountId = null;
     })
     .catch(error => {
-      console.error("新增失敗", error);
-      alert("新增折價券失敗：" + error.message);
+      alert(error.message);
     });
+
+
 }
 
-// 刪除折價券
-function deleteDiscount(discountId) {
-  if (confirm("確定要刪除這個折價券嗎？此操作無法復原。")) {
-    const index = discountCodesData.findIndex(
-      (d) => d.discount_code_id === discountId
-    );
-    if (index !== -1) {
-      discountCodesData.splice(index, 1);
-      loadDiscountTable();
-      alert("折價券已成功刪除！");
-    }
+// 編輯折價券
+function editDiscount(discountCodeId) {
+  
+  isEdit = true;
+ currentEditDiscountId = discountCodeId
+  
+  const discount = discountCodesData.find(d => d.discountCodeId === discountCodeId);
+  if (!discount) {
+    alert("找不到此折價券資料");
+    return;
   }
+
+  // 顯示建立折價券表單（共用）
+  showCreateDiscountForm();
+
+  const form = document.getElementById("discountForm");
+
+  // 修改表單標題與按鈕文字
+  document.querySelector("#create-discount-form h3").textContent = "編輯折價券";
+  form.querySelector('button[type="submit"]').textContent = "更新";
+
+  // 將資料填入表單欄位
+  form.elements["code"].value = discount.discountCode;
+  form.elements["explain"].value = discount.discountExplain;
+  form.elements["type"].value = discount.discountType === 1 ? "percentage" : "fixed";
+  form.elements["value"].value =
+    discount.discountType === 1
+      ? discount.discountValue * 100
+      : discount.discountValue;
+
+  form.elements["min_amount"].value = discount.minOrderAmount;
+
+  form.elements["start_date"].value = formatDate(discount.startDate);
+  form.elements["expiry_date"].value = formatDate(discount.endDate);
+
+  // 編輯狀態旗標 + 折價券編號記錄
+  form.setAttribute("data-edit-id", discountCodeId);
+
+  // 重新觸發折扣類型格式調整
+  form.elements["type"].dispatchEvent(new Event("change"));
 }
+
+
+
 
 // 聊天視窗相關功能
 function openChatWindow(reportId) {
