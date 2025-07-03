@@ -455,8 +455,8 @@ async function handleAdminLogin(e) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        admin_acc: adminAcc,
-        admin_pwd: adminPwd,
+        adminAcc: adminAcc,
+        adminPwd: adminPwd,
       }),
       // credentials: "include", // 包含Cookie
     });
