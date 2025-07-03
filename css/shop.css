@@ -280,3 +280,10 @@
   color: #e57373;
   background-color: #fff;
 }
+
+.section-title .filter-info {
+    font-size: 0.8em;
+    color: #666;
+    font-weight: normal;
+    margin-left: 10px;
+}
