@@ -345,10 +345,7 @@
                     <div class="form-group">
                         <label class="form-label" for="type">文章分類</label>
                         <select id="type" name="type" required>
-                            <option value="">請選擇分類</option>
-                            <option value="30001">新手指南</option>
-                            <option value="30002">料理技巧</option>
-                            <option value="30003">裝備評測</option>
+                            <!-- 其他選項由 JS 動態產生 -->
                         </select>
                     </div>
                     <div class="form-group">
@@ -531,6 +528,7 @@
         // 初始化頁面
         function initPage() {
             const currentMember = checkLoginStatus();
+            const memId = currentMember && (currentMember.mem_id || currentMember.memId);
 
             if (currentMember) {
                 // 已登入，顯示會員資訊和表單
@@ -643,11 +641,43 @@
             }
         });
 
+        // 動態載入文章分類
+        async function loadArticleTypes() {
+            const select = document.getElementById('type');
+            select.innerHTML = '';
+
+            // 從 URL 取得預設分類 ID
+            const urlParams = new URLSearchParams(window.location.search);
+            const defaultTypeId = urlParams.get('acTypeId');
+
+            try {
+                const res = await fetch(`${window.api_prefix}/api/article-types`);
+                const data = await res.json();
+                if (res.ok && data.status === 'success' && Array.isArray(data.data)) {
+                    data.data.forEach(type => {
+                        const option = document.createElement('option');
+                        option.value = type.acTypeId;
+                        option.textContent = type.acTypeKind;
+                        // 如果 URL 有帶 acTypeId，預設選中該分類
+                        if (defaultTypeId && String(type.acTypeId) === String(defaultTypeId)) {
+                            option.selected = true;
+                        }
+                        select.appendChild(option);
+                    });
+                } else {
+                    showMessage('無法載入文章分類', 'error');
+                }
+            } catch (err) {
+                showMessage('載入分類時發生錯誤', 'error');
+            }
+        }
+
         // 頁面載入時初始化
         document.addEventListener('DOMContentLoaded', function () {
             initPage();
             setupLoginStateListener();
             setupLoginRedirect();
+            loadArticleTypes();
         });
     </script>
 </body>

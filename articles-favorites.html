@@ -801,6 +801,7 @@
                 const memberData = localStorage.getItem("currentMember") || sessionStorage.getItem("currentMember");
                 if (memberData) {
                     this.currentMember = JSON.parse(memberData);
+                    this.currentMember.memId = this.currentMember.mem_id || this.currentMember.memId;
                     this.updateUserInfo();
                 } else {
                     // 未登入，顯示登入提示
@@ -851,7 +852,7 @@
                     if (response.ok && result.status === 'success' && result.data) {
                         // 過濾當前用戶的收藏
                         this.favorites = result.data.filter(fav =>
-                            fav.memId === this.currentMember.mem_id
+                            fav.memId === (this.currentMember.mem_id || this.currentMember.memId)
                         );
 
                         // 獲取收藏文章的詳細資訊
@@ -870,7 +871,7 @@
             loadLocalFavorites() {
                 const localFavorites = JSON.parse(localStorage.getItem('articleFavorites') || '[]');
                 this.favorites = localFavorites.filter(fav =>
-                    fav.memId === this.currentMember.mem_id
+                    fav.memId === (this.currentMember.mem_id || this.currentMember.memId)
                 );
 
                 if (this.favorites.length > 0) {
@@ -1029,7 +1030,7 @@
                 // 從localStorage移除
                 const localFavorites = JSON.parse(localStorage.getItem('articleFavorites') || '[]');
                 const updatedFavorites = localFavorites.filter(fav =>
-                    !(fav.memId === this.currentMember.mem_id && fav.acId === articleId)
+                    !(fav.memId === (this.currentMember.mem_id || this.currentMember.memId) && fav.acId === articleId)
                 );
                 localStorage.setItem('articleFavorites', JSON.stringify(updatedFavorites));
 

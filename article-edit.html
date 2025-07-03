@@ -339,7 +339,7 @@
                 document.getElementById('member-id').textContent = currentMember.mem_id;
 
                 // 設定會員ID為隱藏欄位
-                window.currentMemberId = currentMember.mem_id;
+                window.currentMemberId = currentMember.mem_id || currentMember.memId;
 
                 // 載入文章資料
                 const articleData = await loadArticleData(articleId);

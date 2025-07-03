@@ -509,28 +509,6 @@ class ArticleManager {
                 const content = article.acContext ? article.acContext.replace(/\n/g, '<br>') : '無內容';
                 postBody.innerHTML = `<p>${content}</p>`;
             }
-
-            // 更新標籤
-            const postTags = postContent.querySelector('.post-tags');
-            if (postTags) {
-                let tags = [`<span class="post-tag">${typeName}</span>`];
-
-                // 根據文章類型添加相關標籤
-                if (article.acTypeId === 30001) { // 新手指南
-                    tags.push('<span class="post-tag">新手推薦</span>');
-                    tags.push('<span class="post-tag">基礎教學</span>');
-                } else if (article.acTypeId === 30002) { // 裝備評測
-                } else if (article.acTypeId === 30002) { // 料理技巧
-                    tags.push('<span class="post-tag">料理技巧</span>');
-                    tags.push('<span class="post-tag">野外烹飪</span>');
-                } else if (article.acTypeId === 30003) { // 裝備評測
-                    tags.push('<span class="post-tag">裝備測試</span>');
-                    tags.push('<span class="post-tag">產品評比</span>');
-                }
-
-                tags.push('<span class="post-tag">經驗分享</span>');
-                postTags.innerHTML = tags.join('');
-            }
         }
 
         // 更新麵包屑導航
@@ -550,6 +528,16 @@ class ArticleManager {
         window.dispatchEvent(new CustomEvent('articleLoaded', {
             detail: { articleId: article.acId }
         }));
+
+        // 假設有一個 setArticleDetail(article) 或 renderArticleDetail(article) 之類的函數
+        // 在載入文章資料後，將 acId 填入 #article-acid
+        // 例如：
+        if (article && article.acId && document.getElementById('article-acid')) {
+            document.getElementById('article-acid').textContent = article.acId;
+        }
+
+        // --- 文章詳情 Like 功能 ---
+        this.setupLikeFeature(article);
     }
 
     // 獲取對應的列表頁面編號
@@ -563,12 +551,28 @@ class ArticleManager {
     }
 
     // 渲染文章列表
-    renderArticleList(containerId, typeId = null, page = 1) {
+    renderArticleList(containerId, typeId = null, page = 1, sortType = 'latest') {
         const container = document.getElementById(containerId);
         if (!container) return;
 
-        const paginatedData = this.getPaginatedArticles(typeId, page);
-        const articlesToShow = paginatedData.articles;
+        let paginatedData = this.getPaginatedArticles(typeId, page);
+        let articlesToShow = paginatedData.articles;
+
+        // 排序
+        switch (sortType) {
+            case 'latest':
+                articlesToShow.sort((a, b) => new Date(b.acTime) - new Date(a.acTime));
+                break;
+            case 'popular': // 最多觀看
+                articlesToShow.sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0));
+                break;
+            case 'most-liked':
+                articlesToShow.sort((a, b) => (b.likeCount || 0) - (a.likeCount || 0));
+                break;
+            case 'most-commented':
+                articlesToShow.sort((a, b) => (b.replyCount || 0) - (a.replyCount || 0));
+                break;
+        }
 
         // 更新文章計數
         const countElement = document.getElementById('article-count');
@@ -587,7 +591,6 @@ class ArticleManager {
             const authorName = this.getAuthorName(article); // 直接傳入整個文章物件
             const typeName = this.getArticleTypeName(article.acTypeId);
             const preview = article.acContext ? article.acContext.substring(0, 80) + '...' : '無內容預覽';
-
             return `
                 <div class="article-item">
                     <div class="article-image-cell">
@@ -600,7 +603,11 @@ class ArticleManager {
                         <div class="article-preview">
                             ${preview}
                         </div>
-                        <span class="article-tag">${typeName}</span>
+                        <span class="article-tag">${typeName}
+                            <span class="reply-count" data-article-id="${article.acId}" style="margin-left:18px;color:#fff;font-size:0.92em;">
+                                <i class='fas fa-comments' style="color:#fff;"></i> ${article.replyCount || 0}
+                            </span>
+                        </span>
                     </div>
                     <div class="article-author-cell">
                         ${authorName}
@@ -611,7 +618,11 @@ class ArticleManager {
                     <div class="article-stats-cell">
                         <div class="stat-item">
                             <i class="fas fa-eye"></i>
-                            <span class="view-count" data-article-id="${article.acId}">${this.formatViewCount(article.acId)}</span>
+                            <span class="view-count" data-article-id="${article.acId}">${article.viewCount || 0}</span>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-thumbs-up" style="color:#dc3545;"></i>
+                            <span class="like-count" data-article-id="${article.acId}">${article.likeCount || 0}</span>
                         </div>
                     </div>
                     <div class="article-content-mobile">
@@ -626,7 +637,7 @@ class ArticleManager {
                         <div class="article-meta-mobile">
                             <span>作者：${authorName}</span>
                             <span>${this.formatDateShort(article.acTime)}</span>
-                            <span><i class="fas fa-eye"></i> <span class="view-count" data-article-id="${article.acId}">${this.formatViewCount(article.acId)}</span></span>
+                            <span><i class="fas fa-eye"></i> <span class="view-count" data-article-id="${article.acId}">${article.viewCount || 0}</span></span>
                         </div>
                     </div>
                 </div>
@@ -634,8 +645,6 @@ class ArticleManager {
         }).join('');
 
         container.innerHTML = htmlContent;
-
-        // 渲染分頁控制
         this.renderPagination(paginatedData.totalPages, page, typeId);
     }
 
@@ -892,7 +901,7 @@ class ArticleManager {
         }
     }
 
-    // --- 新增：留言分頁渲染 ---
+    // --- 修改：留言分頁渲染 ---
     renderReplyPagination(replies, currentPage = 1, repliesPerPage = 10) {
         const paginationContainer = document.querySelector('.pagination');
         if (!paginationContainer) return;
@@ -902,6 +911,7 @@ class ArticleManager {
         let paginationHTML = '';
 
         if (totalPages <= 1) {
+            // 只顯示「1」
             paginationHTML = '<a href="#" class="page-btn active">1</a>';
         } else {
             // 上一頁
@@ -945,36 +955,71 @@ class ArticleManager {
             if (paginationContainer) paginationContainer.innerHTML = '';
             return;
         }
-        // 分頁 slice
+        // 取得當前登入會員ID
+        let currentMemId = null;
+        try {
+            const memberData = localStorage.getItem('currentMember') || sessionStorage.getItem('currentMember');
+            if (memberData) {
+                const member = JSON.parse(memberData);
+                currentMemId = member.mem_id || member.memId;
+            }
+        } catch (e) { currentMemId = null; }
+        // 先 reverse，讓最新留言在最上面（#1為最新，最舊在最下）
+        const reversedReplies = replies.slice().reverse();
         const start = (page - 1) * repliesPerPage;
         const end = start + repliesPerPage;
-        const pageReplies = replies.slice(start, end);
+        const pageReplies = reversedReplies.slice(start, end);
+        // 計算正確的樓層號碼（根據原始replies順序）
+        const totalReplies = replies.length;
+        const floorMap = new Map();
+        replies.forEach((reply, idx) => {
+            floorMap.set(reply.replyId || reply.id || idx, idx + 1); // replyId優先，否則用index
+        });
+        // 建立樓層對應內容的Map
+        const replyContentMap = new Map();
+        replies.forEach((reply, idx) => {
+            replyContentMap.set(reply.replyId || reply.id || idx, reply.replyContext);
+        });
         const htmlContent = pageReplies.map((reply, index) => {
-            // 直接使用會員的 mem_name 顯示留言者名稱
             const authorName = reply.memName || reply.mem_name || '露營愛好者';
             const replyDate = this.formatDate(reply.replyTime);
+            let floorNum = null;
+            if (reply.replyId && floorMap.has(reply.replyId)) {
+                floorNum = floorMap.get(reply.replyId);
+            } else if (reply.id && floorMap.has(reply.id)) {
+                floorNum = floorMap.get(reply.id);
+            } else {
+                floorNum = replies.findIndex(r => r === reply) + 1;
+            }
+            let replyQuoteHtml = '';
+            if (reply.replyToFloor && reply.replyToContent) {
+                replyQuoteHtml = `<div class=\"reply-quote\" style=\"color:#555;background:#f2f2f2;padding:8px 12px;margin-bottom:8px;border-left:4px solid #bbb;font-size:0.97em;\">回覆 #${reply.replyToFloor}: ${reply.replyToContent}</div>`;
+            }
+            // 刪除按鈕（僅本人可見）
+            let deleteBtnHtml = '';
+            if (currentMemId && (reply.memId == currentMemId || reply.mem_id == currentMemId)) {
+                deleteBtnHtml = `<button class=\"delete-reply-btn\" data-replyid=\"${reply.replyId || reply.id}\" style=\"position:absolute;top:8px;right:12px;background:#dc3545;color:#fff;border:none;border-radius:3px;padding:2px 10px;cursor:pointer;font-size:0.95em;z-index:2;\">刪除</button>`;
+            }
             return `
-                <div class="comment-item">
-                    <div class="comment-header">
-                        <div class="comment-avatar">
-                            <img src="images/user-${((start + index) % 4) + 1}.jpg" alt="留言者頭像" />
+                <div class=\"comment-item\" style=\"position:relative;\">
+                    ${deleteBtnHtml}
+                    <div class=\"comment-header\">
+                        <div class=\"comment-avatar\">
+                            <img src=\"images/user-${((start + index) % 4) + 1}.jpg\" alt=\"留言者頭像\" />
                         </div>
-                        <div class="comment-author">
-                            <div class="comment-author-name">${authorName}</div>
-                            <div class="comment-date">${replyDate}</div>
+                        <div class=\"comment-author\">
+                            <div class=\"comment-author-name\">${authorName}</div>
+                            <div class=\"comment-date\">${replyDate}</div>
                         </div>
-                        <div class="comment-floor">#${start + index + 1}</div>
+                        <div class=\"comment-floor\">#${floorNum}</div>
                     </div>
-                    <div class="comment-content">
+                    <div class=\"comment-content\">
+                        ${replyQuoteHtml}
                         ${reply.replyContext ? reply.replyContext.replace(/\n/g, '<br>') : '無內容'}
                     </div>
-                    <div class="comment-actions">
-                        <a href="#" class="comment-action">
-                            <i class="fas fa-heart"></i>
-                            <span>0</span>
-                        </a>
-                        <a href="#" class="comment-action">
-                            <i class="fas fa-reply"></i>
+                    <div class=\"comment-actions\">
+                        <a href=\"#\" class=\"comment-action reply-btn\" data-floor=\"${floorNum}\" data-content=\"${(reply.replyContext || '').replace(/\"/g, '&quot;')}\">
+                            <i class=\"fas fa-reply\"></i>
                             <span>回覆</span>
                         </a>
                     </div>
@@ -982,8 +1027,42 @@ class ArticleManager {
             `;
         }).join('');
         commentsList.innerHTML = htmlContent;
-        // 分頁渲染
         this.renderReplyPagination(replies, page, repliesPerPage);
+
+        // 綁定回覆按鈕事件
+        setTimeout(() => {
+            const replyBtns = document.querySelectorAll('.reply-btn');
+            replyBtns.forEach(btn => {
+                btn.onclick = function (e) {
+                    e.preventDefault();
+                    const floor = this.getAttribute('data-floor');
+                    const content = this.getAttribute('data-content');
+                    if (window.setReplyTo) window.setReplyTo(floor, content);
+                };
+            });
+            // 刪除留言按鈕事件
+            const delBtns = document.querySelectorAll('.delete-reply-btn');
+            delBtns.forEach(btn => {
+                btn.onclick = async function (e) {
+                    e.preventDefault();
+                    if (!confirm('確定要刪除此留言嗎？')) return;
+                    const replyId = this.getAttribute('data-replyid');
+                    try {
+                        const response = await fetch(`${window.api_prefix}/api/replies/${replyId}`, {
+                            method: 'DELETE'
+                        });
+                        if (response.ok) {
+                            alert('留言已刪除');
+                            location.reload();
+                        } else {
+                            alert('刪除失敗');
+                        }
+                    } catch (err) {
+                        alert('刪除失敗，請稍後再試');
+                    }
+                };
+            });
+        }, 0);
     }
 
     // 更新留言數量
@@ -1014,11 +1093,11 @@ class ArticleManager {
             const member = JSON.parse(memberData);
 
             // 檢查會員ID是否匹配 - 處理多種可能的屬性名稱
-            const memberId = member.mem_id || member.memId;
+            const memId = member.mem_id || member.memId;
             const articleMemberId = article.mem_id || article.memId || article.memberId;
 
-            if (memberId && articleMemberId) {
-                return memberId === articleMemberId;
+            if (memId && articleMemberId) {
+                return memId === articleMemberId;
             }
 
             return false;
@@ -1077,6 +1156,122 @@ class ArticleManager {
         if (confirmed) {
             this.deleteArticle(articleId);
         }
+    }
+
+    // --- 文章詳情 Like 功能 ---
+    async setupLikeFeature(article) {
+        const likeBtn = document.querySelector('.like-article-btn');
+        const likeCountSpan = document.querySelector('.like-count');
+        if (!likeBtn || !likeCountSpan || !article || !article.acId) return;
+
+        // 取得會員ID
+        let memId = null;
+        try {
+            const memberData = localStorage.getItem('currentMember') || sessionStorage.getItem('currentMember');
+            if (memberData) {
+                const member = JSON.parse(memberData);
+                memId = member.mem_id || member.memId;
+            }
+        } catch (e) { memId = null; }
+
+        // 查詢是否已按讚
+        async function fetchLikeStatus() {
+            if (!memId) return false;
+            try {
+                const res = await fetch(`${window.api_prefix}/api/nice-articles/check?acId=${article.acId}&memId=${memId}`);
+                const result = await res.json();
+                return result.status === 'success' && result.data === true;
+            } catch { return false; }
+        }
+
+        // 查詢按讚數
+        async function fetchLikeCount() {
+            try {
+                const res = await fetch(`${window.api_prefix}/api/nice-articles/article/${article.acId}/count`);
+                const result = await res.json();
+                return result.status === 'success' ? result.data : 0;
+            } catch { return 0; }
+        }
+
+        // 刷新UI
+        async function refreshLikeUI() {
+            const liked = await fetchLikeStatus();
+            const likeCount = await fetchLikeCount();
+            likeBtn.classList.toggle('liked', liked);
+            likeBtn.querySelector('span').textContent = liked ? '已按讚' : '按讚';
+            likeCountSpan.textContent = likeCount;
+        }
+
+        await refreshLikeUI();
+
+        // 綁定點擊事件
+        likeBtn.onclick = async function () {
+            if (!memId) {
+                alert('請先登入才能按讚');
+                setTimeout(() => { window.location.href = 'login.html'; }, 1200);
+                return;
+            }
+            const liked = await fetchLikeStatus();
+            if (liked) {
+                // 取消按讚
+                try {
+                    const res = await fetch(`${window.api_prefix}/api/nice-articles?acId=${article.acId}&memId=${memId}`, { method: 'DELETE' });
+                    const result = await res.json();
+                    if (result.status === 'success') {
+                        await refreshLikeUI();
+                    } else {
+                        alert(result.message || '取消按讚失敗');
+                    }
+                } catch {
+                    alert('取消按讚失敗');
+                }
+            } else {
+                // 新增按讚
+                try {
+                    const now = new Date();
+                    const likeTime = now.toISOString().split('.')[0]; // 產生 2025-07-02T19:26:15
+                    const res = await fetch(`${window.api_prefix}/api/nice-articles`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ acId: article.acId, memId: memId, likeTime })
+                    });
+                    const result = await res.json();
+                    if (result.status === 'success') {
+                        await refreshLikeUI();
+                    } else {
+                        alert(result.message || '按讚失敗');
+                    }
+                } catch {
+                    alert('按讚失敗');
+                }
+            }
+        };
+    }
+
+    // 新增：載入所有文章並查詢每篇的 likeCount、replyCount、viewCount
+    async loadArticlesWithStats(acTypeId = null) {
+        // 1. 取得所有文章
+        let articles = await this.loadArticles(acTypeId);
+        // 2. 依序查詢每篇的 likeCount、replyCount、viewCount
+        await Promise.all(articles.map(async (article) => {
+            // 按讚數
+            try {
+                const res = await fetch(`${window.api_prefix}/api/nice-articles/article/${article.acId}/count`);
+                const result = await res.json();
+                article.likeCount = (result.status === 'success') ? result.data : 0;
+            } catch { article.likeCount = 0; }
+            // 留言數
+            try {
+                const res = await fetch(`${window.api_prefix}/api/replies/article/${article.acId}/count`);
+                const result = await res.json();
+                article.replyCount = (result.status === 'success') ? result.data : 0;
+            } catch { article.replyCount = 0; }
+            // 瀏覽數
+            try {
+                article.viewCount = this.getViewCount(article.acId);
+            } catch { article.viewCount = 0; }
+        }));
+        return articles;
     }
 }
 
@@ -1171,5 +1366,22 @@ function testGetAuthorName() {
     testCases.forEach((testCase, index) => {
         const result = articleManager.getAuthorName(testCase.memberVO);
         console.log(`測試 ${index + 1}: 期望 "${testCase.expected}", 實際 "${result}"`);
+    });
+}
+
+// 初始化三個列表頁時掛上排序選單事件
+function setupArticleListSort(typeId) {
+    document.addEventListener('DOMContentLoaded', async function () {
+        const sortSelect = document.getElementById('sort-guides');
+        let articles = await articleManager.loadArticlesWithStats(typeId);
+        let currentSort = sortSelect ? sortSelect.value : 'latest';
+        articleManager.articles = articles;
+        articleManager.renderArticleList('articles-container', typeId, 1, currentSort);
+        if (sortSelect) {
+            sortSelect.addEventListener('change', function () {
+                currentSort = this.value;
+                articleManager.renderArticleList('articles-container', typeId, 1, currentSort);
+            });
+        }
     });
 }

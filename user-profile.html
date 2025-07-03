@@ -70,6 +70,9 @@
             <a href="#payment" class="profile-menu-item" data-tab="payment">
               <i class="fas fa-credit-card"></i> 付款方式
             </a>
+            <a href="#article-favorites" class="profile-menu-item" data-tab="article-favorites">
+              <i class="fas fa-bookmark"></i> 文章收藏
+            </a>
             <a href="#chat-management" class="profile-menu-item" data-tab="chat-management">
               <i class="fas fa-comments"></i> 聊天管理
             </a>
@@ -401,6 +404,114 @@
             </div>
           </div>
 
+          <!-- 文章收藏 -->
+          <div class="profile-section" id="article-favorites">
+            <div class="favorites-search-box" style="margin-bottom: 24px; margin-top: 0;">
+              <form id="search-form" onsubmit="handleSearch(event)">
+                <input type="text" placeholder="搜尋收藏的文章..." name="search" id="search-input" autocomplete="off">
+                <button type="submit" class="btn-search-submit" title="搜尋">
+                  <i class="fas fa-search"></i>
+                </button>
+              </form>
+            </div>
+            <div class="favorites-filter">
+              <div class="filter-options" style="display: flex; gap: 12px; align-items: center;">
+                <select name="sort" id="sort-favorites">
+                  <option value="latest">最新收藏</option>
+                  <option value="oldest">最早收藏</option>
+                  <option value="title">標題排序</option>
+                  <option value="author">作者排序</option>
+                </select>
+                <select id="category-filter" style="min-width: 180px;"></select>
+              </div>
+              <div class="favorites-count">共 <span id="favorites-count">4</span> 篇收藏</div>
+            </div>
+            <div class="article-table-container">
+              <div class="article-table-header">
+                <div class="header-item">圖片</div>
+                <div class="header-item article-title-header">標題</div>
+                <div class="header-item article-author-header">作者</div>
+                <div class="header-item article-date-header">收藏時間</div>
+                <div class="header-item article-stats-header">操作</div>
+              </div>
+              <div class="article-list" id="favorites-container">
+                <div class="article-item" data-article-id="30000023">
+                  <div class="article-image-cell">
+                    <img src="images/camp-1.jpg" alt="文章圖片" class="article-image">
+                  </div>
+                  <div class="article-title-cell">
+                    <a href="articles.html?id=30000023" class="article-title-link">露營急救知識必學</a>
+                    <div class="article-preview">
+                      戶外活動急救知識很重要！學會處理常見傷口：擦傷、割傷、燙傷。認識高山症症狀，知道如何應對。準備基本急救包，包含常用藥物和工具。參加急救課程，提升應急處理能力。安全第一，預防勝於治療。...
+                    </div>
+                    <span class="article-tag">新手指南</span>
+                  </div>
+                  <div class="article-author-cell">陳柏瑋</div>
+                  <div class="article-date-cell">2025/7/1</div>
+                  <div class="article-stats-cell">
+                    <button class="remove-favorite-btn" onclick="alert('移除收藏功能測試')">
+                      <i class="fas fa-trash"></i> 移除收藏
+                    </button>
+                  </div>
+                </div>
+                <div class="article-item" data-article-id="30000068">
+                  <div class="article-image-cell">
+                    <img src="images/camp-2.jpg" alt="文章圖片" class="article-image">
+                  </div>
+                  <div class="article-title-cell">
+                    <a href="articles.html?id=30000068" class="article-title-link">測試收藏用文章</a>
+                    <div class="article-preview">測試收藏用文章...</div>
+                    <span class="article-tag">新手指南</span>
+                  </div>
+                  <div class="article-author-cell">陳柏瑋</div>
+                  <div class="article-date-cell">2025/7/1</div>
+                  <div class="article-stats-cell">
+                    <button class="remove-favorite-btn" onclick="alert('移除收藏功能測試')">
+                      <i class="fas fa-trash"></i> 移除收藏
+                    </button>
+                  </div>
+                </div>
+                <div class="article-item" data-article-id="30000066">
+                  <div class="article-image-cell">
+                    <img src="images/camp-3.jpg" alt="文章圖片" class="article-image">
+                  </div>
+                  <div class="article-title-cell">
+                    <a href="articles.html?id=30000066" class="article-title-link">圖片測試</a>
+                    <div class="article-preview">圖片測試...</div>
+                    <span class="article-tag">新手指南</span>
+                  </div>
+                  <div class="article-author-cell">施欣妤</div>
+                  <div class="article-date-cell">2025/7/1</div>
+                  <div class="article-stats-cell">
+                    <button class="remove-favorite-btn" onclick="alert('移除收藏功能測試')">
+                      <i class="fas fa-trash"></i> 移除收藏
+                    </button>
+                  </div>
+                </div>
+                <div class="article-item" data-article-id="30000001">
+                  <div class="article-image-cell">
+                    <img src="images/camp-4.jpg" alt="文章圖片" class="article-image">
+                  </div>
+                  <div class="article-title-cell">
+                    <a href="articles.html?id=30000001" class="article-title-link">夏天了好熱</a>
+                    <div class="article-preview">如標題，真的好熱喔...</div>
+                    <span class="article-tag">新手指南</span>
+                  </div>
+                  <div class="article-author-cell">張小美</div>
+                  <div class="article-date-cell">2024/2/20</div>
+                  <div class="article-stats-cell">
+                    <button class="remove-favorite-btn" onclick="alert('移除收藏功能測試')">
+                      <i class="fas fa-trash"></i> 移除收藏
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="pagination">
+              <!-- 分頁將由 JavaScript 動態生成 -->
+            </div>
+          </div>
+
           <!-- 聊天管理 -->
           <div class="profile-section" id="chat-management">
             <h2>聊天管理</h2>
@@ -455,7 +566,571 @@
   <script src="js/camp-data.js"></script>
   <script src="js/user-profile.js"></script>
   <script src="js/chat-management.js"></script>
+  <script>
+    // --- 收藏文章管理器（完整功能，取自 articles-favorites.html）---
+    class FavoritesManager {
+      constructor() {
+        this.currentMember = null;
+        this.favorites = [];
+        this.filteredFavorites = [];
+        this.membersData = null; // 會員資料
+        this.init();
+      }
+      init() {
+        this.checkLoginStatus();
+        this.loadMembersData();
+        this.loadFavorites();
+        this.setupEventListeners();
+      }
+      checkLoginStatus() {
+        const memberData = localStorage.getItem("currentMember") || sessionStorage.getItem("currentMember");
+        if (memberData) {
+          this.currentMember = JSON.parse(memberData);
+          this.currentMember.memId = this.currentMember.mem_id || this.currentMember.memId;
+        } else {
+          this.showEmptyState('請先登入才能查看收藏');
+        }
+      }
+      async loadMembersData() {
+        try {
+          const response = await fetch('data/mem.json');
+          this.membersData = await response.json();
+        } catch (error) {
+          this.membersData = [];
+        }
+      }
+      async loadFavorites() {
+        if (!this.currentMember) {
+          this.showEmptyState('請先登入');
+          return;
+        }
+        try {
+          const response = await fetch(`${window.api_prefix}/api/favorites`);
+          const result = await response.json();
+          if (response.ok && result.status === 'success' && result.data) {
+            this.favorites = result.data.filter(fav => fav.memId === (this.currentMember.mem_id || this.currentMember.memId));
+            await this.loadFavoriteArticles();
+          } else {
+            this.loadLocalFavorites();
+          }
+        } catch (error) {
+          this.loadLocalFavorites();
+        }
+      }
+      loadLocalFavorites() {
+        const localFavorites = JSON.parse(localStorage.getItem('articleFavorites') || '[]');
+        this.favorites = localFavorites.filter(fav => fav.memId === (this.currentMember.mem_id || this.currentMember.memId));
+        if (this.favorites.length > 0) {
+          this.loadFavoriteArticles();
+        } else {
+          this.showEmptyState();
+        }
+      }
+      async loadFavoriteArticles() {
+        try {
+          const response = await fetch(`${window.api_prefix}/api/articles`);
+          const result = await response.json();
+          if (response.ok && result.status === 'success' && result.data) {
+            const favoriteArticles = this.favorites.map(fav => {
+              const article = result.data.find(art => art.acId === fav.acId);
+              return { ...article, favoriteTime: fav.acFavTime };
+            }).filter(article => article.acId);
+            this.favorites = favoriteArticles;
+            this.filteredFavorites = [...favoriteArticles];
+            this.sortFavorites('latest');
+            this.displayFavorites();
+            this.updateCategories();
+          } else {
+            this.showEmptyState('無法載入文章資訊');
+          }
+        } catch (error) {
+          this.showEmptyState('載入失敗');
+        }
+      }
+      displayFavorites() {
+        const container = document.getElementById('favorites-container');
+        const countElement = document.getElementById('favorites-count');
+        if (!container) return;
+        if (this.filteredFavorites.length === 0) {
+          this.showEmptyState();
+          return;
+        }
+        if (countElement) {
+          countElement.textContent = this.filteredFavorites.length;
+        }
+        let html = '';
+        this.filteredFavorites.forEach((article, index) => {
+          const favoriteDate = article.favoriteTime ? new Date(article.favoriteTime).toLocaleDateString('zh-TW') : '未知時間';
+          const authorName = this.getAuthorName(article);
+          const articleType = this.getArticleType(article.acTypeId);
+          html += `
+            <div class="article-item" data-article-id="${article.acId}">
+              <div class="article-image-cell">
+                <img src="images/camp-${(index % 5) + 1}.jpg" alt="文章圖片" class="article-image" />
+              </div>
+              <div class="article-title-cell">
+                <a href="articles.html?id=${article.acId}" class="article-title-link">${article.acTitle}</a>
+                <div class="article-preview">${article.acContext ? article.acContext.substring(0, 100) + '...' : '無內容預覽'}</div>
+                <span class="article-tag">${articleType}</span>
+              </div>
+              <div class="article-author-cell">${authorName}</div>
+              <div class="article-date-cell">${favoriteDate}</div>
+              <div class="article-stats-cell">
+                <button class="remove-favorite-btn" onclick="favoritesManager.removeFavorite(${article.acId})">
+                  <i class="fas fa-trash"></i> 移除收藏
+                </button>
+              </div>
+            </div>
+          `;
+        });
+        container.innerHTML = html;
+      }
+      showEmptyState(message = '') {
+        const container = document.getElementById('favorites-container');
+        const countElement = document.getElementById('favorites-count');
+        if (countElement) {
+          countElement.textContent = '0';
+        }
+        if (container) {
+          container.innerHTML = `<div class="empty-favorites"><i class="fas fa-bookmark"></i><h3>還沒有收藏任何文章</h3><p>${message || '開始瀏覽論壇，收藏您喜歡的文章吧！'}</p><a href="article-type.html" class="btn-explore">瀏覽論壇</a></div>`;
+        }
+      }
+      async removeFavorite(articleId) {
+        if (!confirm('確定要移除這篇收藏嗎？')) return;
+        try {
+          const response = await fetch(`${window.api_prefix}/api/favorites/${this.currentMember.mem_id}/${articleId}`, { method: 'DELETE' });
+        } catch (error) { }
+        this.favorites = this.favorites.filter(fav => fav.acId !== articleId);
+        this.filteredFavorites = this.filteredFavorites.filter(fav => fav.acId !== articleId);
+        const localFavorites = JSON.parse(localStorage.getItem('articleFavorites') || '[]');
+        const updatedFavorites = localFavorites.filter(fav => !(fav.memId === (this.currentMember.mem_id || this.currentMember.memId) && fav.acId === articleId));
+        localStorage.setItem('articleFavorites', JSON.stringify(updatedFavorites));
+        const sortSelect = document.getElementById('sort-favorites');
+        if (sortSelect) {
+          this.sortFavorites(sortSelect.value);
+        } else {
+          this.sortFavorites('latest');
+        }
+        this.updateCategories();
+      }
+      getAuthorName(article) {
+        if (!article) return '未知作者';
+        const memberId = article.memId || article.mem_id;
+        if (!memberId) return '未知作者';
+        if (this.membersData) {
+          const member = this.membersData.find(m => m.mem_id === memberId);
+          return member ? member.mem_name : `用戶${memberId}`;
+        }
+        return `用戶${memberId}`;
+      }
+      getArticleType(acTypeId) {
+        const typeMap = { 30001: '新手指南', 30002: '裝備評測', 30003: '營地攻略', 30004: '露營食譜', 30005: '戶外技巧' };
+        return typeMap[acTypeId] || '其他';
+      }
+      searchFavorites(keyword) {
+        if (!keyword.trim()) {
+          this.filteredFavorites = [...this.favorites];
+        } else {
+          this.filteredFavorites = this.favorites.filter(article => article.acTitle.toLowerCase().includes(keyword.toLowerCase()) || (article.acContext && article.acContext.toLowerCase().includes(keyword.toLowerCase())));
+        }
+        const sortSelect = document.getElementById('sort-favorites');
+        if (sortSelect) {
+          this.sortFavorites(sortSelect.value);
+        } else {
+          this.sortFavorites('latest');
+        }
+      }
+      sortFavorites(sortType) {
+        switch (sortType) {
+          case 'latest':
+            this.filteredFavorites.sort((a, b) => new Date(b.favoriteTime) - new Date(a.favoriteTime));
+            break;
+          case 'oldest':
+            this.filteredFavorites.sort((a, b) => new Date(a.favoriteTime) - new Date(b.favoriteTime));
+            break;
+          case 'title':
+            this.filteredFavorites.sort((a, b) => a.acTitle.localeCompare(b.acTitle));
+            break;
+          case 'author':
+            this.filteredFavorites.sort((a, b) => this.getAuthorName(a).localeCompare(this.getAuthorName(b)));
+            break;
+        }
+        this.displayFavorites();
+      }
+      setupEventListeners() {
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) {
+          searchInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+              event.preventDefault();
+              this.searchFavorites(searchInput.value.trim());
+            }
+          });
+        }
+        const sortSelect = document.getElementById('sort-favorites');
+        if (sortSelect) {
+          sortSelect.value = 'latest';
+          sortSelect.addEventListener('change', (event) => {
+            this.sortFavorites(event.target.value);
+          });
+        }
+      }
+      // 更新分類統計
+      updateCategories() {
+        const categorySelect = document.getElementById('category-filter');
+        if (!categorySelect) return;
+
+        const categories = {};
+        this.favorites.forEach(article => {
+          const type = this.getArticleType(article.acTypeId);
+          categories[type] = (categories[type] || 0) + 1;
+        });
+
+        if (Object.keys(categories).length === 0) {
+          categorySelect.innerHTML = '<option value="all">全部 (0)</option>';
+          return;
+        }
+
+        let html = '';
+        // 添加「全部」選項
+        const totalCount = this.favorites.length;
+        html += `<option value="all">全部 (${totalCount})</option>`;
+
+        Object.entries(categories).forEach(([type, count]) => {
+          html += `<option value="${type}">${type} (${count})</option>`;
+        });
+
+        categorySelect.innerHTML = html;
+
+        // 監聽分類變更
+        categorySelect.onchange = (e) => {
+          this.filterByCategory(e.target.value);
+        };
+      }
+
+      // 按分類篩選
+      filterByCategory(category) {
+        if (category === 'all') {
+          // 顯示所有收藏
+          this.filteredFavorites = [...this.favorites];
+        } else {
+          // 篩選指定分類
+          this.filteredFavorites = this.favorites.filter(article =>
+            this.getArticleType(article.acTypeId) === category
+          );
+        }
+
+        // 應用當前排序
+        const sortSelect = document.getElementById('sort-favorites');
+        if (sortSelect) {
+          this.sortFavorites(sortSelect.value);
+        } else {
+          this.sortFavorites('latest');
+        }
+
+        // 更新數量顯示
+        const countElement = document.getElementById('favorites-count');
+        if (countElement) {
+          countElement.textContent = this.filteredFavorites.length;
+        }
+
+        // 顯示篩選結果
+        this.displayFavorites();
+      }
+    }
+    // 分頁切換時才初始化收藏管理器
+    let favoritesManager = null;
+    function showProfileSection(tabId) {
+      document.querySelectorAll('.profile-section').forEach(section => {
+        section.style.display = 'none';
+      });
+      const section = document.getElementById(tabId);
+      if (section) section.style.display = '';
+      if (tabId === 'article-favorites') {
+        if (!favoritesManager) favoritesManager = new FavoritesManager();
+      }
+    }
+    document.querySelectorAll('.profile-menu-item').forEach(item => {
+      item.addEventListener('click', function (e) {
+        e.preventDefault();
+        document.querySelectorAll('.profile-menu-item').forEach(i => i.classList.remove('active'));
+        this.classList.add('active');
+        const tab = this.getAttribute('data-tab');
+        showProfileSection(tab);
+      });
+    });
+    showProfileSection('profile-basic');
+    function handleSearch(event) {
+      event.preventDefault();
+      const searchInput = document.getElementById('search-input');
+      const searchTerm = searchInput.value.trim();
+      if (favoritesManager) {
+        if (!searchTerm) {
+          favoritesManager.searchFavorites(''); // 顯示全部
+        } else {
+          favoritesManager.searchFavorites(searchTerm);
+        }
+      }
+    }
+  </script>
   <link rel="stylesheet" href="css/chat.css" />
+  <style>
+    .profile-section#article-favorites {
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+      padding: 32px 24px;
+      box-sizing: border-box;
+    }
+
+    .favorites-filter {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .favorites-filter select {
+      padding: 10px 15px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 1rem;
+      min-width: 150px;
+      width: auto;
+    }
+
+    .favorites-count {
+      color: #666;
+      font-weight: 500;
+    }
+
+    .article-table-container {
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .article-table-header {
+      display: grid;
+      grid-template-columns: 120px 4fr 1fr 1fr 1fr;
+      gap: 12px;
+      padding: 16px 12px;
+      background: #f8f9fa;
+      border-bottom: 2px solid #e9ecef;
+      font-weight: 600;
+      color: #495057;
+      align-items: center;
+    }
+
+    .header-item {
+      font-size: 0.9rem;
+      text-align: center;
+    }
+
+    .article-title-header {
+      text-align: left;
+    }
+
+    .article-list {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .article-item {
+      display: grid;
+      grid-template-columns: 120px 4fr 1fr 1fr 1fr;
+      gap: 12px;
+      padding: 16px 12px;
+      border-bottom: 1px solid #e9ecef;
+      align-items: center;
+      transition: background 0.2s ease;
+      min-height: 100px;
+    }
+
+    .article-item:hover {
+      background: #f8f9fa;
+    }
+
+    .article-item:last-child {
+      border-bottom: none;
+    }
+
+    .article-image-cell {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .article-image {
+      width: 100px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 10px;
+      box-shadow: 0 3px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .article-title-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      text-align: left;
+      padding: 5px 0;
+    }
+
+    .article-title-link {
+      color: #333;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.05rem;
+      line-height: 1.4;
+      transition: color 0.2s ease;
+      margin-bottom: 4px;
+    }
+
+    .article-title-link:hover {
+      color: #3A5A40;
+    }
+
+    .article-preview {
+      color: #666;
+      font-size: 0.92rem;
+      line-height: 1.5;
+      max-height: 3.6em;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+
+    .article-tag {
+      display: inline-block;
+      background: #3A5A40;
+      color: white;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.7rem;
+      margin-bottom: 3px;
+    }
+
+    .article-author-cell,
+    .article-date-cell,
+    .article-stats-cell {
+      text-align: center;
+      color: #666;
+      font-size: 0.98rem;
+      font-weight: 500;
+    }
+
+    .remove-favorite-btn {
+      background: #dc3545;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 5px;
+    }
+
+    .remove-favorite-btn:hover {
+      background: #c82333;
+      transform: translateY(-1px);
+    }
+
+    .loading-message {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+      font-size: 1.1rem;
+    }
+
+    .pagination {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 40px;
+    }
+
+    .pagination a {
+      padding: 10px 15px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      color: #666;
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+
+    .pagination a:hover,
+    .pagination a.active {
+      background: #3A5A40;
+      color: white;
+      border-color: #3A5A40;
+    }
+
+    .favorites-search-box {
+      max-width: 500px;
+      margin: 0 auto 0 auto;
+    }
+
+    .favorites-search-box form {
+      display: flex;
+      background: white;
+      border-radius: 25px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+    }
+
+    .favorites-search-box input {
+      flex: 1;
+      padding: 12px 16px;
+      border: none;
+      font-size: 1rem;
+      outline: none;
+      background: transparent;
+      color: #333;
+      font-family: 'Noto Sans TC', sans-serif;
+    }
+
+    .favorites-search-box input::placeholder {
+      color: #999;
+      font-style: italic;
+    }
+
+    .btn-search-submit {
+      background: #3A5A40;
+      color: white;
+      border: none;
+      padding: 12px 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 1rem;
+      min-width: 60px;
+      width: 60px;
+      flex-shrink: 0;
+      margin-left: -10px;
+      border-radius: 0 25px 25px 0;
+    }
+
+    .btn-search-submit:hover {
+      background: #2d4731;
+      transform: scale(1.05);
+    }
+
+    .btn-search-submit:active {
+      transform: scale(0.95);
+    }
+  </style>
 </body>
 
 </html>

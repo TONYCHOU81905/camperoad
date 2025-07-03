@@ -217,27 +217,6 @@
             margin-right: 5px;
         }
 
-        .post-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 15px;
-        }
-
-        .post-tag {
-            display: inline-block;
-            padding: 4px 10px;
-            background-color: rgba(166, 138, 100, 0.1);
-            color: #a68a64;
-            border-radius: 4px;
-            font-size: 0.85rem;
-            transition: all 0.3s ease;
-        }
-
-        .post-tag:hover {
-            background-color: rgba(166, 138, 100, 0.2);
-        }
-
         .post-body {
             line-height: 1.6;
             margin-bottom: 20px;
@@ -661,6 +640,8 @@
                     <div class="post-content">
                         <div class="post-header">
                             <h1 class="post-title">載入中...</h1>
+                            <div class="article-id" style="color:#888;font-size:0.95em;margin-bottom:8px;">文章編號：<span
+                                    id="article-acid">載入中...</span></div>
                             <div class="post-meta">
                                 <div class="post-date">
                                     <i class="fas fa-calendar"></i>
@@ -671,9 +652,6 @@
                                             data-article-id="">載入中...</span> 次瀏覽</span>
                                 </div>
                             </div>
-                            <div class="post-tags">
-                                <!-- 標籤將由 JavaScript 動態載入 -->
-                            </div>
                         </div>
 
                         <div class="post-body">
@@ -683,10 +661,9 @@
 
                         <div class="post-actions">
                             <div class="post-reactions">
-                                <button class="reaction-btn">
-                                    <i class="fas fa-thumbs-up"></i>
-                                    <span>89</span>
-                                </button>
+                                <button class="reaction-btn like-article-btn"><i class="fas fa-thumbs-up"></i>
+                                    <span>按讚</span><span class="like-count"
+                                        style="margin-left:8px;color:#dc3545;font-weight:500;">0</span></button>
                                 <button class="reaction-btn" id="favorite-btn" data-article-id="">
                                     <i class="fas fa-bookmark"></i>
                                     <span>收藏</span>
@@ -703,6 +680,7 @@
                                     <i class="fas fa-link"></i>
                                 </a>
                             </div>
+                            <a href="#" id="btn-add-same-type" class="btn-cta" style="margin-left:20px;">投稿同分類文章</a>
                         </div>
                     </div>
                 </div>
@@ -714,11 +692,11 @@
                     <select class="sort-comments">
                         <option value="newest">最新回覆</option>
                         <option value="oldest">最早回覆</option>
-                        <option value="most-liked">最多讚</option>
                     </select>
                 </div>
 
                 <div class="comment-form">
+                    <div id="reply-info"></div>
                     <textarea placeholder="分享你的露營經驗或提出問題..."></textarea>
                     <div class="comment-form-actions">
                         <div class="comment-tools">
@@ -870,14 +848,32 @@
 
             // 新增收藏
             async addFavorite() {
-                // 由於後端SQL語句有問題，先使用模擬收藏功能
-                console.log('使用模擬收藏功能（後端SQL問題待修復）');
+                // 檢查會員資料完整性
+                if (!this.currentMember) {
+                    console.error('會員資料不存在');
+                    this.showMessage('請先登入', 'error');
+                    return;
+                }
+
+                // 檢查會員ID，支援多種可能的欄位名稱
+                const memId = this.currentMember.mem_id || this.currentMember.memId || this.currentMember.id;
+                if (!memId) {
+                    console.error('會員ID不存在，會員資料:', this.currentMember);
+                    this.showMessage('會員資料不完整，請重新登入', 'error');
+                    return;
+                }
+
+                console.log('準備發送收藏請求，會員資料:', {
+                    currentMember: this.currentMember,
+                    memId: memId,
+                    articleId: this.currentArticleId
+                });
 
                 try {
                     // 使用後端期望的數據格式 (camelCase)
                     const favoriteData = {
-                        acId: this.currentArticleId,
-                        memId: this.currentMember.mem_id,
+                        acId: parseInt(this.currentArticleId),
+                        memId: parseInt(memId),
                         acFavTime: new Date().toISOString().slice(0, 19) // 保持ISO格式，不替換T
                     };
 
@@ -909,8 +905,8 @@
                 } catch (error) {
                     console.error('收藏API調用失敗，使用模擬收藏:', error);
                     const favoriteData = {
-                        acId: this.currentArticleId,
-                        memId: this.currentMember.mem_id,
+                        acId: parseInt(this.currentArticleId),
+                        memId: parseInt(memId),
                         acFavTime: new Date().toISOString().slice(0, 19).replace('T', ' ')
                     };
                     this.simulateFavorite(favoriteData);
@@ -943,13 +939,27 @@
 
             // 取消收藏
             async removeFavorite() {
+                // 檢查會員資料完整性
+                if (!this.currentMember) {
+                    console.error('會員資料不存在');
+                    this.showMessage('請先登入', 'error');
+                    return;
+                }
+
+                // 檢查會員ID，支援多種可能的欄位名稱
+                const memId = this.currentMember.mem_id || this.currentMember.memId || this.currentMember.id;
+                if (!memId) {
+                    console.error('會員ID不存在，無法從localStorage移除收藏');
+                    return;
+                }
+
                 console.log('發送取消收藏請求:', {
-                    memId: this.currentMember.mem_id,
+                    memId: memId,
                     acId: this.currentArticleId
                 });
 
                 try {
-                    const response = await fetch(`${window.api_prefix}/api/favorites/${this.currentMember.mem_id}/${this.currentArticleId}`, {
+                    const response = await fetch(`${window.api_prefix}/api/favorites/${memId}/${this.currentArticleId}`, {
                         method: 'DELETE'
                     });
 
@@ -987,9 +997,16 @@
 
             // 從localStorage移除
             removeFromLocalStorage() {
+                // 檢查會員ID，支援多種可能的欄位名稱
+                const memId = this.currentMember.mem_id || this.currentMember.memId || this.currentMember.id;
+                if (!memId) {
+                    console.error('會員ID不存在，無法從localStorage移除收藏');
+                    return;
+                }
+
                 const favorites = JSON.parse(localStorage.getItem('articleFavorites') || '[]');
                 const filteredFavorites = favorites.filter(fav =>
-                    !(fav.memId === this.currentMember.mem_id && fav.acId === parseInt(this.currentArticleId))
+                    !(fav.memId === memId && fav.acId === parseInt(this.currentArticleId))
                 );
                 localStorage.setItem('articleFavorites', JSON.stringify(filteredFavorites));
                 console.log('收藏已從localStorage移除');
@@ -1002,15 +1019,22 @@
                     return;
                 }
 
+                // 檢查會員ID，支援多種可能的欄位名稱
+                const memId = this.currentMember.mem_id || this.currentMember.memId || this.currentMember.id;
+                if (!memId) {
+                    console.error('會員ID不存在，會員資料:', this.currentMember);
+                    return;
+                }
+
                 console.log('檢查收藏狀態:', {
-                    memId: this.currentMember.mem_id,
+                    memId: memId,
                     acId: this.currentArticleId
                 });
 
                 // 先檢查localStorage中的模擬收藏
                 const localFavorites = JSON.parse(localStorage.getItem('articleFavorites') || '[]');
                 const isLocalFavorited = localFavorites.some(fav =>
-                    fav.memId === this.currentMember.mem_id && fav.acId === parseInt(this.currentArticleId)
+                    fav.memId === memId && fav.acId === parseInt(this.currentArticleId)
                 );
 
                 if (isLocalFavorited) {
@@ -1034,7 +1058,7 @@
                         // 檢查當前文章是否在收藏列表中
                         // 後端返回的資料格式是 acId, memId
                         const isFavorited = result.data.some(favorite => {
-                            const memMatch = favorite.memId === this.currentMember.mem_id;
+                            const memMatch = favorite.memId === memId;
                             const acMatch = favorite.acId === parseInt(this.currentArticleId);
                             return memMatch && acMatch;
                         });
@@ -1187,10 +1211,156 @@
             if (articleId) {
                 favoriteManager.setCurrentArticleId(articleId);
             }
+
+            // 投稿同分類文章按鈕
+            const btnAddSameType = document.getElementById('btn-add-same-type');
+            if (btnAddSameType) {
+                // 取得當前文章 acTypeId
+                // 需等文章資料載入後才有 acTypeId
+                // 這裡假設 window.currentArticle 有 acTypeId
+                const checkAndSet = () => {
+                    if (window.currentArticle && window.currentArticle.acTypeId) {
+                        btnAddSameType.href = `articles-add.html?acTypeId=${window.currentArticle.acTypeId}`;
+                        btnAddSameType.style.display = '';
+                    } else {
+                        btnAddSameType.style.display = 'none';
+                        setTimeout(checkAndSet, 200); // 等待資料載入
+                    }
+                };
+                checkAndSet();
+            }
         });
     </script>
     <script>
-        // 留言送出功能
+        // 留言送出功能 + 回覆功能
+        let replyToFloor = null;
+        let replyToContent = null;
+        function setReplyTo(floor, content) {
+            replyToFloor = floor;
+            replyToContent = content;
+            // 顯示在表單上方
+            let replyInfo = document.getElementById('reply-info');
+            if (!replyInfo) {
+                replyInfo = document.createElement('div');
+                replyInfo.id = 'reply-info';
+                replyInfo.style = 'background:#f2f2f2;color:#555;padding:8px 12px;margin-bottom:8px;border-left:4px solid #bbb;font-size:0.97em;';
+                const form = document.querySelector('.comment-form');
+                form.insertBefore(replyInfo, form.firstChild);
+            }
+            replyInfo.innerHTML = `回覆 #${floor}: ${content}`;
+        }
+        function clearReplyTo() {
+            replyToFloor = null;
+            replyToContent = null;
+            const replyInfo = document.getElementById('reply-info');
+            if (replyInfo) replyInfo.remove();
+        }
+
+        // 新增：留言排序功能
+        let allReplies = [];
+        function renderRepliesSorted(sortType = 'newest') {
+            if (!allReplies || allReplies.length === 0) return;
+            // 先依時間遞增排序，取得正確樓層順序
+            const timeSorted = allReplies.slice().sort((a, b) => new Date(a.replyTime) - new Date(b.replyTime));
+            function getReplyKey(reply) {
+                return reply.replyId || reply.id || (reply.replyTime + '_' + (reply.memId || reply.mem_id || ''));
+            }
+            const floorMap = new Map();
+            timeSorted.forEach((reply, idx) => {
+                floorMap.set(getReplyKey(reply), idx + 1);
+            });
+            let sorted;
+            if (sortType === 'oldest') {
+                // 最早回覆：最早留言在最上方，最新留言在最下方
+                sorted = timeSorted;
+            } else {
+                // 最新回覆：最新留言在最上方，最早留言在最下方
+                sorted = timeSorted.slice().reverse();
+            }
+            const commentsList = document.querySelector('.comments-list');
+            if (!commentsList) return;
+            // 完整留言格式（含頭像、作者、時間、內容、刪除/回覆等）
+            commentsList.innerHTML = sorted.map((reply, idx) => {
+                const floorNum = floorMap.get(getReplyKey(reply)) || 1;
+                const authorName = reply.memName || reply.mem_name || '露營愛好者';
+                const replyDate = reply.replyTime ? new Date(reply.replyTime).toLocaleString() : '';
+                let replyQuoteHtml = '';
+                if (reply.replyToFloor && reply.replyToContent) {
+                    replyQuoteHtml = `<div class=\"reply-quote\" style=\"color:#555;background:#f2f2f2;padding:8px 12px;margin-bottom:8px;border-left:4px solid #bbb;font-size:0.97em;\">回覆 #${reply.replyToFloor}: ${reply.replyToContent}</div>`;
+                }
+                // 刪除按鈕（僅本人可見）
+                let deleteBtnHtml = '';
+                let currentMemId = null;
+                try {
+                    const memberData = localStorage.getItem('currentMember') || sessionStorage.getItem('currentMember');
+                    if (memberData) {
+                        const member = JSON.parse(memberData);
+                        currentMemId = member.mem_id || member.memId;
+                    }
+                } catch (e) { currentMemId = null; }
+                if (currentMemId && (reply.memId == currentMemId || reply.mem_id == currentMemId)) {
+                    deleteBtnHtml = `<button class=\"delete-reply-btn\" data-replyid=\"${reply.replyId || reply.id}\" style=\"position:absolute;top:8px;right:12px;background:#dc3545;color:#fff;border:none;border-radius:3px;padding:2px 10px;cursor:pointer;font-size:0.95em;z-index:2;\">刪除</button>`;
+                }
+                return `
+                    <div class=\"comment-item\" style=\"position:relative;\">
+                        ${deleteBtnHtml}
+                        <div class=\"comment-header\">
+                            <div class=\"comment-avatar\">
+                                <img src=\"images/user-${((idx % 4) + 1)}.jpg\" alt=\"留言者頭像\" />
+                            </div>
+                            <div class=\"comment-author\">
+                                <div class=\"comment-author-name\">${authorName}</div>
+                                <div class=\"comment-date\">${replyDate}</div>
+                            </div>
+                            <div class=\"comment-floor\">#${floorNum}</div>
+                        </div>
+                        <div class=\"comment-content\">
+                            ${replyQuoteHtml}
+                            ${reply.replyContext ? reply.replyContext.replace(/\n/g, '<br>') : '無內容'}
+                        </div>
+                        <div class=\"comment-actions\">
+                            <a href=\"#\" class=\"comment-action reply-btn\" data-floor=\"${floorNum}\" data-content=\"${(reply.replyContext || '').replace(/\"/g, '&quot;')}\">
+                                <i class=\"fas fa-reply\"></i>
+                                <span>回覆</span>
+                            </a>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            // 綁定回覆與刪除事件
+            setTimeout(() => {
+                const replyBtns = document.querySelectorAll('.reply-btn');
+                replyBtns.forEach(btn => {
+                    btn.onclick = function (e) {
+                        e.preventDefault();
+                        const floor = this.getAttribute('data-floor');
+                        const content = this.getAttribute('data-content');
+                        if (window.setReplyTo) window.setReplyTo(floor, content);
+                    };
+                });
+                const delBtns = document.querySelectorAll('.delete-reply-btn');
+                delBtns.forEach(btn => {
+                    btn.onclick = async function (e) {
+                        e.preventDefault();
+                        if (!confirm('確定要刪除此留言嗎？')) return;
+                        const replyId = this.getAttribute('data-replyid');
+                        try {
+                            const response = await fetch(`${window.api_prefix}/api/replies/${replyId}`, {
+                                method: 'DELETE'
+                            });
+                            if (response.ok) {
+                                alert('留言已刪除');
+                                location.reload();
+                            } else {
+                                alert('刪除失敗');
+                            }
+                        } catch (err) {
+                            alert('刪除失敗，請稍後再試');
+                        }
+                    };
+                });
+            }, 0);
+        }
         document.addEventListener('DOMContentLoaded', function () {
             const commentForm = document.querySelector('.comment-form');
             if (!commentForm) return;
@@ -1200,6 +1370,24 @@
             // 取得當前文章ID
             const urlParams = new URLSearchParams(window.location.search);
             const articleId = urlParams.get('id');
+
+            // 監聽排序選單
+            const sortSelect = document.querySelector('.sort-comments');
+            if (sortSelect) {
+                sortSelect.addEventListener('change', function () {
+                    renderRepliesSorted(this.value);
+                });
+            }
+
+            // 載入留言
+            fetch(`${window.api_prefix}/api/replies/article/${articleId}`)
+                .then(res => res.json())
+                .then(result => {
+                    if (result.status === 'success' && Array.isArray(result.data)) {
+                        allReplies = result.data;
+                        renderRepliesSorted(sortSelect ? sortSelect.value : 'newest');
+                    }
+                });
 
             submitBtn.addEventListener('click', async function () {
                 const replyContent = textarea.value.trim();
@@ -1214,16 +1402,21 @@
                     return;
                 }
                 const member = JSON.parse(memberData);
-                if (!member.mem_id) {
+                const memId = member.mem_id || member.memId;
+                if (!memId) {
                     alert('請先登入後再發表留言');
                     return;
                 }
                 // 準備留言資料
                 const replyData = {
                     acId: articleId,
-                    memId: member.mem_id,
+                    memId: memId,
                     replyContext: replyContent
                 };
+                if (replyToFloor && replyToContent) {
+                    replyData.replyToFloor = replyToFloor;
+                    replyData.replyToContent = replyToContent;
+                }
                 try {
                     const response = await fetch(`${window.api_prefix}/api/replies`, {
                         method: 'POST',
@@ -1234,8 +1427,18 @@
                     if (result.status === 'success') {
                         alert('留言成功！');
                         textarea.value = '';
+                        clearReplyTo();
                         // 重新載入留言區
-                        location.reload();
+                        // location.reload();
+                        // 改為重新 fetch 並渲染
+                        fetch(`${window.api_prefix}/api/replies/article/${articleId}`)
+                            .then(res => res.json())
+                            .then(result => {
+                                if (result.status === 'success' && Array.isArray(result.data)) {
+                                    allReplies = result.data;
+                                    renderRepliesSorted(sortSelect ? sortSelect.value : 'newest');
+                                }
+                            });
                     } else {
                         alert('留言失敗: ' + (result.message || '未知錯誤'));
                     }
@@ -1244,6 +1447,8 @@
                 }
             });
         });
+        // 提供給外部呼叫
+        window.setReplyTo = setReplyTo;
     </script>
 </body>
 
