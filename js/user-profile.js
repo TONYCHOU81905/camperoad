@@ -758,7 +758,7 @@ class UserProfileManager {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(memData),
-        credentials: "include", // 包含Cookie
+        // credentials: "include", // 包含Cookie
       });
 
       if (!response.ok) {
