@@ -263,6 +263,8 @@ class UserProfileManager {
     this.loadFavoriteCamps();
     this.loadCoupons();
     this.loadCampsiteOrders();
+    this.loadPaymentMethods();
+    this.initChatManagement();
 
     this.loadMemberAvatar();
   }
@@ -440,12 +442,9 @@ class UserProfileManager {
           targetSection.classList.add("active");
 
           // 如果是聊天管理標籤，初始化聊天管理功能
-          if (
-            targetTab === "chat-management" &&
-            typeof initChatManagement === "function"
-          ) {
-            // 確保chat-management.js已加載
-            initChatManagement();
+          if (targetTab === "chat-management") {
+            // 調用本地的聊天管理初始化方法
+            this.initChatManagement();
           }
         }
       });
@@ -1015,7 +1014,118 @@ class UserProfileManager {
   
     this.setupCouponFilters();
   }
-  
+
+  // 載入付款方式
+  async loadPaymentMethods() {
+    console.log("=== 開始載入付款方式 ===");
+    try {
+      if (!this.currentMember || !this.currentMember.memId) {
+        console.log("無會員資訊，跳過載入付款方式");
+        return;
+      }
+
+      const memId = this.currentMember.memId;
+      console.log("載入會員付款方式，會員ID:", memId);
+
+      // 這裡可以添加 API 調用來獲取真實的付款方式數據
+      // const response = await fetch(`${window.api_prefix}/api/member/${memId}/payment-methods`);
+      // const paymentData = await response.json();
+
+      // 目前顯示靜態示範數據，實際應用時可以替換為 API 數據
+      const paymentMethodsList = document.querySelector('.payment-methods-list');
+      if (paymentMethodsList) {
+        console.log("付款方式區域已載入，顯示示範數據");
+        // 可以在這裡動態渲染真實的付款方式數據
+        this.initPaymentMethodEvents();
+      }
+    } catch (error) {
+      console.error("載入付款方式失敗:", error);
+    }
+  }
+
+  // 初始化付款方式事件
+  initPaymentMethodEvents() {
+    // 新增付款方式按鈕
+    const addPaymentBtn = document.querySelector('.btn-add-payment');
+    if (addPaymentBtn) {
+      addPaymentBtn.addEventListener('click', () => {
+        console.log('新增付款方式');
+        // 這裡可以打開新增付款方式的模態框
+        alert('新增付款方式功能開發中');
+      });
+    }
+
+    // 編輯按鈕
+    document.querySelectorAll('.btn-edit').forEach(btn => {
+      btn.addEventListener('click', () => {
+        console.log('編輯付款方式');
+        alert('編輯付款方式功能開發中');
+      });
+    });
+
+    // 刪除按鈕
+    document.querySelectorAll('.btn-delete').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (confirm('確定要刪除此付款方式嗎？')) {
+          console.log('刪除付款方式');
+          alert('刪除付款方式功能開發中');
+        }
+      });
+    });
+
+    // 設為預設按鈕
+    document.querySelectorAll('.btn-set-default').forEach(btn => {
+      btn.addEventListener('click', () => {
+        console.log('設為預設付款方式');
+        alert('設為預設付款方式功能開發中');
+      });
+    });
+  }
+
+  // 初始化聊天管理
+  initChatManagement() {
+    console.log("=== 開始初始化聊天管理 ===");
+    try {
+      if (!this.currentMember || !this.currentMember.memId) {
+        console.log("無會員資訊，跳過初始化聊天管理");
+        return;
+      }
+
+      const memId = this.currentMember.memId;
+      console.log("初始化聊天管理，會員ID:", memId);
+
+      // 檢查聊天管理容器是否存在
+      const chatList = document.getElementById("chat-list");
+      if (chatList) {
+        // 檢查是否已載入 chat-management.js
+        if (typeof window.initChatManagement === "function") {
+          console.log("調用 initChatManagement 函數");
+          window.initChatManagement();
+        } else {
+          console.log("chat-management.js 尚未載入，顯示載入中狀態");
+          chatList.innerHTML = `
+            <div class="empty-state">
+              <i class="fas fa-comments"></i>
+              <h3>載入中...</h3>
+              <p>正在載入您的聊天記錄</p>
+            </div>
+          `;
+        }
+      }
+    } catch (error) {
+      console.error("初始化聊天管理失敗:", error);
+      const chatList = document.getElementById("chat-list");
+      if (chatList) {
+        chatList.innerHTML = `
+          <div class="empty-state">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h3>載入失敗</h3>
+            <p>無法載入聊天記錄，請稍後再試</p>
+          </div>
+        `;
+      }
+    }
+  }
 
   setupCouponFilters() {
     const filterTabs = document.querySelectorAll(".filter-tab");

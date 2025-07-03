@@ -389,8 +389,8 @@ async function handleOwnerLogin(e) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        ownerAcc: ownerAcc,
-        ownerPwd: ownerPwd
+        owner_acc: ownerAcc,
+        owner_pwd: ownerPwd,
       }),
       // credentials: "include", // 包含Cookie
     });
@@ -406,9 +406,6 @@ async function handleOwnerLogin(e) {
       // 登入成功
       const owner = data.owner;
 
-      console.log("營地主登入成功：", owner);
-      
-      
       // 根據remember checkbox決定存儲方式
       if (remember) {
         localStorage.setItem("currentOwner", JSON.stringify(owner));
@@ -423,7 +420,10 @@ async function handleOwnerLogin(e) {
         window.location.href = "owner-dashboard.html";
       }, 1500);
     } else {
-      showMessage(data.message || "營地主帳號或密碼錯誤，或帳號已被停用", "error");
+      showMessage(
+        data.message || "營地主帳號或密碼錯誤，或帳號已被停用",
+        "error"
+      );
     }
   } catch (error) {
     console.error("登入失敗：", error);
@@ -453,8 +453,8 @@ async function handleAdminLogin(e) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        adminAcc: adminAcc,
-        adminPwd: adminPwd
+        admin_acc: adminAcc,
+        admin_pwd: adminPwd,
       }),
       // credentials: "include", // 包含Cookie
     });
@@ -466,12 +466,11 @@ async function handleAdminLogin(e) {
     console.log("response22211" + response);
     const data = await response.json();
     console.log("response11111" + data);
-    
 
     if (data.success) {
       // 登入成功
       const admin = data.admin;
-      
+
       // 根據remember checkbox決定存儲方式
       if (remember) {
         localStorage.setItem("currentAdmin", JSON.stringify(admin));
@@ -486,7 +485,10 @@ async function handleAdminLogin(e) {
         window.location.href = "admin-dashboard.html";
       }, 1500);
     } else {
-      showMessage(data.message || "管理員帳號或密碼錯誤，或帳號已被停用", "error");
+      showMessage(
+        data.message || "管理員帳號或密碼錯誤，或帳號已被停用",
+        "error"
+      );
     }
   } catch (error) {
     console.error("登入失敗：", error);
