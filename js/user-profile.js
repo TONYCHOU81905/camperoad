@@ -408,7 +408,6 @@ class UserProfileManager {
 
 
       // 載入營地資料
-
       const campsResponse = await fetch(`${window.api_prefix}/api/getallcamps`);
       const campsData = await campsResponse.json();
 
@@ -888,6 +887,7 @@ class UserProfileManager {
           if (!confirmDelete) return;
 
           try {
+
             const res = await fetch(
               `${window.api_prefix}/camptracklist/deleteCampTrackList`,
               {
@@ -901,6 +901,9 @@ class UserProfileManager {
                 }),
               }
             );
+
+
+  
 
             const result = await res.json();
 

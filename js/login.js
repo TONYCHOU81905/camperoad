@@ -104,7 +104,7 @@ async function handleLogin(e) {
         memAcc: memAcc,
         memPwd: password,
       }),
-      //credentials: "include", // 包含Cookie
+      // credentials: "include", // 包含Cookie
     });
 
     console.log("RESPONSE:" + response);
@@ -389,8 +389,8 @@ async function handleOwnerLogin(e) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        ownerAcc: ownerAcc,
-        ownerPwd: ownerPwd,
+        owner_acc: ownerAcc,
+        owner_pwd: ownerPwd,
       }),
       // credentials: "include", // 包含Cookie
     });
@@ -456,15 +456,16 @@ async function handleAdminLogin(e) {
         admin_acc: adminAcc,
         admin_pwd: adminPwd,
       }),
-      credentials: "include", // 包含Cookie
+      // credentials: "include", // 包含Cookie
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || "登入請求失敗");
-    }
-
+    // if (!response.ok) {
+    //   const errorData = await response.json();
+    //   throw new Error(errorData.message || "登入請求失敗");
+    // }
+    console.log("response22211" + response);
     const data = await response.json();
+    console.log("response11111" + data);
 
     if (data.success) {
       // 登入成功

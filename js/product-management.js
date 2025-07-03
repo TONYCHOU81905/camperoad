@@ -54,7 +54,11 @@ async function loadProductsData() {
     const colorResponse = await fetch(`${window.api_prefix}/api/colors`);
     if (!colorResponse.ok) throw new Error(`商品顏色錯誤: ${colorResponse.status}`);
     const colorData = await colorResponse.json();
+<<<<<<< HEAD
+    productSpecsData = (colorData.data || []).map(c => ({
+=======
     productColorsData = (colorData.data || []).map(c => ({
+>>>>>>> 8ec3edb298c67c97f1d22c90c50e9c51d3b1502e
       id: c.colorId,
       name: c.colorName
     }));
@@ -585,6 +589,9 @@ function generateColorsHTML(colors) {
 
 
 // 添加規格欄位
+<<<<<<< HEAD
+function addSpecificationField() {
+=======
 function addSpecField() {
   // 檢查是否已經選擇了單一規格
   const existingSelects = document.querySelectorAll(".spec-select");
@@ -595,6 +602,7 @@ function addSpecField() {
     }
   }
   
+>>>>>>> 8ec3edb298c67c97f1d22c90c50e9c51d3b1502e
   const container = document.getElementById("specs-container");
   
   // 生成規格選項
@@ -799,10 +807,16 @@ async function saveProductChanges() {
       prodTypeId: productType,
       prodDescription: productDescription,
       prodIntro: productDiscount / 100, // 轉換為小數
+<<<<<<< HEAD
+      prodStatus: productStatus === "上架中" ? 1 : 0,
+      specs: specs,
+      colors: colors
+=======
       // 移除 prodStatus 屬性，或使用原有商品的狀態
       // prodStatus: productStatus === "上架中" ? 1 : 0,
       prodSpecList: specs,      
       prodColorList: colors 
+>>>>>>> 8ec3edb298c67c97f1d22c90c50e9c51d3b1502e
     };
     
     // 發送 PUT 請求到 API
@@ -831,6 +845,10 @@ async function saveProductChanges() {
           typeId: productType,
           description: productDescription,
           discount: productDiscount / 100,
+<<<<<<< HEAD
+          status: productStatus,
+=======
+>>>>>>> 8ec3edb298c67c97f1d22c90c50e9c51d3b1502e
           specs: specs,
           colors: colors
         };
@@ -1155,6 +1173,9 @@ async function showAddProductModal() {
 // 添加新商品
 async function addNewProduct() {
   const productName = document.getElementById("product-name").value.trim();
+<<<<<<< HEAD
+  const productType = parseInt(document.getElementById("product-type").value);
+=======
   // 驗證商品名稱
   if (!productName) {
     showNotification("請輸入商品名稱", "error");
@@ -1171,12 +1192,17 @@ async function addNewProduct() {
   }
 
   
+>>>>>>> 8ec3edb298c67c97f1d22c90c50e9c51d3b1502e
   const productMainImage = document.getElementById("product-main-image").files[0];
   const productDescription = document.getElementById("product-description").value;
   const productDiscount = parseFloat(document.getElementById("product-discount").value) || 1;
   const productStatus = document.getElementById("product-status").value;
   const hasColor = document.querySelector('input[name="has-color"]:checked').value === 'yes';
+<<<<<<< HEAD
+
+=======
   console.log(productMainImage)
+>>>>>>> 8ec3edb298c67c97f1d22c90c50e9c51d3b1502e
   // 驗證商品名稱
   if (productName.length < 1 || productName.length > 50) {
     showNotification("商品名稱長度必須介於 1 到 50 字之間", "error");
@@ -1184,7 +1210,11 @@ async function addNewProduct() {
   }
 
   
+<<<<<<< HEAD
+  // 獲取規格資料
+=======
   // =====規格資料=====
+>>>>>>> 8ec3edb298c67c97f1d22c90c50e9c51d3b1502e
   const specs = [];
   document.querySelectorAll(".specification-item").forEach(item => {
     const specSelect = item.querySelector(".spec-select");
@@ -1195,6 +1225,49 @@ async function addNewProduct() {
       const specName = productSpecsData.find(s => s.id === specId)?.name || "未知規格";
       
       specs.push({
+<<<<<<< HEAD
+        id: specId,
+        name: specName,
+        price: specPrice
+      });
+    }
+  });
+  
+  // 獲取顏色資料
+  const colors = [];
+  if (hasColor) {
+    const colorItems = document.querySelectorAll(".color-item");
+    for (let i = 0; i < colorItems.length; i++) {
+      const item = colorItems[i];
+      const colorSelect = item.querySelector(".color-select");
+      const colorImageFile = item.querySelector(".color-image").files[0];
+      
+      if (colorSelect && colorSelect.value !== "new" && colorImageFile) {
+        const colorId = parseInt(colorSelect.value);
+        const colorName = productColorsData.find(c => c.id === colorId)?.name || "未知顏色";
+        
+        // 上傳圖片到伺服器並獲取URL
+        const imageUrl = await simulateImageUpload(colorImageFile);
+        
+        colors.push({
+          id: colorId,
+          name: colorName,
+          imageUrl: imageUrl
+        });
+      }
+    }
+  }
+  
+  // 表單驗證
+  if (!productName || isNaN(productType) || !productMainImage || specs.length === 0) {
+    alert("請填寫所有必填欄位，並至少添加一個商品規格");
+    return;
+  }
+  
+  // 如果有顏色但沒有添加顏色資料，顯示錯誤
+  if (hasColor && colors.length === 0) {
+    alert("請至少添加一個商品顏色");
+=======
         prodSpecId: specId,
         prodSpecPrice: specPrice,
         prodSpecName: specName  // ← 可選，後端有欄位才傳
@@ -1204,6 +1277,7 @@ async function addNewProduct() {
 
   if (specs.length === 0) {
     showNotification("請至少新增一個商品規格", "error");
+>>>>>>> 8ec3edb298c67c97f1d22c90c50e9c51d3b1502e
     return;
   }
   
@@ -1270,13 +1344,22 @@ async function addNewProduct() {
     const productData = {
       prodName: productName,
       prodTypeId: productType,
+<<<<<<< HEAD
+      prodImageUrl: mainImageUrl,
+=======
       // prodImageUrl: mainImageUrl,
+>>>>>>> 8ec3edb298c67c97f1d22c90c50e9c51d3b1502e
       prodIntro: productDescription,
       prodDiscount: productDiscount,
       prodStatus: productStatus === "上架中" ? 1 : 0,
       prodColorOrNot: hasColor ? 1 : 0,
+<<<<<<< HEAD
+      specs: specs,
+      colors: colors
+=======
       prodSpecList: specs,       
       prodColorList: colors
+>>>>>>> 8ec3edb298c67c97f1d22c90c50e9c51d3b1502e
     };
 
     // 發送 POST 請求到 API
@@ -1429,6 +1512,43 @@ function closeModal() {
   }
 }
 
+<<<<<<< HEAD
+// 模擬圖片上傳
+async function simulateImageUpload(file) {
+  // 在實際應用中，這裡應該上傳圖片到伺服器並獲取URL
+  // 這裡僅模擬上傳過程
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      // 模擬返回圖片URL
+      const imageIndex = Math.floor(Math.random() * 4) + 1;
+      resolve(`images/product-${imageIndex}.jpg`);
+      
+      // 實際應用中，應該使用FormData上傳圖片
+      /*
+      const formData = new FormData();
+      formData.append('image', file);
+      
+      fetch(`${window.api_prefix}/api/upload-image`, {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          resolve(data.imageUrl);
+        } else {
+          throw new Error(data.message || '上傳圖片失敗');
+        }
+      })
+      .catch(error => {
+        console.error('上傳圖片失敗:', error);
+        // 失敗時使用預設圖片
+        resolve('images/product-1.jpg');
+      });
+      */
+    }, 500);
+  });
+=======
 //商品圖片上傳功能
 async function imageUpload(file, prodId) {
   const formData = new FormData();
@@ -1451,6 +1571,7 @@ async function imageUpload(file, prodId) {
     console.error("商品圖片上傳失敗", error);
     return null;
   }
+>>>>>>> 8ec3edb298c67c97f1d22c90c50e9c51d3b1502e
 }
 
 // 上傳顏色圖片（指定 prodId + colorId）
@@ -1497,6 +1618,57 @@ function previewImage(input, previewElement) {
 // 添加新商品類型（呼叫後端 API）
 async function addNewProductType(typeName) {
   try {
+<<<<<<< HEAD
+    // 在實際應用中，這裡應該發送 POST 請求到 API
+    // 模擬 API 請求
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    // 生成新類型ID
+    const newTypeId = productTypesData.length > 0 ? Math.max(...productTypesData.map(t => t.id)) + 1 : 1;
+    
+    // 創建新類型對象
+    const newType = {
+      id: newTypeId,
+      name: typeName
+    };
+    
+    // 添加到本地數據
+    productTypesData.push(newType);
+    
+    // 更新類型選擇器
+    const typeSelect = document.getElementById("product-type");
+    const newOption = document.createElement("option");
+    newOption.value = newType.id;
+    newOption.textContent = newType.name;
+    
+    // 插入到「新增類型」選項之前
+    typeSelect.insertBefore(newOption, typeSelect.lastElementChild);
+    
+    // 選中新添加的類型
+    typeSelect.value = newType.id;
+    
+    // 隱藏新增類型輸入框
+    document.getElementById("new-type-container").style.display = "none";
+    
+    // 顯示成功消息
+    showNotification("新類型添加成功", "success");
+  } catch (error) {
+    console.error("添加類型失敗:", error);
+    showNotification("添加類型失敗，請稍後再試", "error");
+  }
+}
+
+// 添加新商品規格
+async function addNewProductSpec(specName, selectElement) {
+  try {
+    // 先檢查是否已存在相同名稱
+    const exists = productSpecsData.some(s => s.name === specName);
+    if (exists) {
+      alert("此規格名稱已存在，請勿重複新增");
+      return;
+    }
+
+=======
     // 1. 驗證輸入
     if (!typeName || typeName.trim().length === 0) {
       showNotification("請輸入類型名稱", "error");
@@ -1566,6 +1738,7 @@ async function addNewProductSpec(specName, selectElement) {
       return;
     }
 
+>>>>>>> 8ec3edb298c67c97f1d22c90c50e9c51d3b1502e
     // 模擬 API 請求
     await new Promise(resolve => setTimeout(resolve, 300));
 
@@ -1644,6 +1817,8 @@ function showNotification(message, type = "success") {
   }, 3000);
 }
 
+<<<<<<< HEAD
+=======
 // 檢查移除規格後是否還有單一規格
 function checkSingleSpecAfterRemoval() {
   const existingSelects = document.querySelectorAll(".spec-select");
@@ -1662,3 +1837,4 @@ function checkSingleSpecAfterRemoval() {
   }
 }
 
+>>>>>>> 8ec3edb298c67c97f1d22c90c50e9c51d3b1502e
