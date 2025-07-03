@@ -100,3 +100,26 @@
     text-align: left;
   }
 } 
+
+
+/* 購物車是空的 */
+#cart-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  text-align: center;
+}
+
+#cart-empty > * {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.btn-continue-shopping {
+  min-width: 160px;
+  padding: 12px 32px;
+  font-size: 1.1em;
+  margin-top: 16px;
+}

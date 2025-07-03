@@ -37,6 +37,7 @@ class CheckoutManager {
     this.selectedPaymentMethod = "1";
     this.selectedCvsStore = null;
     this.isProcessing = false;
+    await this.loadUserDiscounts();
     if (this.cartItems.length === 0) {
       window.location.href = "shop_cart.html";
       return;
@@ -527,6 +528,57 @@ class CheckoutManager {
       }
     } else if (window.sessionCartManager) {
       window.sessionCartManager.clearCart();
+    }
+  }
+
+  // 載入會員可用折價券
+  async loadUserDiscounts() {
+    try {
+      console.log('memId:', this.memId);
+      const discountSelect = document.getElementById('discount-select');
+      const discountInfoDiv = document.getElementById('discount-info');
+      if (!discountSelect) return;
+      // 取得會員擁有的折價券ID
+      const userDiscountResp = await fetch(`${window.api_prefix}/api/userdiscount/search/${this.memId}`);
+      const userDiscountData = await userDiscountResp.json();
+      console.log('userDiscountData:', userDiscountData);
+      const userDiscounts = Array.isArray(userDiscountData) ? userDiscountData : [];
+      console.log('userDiscounts:', userDiscounts);
+      if (userDiscounts.length === 0) {
+        discountSelect.innerHTML = '<option value="">無可用折價券</option>';
+        discountInfoDiv.textContent = '';
+        return;
+      }
+      // 取得所有折價券詳細資料
+      const allDiscountResp = await fetch(`${window.api_prefix}/api/discount/all`);
+      const allDiscountData = await allDiscountResp.json();
+      console.log('allDiscountData:', allDiscountData);
+      // 建立折價券ID到詳細資料的對照表
+      const discountMap = {};
+      allDiscountData.forEach(d => {
+        discountMap[d.discountCodeId] = d;
+      });
+      console.log('discountMap:', discountMap);
+      // 渲染下拉選單
+      discountSelect.innerHTML = '<option value="">請選擇折價券</option>' +
+        userDiscounts.map(d => {
+          const detail = discountMap[d.discountCodeId];
+          if (!detail) return '';
+          return `<option value="${detail.discountCodeId}">${detail.discountCode}（${detail.discountExplain}）</option>`;
+        }).join('');
+      // 綁定選擇事件
+      discountSelect.addEventListener('change', function() {
+        const selectedId = this.value;
+        if (selectedId && discountMap[selectedId]) {
+          const d = discountMap[selectedId];
+          let typeText = d.discountType === 0 ? `折抵金額：NT$${d.discountValue}` : `折扣：${d.discountValue * 100}%`;
+          discountInfoDiv.textContent = `${d.discountExplain}｜${typeText}`;
+        } else {
+          discountInfoDiv.textContent = '';
+        }
+      });
+    } catch (e) {
+      console.error('載入折價券失敗:', e);
     }
   }
 }

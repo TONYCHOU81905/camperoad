@@ -284,4 +284,4 @@ document.addEventListener("DOMContentLoaded", () => {
 // });
 
 // 導出供其他模組使用
-window.globalCartManager = globalCartManager;
+// window.globalCartManager = globalCartManager;

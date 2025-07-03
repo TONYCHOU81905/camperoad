@@ -162,6 +162,9 @@ async function handleLogin(e) {
               if (window.globalCartManager) {
                 window.globalCartManager.updateCartCount();
               }
+
+              // 合併成功後跳轉到購物車頁面
+              window.location.href = "shop_cart.html";
             } else {
               console.error("購物車合併失敗: HTTP", mergeResponse.status);
               // 合併失敗時保留 sessionCart，不刪除

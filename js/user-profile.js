@@ -2009,7 +2009,7 @@ function viewShopOrderDetail(orderId) {
           const btnReturn = document.getElementById("btn-return-order");
           if (btnCancel) btnCancel.style.display = "none";
           if (btnReturn) btnReturn.style.display = "none";
-          if (order.shopOrderStatus === 0 || order.shopOrderStatus === 1) {
+          if (order.shopOrderStatus === 0 || order.shopOrderStatus === 1 || order.shopOrderStatus === 7) {
             btnCancel.style.display = "";
           }
 
