@@ -260,8 +260,12 @@ class UserProfileManager {
     await this.loadData();
     this.initTabs();
     this.loadMemberData();
-    // this.loadCampsiteOrders();
     this.loadFavoriteCamps();
+    this.loadCoupons();
+    this.loadCampsiteOrders();
+    this.loadPaymentMethods();
+    this.initChatManagement();
+
     this.loadMemberAvatar();
   }
 
@@ -378,11 +382,30 @@ class UserProfileManager {
       }
 
       // 載入營地收藏
-      const favoritesResponse = await fetch(
-        `${window.api_prefix}/camptracklist/${memId}/getCampTrackLists`
+      try {
+        const favoritesResponse = await fetch(
+          `${window.api_prefix}/camptracklist/${memId}/getCampTrackLists`
+        );
+        if (favoritesResponse.ok) {
+          const favoriteCampsJson = await favoritesResponse.json();
+          this.favoriteCamps = favoriteCampsJson; // 保持完整的響應結構
+          console.log("favoriteCamps:", this.favoriteCamps);
+        } else {
+          console.error("獲取收藏營地失敗:", favoritesResponse.status);
+          this.favoriteCamps = { data: [] }; // 保持一致的數據結構
+        }
+      } catch (error) {
+        console.error("載入收藏營地時發生錯誤:", error);
+        this.favoriteCamps = { data: [] }; // 保持一致的數據結構
+      }
+
+      // 載入折價券清單
+      const couponResponse = await fetch(
+        `${window.api_prefix}/api/userdiscount/search/${memId}`
       );
-      this.favoriteCamps = await favoritesResponse.json();
-      console.log("favoriteCamps:" + this.favoriteCamps);
+      this.memberCoupons = await couponResponse.json(); 
+      console.log("memberCoupons:", this.memberCoupons);
+
 
       // 載入營地資料
       const campsResponse = await fetch(`${window.api_prefix}/api/getallcamps`);
@@ -419,12 +442,9 @@ class UserProfileManager {
           targetSection.classList.add("active");
 
           // 如果是聊天管理標籤，初始化聊天管理功能
-          if (
-            targetTab === "chat-management" &&
-            typeof initChatManagement === "function"
-          ) {
-            // 確保chat-management.js已加載
-            initChatManagement();
+          if (targetTab === "chat-management") {
+            // 調用本地的聊天管理初始化方法
+            this.initChatManagement();
           }
         }
       });
@@ -651,6 +671,14 @@ class UserProfileManager {
     bindCommentButtons();
   }
 
+
+  // 載入營地訂單
+  loadCampsiteOrders() {
+    // 初始顯示所有訂單（不篩選狀態）
+    this.renderOrders(this.campsiteOrders);
+  }
+
+
   loadMemberData() {
     if (!this.currentMember) return;
 
@@ -773,14 +801,22 @@ class UserProfileManager {
   }
 
   async loadFavoriteCamps() {
+    console.log("loadFavoriteCamps 方法開始執行");
     const favoritesGrid = document.getElementById("favorite-camps-grid");
-    if (!favoritesGrid) return;
-
+    console.log("favoritesGrid 元素:", favoritesGrid);
+    if (!favoritesGrid) {
+      console.log("找不到 favorite-camps-grid 元素，方法提前返回");
+      return;
+    }
+    console.log("memberInfo11:");
     // 取得會員ID
     let memId = null;
     const memberInfo =
       localStorage.getItem("currentMember") ||
       sessionStorage.getItem("currentMember");
+
+    console.log("memberInfo11:", memberInfo);
+
     if (memberInfo) {
       try {
         const memberObj = JSON.parse(memberInfo);
@@ -789,15 +825,21 @@ class UserProfileManager {
         memId = null;
       }
     }
+
+    console.log("memId1", memId);
+
     if (!memId) {
       favoritesGrid.innerHTML = `<div class="empty-state"><i class="fas fa-heart"></i><h3>請先登入會員以查看收藏營地</h3></div>`;
       return;
     }
 
     try {
-      // 假設 this.favoriteCamps 已經是從 API 拿到的資料（你可以自行改為 fetch）
-      const camps = this.favoriteCamps.data;
-      console.log("this.favoriteCamps", camps);
+      // 檢查 favoriteCamps 的資料結構
+      let camps = [];
+      if (this.favoriteCamps) {
+        // 如果有 data 屬性，使用 data；否則直接使用 favoriteCamps
+        camps = this.favoriteCamps.data || this.favoriteCamps;
+      }
 
       if (!Array.isArray(camps) || camps.length === 0) {
         favoritesGrid.innerHTML = `<div class="empty-state"><i class="fas fa-heart"></i><h3>尚無收藏營地</h3></div>`;
@@ -810,7 +852,7 @@ class UserProfileManager {
           (camp) => `
         <div class="favorite-camp-item" data-camp-id="${camp.campId}">
           <div class="camp-image">
-            <img src="${window.api_prefix}/api/camps1/${camp.campId}/1" alt="${
+            <img src="${window.api_prefix}/api/camps/${camp.campId}/1" alt="${
             camp.campName || ""
           }" />
             <button class="btn-remove-favorite" data-camp-id="${
@@ -845,6 +887,7 @@ class UserProfileManager {
           if (!confirmDelete) return;
 
           try {
+
             const res = await fetch(
               `${window.api_prefix}/camptracklist/deleteCampTrackList`,
               {
@@ -858,6 +901,9 @@ class UserProfileManager {
                 }),
               }
             );
+
+
+  
 
             const result = await res.json();
 
@@ -891,6 +937,237 @@ class UserProfileManager {
     } catch (err) {
       favoritesGrid.innerHTML = `<div class="empty-state"><i class="fas fa-heart"></i><h3>無法取得收藏列表，請稍後再試</h3></div>`;
     }
+  }
+
+  async loadCoupons() {
+    const couponsGrid = document.getElementById("coupon-grid");
+    if (!couponsGrid) return;
+  
+    const coupons = this.memberCoupons;
+  
+    if (!Array.isArray(coupons) || coupons.length === 0) {
+      couponsGrid.innerHTML = `
+        <div class="empty-state">
+          <i class="fas fa-ticket-alt"></i>
+          <h3>尚無可用折價券</h3>
+        </div>`;
+      return;
+    }
+  
+    // 渲染折價券卡片
+    couponsGrid.innerHTML = coupons
+      .map((coupon) => {
+        const now = new Date();
+        const end = new Date(coupon.endDate);
+        const isExpired = end < now;
+        const isUsed = coupon.usedDate != null;
+  
+        let statusClass = "available";
+        let statusText = "可使用";
+        if (isUsed) {
+          statusClass = "used";
+          statusText = "已使用";
+        } else if (isExpired) {
+          statusClass = "expired";
+          statusText = "已過期";
+        }
+  
+        const typeText = coupon.discountCodeType === 0 ? "營地折價券" : "商城折價券";
+  
+        return `
+          <div class="coupon-card ${statusClass}">
+            <div class="coupon-header">
+              <div class="coupon-type">${typeText}</div>
+              <div class="coupon-status">${statusText}</div>
+            </div>
+            <div class="coupon-content">
+              <div class="coupon-title">活動名稱:${coupon.discountCode}</div>
+              <div class="coupon-description">單筆滿 NT$${coupon.minOrderAmount} 可使用</div>
+              <div class="coupon-valid">使用期限：${coupon.startDate.substring(0,10)} ~ ${coupon.endDate.substring(0,10)}</div>
+            </div>
+            <div class="coupon-footer">
+              <div class="coupon-code">請使用優惠碼：${coupon.discountCodeId}</div>
+              ${
+                !isExpired && !isUsed
+                  ? `<button class="btn-copy-code" data-code="${coupon.discountCodeId}">複製代碼</button>`
+                  : ""
+              }
+              ${
+                isUsed
+                  ? `<div class="coupon-used-date">使用日期：${coupon.usedDate.substring(0,10)}</div>`
+                  : ""
+              }
+            </div>
+          </div>`;
+      })
+      .join("");
+  
+    // 複製按鈕功能
+    document.querySelectorAll(".btn-copy-code").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const code = btn.dataset.code;
+        navigator.clipboard.writeText(code).then(() => {
+          alert(`已複製折價券代碼：${code}`);
+        });
+      });
+    });
+  
+    this.setupCouponFilters();
+  }
+
+  // 載入付款方式
+  async loadPaymentMethods() {
+    console.log("=== 開始載入付款方式 ===");
+    try {
+      if (!this.currentMember || !this.currentMember.memId) {
+        console.log("無會員資訊，跳過載入付款方式");
+        return;
+      }
+
+      const memId = this.currentMember.memId;
+      console.log("載入會員付款方式，會員ID:", memId);
+
+      // 這裡可以添加 API 調用來獲取真實的付款方式數據
+      // const response = await fetch(`${window.api_prefix}/api/member/${memId}/payment-methods`);
+      // const paymentData = await response.json();
+
+      // 目前顯示靜態示範數據，實際應用時可以替換為 API 數據
+      const paymentMethodsList = document.querySelector('.payment-methods-list');
+      if (paymentMethodsList) {
+        console.log("付款方式區域已載入，顯示示範數據");
+        // 可以在這裡動態渲染真實的付款方式數據
+        this.initPaymentMethodEvents();
+      }
+    } catch (error) {
+      console.error("載入付款方式失敗:", error);
+    }
+  }
+
+  // 初始化付款方式事件
+  initPaymentMethodEvents() {
+    // 新增付款方式按鈕
+    const addPaymentBtn = document.querySelector('.btn-add-payment');
+    if (addPaymentBtn) {
+      addPaymentBtn.addEventListener('click', () => {
+        console.log('新增付款方式');
+        // 這裡可以打開新增付款方式的模態框
+        alert('新增付款方式功能開發中');
+      });
+    }
+
+    // 編輯按鈕
+    document.querySelectorAll('.btn-edit').forEach(btn => {
+      btn.addEventListener('click', () => {
+        console.log('編輯付款方式');
+        alert('編輯付款方式功能開發中');
+      });
+    });
+
+    // 刪除按鈕
+    document.querySelectorAll('.btn-delete').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (confirm('確定要刪除此付款方式嗎？')) {
+          console.log('刪除付款方式');
+          alert('刪除付款方式功能開發中');
+        }
+      });
+    });
+
+    // 設為預設按鈕
+    document.querySelectorAll('.btn-set-default').forEach(btn => {
+      btn.addEventListener('click', () => {
+        console.log('設為預設付款方式');
+        alert('設為預設付款方式功能開發中');
+      });
+    });
+  }
+
+  // 初始化聊天管理
+  initChatManagement() {
+    console.log("=== 開始初始化聊天管理 ===");
+    try {
+      if (!this.currentMember || !this.currentMember.memId) {
+        console.log("無會員資訊，跳過初始化聊天管理");
+        return;
+      }
+
+      const memId = this.currentMember.memId;
+      console.log("初始化聊天管理，會員ID:", memId);
+
+      // 檢查聊天管理容器是否存在
+      const chatList = document.getElementById("chat-list");
+      if (chatList) {
+        // 檢查是否已載入 chat-management.js
+        if (typeof window.initChatManagement === "function") {
+          console.log("調用 initChatManagement 函數");
+          window.initChatManagement();
+        } else {
+          console.log("chat-management.js 尚未載入，顯示載入中狀態");
+          chatList.innerHTML = `
+            <div class="empty-state">
+              <i class="fas fa-comments"></i>
+              <h3>載入中...</h3>
+              <p>正在載入您的聊天記錄</p>
+            </div>
+          `;
+        }
+      }
+    } catch (error) {
+      console.error("初始化聊天管理失敗:", error);
+      const chatList = document.getElementById("chat-list");
+      if (chatList) {
+        chatList.innerHTML = `
+          <div class="empty-state">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h3>載入失敗</h3>
+            <p>無法載入聊天記錄，請稍後再試</p>
+          </div>
+        `;
+      }
+    }
+  }
+
+  setupCouponFilters() {
+    const filterTabs = document.querySelectorAll(".filter-tab");
+    
+  
+    filterTabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        const status = tab.getAttribute("data-status");
+  
+        // 切換 active 樣式
+        filterTabs.forEach((t) => t.classList.remove("active"));
+        tab.classList.add("active");
+  
+         // ✅ 每次點擊重新取得卡片（動態渲染的才抓得到）
+        const couponCards = document.querySelectorAll(".coupon-card");
+
+
+        couponCards.forEach((card) => {
+          const isUsed = card.classList.contains("used");
+          const isExpired = card.classList.contains("expired");
+          const isAvailable = card.classList.contains("available");
+  
+          let show = false;
+          switch (status) {
+            case "all":
+              show = true;
+              break;
+            case "available":
+              show = isAvailable;
+              break;
+            case "used":
+              show = isUsed;
+              break;
+            case "expired":
+              show = isExpired;
+              break;
+          }
+  
+          card.style.display = show ? "block" : "none";
+        });
+      });
+    });
   }
 
   getOrderStatusText(status) {

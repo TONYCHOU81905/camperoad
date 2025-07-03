@@ -281,7 +281,7 @@
                       id="camper-register-account"
                       name="mem_acc"
                       required
-                      placeholder="信箱日後不可更改，信箱即為會員帳號"
+                      placeholder="帳號日後不可更改，信箱即為會員帳號"
                       autocomplete="email"
                     />
                   </div>
@@ -454,94 +454,15 @@
                 class="role-form"
               >
                 <div class="form-group">
-                  <label for="owner-register-name">營地主姓名</label>
+                  <label for="owner-register-account">帳號</label>
                   <div class="input-with-icon">
                     <i class="fas fa-user input-icon"></i>
-                    <input
-                      type="text"
-                      id="owner-register-name"
-                      name="owner_name"
-                      required
-                      placeholder="請輸入營地主姓名"
-                    />
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label for="owner-register-account">營地主帳號</label>
-                  <div class="input-with-icon">
-                    <i class="fas fa-building input-icon"></i>
                     <input
                       type="text"
                       id="owner-register-account"
                       name="owner_acc"
                       required
-                      placeholder="請設定營地主帳號"
-                    />
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label for="owner-register-email">電子郵件</label>
-                  <div class="input-with-icon">
-                    <i class="fas fa-envelope input-icon"></i>
-                    <input
-                      type="email"
-                      id="owner-register-email"
-                      name="owner_email"
-                      required
-                      placeholder="請輸入營地主電子郵件"
-                      autocomplete="email"
-                    />
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label for="owner-register-phone">聯絡電話</label>
-                  <div class="input-with-icon">
-                    <i class="fas fa-phone input-icon"></i>
-                    <input
-                      type="tel"
-                      id="owner-register-phone"
-                      name="owner_phone"
-                      required
-                      placeholder="請輸入營地聯絡電話"
-                    />
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label for="owner-register-company">營地名稱</label>
-                  <div class="input-with-icon">
-                    <i class="fas fa-campground input-icon"></i>
-                    <input
-                      type="text"
-                      id="owner-register-company"
-                      name="campsite_name"
-                      required
-                      placeholder="請輸入營地名稱"
-                    />
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label for="owner-register-address">營地地址</label>
-                  <div class="input-with-icon">
-                    <i class="fas fa-map-marker-alt input-icon"></i>
-                    <input
-                      type="text"
-                      id="owner-register-address"
-                      name="campsite_address"
-                      required
-                      placeholder="請輸入營地完整地址"
-                    />
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label for="owner-register-license">營業執照號碼</label>
-                  <div class="input-with-icon">
-                    <i class="fas fa-certificate input-icon"></i>
-                    <input
-                      type="text"
-                      id="owner-register-license"
-                      name="business_license"
-                      required
-                      placeholder="請輸入營業執照號碼"
+                      placeholder="帳號日後不可更改，信箱即為會員帳號"
                     />
                   </div>
                 </div>
@@ -561,6 +482,12 @@
                       <i class="fas fa-eye"></i>
                     </button>
                   </div>
+                  <div class="password-strength">
+                    <div class="strength-bar">
+                      <div class="strength-fill" style="width: 0%"></div>
+                    </div>
+                    <span class="strength-text">密碼強度: 尚未輸入</span>
+                  </div>
                 </div>
                 <div class="form-group">
                   <label for="owner-register-confirm-password">確認密碼</label>
@@ -577,6 +504,124 @@
                     <button type="button" class="toggle-password">
                       <i class="fas fa-eye"></i>
                     </button>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="owner-register-company">店家名稱</label>
+                  <div class="input-with-icon">
+                    <i class="fas fa-campground input-icon"></i>
+                    <input
+                      type="text"
+                      id="owner-register-company"
+                      name="campsite_name"
+                      required
+                      placeholder="日後不可更改"
+                    />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="owner-register-license">統一編號</label>
+                  <div class="input-with-icon">
+                    <i class="fas fa-certificate input-icon"></i>
+                    <input
+                      type="text"
+                      id="owner-register-license"
+                      name="business_license"
+                      required
+                      placeholder="8碼，日後不可更改"
+                    />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="owner-register-manager">負責人</label>
+                  <div class="input-with-icon">
+                    <i class="fas fa-user-tie input-icon"></i>
+                    <input
+                      type="text"
+                      id="owner-register-manager"
+                      name="owner_manager"
+                      required
+                      placeholder="請輸入負責人姓名"
+                    />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="owner-register-manager-phone">負責人電話</label>
+                  <div class="input-with-icon">
+                    <i class="fas fa-phone input-icon"></i>
+                    <input
+                      type="tel"
+                      id="owner-register-manager-phone"
+                      name="owner_manager_phone"
+                      required
+                      placeholder="請輸入負責人電話"
+                    />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="owner-register-contact">聯絡人</label>
+                  <div class="input-with-icon">
+                    <i class="fas fa-user input-icon"></i>
+                    <input
+                      type="text"
+                      id="owner-register-contact"
+                      name="owner_contact"
+                      required
+                      placeholder="請輸入聯絡人姓名"
+                    />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="owner-register-contact-phone">聯絡人電話</label>
+                  <div class="input-with-icon">
+                    <i class="fas fa-phone input-icon"></i>
+                    <input
+                      type="tel"
+                      id="owner-register-contact-phone"
+                      name="owner_contact_phone"
+                      required
+                      placeholder="請輸入聯絡人電話"
+                    />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="owner-register-address">登記地址</label>
+                  <div class="input-with-icon">
+                    <i class="fas fa-map-marker-alt input-icon"></i>
+                    <input
+                      type="text"
+                      id="owner-register-address"
+                      name="campsite_address"
+                      required
+                      placeholder="日後不可更改"
+                    />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="owner-register-email">信箱</label>
+                  <div class="input-with-icon">
+                    <i class="fas fa-envelope input-icon"></i>
+                    <input
+                      type="email"
+                      id="owner-register-email"
+                      name="owner_email"
+                      required
+                      placeholder="請輸入與會員帳號相同"
+                      autocomplete="email"
+                    />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="owner-register-bank-account">匯款帳號</label>
+                  <div class="input-with-icon">
+                    <i class="fas fa-university input-icon"></i>
+                    <input
+                      type="text"
+                      id="owner-register-bank-account"
+                      name="owner_bank_account"
+                      required
+                      placeholder="請輸入匯款帳號"
+                    />
                   </div>
                 </div>
                 <div class="form-group terms-agree">

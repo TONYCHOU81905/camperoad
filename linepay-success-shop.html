@@ -173,7 +173,7 @@
         </nav>
         <div class="user-actions">
           <a href="#" class="btn-search"><i class="fas fa-search"></i></a>
-          <a href="cart.html" class="btn-cart"
+          <a href="shop_cart.html" class="btn-cart"
             ><i class="fas fa-shopping-cart"></i
             ><span class="cart-count">0</span></a
           >
@@ -225,7 +225,7 @@
         </div>
 
         <div class="action-buttons">
-          <a href="campsite_order.html" class="btn primary-btn">查看我的訂單</a>
+          <a href="user-profile.html#shop-orders" class="btn primary-btn">查看我的訂單</a>
           <a href="index.html" class="btn secondary-btn">返回首頁</a>
         </div>
       </div>
@@ -305,101 +305,112 @@
     <script src="js/main.js"></script>
     <script src="js/camp-data.js"></script>
     <script src="js/header-auth.js"></script>
-    <script src="js/camp_cart.js"></script>
+    <script src="js/shop_cart.js"></script>
     <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        // 從 localStorage 獲取訂單資訊
-        const pendingOrder = JSON.parse(localStorage.getItem("pendingOrder"));
-
-        console.log("pendingOrder:", pendingOrder);
-
-        if (pendingOrder) {
-          // 顯示訂單資訊
-          document.getElementById("order-id").textContent =
-            pendingOrder.orderId;
-          document.getElementById(
-            "order-total"
-          ).textContent = `NT$ ${pendingOrder.totalPrice.toLocaleString()}`;
-
-          // 渲染訂單項目
-          const orderItemsContainer = document.getElementById("order-items");
-          let itemsHtml =
-            '<div class="order-items-list" style="width:100%;"><table class="order-items-table" style="width:100%;">';
-          itemsHtml += "<tbody>";
-
-          pendingOrder.items.forEach((item) => {
-            if (item.isBundle) {
-              // 加購商品
-              itemsHtml += `
-              <tr>
-                <td colspan="3">
-                  <div class="order-item">
-                    <div>${item.bundleName}</div>
-                    <div>${item.quantity || 1}</div>
-                    <div>NT$ ${item.bundlePrice.toLocaleString()}</div>
-                  </div>
-                </td>
-              </tr>
-            `;
+       async function clearCartNoConfirm() {
+          const memberInfo = sessionStorage.getItem('currentMember');
+          const member = memberInfo ? JSON.parse(memberInfo) : null;
+          const memId = member ? member.memId : null;
+          console.log('取得會員ID:', memId);
+          try {
+            if (memId) {
+              const response = await fetch(`${window.api_prefix}/api/clearCart?memId=${memId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+              });
+              if (!response.ok) {
+                throw new Error(`HTTP 錯誤！狀態碼: ${response.status}`);
+              }
+              const data = await response.json();
+              if (data.status !== 'success') {
+                throw new Error(data.message || '清空購物車失敗');
+              }
             } else {
-              // 營地項目
-              itemsHtml += `
-              <tr>
-                <td colspan="3">
-                  <div class="order-item">
-                    <div>
-                      ${
-                        item.campsiteTypeName || item.campsiteName || "營地項目"
-                      }
-                      <div class="item-date">${item.checkIn} - ${
-                item.checkOut
-              }</div>
-                    </div>
-                    <div>1</div>
-                    <div>NT$ ${
-                      item.campsiteTypePrice
-                        ? item.campsiteTypePrice.toLocaleString()
-                        : "10"
-                    }</div>
-                  </div>
-                </td>
-              </tr>
-            `;
+              sessionCartManager.clearCart();
             }
-          });
+            // 更新購物車數量
+            updateCartCount(0);
+          } catch (error) {
+            console.error('清空購物車失敗:', error);
+            document.getElementById('error-message').textContent = `無法清空購物車：${error.message}`;
+          }
+        }
 
-          itemsHtml += "</tbody></table></div>";
-          orderItemsContainer.innerHTML = itemsHtml;
 
-          // 清空購物車和加購商品
-          if (window.cartManager && cartManager.isInitialized()) {
-            cartManager.clearAll();
-          } else {
-            document.addEventListener("cartManagerInitialized", () => {
-              cartManager.clearAll();
-            });
+      document.addEventListener('DOMContentLoaded', async () => {
+          // 隱藏載入動畫
+          const loadingOverlay = document.querySelector('.loading-overlay');
+          if (loadingOverlay) {
+            loadingOverlay.style.display = 'none';
           }
 
-          // 清除 localStorage 中的訂單資訊
-          // localStorage.removeItem('pendingOrder');
-        } else {
-          // 如果沒有訂單資訊，可能是用戶直接訪問此頁面
-          document.querySelector(".success-title").textContent =
-            "無法顯示訂單資訊";
-          document.querySelector(".success-container p").textContent =
-            "找不到相關訂單資訊，請查看您的訂單頁面。";
-          document.querySelector(".order-details").style.display = "none";
-        }
+          // 解析 URL 參數
+          const urlParams = new URLSearchParams(window.location.search);
+          const orderId = urlParams.get('orderId');
+          const isCamp = urlParams.get('isCamp') === 'true';
 
-        // 更新購物車數量
-        if (window.cartManager && cartManager.isInitialized()) {
-          cartManager.updateCartCount();
-        } else {
-          document.addEventListener("cartManagerInitialized", () => {
-            cartManager.updateCartCount();
-          });
-        }
-      });
+          // 顯示訂單編號
+          document.getElementById('order-id').textContent = orderId || '未知';
+
+          // 提取 shopOrderId
+          const shopOrderId = orderId?.startsWith('SHOP') ? orderId.replace('SHOP', '') : null;
+
+          if (shopOrderId && !isCamp) {
+            try {
+              // 呼叫 API 取得訂單資訊
+              const response = await fetch(`${window.api_prefix}/api/getOneById?shopOrderId=${shopOrderId}`, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' }
+              });
+
+              if (!response.ok) {
+                throw new Error(`HTTP 錯誤！狀態碼: ${response.status}`);
+              }
+
+              const data = await response.json();
+              console.log('API 回應:', data); // 除錯用日誌
+
+              if (data.status === 'success' && data.data) {
+                const order = data.data;
+                console.log('訂單資料:', order); 
+                const orderItemsContainer = document.getElementById('order-items');
+                const orderTotalElement = document.getElementById('order-total');
+
+                // 更新總金額
+                 orderTotalElement.textContent = `NT$ ${(order.afterDiscountAmount || 0).toLocaleString()}`;
+
+                // 渲染訂單資訊
+                const orderInfo = `
+                <div class="order-item">
+                  <div>
+                    <strong>收件人:</strong> ${order.orderName || '未知'}<br>
+                    <strong>電話:</strong> ${order.orderPhone || '未知'}<br>
+                    <strong>地址:</strong> ${order.orderShippingAddress || '未知'}<br>
+                    <strong>運費:</strong> NT$ ${(order.shopOrderShipFee || 0).toLocaleString()}<br>
+                    <strong>備註:</strong> ${order.shopOrderNote || '無'}
+                  </div>
+                </div>
+              `;
+                orderItemsContainer.innerHTML = orderInfo;
+
+                // 清空購物車
+                await clearCartNoConfirm();
+              } else {
+                throw new Error(data.message || '無法取得訂單資訊');
+              }
+            } catch (error) {
+              console.error('取得訂單資訊失敗:', error);
+              document.getElementById('success-title').textContent = '無法顯示訂單資訊';
+              document.getElementById('order-items').textContent = '無法載入訂單詳情，請稍後再試';
+              document.getElementById('error-message').textContent = `錯誤：${error.message}`;
+            }
+          } else {
+            console.error('無效訂單參數:', { orderId, isCamp });
+            document.getElementById('success-title').textContent = '無法顯示訂單資訊';
+            document.getElementById('order-items').textContent = '無效的訂單編號或訂單類型';
+            document.getElementById('error-message').textContent = '僅支援商城訂單查詢，請確認訂單編號';
+          }
+        });
     </script>
   </body>
 </html>
