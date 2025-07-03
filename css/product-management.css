@@ -492,12 +492,29 @@ div.modal-content .modal-header h3 {
 }
 
 /* 規格和顏色選擇容器 */
-.spec-selection-container,
+.spec-selection-container {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 40px; /* 從原來的 10px 增加到 40px，增加與顏色選擇器的間距 */
+  width: 100%;
+}
+
 .color-selection-container {
   display: flex;
   flex-direction: column;
   margin-bottom: 10px;
+  margin-top: 20px; /* 新增上邊距，進一步增加與規格選擇器的間距 */
   width: 100%;
+}
+
+/* 添加規格按鈕與表單操作區域之間的間距 */
+.add-new-spec-btn {
+  margin-bottom: 30px; /* 增加下方間距 */
+}
+
+/* 添加顏色按鈕與表單操作區域之間的間距 */
+.add-new-color-btn {
+  margin-bottom: 30px; /* 增加下方間距 */
 }
 
 .spec-select,
@@ -714,4 +731,81 @@ div.modal-content .modal-header h3 {
 
 .notification.fade-out {
   opacity: 0;
+}
+
+/* 按鈕靠右對齊樣式 - 更直觀的版本 */
+#add-new-type-btn,
+.btn-add,
+.add-new-spec-btn,
+.add-new-color-btn,
+.btn-cancel,
+.btn-save {
+  background-color: #4a7c59;
+  color: white;
+  padding: 8px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+/* 取消按鈕樣式 */
+.btn-cancel {
+  background-color: #6c757d;
+}
+
+/* 保存按鈕樣式 */
+.btn-save {
+  background-color: #28a745;
+}
+
+/* 按鈕懸停效果 */
+#add-new-type-btn:hover,
+.btn-add:hover,
+.add-new-spec-btn:hover,
+.add-new-color-btn:hover {
+  background-color: #3a6c49;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.btn-cancel:hover {
+  background-color: #5a6268;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.btn-save:hover {
+  background-color: #218838;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+
+/* 確保表單操作按鈕區域有足夠的間距 */
+.form-actions {
+  margin-top: 30px; /* 從原來的 20px 增加到 30px */
+  padding-top: 25px; /* 從原來的 15px 增加到 25px */
+  border-top: 1px solid #e8f5e8;
+}
+
+/* 商品描述樣式 - 增加與上方內容的間距 */
+.product-description {
+  margin-top: 40px;
+  padding-top: 25px;
+  border-top: 1px solid #e8f5e8;
+}
+
+.product-description h5 {
+  font-size: 18px;
+  color: #2c5530;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.product-description p {
+  line-height: 1.6;
+  color: #555;
+  white-space: pre-line; /* 保留換行符 */
 }
