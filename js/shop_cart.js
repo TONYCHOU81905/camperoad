@@ -146,10 +146,16 @@ async function fetchCartData() {
               // 找到對應的顏色與規格
               const colorInfo = (product.prodColorList || []).find(c => c.prodColorId === item.prodColorId);
               const specInfo = (product.prodSpecList || []).find(s => s.prodSpecId === item.prodSpecId);
+              // 折扣計算
+              const discountRate = product.prodDiscount != null ? product.prodDiscount : 1;
+              const basePrice = specInfo ? specInfo.prodSpecPrice : product.prodPrice;
+              const discountedPrice = Math.round(basePrice * discountRate);
               return {
                 ...item,
                 prodName: product.prodName,
-                prodPrice: specInfo ? specInfo.prodSpecPrice : product.prodPrice,
+                prodPrice: discountedPrice, // 售價用折扣後價格
+                basePrice: basePrice,      // 原價
+                discountRate: discountRate,
                 colorName: colorInfo ? colorInfo.colorName : '',
                 specName: specInfo ? specInfo.prodSpecName : '',
                 prodImage: product.prodImage
@@ -243,13 +249,19 @@ function createCartItemElement(item, colorOptions, specOptions) {
   }
   specSelect += '</select>';
 
+  // 商品價格顯示
+  let priceHtml = `<span class="current-price" data-base-price="${item.prodPrice}" data-discount-rate="${item.discountRate}">NT$ ${item.prodPrice ? item.prodPrice.toLocaleString() : ''}</span>`;
+  if (item.discountRate && item.discountRate < 1 && item.basePrice) {
+    priceHtml += ` <span class="original-price">NT$ ${item.basePrice.toLocaleString()}</span>`;
+  }
+
   itemDiv.innerHTML = `
     <div class="product-info">
       <h3>${item.prodName}</h3>
       <div class="product-color">顏色: ${colorSelect}</div>
       <div class="product-spec">規格: ${specSelect}</div>
       <div class="product-price">
-        <span class="current-price">NT$ ${item.prodPrice ? item.prodPrice.toLocaleString() : ''}</span>
+        ${priceHtml}
       </div>
     </div>
     <div class="quantity-selector">

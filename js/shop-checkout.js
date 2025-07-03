@@ -372,128 +372,71 @@ class CheckoutManager {
 
     try {
       // 計算總金額
-      const totalAmount = this.cartItems.reduce((sum, item) => sum + (item.prodPrice * item.cartProdQty), 0) + 60;
+      const shippingFee = 60;
+      const totalAmount = this.cartItems.reduce((sum, item) => sum + (item.prodPrice * item.cartProdQty), 0) + shippingFee;
 
       // LinePay付款請求參數
       const linepayBody = {
         amount: totalAmount,
         currency: "TWD",
-        packages: this.cartItems.map(item => ({
-          id: `pkg-${item.prodId}`,
-          amount: item.prodPrice * item.cartProdQty,
-          products: [{
-            name: item.prodName || `商品ID:${item.prodId}`,
-            quantity: item.cartProdQty,
-            price: item.prodPrice
-          }]
-        })),
+        packages: [
+          ...this.cartItems.map(item => ({
+            id: `pkg-${item.prodId}`,
+            amount: item.prodPrice * item.cartProdQty,
+            products: [{
+              name: item.prodName || `商品ID:${item.prodId}`,
+              quantity: item.cartProdQty,
+              price: item.prodPrice
+            }]
+          })),
+          {
+            id: "pkg-shipping",
+            amount: shippingFee,
+            products: [{
+              name: "運費",
+              quantity: 1,
+              price: shippingFee
+            }]
+          }
+        ],
         redirectUrls: {
           confirmUrl: `${window.api_prefix}/api/confirmpayment/{orderId}/${isCamp}`,
           cancelUrl: `${window.api_prefix}/linepay-cancel.html`
         }
       };
 
-      // 準備商品資訊（僅商品明細，不含房型/加購/天數等）
-      const products = this.cartItems.map(item => ({
-        name: item.prodName || item.name || `商品ID:${item.prodId}`,
-        quantity: item.cartProdQty,
-        price: item.prodPrice
-      }));
-
-      
-
-      // 構建付款請求參數（保留原有付款/交易相關程式碼）
-      const linepay_body = {
-        amount: totalAmount,
-        currency: "TWD",
-        packages: [
-          {
-            id: "pkg-001",
-            amount: totalAmount,
-            products: products,
-          },
-        ],
-        redirectUrls: {
-          confirmUrl:
-            `${window.api_prefix}/api/confirmpayment/` +
-            orderId +
-            "/true",
-          cancelUrl: `${window.api_prefix}/linepay-cancel.html`,
-        },
-      };
-
-      // 組商品訂單 DTO 所需欄位
-      // 會員ID、收件人資訊、付款/出貨方式、折扣碼等都來自使用者互動
-      const memberInfo = sessionStorage.getItem('memberInfo');
-      const memId = memberInfo ? JSON.parse(memberInfo).memId : null;
-      const orderName = document.getElementById('receiver-name').value;
-      const orderEmail = document.getElementById('receiver-email').value;
-      const orderPhone = document.getElementById('receiver-phone').value;
-      const orderShippingAddress = document.getElementById('receiver-address').value;
-      const shopOrderNote = document.getElementById('order-note').value;
-      const shopOrderShipDate = document.getElementById('ship-date').value; // yyyy-MM-ddTHH:mm
-      const shopOrderShipment = Number(document.querySelector('input[name="shipment"]:checked').value);
-      const shopOrderPayment = Number(document.querySelector('input[name="payment"]:checked').value);
-      const discountCodeId = document.getElementById('discount-code').value || null;
-      const shopOrderStatus = 0;
-      const shopReturnApply = 0;
-      const shopOrderShipFee = 60;
-      const detailsDto = this.cartItems.map(item => ({
-        prodId: item.prodId,
-        shopOrderQty: item.cartProdQty,
-        prodSpecId: item.prodSpecId,
-        prodColorId: item.prodColorId
-      }));
-
-      const shopOrderData = {
-        memId,
-        shopOrderShipment,
-        shopOrderShipFee,
-        discountCodeId,
-        shopOrderPayment,
-        orderName,
-        orderEmail,
-        orderPhone,
-        orderShippingAddress,
-        shopOrderNote,
-        shopOrderShipDate,
-        shopOrderStatus,
-        shopReturnApply,
-        detailsDto
-      };
-
       // 保留付款請求參數與交易流程
       const requestBody = {
-        linepayBody: linepay_body,
-        shopOrder: shopOrderData,
-      };
+        linepayBody,
+        linepayOrder: orderData
+      }
 
       console.log("付款請求參數:", requestBody);
-      console.log("shopOrder:", shopOrderData);
 
-      // 發送請求到伺服器
-      const paymentUrl = await this.sendPaymentRequest(requestBody);
-      console.log("paymentUrl:" + paymentUrl);
+      const response = await fetch(`${window.api_prefix}/api/linepay/${isCamp}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
+      });
 
-      if (paymentUrl) {
-        // 儲存訂單資訊到 localStorage，以便在付款成功後處理
-        localStorage.setItem(
-          "pendingOrder",
-          JSON.stringify({
-            orderId: orderId,
-            items: this.cartItems,
-            totalPrice: totalAmount,
-            customer: orderData.customer,
-          })
-        );
+      if(!response.ok){
+        throw new Error(`HTTP error! status: ${response.status}`);       
+      }
 
-        // 跳轉到付款頁面
-        window.location.href = paymentUrl;
+      const result = await response.json(); 
+      this.isProcessing = false;
+      this.hidePaymentProcessingModal();
+
+      if (result.status === 'success' && result.data) {
+        window.location.href = result.data;
       } else {
-        throw new Error("無法獲取付款網址");
+        throw new Error(result.message || "無法獲取付款網址");
       }
     } catch (error) {
       console.error("付款請求失敗:", error);
+      this.isProcessing = false;
       this.hidePaymentProcessingModal();
       this.handlePaymentFailure({
         errorCode: "API_ERROR",
@@ -503,53 +446,14 @@ class CheckoutManager {
     }
   }
 
-  // 從伺服器獲取訂單ID
-  async getOrderIdFromServer() {
-    try {
-      const response = await fetch(
-        `${window.api_prefix}/api/campsite/newordernumber`
-      );
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const json_data = await response.json();
-      const new_order_num = json_data.data;
-      console.log("newOrderNumber:" + new_order_num);
-
-      return new_order_num;
-    } catch (error) {
-      console.error("獲取訂單ID失敗:", error);
-      return null;
-    }
-  }
-
-  // 發送付款請求到伺服器
-  async sendPaymentRequest(requestBody) {
-    try {
-      const response = await fetch(
-        `${window.api_prefix}/api/linepay/true`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(requestBody),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log("付款回應:", data);
-
-      // 返回付款網址
-      return data.data;
-    } catch (error) {
-      console.error("發送付款請求失敗:", error);
-      return null;
-    }
+  // 處理貨到付款
+  processCODPayment(orderData) {
+    setTimeout(() => {
+      this.hidePaymentProcessingModal();
+      this.showPaymentResultModal(true, {
+        orderNumber: Math.floor(Math.random() * 1000000)
+      });
+    }, 1200);
   }
 
   // 處理付款成功
@@ -596,26 +500,6 @@ class CheckoutManager {
     this.showPaymentResultModal();
   }
 
-  // 創建訂單
-  createOrder(paymentResult) {
-    // 在實際應用中，這裡會發送API請求到伺服器
-    console.log("創建訂單", {
-      orderId: paymentResult.orderId,
-      transactionId: paymentResult.transactionId,
-      paymentMethod: paymentResult.paymentMethod,
-      items: this.cartItems,
-      bundleItems: this.bundleItems,
-      totalPrice: this.totalPrice,
-      customer: {
-        name: document.getElementById("customer-name").value.trim(),
-        phone: document.getElementById("customer-phone").value.trim(),
-        email: document.getElementById("customer-email").value.trim(),
-        address: document.getElementById("customer-address").value.trim(),
-        note: document.getElementById("customer-note").value.trim(),
-      },
-      createdAt: new Date().toISOString(),
-    });
-  }
 
   // 顯示付款處理中彈窗
   showPaymentProcessingModal() {
@@ -639,40 +523,6 @@ class CheckoutManager {
   hidePaymentResultModal() {
     const modal = document.getElementById("payment-result-modal");
     modal.classList.remove("active");
-  }
-
-  // 生成訂單ID
-  generateOrderId() {
-    const timestamp = new Date().getTime();
-    const random = Math.floor(Math.random() * 10000);
-    return `ORD-${timestamp}-${random}`;
-  }
-
-  // 生成交易ID
-  generateTransactionId() {
-    const timestamp = new Date().getTime();
-    const random = Math.floor(Math.random() * 10000);
-    return `TXN-${timestamp}-${random}`;
-  }
-
-  // 格式化日期
-  formatDate(dateString) {
-    const date = new Date(dateString);
-    const year = date.getFullYear();
-    const month = (date.getMonth() + 1).toString().padStart(2, "0");
-    const day = date.getDate().toString().padStart(2, "0");
-    return `${year}/${month}/${day}`;
-  }
-
-  // 新增處理貨到付款方法
-  processCODPayment(orderData) {
-    // 模擬處理流程
-    setTimeout(() => {
-      this.hidePaymentProcessingModal();
-      this.showPaymentResultModal(true, {
-        orderNumber: Math.floor(Math.random() * 1000000)
-      });
-    }, 1200);
   }
 
   // 清空購物車（已登入呼叫API，未登入用sessionCartManager）
