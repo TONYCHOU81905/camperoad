@@ -1070,6 +1070,7 @@ function loadOrderManagement() {
           <option value="4">未取貨，退回賣家</option>
           <option value="5">已取消</option>
           <option value="6">付款失敗</option>
+          <option value="7">付款成功，待賣家確認</option>
         </select>
       </div>
       <div class="filter-group">
@@ -2063,6 +2064,7 @@ function updateShopOrderStatus(orderId, newStatus) {
     4: "已出貨",
     5: "已取貨，完成訂單",
     6: "未取貨，退回賣家 ",
+    7: "付款成功，待賣家確認 "
   };
 
   // 確認更新
@@ -2386,6 +2388,10 @@ function showEditShopOrderModal(orderId) {
     { value: 5, text: "已取消" },
   ];
 
+  const canEditPayment =
+    (order.shopOrderPayment === 2 || order.shopOrderPayment === 3) &&
+    (order.shopOrderStatus === 0 || order.shopOrderStatus === 7);
+
   const paymentOptions = [
     { value: 1, text: order.shopOrderPaymentStr || "LINEPAY" },
     { value: 2, text: "宅配取貨付款" },
@@ -2423,6 +2429,7 @@ function showEditShopOrderModal(orderId) {
     )
     .join("");
 
+
   const shipmentOptionsHtml = shipmentOptions
     .map(
       (option) =>
@@ -2442,7 +2449,7 @@ function showEditShopOrderModal(orderId) {
     .join("");
 
   // 根據後端邏輯決定哪些欄位可以編輯
-  const canEditBasicFields = order.shopOrderStatus === 0; // 只有狀態0可以編輯基本欄位
+  const canEditBasicFields = order.shopOrderStatus === 0 || order.shopOrderStatus === 7; // 只有狀態0或7可以編輯基本欄位
   const canEditStatus = true; // 永遠可以修改訂單狀態
   const canEditReturnApply = order.shopOrderStatus === 3; // 只有狀態3可以編輯退貨申請
   // 根據後端邏輯：出貨日期在訂單狀態為3、4、5時才無法編輯，其他時間都可以編輯
@@ -2475,16 +2482,12 @@ function showEditShopOrderModal(orderId) {
         </div>
         <div class="form-group">
           <label>付款方式</label>
-          <select id="edit-order-payment" ${
-            canEditBasicFields ? "" : "disabled"
-          }>
+          <select id="edit-order-payment" ${canEditPayment ? "" : "disabled"}>
             ${paymentOptionsHtml}
           </select>
-          ${
-            !canEditBasicFields
-              ? '<small style="color: #666;">只有等待賣家確認中的訂單才能修改此欄位</small>'
-              : ""
-          }
+          ${!canEditPayment
+            ? '<small style="color: #666;">只有宅配/超商取貨付款且訂單狀態為等待賣家確認或已取消時才能修改此欄位</small>'
+            : ""}
         </div>
         <div class="form-group">
           <label>出貨方式</label>
@@ -2652,8 +2655,8 @@ async function submitEditShopOrder(orderId) {
     ),
   };
 
-  // 狀態為0時，允許修改基本欄位
-  if (order.shopOrderStatus === 0) {
+  // 狀態為0或7時，允許修改基本欄位
+  if (order.shopOrderStatus === 0 || order.shopOrderStatus === 7) {
     payload.shopOrderPayment = paymentVal !== "" ? Number(paymentVal) : null;
     payload.shopOrderShipment = shipmentVal !== "" ? Number(shipmentVal) : null;
     payload.shopOrderShipFee = shipFeeVal !== "" ? Number(shipFeeVal) : null;

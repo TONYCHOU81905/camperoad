@@ -20,38 +20,8 @@
   </head>
 
   <body>
-    <header class="site-header">
-      <div class="container">
-        <div class="logo">
-          <a href="index.html">
-            <img src="images/logo.svg" alt="露途 Logo" />
-          </a>
-        </div>
-        <nav class="main-nav">
-          <ul>
-            <li><a href="campsites.html">營地預訂</a></li>
-            <li><a href="shop.html">裝備商城</a></li>
-            <li><a href="camp-guides.html">論壇攻略</a></li>
-            <li><a href="user-profile.html">關於我們</a></li>
-          </ul>
-        </nav>
-        <div class="user-actions">
-          <a href="shop_cart.html" class="btn-cart">
-            <i class="fas fa-shopping-cart"></i>
-            <span class="cart-count">0</span>
-          </a>
-          <a href="user-profile.html" class="btn-login"
-            ><i class="fas fa-user"></i
-          ></a>
-        </div>
-        <button class="mobile-menu-toggle">
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
-      </div>
-    </header>
-
+  <div id="header-container"></div>
+  
     <div class="breadcrumb">
       <div class="container">
         <ul>
@@ -96,7 +66,7 @@
                     <input type="radio" name="payment-method" id="line-pay"  value="1" checked />
                     <label for="line-pay">LINE Pay</label>
                     <div class="payment-icons">
-                      <img src="images/line-pay-logo.png" alt="LINE Pay" class="line-pay-icon" />
+                      <img src="images/linepay.png" alt="LINE Pay" class="line-pay-icon" />
                     </div>
                   </div>
                   <div class="payment-method-content">
@@ -120,7 +90,7 @@
                 <div class="payment-method" data-method="cod-cvs">
                   <div class="payment-method-header">
                     <input type="radio" name="payment-method" id="cod-cvs" value="3" />
-                    <label for="cod-cvs">超商取貨付款</label>
+                    <label for="cod-cvs">超商取貨付款(711)</label>
                   </div>
                   <div class="payment-method-content">
                     <div class="line-pay-info">
@@ -142,19 +112,20 @@
                 <div class="shipping-method" data-method="cvs-delivery">
                   <div class="shipping-method-header">
                     <input type="radio" name="shipping-method" id="cvs-delivery" value="2" />
-                    <label for="cvs-delivery">超商取貨</label>
+                    <label for="cvs-delivery">超商取貨(711)</label>
                   </div>
                 </div>
               </div>
 
               <!-- 折扣碼選擇 -->
-              <!-- <div class="form-group" id="discount-code-group">
-                <label for="discount-code">折扣碼</label>
-                <select id="discount-code">
-                  <option value="">請選擇折扣碼</option>
-                  <!-- 由JS動態載入會員可用折扣碼 -->
-                <!-- </select>
-              </div> -->
+              <div class="form-group" id="discount-select-group" style="margin-top: 16px;">
+                <label for="discount-select">使用折價券</label>
+                <select id="discount-select" style="width: 100%;">
+                  <option value="">請選擇折價券</option>
+                  <!-- 由JS動態載入會員可用折價券 -->
+                </select>
+                <div id="discount-info" style="margin-top: 8px; color: #666; font-size: 0.95em;"></div>
+              </div>
 
               <div class="customer-info">
                 <h2>收件人資訊</h2>
@@ -249,51 +220,12 @@
       </div>
     </div>
 
-    <footer class="site-footer">
-      <div class="container">
-        <div class="footer-content">
-          <div class="footer-logo">
-            <img src="images/logo-white.svg" alt="露途 Logo" />
-            <p>探索自然，體驗野趣</p>
-          </div>
-          <div class="footer-links">
-            <div class="footer-column">
-              <h3>關於我們</h3>
-              <ul>
-                <li><a href="#">公司簡介</a></li>
-                <li><a href="#">服務條款</a></li>
-                <li><a href="#">隱私政策</a></li>
-                <li><a href="#">加入我們</a></li>
-              </ul>
-            </div>
-            <div class="footer-column">
-              <h3>客戶服務</h3>
-              <ul>
-                <li><a href="#">常見問題</a></li>
-                <li><a href="#">聯絡我們</a></li>
-                <li><a href="#">退款政策</a></li>
-                <li><a href="#">營地合作</a></li>
-              </ul>
-            </div>
-            <div class="footer-column">
-              <h3>追蹤我們</h3>
-              <div class="social-links">
-                <a href="#"><i class="fab fa-facebook-f"></i></a>
-                <a href="#"><i class="fab fa-instagram"></i></a>
-                <a href="#"><i class="fab fa-twitter"></i></a>
-                <a href="#"><i class="fab fa-youtube"></i></a>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="footer-bottom">
-          <p>&copy; 2023 露途 All Rights Reserved.</p>
-        </div>
-      </div>
-    </footer>
+    <div id="footer-container"></div>
 
+    <script src="js/include.js"></script>
     <script src="js/shop_cart.js"></script>
     <script src="js/camp-data.js"></script>
     <script src="js/shop-checkout.js"></script>
+   
   </body>
 </html>
