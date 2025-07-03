@@ -389,8 +389,8 @@ async function handleOwnerLogin(e) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        owner_acc: ownerAcc,
-        owner_pwd: ownerPwd,
+        ownerAcc: ownerAcc,
+        ownerPwd: ownerPwd,
       }),
       // credentials: "include", // 包含Cookie
     });
