@@ -10,13 +10,13 @@ class CheckoutManager {
       try {
         const member = JSON.parse(memberInfo);
         this.memId = member.mem_id || member.memId;
-        console.log('初始化會員ID:', this.memId, '原始 memberInfo:', memberInfo);
+        // console.log('初始化會員ID:', this.memId, '原始 memberInfo:', memberInfo);
       } catch (e) {
         console.error('解析會員資料失敗:', e);
       }
     }
     if (!this.memId) {
-      console.log('未找到會員資料，跳轉到登入頁面');
+      // console.log('未找到會員資料，跳轉到登入頁面');
       window.location.href = 'login.html';
       return;
     }
@@ -71,11 +71,11 @@ class CheckoutManager {
     const discountSelect = document.getElementById('discount-select');
 
     let discountCodeId = discountSelect ? discountSelect.value : null;
-    console.log('discountSelect 狀態:', {
-      discountSelectExists: !!discountSelect,
-      discountCodeId: discountCodeId || '未選擇折價券',
-      discountMapExists: !!this.discountMap
-    });
+    // console.log('discountSelect 狀態:', {
+    //   discountSelectExists: !!discountSelect,
+    //   discountCodeId: discountCodeId || '未選擇折價券',
+    //   discountMapExists: !!this.discountMap
+    // });
     
     // 折扣計算邏輯
     if (discountCodeId && this.discountMap && this.discountMap[discountCodeId]) {
@@ -112,7 +112,7 @@ class CheckoutManager {
         document.querySelectorAll('.payment-method').forEach(m => m.classList.remove('active'));
         methodElement.classList.add('active');
         if (radio) radio.checked = true;
-        console.log('選擇的付款方式 (點擊):', this.selectedPaymentMethod);
+        // console.log('選擇的付款方式 (點擊):', this.selectedPaymentMethod);
       });
     });
 
@@ -121,7 +121,7 @@ class CheckoutManager {
         this.selectedPaymentMethod = e.target.value;
         document.querySelectorAll('.payment-method').forEach(m => m.classList.remove('active'));
         e.target.closest('.payment-method').classList.add('active');
-        console.log('Radio 選擇的付款方式:', this.selectedPaymentMethod);
+        // console.log('Radio 選擇的付款方式:', this.selectedPaymentMethod);
       });
     });
 
@@ -180,7 +180,7 @@ class CheckoutManager {
       try {
         const resp = await fetch('data/711.json');
         all711Stores = await resp.json();
-        console.log('載入711門市資料:', all711Stores);
+        // console.log('載入711門市資料:', all711Stores);
       } catch (e) {
         console.error('載入711門市資料失敗:', e);
         all711Stores = [];
@@ -195,7 +195,7 @@ class CheckoutManager {
       const cities = [...new Set(all711Stores.map(s => s.city))];
       citySelect.innerHTML = '<option value="">請選擇城市</option>' + cities.map(city => `<option value="${city}">${city}</option>`).join('');
       storeSelect.innerHTML = '<option value="">請先選擇城市</option>';
-      console.log('渲染城市選單:', cities);
+      // console.log('渲染城市選單:', cities);
     }
 
     function renderStoreOptions() {
@@ -206,7 +206,7 @@ class CheckoutManager {
       const city = citySelect.value;
       filteredStores = all711Stores.filter(s => s.city === city);
       storeSelect.innerHTML = '<option value="">請選擇門市</option>' + filteredStores.map(s => `<option value="${s.id}">${s.store}</option>`).join('');
-      console.log('渲染門市選單，城市:', city, '門市數:', filteredStores.length);
+      // console.log('渲染門市選單，城市:', city, '門市數:', filteredStores.length);
     }
 
     function handleStoreSelected() {
@@ -224,9 +224,9 @@ class CheckoutManager {
     }
 
     async function handleCvsSelectVisibility() {
-      console.log('執行 handleCvsSelectVisibility');
+      // console.log('執行 handleCvsSelectVisibility');
       const selectedShipping = document.querySelector('input[name="shipping-method"]:checked')?.value;
-      console.log('選擇的出貨方式:', selectedShipping);
+      // console.log('選擇的出貨方式:', selectedShipping);
       if (!cvsArea) {
         console.error('cvs-select-area 元素未找到');
         return;
@@ -255,14 +255,14 @@ class CheckoutManager {
           renderStoreOptions();
           document.getElementById('customer-address').value = '';
           this.selectedCvsStore = null;
-          console.log('城市選擇變更，重置門市:', this.selectedCvsStore);
+          // console.log('城市選擇變更，重置門市:', this.selectedCvsStore);
         });
         storeSelect.addEventListener('change', handleStoreSelected.bind(this));
         renderCityOptions();
-        console.log('插入711門市下拉選單');
+        // console.log('插入711門市下拉選單');
       } else {
         this.selectedCvsStore = null;
-        console.log('未選擇超商取貨，清空門市選擇');
+        // console.log('未選擇超商取貨，清空門市選擇');
       }
     }
 
@@ -322,7 +322,7 @@ class CheckoutManager {
         alert("請選擇超商門市");
         return false;
       }
-      console.log('驗證時的門市:', this.selectedCvsStore);
+      // console.log('驗證時的門市:', this.selectedCvsStore);
     } else if (!customerAddress) {
       alert("請輸入宅配地址");
       return false;
@@ -341,7 +341,7 @@ class CheckoutManager {
 
     const orderData = this.collectOrderData();
 
-    console.log('處理付款，選擇的付款方式:', this.selectedPaymentMethod, '傳送的 orderData:', orderData);
+    // console.log('處理付款，選擇的付款方式:', this.selectedPaymentMethod, '傳送的 orderData:', orderData);
     if (this.selectedPaymentMethod === "1") {
       this.processServerPayment(orderData, false);
     } else if (this.selectedPaymentMethod === "2" || this.selectedPaymentMethod === "3") {
@@ -358,7 +358,7 @@ class CheckoutManager {
   }
 
   collectOrderData() {
-    console.log('收集訂單資料，當前 memId:', this.memId);
+    // console.log('收集訂單資料，當前 memId:', this.memId);
     const orderName = document.getElementById("customer-name").value.trim();
     const orderPhone = document.getElementById("customer-phone").value.trim();
     const orderEmail = document.getElementById("customer-email").value.trim();
@@ -405,7 +405,7 @@ class CheckoutManager {
   }
 
   async processServerPayment(orderData, isCamp = false) {
-    console.log("處理伺服器付款", orderData);
+    // console.log("處理伺服器付款", orderData);
     try {
       const shippingFee = 60;
       const discountAmount = this.discountAmount || 0;
@@ -420,12 +420,12 @@ class CheckoutManager {
       const totalAmount = this.productTotal + shippingFee - discountAmount;
 
       // 開頭日誌，確認變數狀態
-      console.log('processServerPayment 初始狀態:', {
-        productTotal: this.productTotal,
-        shippingFee,
-        discountAmount,
-        totalAmount
-      });
+      // console.log('processServerPayment 初始狀態:', {
+      //   productTotal: this.productTotal,
+      //   shippingFee,
+      //   discountAmount,
+      //   totalAmount
+      // });
 
       // 驗證總額
       if (totalAmount <= 0) {
@@ -455,33 +455,12 @@ class CheckoutManager {
         }
       };
 
-      // 驗證 packages 總和
-      const packageTotal = linepayBody.packages.reduce((sum, pkg) => sum + pkg.amount, 0);
-      console.log('LinePay 總額驗證:', {
-        linepayBodyAmount: linepayBody.amount,
-        packageTotal: packageTotal,
-        isValid: packageTotal === linepayBody.amount,
-        productTotal: this.productTotal,
-        shippingFee,
-        discountAmount
-      });
-
-      if (packageTotal !== linepayBody.amount) {
-        throw new Error('Packages 總額與 linepayBody.amount 不一致');
-      }
-
-      // 驗證每個 package.amount 是否為正數
-      const invalidPackage = packages.find(pkg => pkg.amount <= 0);
-      if (invalidPackage) {
-        throw new Error(`無效的 package.amount: ${invalidPackage.id} 的金額為 ${invalidPackage.amount}`);
-      }
-
       const requestBody = {
         linepayBody,
         linepayOrder: orderData
       };
 
-      console.log("付款請求參數:", requestBody);
+      // console.log("付款請求參數:", requestBody);
 
       const response = await fetch(`${window.api_prefix}/api/linepay/${isCamp}`, {
         method: "POST",
@@ -500,10 +479,11 @@ class CheckoutManager {
       this.hidePaymentProcessingModal();
 
       if (result.status === 'success' && result.data) {
+        console.log("成功導向 LinePay:", result.data);
         window.location.href = result.data;
       } else {
         throw new Error(result.message || "無法獲取付款網址");
-      }
+      } 
     } catch (error) {
       console.error("付款請求失敗:", error);
       this.isProcessing = false;
@@ -516,7 +496,7 @@ class CheckoutManager {
   }
 
   async processCODPayment(orderData) {
-    console.log('執行 processCODPayment, orderData:', orderData);
+    // console.log('執行 processCODPayment, orderData:', orderData);
     try {
       const response = await fetch(`${window.api_prefix}/api/addShopOrderCOD`, {
         method: 'POST',
@@ -546,6 +526,7 @@ class CheckoutManager {
       document.getElementById("payment-success").classList.add("active");
       document.getElementById("payment-failure").classList.remove("active");
       this.showPaymentResultModal();
+      this.handlePaymentSuccess({ orderId: result.orderId || 'COD_' + Date.now() });
 
     } catch (error) {
       console.error('貨到付款處理失敗:', error);
@@ -558,10 +539,42 @@ class CheckoutManager {
     }
   }
 
-  handlePaymentSuccess(result) {
+  async handlePaymentSuccess(result) {
     console.log("付款成功", result);
     this.isProcessing = false;
     this.hidePaymentProcessingModal();
+
+    // 更新折價券使用時間
+    const discountSelect = document.getElementById('discount-select');
+    const discountCodeId = discountSelect ? discountSelect.value : null;
+    console.log('更新折價券狀態:', {
+      memId: this.memId,
+      discountCodeId: discountCodeId,
+      discountSelectExists: !!discountSelect
+    });
+
+    if (this.memId && discountCodeId) {
+      try {
+        const response = await fetch(`${window.api_prefix}/api/userdiscount/used`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            memId: this.memId,
+            discountCodeId: discountCodeId
+          }),
+        });
+        if (!response.ok) {
+          console.error('更新折價券使用時間失敗:', await response.text());
+        } else {
+          console.log('折價券使用時間更新成功');
+        }
+      } catch (error) {
+        console.error('更新折價券使用時間錯誤:', error);
+      }
+    }
+
     document.getElementById("order-number").textContent = result.orderId;
     const successElement = document.getElementById("payment-success");
     const failureElement = document.getElementById("payment-failure");
@@ -664,10 +677,13 @@ class CheckoutManager {
           const d = this.discountMap[selectedId];
           let typeText = d.discountType === 0 ? `折抵金額：NT$${d.discountValue}` : `折扣：${d.discountValue * 100}%`;
           discountInfoDiv.textContent = `${d.discountExplain}｜${typeText}`;
+          
         } else {
           discountInfoDiv.textContent = '';
           console.log('未選擇有效折價券或 discountMap 未初始化');
         }
+
+        localStorage.setItem('lastDiscountCodeId', document.getElementById('discount-select')?.value);  // 儲存選擇的折價券ID
         this.renderOrderSummary(); // 重新渲染
       });
     } catch (e) {
