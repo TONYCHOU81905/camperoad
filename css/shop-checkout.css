@@ -260,6 +260,8 @@ textarea {
 }
 
 .order-item {
+  width: 100%;
+  box-sizing: border-box;
   display: flex;
   margin-bottom: 15px;
   padding-bottom: 15px;
@@ -496,4 +498,10 @@ textarea {
   background-color: #28527a;
   box-shadow: 0 4px 16px rgba(58,110,165,0.15);
   outline: none;
+}
+
+.order-details {
+  width: 100%;
+  max-width: 600px; /* 或依你設計調整 */
+  margin: 0 auto;
 }
