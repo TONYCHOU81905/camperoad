@@ -1964,26 +1964,38 @@ document.addEventListener("DOMContentLoaded", () => {
 // 登出按鈕事件監聽
 const logoutBtn = document.getElementById("logoutBtn");
 if (logoutBtn) {
-  logoutBtn.addEventListener("click", function (e) {
+  logoutBtn.addEventListener("click", async function (e) {
     e.preventDefault();
 
     // 顯示確認對話框
     if (confirm("確定要登出嗎？")) {
-      // 清除本地儲存的會員資料
-      // 清除所有相關的儲存資料
-      localStorage.removeItem("currentMember");
-      sessionStorage.removeItem("currentMember");
-      // 也清除可能的其他相關資料
-      localStorage.removeItem("memberRememberMe");
-      sessionStorage.removeItem("memberRememberMe");
+      try {
+        const response = await fetch(`${window.api_prefix}/api/member/logout`, {
+          method: "POST",
+          credentials: "include", // 包含Cookie，讓後端 session 正確失效
+        });
+        if (!response.ok) {
+          throw new Error(`登出失敗：${response.status}`);
+        }
+        const result = await response.text();
+        // 可根據後端回傳格式調整
+        alert(result || "登出成功");
+        // 清除 localStorage/sessionStorage
+        localStorage.removeItem("currentMember");
+        sessionStorage.removeItem("currentMember");
+        localStorage.removeItem("memberRememberMe");
+        sessionStorage.removeItem("memberRememberMe");
 
-      // 顯示登出成功訊息
-      showMessage("已成功登出", "success");
+        // 顯示登出成功訊息
+        showMessage("已成功登出", "success");
 
-      // 延遲跳轉到首頁
-      setTimeout(() => {
-        window.location.href = "index.html";
-      }, 1500);
+        // 跳轉到登入頁
+        setTimeout(() => {
+          window.location.href = "index.html";
+        }, 500);
+      } catch (error) {
+        alert(`登出失敗：${error.message}`);
+      }
     }
   });
 }
@@ -2303,7 +2315,11 @@ function viewShopOrderDetail(orderId) {
           const btnReturn = document.getElementById("btn-return-order");
           if (btnCancel) btnCancel.style.display = "none";
           if (btnReturn) btnReturn.style.display = "none";
-          if (order.shopOrderStatus === 0 || order.shopOrderStatus === 1 || order.shopOrderStatus === 7) {
+          if (
+            order.shopOrderStatus === 0 ||
+            order.shopOrderStatus === 1 ||
+            order.shopOrderStatus === 7
+          ) {
             btnCancel.style.display = "";
           }
 

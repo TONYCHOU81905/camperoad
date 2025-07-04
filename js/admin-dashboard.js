@@ -174,8 +174,6 @@ async function loadAllData() {
       shopOrderDetailsData = [];
     }
 
-    
-
     // 載入營地檢舉資料
     try {
       const campReportsResponse = await fetch("data/camp_report.json");
@@ -201,9 +199,6 @@ async function loadAllData() {
       console.log("重新載入商品訂單管理頁面");
       loadOrderManagement();
     }
-
-  
-
   } catch (error) {
     console.error("資料載入失敗:", error);
     alert("資料載入失敗，請重新整理頁面");
@@ -1431,11 +1426,12 @@ function updateShopOrdersTable(orders, pageNumber = 1) {
   window.currentOrderPage = currentPage;
 }
 
-
 // 載入折價券資料
 async function fetchDiscountList() {
   try {
-    const discountResponse = await fetch(`${window.api_prefix}/api/discount/all`);
+    const discountResponse = await fetch(
+      `${window.api_prefix}/api/discount/all`
+    );
     discountCodesData = await discountResponse.json();
     console.log("折價券資料", discountCodesData);
   } catch (error) {
@@ -1444,13 +1440,13 @@ async function fetchDiscountList() {
   }
 
   console.log("目前折價券筆數：", discountCodesData.length);
-  console.log("discount-table-body 是否存在：", !!document.getElementById("discount-table-body"));
-
+  console.log(
+    "discount-table-body 是否存在：",
+    !!document.getElementById("discount-table-body")
+  );
 
   loadDiscountTable(); // ⬅️ 抓完資料後渲染表格
 }
-
-
 
 // 載入折價券管理
 function loadDiscountManagement() {
@@ -1523,9 +1519,8 @@ function loadDiscountManagement() {
         </div>
     `;
 
-    fetchDiscountList(); // ✅ 抓資料 + 渲染畫面;
+  fetchDiscountList(); // ✅ 抓資料 + 渲染畫面;
 }
-
 
 //折價券日期轉換
 function formatDate(dateString) {
@@ -1541,18 +1536,15 @@ function formatDate(dateString) {
   return `${year}-${month}-${day}`;
 }
 
-
 let isDiscountFormBound = false;
 // 載入折價券表格
 function loadDiscountTable() {
-
   // 失效日期由遠到近排序
   discountCodesData.sort((a, b) => {
     const dateA = new Date(a.endDate);
     const dateB = new Date(b.endDate);
-    return dateB - dateA; 
+    return dateB - dateA;
   });
-
 
   const tbody = document.getElementById("discount-table-body");
   if (!tbody) return;
@@ -1574,7 +1566,6 @@ function loadDiscountTable() {
   console.log("discountCodesData", discountCodesData);
 
   discountCodesData.forEach((discount, index) => {
-    
     const currentDate = new Date();
     const endDate = new Date(discount.endDate);
     const isActive = endDate > currentDate;
@@ -1619,18 +1610,18 @@ function loadDiscountTable() {
                 : `
               <span class="text-muted">已過期</span>
               `
-              }
+            }
             </td>
         `;
     tbody.appendChild(row);
 
     // 折疊區塊（預設隱藏）
-  const detailRow = document.createElement("tr");
-  detailRow.classList.add("discount-details-row");
-  detailRow.style.display = "none";
-  detailRow.id = `detail-row-${index}`;
+    const detailRow = document.createElement("tr");
+    detailRow.classList.add("discount-details-row");
+    detailRow.style.display = "none";
+    detailRow.id = `detail-row-${index}`;
 
-  detailRow.innerHTML = `
+    detailRow.innerHTML = `
     <td colspan="7" class="discount-detail-cell">
       <div><strong>折價券編號：</strong>${discount.discountCodeId}</div>
       <div><strong>折扣類型：</strong>${discountTypeText}</div>
@@ -1639,8 +1630,7 @@ function loadDiscountTable() {
     </td>
   `;
 
-  tbody.appendChild(detailRow);
-
+    tbody.appendChild(detailRow);
   });
 }
 
@@ -1655,7 +1645,6 @@ function toggleDetails(index) {
 
   toggleBtn.classList.toggle("expanded", !isVisible);
 }
-
 
 // 顯示建立折價券表單
 function showCreateDiscountForm() {
@@ -1679,32 +1668,33 @@ function showCreateDiscountForm() {
     }
   });
 
+  const typeSelect = document.querySelector('select[name="type"]');
+  const valueInput = document.querySelector('input[name="value"]');
 
-    const typeSelect = document.querySelector('select[name="type"]');
-    const valueInput = document.querySelector('input[name="value"]');
-  
-    typeSelect.addEventListener("change", function () {
-      if (this.value === "percentage") {
-        valueInput.step = "0.1";
-        valueInput.min = "0.1";
-        valueInput.max = "100";
-        valueInput.placeholder = "請輸入百分比（例如 12.5）";
-      } else {
-        valueInput.step = "1";
-        valueInput.min = "1";
-        valueInput.removeAttribute("max");
-        valueInput.placeholder = "請輸入整數金額";
-      }
-  
-      valueInput.value = "";
-    });
-  
-    // ✅ 預設觸發一次以設定初始格式
-    typeSelect.dispatchEvent(new Event("change"));
+  typeSelect.addEventListener("change", function () {
+    if (this.value === "percentage") {
+      valueInput.step = "0.1";
+      valueInput.min = "0.1";
+      valueInput.max = "100";
+      valueInput.placeholder = "請輸入百分比（例如 12.5）";
+    } else {
+      valueInput.step = "1";
+      valueInput.min = "1";
+      valueInput.removeAttribute("max");
+      valueInput.placeholder = "請輸入整數金額";
+    }
 
-     // ✅ 只綁定一次 submit 事件
-    if (!isDiscountFormBound) {
-      document.getElementById("discountForm").addEventListener("submit", function (e) {
+    valueInput.value = "";
+  });
+
+  // ✅ 預設觸發一次以設定初始格式
+  typeSelect.dispatchEvent(new Event("change"));
+
+  // ✅ 只綁定一次 submit 事件
+  if (!isDiscountFormBound) {
+    document
+      .getElementById("discountForm")
+      .addEventListener("submit", function (e) {
         e.preventDefault();
         createDiscount();
       });
@@ -1773,7 +1763,7 @@ function createDiscount() {
     startDate: startDate,
     endDate: endDate,
     adminId: currentAdmin.adminId,
-    ownerId: null
+    ownerId: null,
   };
 
   // 若是編輯，補上 discountCodeId
@@ -1790,42 +1780,41 @@ function createDiscount() {
   fetch(url, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
     },
-    body: JSON.stringify(newDiscount)
+    body: JSON.stringify(newDiscount),
   })
-    .then(response => {
+    .then((response) => {
       if (!response.ok) {
-        return response.json().then(err => {
+        return response.json().then((err) => {
           throw new Error(err.message || (isEdit ? "更新失敗" : "新增失敗"));
         });
       }
       return response.json();
     })
-    .then(data => {
+    .then((data) => {
       alert(successMessage);
       hideCreateDiscountForm();
       form.reset();
       // 你可重新呼叫 API 載入折價券資料（如果有）
-      fetchDiscountList(); 
+      fetchDiscountList();
       // 重置編輯狀態
       isEdit = false;
       currentEditDiscountId = null;
     })
-    .catch(error => {
+    .catch((error) => {
       alert(error.message);
     });
-
-
 }
 
 // 編輯折價券
 function editDiscount(discountCodeId) {
-  
   isEdit = true;
- currentEditDiscountId = discountCodeId
-  
-  const discount = discountCodesData.find(d => d.discountCodeId === discountCodeId);
+  currentEditDiscountId = discountCodeId;
+
+  const discount = discountCodesData.find(
+    (d) => d.discountCodeId === discountCodeId
+  );
   if (!discount) {
     alert("找不到此折價券資料");
     return;
@@ -1843,7 +1832,8 @@ function editDiscount(discountCodeId) {
   // 將資料填入表單欄位
   form.elements["code"].value = discount.discountCode;
   form.elements["explain"].value = discount.discountExplain;
-  form.elements["type"].value = discount.discountType === 1 ? "percentage" : "fixed";
+  form.elements["type"].value =
+    discount.discountType === 1 ? "percentage" : "fixed";
   form.elements["value"].value =
     discount.discountType === 1
       ? discount.discountValue * 100
@@ -1860,9 +1850,6 @@ function editDiscount(discountCodeId) {
   // 重新觸發折扣類型格式調整
   form.elements["type"].dispatchEvent(new Event("change"));
 }
-
-
-
 
 // 聊天視窗相關功能
 function openChatWindow(reportId) {
@@ -1939,14 +1926,43 @@ function sendMessage() {
 }
 
 // 登出功能
-function logout() {
-  if (confirm("確定要登出嗎？")) {
-    // 清除儲存的管理員資料
-    localStorage.removeItem("currentAdmin");
-    sessionStorage.removeItem("currentAdmin");
+// function logout() {
+//   if (confirm("確定要登出嗎？")) {
+//     // 清除儲存的管理員資料
+//     localStorage.removeItem("currentAdmin");
+//     sessionStorage.removeItem("currentAdmin");
 
-    // 跳轉到登入頁面
-    window.location.href = "login.html";
+//     // 跳轉到登入頁面
+//     window.location.href = "login.html";
+//   }
+// }
+
+// 新增：登出 API 呼叫
+async function logout() {
+  if (confirm("確定要登出嗎？")) {
+    try {
+      const response = await fetch(`${window.api_prefix}/api/admin/logout`, {
+        method: "POST",
+        credentials: "include", // 包含Cookie，讓後端 session 正確失效
+      });
+      if (!response.ok) {
+        throw new Error(`登出失敗：${response.status}`);
+      }
+      const result = await response.text();
+      // 可根據後端回傳格式調整
+      alert(result || "登出成功");
+      // 清除 localStorage/sessionStorage
+      localStorage.removeItem("currentAdmin");
+      sessionStorage.removeItem("currentAdmin");
+      localStorage.removeItem("adminRememberMe");
+      sessionStorage.removeItem("adminRememberMe");
+      // 跳轉到登入頁
+      setTimeout(() => {
+        window.location.href = "index.html";
+      }, 500);
+    } catch (error) {
+      alert(`登出失敗：${error.message}`);
+    }
   }
 }
 
@@ -2263,7 +2279,7 @@ function updateShopOrderStatus(orderId, newStatus) {
     4: "已出貨",
     5: "已取貨，完成訂單",
     6: "未取貨，退回賣家 ",
-    7: "付款成功，待賣家確認 "
+    7: "付款成功，待賣家確認 ",
   };
 
   // 確認更新
@@ -2628,7 +2644,6 @@ function showEditShopOrderModal(orderId) {
     )
     .join("");
 
-
   const shipmentOptionsHtml = shipmentOptions
     .map(
       (option) =>
@@ -2648,7 +2663,8 @@ function showEditShopOrderModal(orderId) {
     .join("");
 
   // 根據後端邏輯決定哪些欄位可以編輯
-  const canEditBasicFields = order.shopOrderStatus === 0 || order.shopOrderStatus === 7; // 只有狀態0或7可以編輯基本欄位
+  const canEditBasicFields =
+    order.shopOrderStatus === 0 || order.shopOrderStatus === 7; // 只有狀態0或7可以編輯基本欄位
   const canEditStatus = true; // 永遠可以修改訂單狀態
   const canEditReturnApply = order.shopOrderStatus === 3; // 只有狀態3可以編輯退貨申請
   // 根據後端邏輯：出貨日期在訂單狀態為3、4、5時才無法編輯，其他時間都可以編輯
@@ -2684,9 +2700,11 @@ function showEditShopOrderModal(orderId) {
           <select id="edit-order-payment" ${canEditPayment ? "" : "disabled"}>
             ${paymentOptionsHtml}
           </select>
-          ${!canEditPayment
-            ? '<small style="color: #666;">只有宅配/超商取貨付款且訂單狀態為等待賣家確認或已取消時才能修改此欄位</small>'
-            : ""}
+          ${
+            !canEditPayment
+              ? '<small style="color: #666;">只有宅配/超商取貨付款且訂單狀態為等待賣家確認或已取消時才能修改此欄位</small>'
+              : ""
+          }
         </div>
         <div class="form-group">
           <label>出貨方式</label>
