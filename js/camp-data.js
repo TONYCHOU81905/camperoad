@@ -1,5 +1,6 @@
 // 營地資料管理和購物車功能
 window.campData = [];
+// window.api_prefix = "http://localhost:8080";
 window.api_prefix = "http://localhost:8081/CJA101G02";
 let cartItems = [];
 let memberData = [];
@@ -7,13 +8,18 @@ let currentMember = null;
 
 // 載入營地資料
 async function loadCampData() {
+  console.log(window.location.origin);
   try {
     // const response = await fetch("http://localhost:8081/CJA101G02/api/camps");
     // console.log("response:", response);
     // const json = await response.json();
     // window.campData = json.data; // 這裡就是你要的陣列
     // console.log(window.campData);
-    const response = await fetch(`${window.api_prefix}/api/getallcamps`);
+    // const response = await fetch(`${window.api_prefix}/api/getallcamps`);
+    const response = await fetch(`${window.api_prefix}/api/getallcamps`, {
+      method: "GET",
+      // credentials: "include",
+    });
     const campDataJson = await response.json();
     window.campData = campDataJson.data;
     console.log("營地資料載入成功:", window.campData.length, "筆資料");
