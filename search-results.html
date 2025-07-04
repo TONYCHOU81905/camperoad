@@ -1,90 +1,85 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>搜尋結果 - 露途</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
-    <link rel="stylesheet" href="css/style.css" />
-    <link rel="stylesheet" href="css/search-results.css" />
-  </head>
-  <body>
-    <header class="site-header">
-      <div class="container">
-        <div class="logo">
-          <a href="index.html">
-            <img src="images/logo.svg" alt="露途 Logo" />
-          </a>
-        </div>
-        <nav class="main-nav">
-          <ul>
-            <li><a href="campsites.html" class="active">營地預訂</a></li>
-            <li><a href="shop.html">裝備商城</a></li>
-            <li><a href="camp-guides.html">論壇攻略</a></li>
-            <li><a href="#">關於我們</a></li>
-          </ul>
-        </nav>
-        <div class="user-actions">
-          <a href="camp_cart.html" class="btn-cart"
-            ><i class="fas fa-shopping-cart"></i
-            ><span class="cart-count">0</span></a
-          >
-          <!-- <a href="user-profile.html" class="btn-login"
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>搜尋結果 - 露途</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/search-results.css" />
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="container">
+      <div class="logo">
+        <a href="index.html">
+          <img src="images/logo.svg" alt="露途 Logo" />
+        </a>
+      </div>
+      <nav class="main-nav">
+        <ul>
+          <li><a href="campsites.html" class="active">營地預訂</a></li>
+          <li><a href="shop.html">裝備商城</a></li>
+          <li><a href="article-type.html">論壇攻略</a></li>
+          <li><a href="#">關於我們</a></li>
+        </ul>
+      </nav>
+      <div class="user-actions">
+        <a href="camp_cart.html" class="btn-cart"><i class="fas fa-shopping-cart"></i><span
+            class="cart-count">0</span></a>
+        <!-- <a href="user-profile.html" class="btn-login"
             ><i class="fas fa-user"></i
           ></a> -->
-          <a href="user-profile.html" class="btn-login">登入 / 註冊</a>
-        </div>
-        <button class="mobile-menu-toggle">
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
+        <a href="user-profile.html" class="btn-login">登入 / 註冊</a>
       </div>
-    </header>
-
-    <div class="breadcrumb">
-      <div class="container">
-        <ul>
-          <li><a href="index.html">首頁</a></li>
-          <!-- <li><a href="campsites.html">營地預訂</a></li> -->
-          <li>搜尋結果</li>
-        </ul>
-      </div>
+      <button class="mobile-menu-toggle">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
     </div>
+  </header>
 
-    <section class="search-results-header">
-      <div class="container">
-        <div class="results-title">
-          <h1>搜尋結果</h1>
-          <div class="search-summary">
-            <p>
-              符合您搜尋條件的營地：<strong id="results-count">6</strong> 個
-            </p>
-          </div>
+  <div class="breadcrumb">
+    <div class="container">
+      <ul>
+        <li><a href="index.html">首頁</a></li>
+        <!-- <li><a href="campsites.html">營地預訂</a></li> -->
+        <li>搜尋結果</li>
+      </ul>
+    </div>
+  </div>
+
+  <section class="search-results-header">
+    <div class="container">
+      <div class="results-title">
+        <h1>搜尋結果</h1>
+        <div class="search-summary">
+          <p>
+            符合您搜尋條件的營地：<strong id="results-count">6</strong> 個
+          </p>
         </div>
-        <div class="search-criteria">
-          <div class="criteria-item" id="location-criteria">
-            <span class="criteria-label">地區：</span>
-            <span class="criteria-value">北部</span>
-          </div>
-          <div class="criteria-item" id="date-criteria">
-            <span class="criteria-label">日期：</span>
-            <span class="criteria-value">無設定</span>
-          </div>
-          <div class="criteria-item" id="guests-criteria">
-            <span class="criteria-label">人數：</span>
-            <span class="criteria-value">4人</span>
-          </div>
-          <!-- <div class="criteria-item" id="price-criteria">
+      </div>
+      <div class="search-criteria">
+        <div class="criteria-item" id="location-criteria">
+          <span class="criteria-label">地區：</span>
+          <span class="criteria-value">北部</span>
+        </div>
+        <div class="criteria-item" id="date-criteria">
+          <span class="criteria-label">日期：</span>
+          <span class="criteria-value">無設定</span>
+        </div>
+        <div class="criteria-item" id="guests-criteria">
+          <span class="criteria-label">人數：</span>
+          <span class="criteria-value">4人</span>
+        </div>
+        <!-- <div class="criteria-item" id="price-criteria">
             <span class="criteria-label">價格範圍：</span>
             <span class="criteria-value">NT$2,000 - NT$5,000</span>
           </div>
@@ -92,56 +87,54 @@
             <span class="criteria-label">特色：</span>
             <span class="criteria-value">山景, 溪流, 觀星</span>
           </div> -->
-        </div>
-        <a href="index.html" class="btn-modify-search" id="btn-modify-search"
-          >修改搜尋條件</a
-        >
       </div>
-    </section>
+      <a href="index.html" class="btn-modify-search" id="btn-modify-search">修改搜尋條件</a>
+    </div>
+  </section>
 
-    <section class="campsites-results">
-      <div class="container">
-        <div class="results-header">
-          <div class="results-count">
-            <span>共 <strong id="total-results">6</strong> 個營地</span>
-          </div>
-          <div class="results-sort">
-            <label for="sort-by">排序方式：</label>
-            <select id="sort-by" name="sort-by">
-              <option value="popular">熱門程度</option>
-              <option value="price-low">價格由低至高</option>
-              <option value="price-high">價格由高至低</option>
-              <option value="rating">評價最高</option>
-              <option value="new">最新上架</option>
-            </select>
-          </div>
+  <section class="campsites-results">
+    <div class="container">
+      <div class="results-header">
+        <div class="results-count">
+          <span>共 <strong id="total-results">6</strong> 個營地</span>
         </div>
-
-        <div class="camp-cards" id="search-results">
-          <!-- 搜尋結果將在這裡動態生成 -->
-        </div>
-
-        <!-- 無搜尋結果時顯示 -->
-        <div class="no-results" id="no-results" style="display: none">
-          <div class="no-results-icon">
-            <i class="fas fa-search"></i>
-          </div>
-          <h2>沒有符合條件的營地</h2>
-          <p>請嘗試調整您的搜尋條件，或查看我們的熱門營地推薦。</p>
-          <a href="campsites.html" class="btn-cta">瀏覽所有營地</a>
-        </div>
-
-        <div class="pagination" id="pagination">
-          <a href="#" class="active">1</a>
-          <a href="#">2</a>
-          <a href="#">3</a>
-          <a href="#">4</a>
-          <a href="#"><i class="fas fa-chevron-right"></i></a>
+        <div class="results-sort">
+          <label for="sort-by">排序方式：</label>
+          <select id="sort-by" name="sort-by">
+            <option value="popular">熱門程度</option>
+            <option value="price-low">價格由低至高</option>
+            <option value="price-high">價格由高至低</option>
+            <option value="rating">評價最高</option>
+            <option value="new">最新上架</option>
+          </select>
         </div>
       </div>
-    </section>
 
-    <!-- <section class="camping-tips">
+      <div class="camp-cards" id="search-results">
+        <!-- 搜尋結果將在這裡動態生成 -->
+      </div>
+
+      <!-- 無搜尋結果時顯示 -->
+      <div class="no-results" id="no-results" style="display: none">
+        <div class="no-results-icon">
+          <i class="fas fa-search"></i>
+        </div>
+        <h2>沒有符合條件的營地</h2>
+        <p>請嘗試調整您的搜尋條件，或查看我們的熱門營地推薦。</p>
+        <a href="campsites.html" class="btn-cta">瀏覽所有營地</a>
+      </div>
+
+      <div class="pagination" id="pagination">
+        <a href="#" class="active">1</a>
+        <a href="#">2</a>
+        <a href="#">3</a>
+        <a href="#">4</a>
+        <a href="#"><i class="fas fa-chevron-right"></i></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- <section class="camping-tips">
       <div class="container">
         <h2 class="section-title">露營小知識</h2>
         <div class="tips-cards">
@@ -179,82 +172,79 @@
       </div>
     </section> -->
 
-    <footer class="site-footer">
-      <div class="container">
-        <div class="footer-content">
-          <div class="footer-logo">
-            <img src="images/logo-white.svg" alt="露途 Logo" />
-            <p>探索自然，體驗野趣</p>
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-logo">
+          <img src="images/logo-white.svg" alt="露途 Logo" />
+          <p>探索自然，體驗野趣</p>
+        </div>
+        <div class="footer-links">
+          <div class="footer-column">
+            <h3>關於我們</h3>
+            <ul>
+              <li><a href="#">公司簡介</a></li>
+              <li><a href="#">服務條款</a></li>
+              <li><a href="#">隱私政策</a></li>
+              <li><a href="#">加入我們</a></li>
+            </ul>
           </div>
-          <div class="footer-links">
-            <div class="footer-column">
-              <h3>關於我們</h3>
-              <ul>
-                <li><a href="#">公司簡介</a></li>
-                <li><a href="#">服務條款</a></li>
-                <li><a href="#">隱私政策</a></li>
-                <li><a href="#">加入我們</a></li>
-              </ul>
-            </div>
-            <div class="footer-column">
-              <h3>營地資訊</h3>
-              <ul>
-                <li><a href="#">北部營地</a></li>
-                <li><a href="#">中部營地</a></li>
-                <li><a href="#">南部營地</a></li>
-                <li><a href="#">東部營地</a></li>
-              </ul>
-            </div>
-            <div class="footer-column">
-              <h3>商城服務</h3>
-              <ul>
-                <li><a href="#">裝備租借</a></li>
-                <li><a href="#">全新商品</a></li>
-                <li><a href="#">二手市集</a></li>
-                <li><a href="#">配送說明</a></li>
-              </ul>
-            </div>
-            <div class="footer-column">
-              <h3>幫助中心</h3>
-              <ul>
-                <li><a href="#">常見問題</a></li>
-                <li><a href="#">預訂指南</a></li>
-                <li><a href="#">聯絡客服</a></li>
-                <li><a href="#">緊急協助</a></li>
-              </ul>
-            </div>
+          <div class="footer-column">
+            <h3>營地資訊</h3>
+            <ul>
+              <li><a href="#">北部營地</a></li>
+              <li><a href="#">中部營地</a></li>
+              <li><a href="#">南部營地</a></li>
+              <li><a href="#">東部營地</a></li>
+            </ul>
+          </div>
+          <div class="footer-column">
+            <h3>商城服務</h3>
+            <ul>
+              <li><a href="#">裝備租借</a></li>
+              <li><a href="#">全新商品</a></li>
+              <li><a href="#">二手市集</a></li>
+              <li><a href="#">配送說明</a></li>
+            </ul>
+          </div>
+          <div class="footer-column">
+            <h3>幫助中心</h3>
+            <ul>
+              <li><a href="#">常見問題</a></li>
+              <li><a href="#">預訂指南</a></li>
+              <li><a href="#">聯絡客服</a></li>
+              <li><a href="#">緊急協助</a></li>
+            </ul>
           </div>
         </div>
-        <div class="footer-bottom">
-          <div class="social-links">
-            <a href="#"><i class="fab fa-facebook-f"></i></a>
-            <a href="#"><i class="fab fa-instagram"></i></a>
-            <a href="#"><i class="fab fa-youtube"></i></a>
-            <a href="#"><i class="fab fa-line"></i></a>
-          </div>
-          <p class="copyright">© 2023 露途 All Rights Reserved.</p>
+      </div>
+      <div class="footer-bottom">
+        <div class="social-links">
+          <a href="#"><i class="fab fa-facebook-f"></i></a>
+          <a href="#"><i class="fab fa-instagram"></i></a>
+          <a href="#"><i class="fab fa-youtube"></i></a>
+          <a href="#"><i class="fab fa-line"></i></a>
         </div>
+        <p class="copyright">© 2023 露途 All Rights Reserved.</p>
       </div>
-    </footer>
-
-    <div class="loading-overlay">
-      <div class="loading-animation">
-        <svg class="pine-cone" width="60" height="60" viewBox="0 0 60 60">
-          <!-- 松果動畫將在CSS中實現 -->
-          <circle cx="30" cy="30" r="25" fill="#3A5A40" />
-          <path
-            class="pine-cone-scale"
-            d="M30,5 L35,15 L25,15 Z"
-            fill="#A68A64"
-          />
-          <!-- 更多松果鱗片將在JavaScript中動態生成 -->
-        </svg>
-      </div>
-      <p>載入中，請稍候...</p>
     </div>
+  </footer>
 
-    <!-- <script src="js/main.js"></script> -->
-    <script src="js/camp-data.js"></script>
-    <script src="js/search-results.js"></script>
-  </body>
+  <div class="loading-overlay">
+    <div class="loading-animation">
+      <svg class="pine-cone" width="60" height="60" viewBox="0 0 60 60">
+        <!-- 松果動畫將在CSS中實現 -->
+        <circle cx="30" cy="30" r="25" fill="#3A5A40" />
+        <path class="pine-cone-scale" d="M30,5 L35,15 L25,15 Z" fill="#A68A64" />
+        <!-- 更多松果鱗片將在JavaScript中動態生成 -->
+      </svg>
+    </div>
+    <p>載入中，請稍候...</p>
+  </div>
+
+  <!-- <script src="js/main.js"></script> -->
+  <script src="js/camp-data.js"></script>
+  <script src="js/search-results.js"></script>
+</body>
+
 </html>
