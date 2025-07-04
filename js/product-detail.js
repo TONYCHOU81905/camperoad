@@ -4,7 +4,6 @@
 document.addEventListener('DOMContentLoaded', function() {
   // 獲取加入購物車按鈕
   const addToCartBtn = document.querySelector('.btn-add-cart');
-  const buyNowBtn = document.querySelector('.btn-buy-now');
   const addWishlistBtn = document.querySelector('.btn-add-wishlist');
   
   // 獲取商品ID (從URL參數中獲取)
@@ -21,13 +20,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
-  // 綁定立即購買按鈕點擊事件
-  if (buyNowBtn) {
-    buyNowBtn.addEventListener('click', function() {
-      addToCart(true);
-    });
-  }
-  
   // 綁定加入收藏按鈕點擊事件
   if (addWishlistBtn) {
     addWishlistBtn.addEventListener('click', function() {
@@ -37,30 +29,59 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   // 初始化商品詳情頁面
-  function initProductDetail() {
-    if (!productId) {
-      console.error('未找到商品ID');
-      return;
-    }
-    
-    // 載入商品詳情
-    loadProductDetail(productId);
-    
-    // 綁定顏色選擇事件
-    bindColorOptions();
-    
-    // 綁定數量選擇事件
-    bindQuantitySelectors();
+function initProductDetail() {
+  if (!productId) {
+    console.error('未找到商品ID');
+    return;
   }
   
   // 載入商品詳情
+  loadProductDetail(productId);
+  
+  // 綁定顏色選擇事件
+  bindColorOptions();
+  
+  // 綁定數量選擇事件
+  bindQuantitySelectors();
+  
+  // 綁定購買方式選擇事件
+  bindPurchaseTypeOptions();
+  
+  // 綁定縮圖點擊事件
+  bindThumbnailEvents();
+  
+  // 綁定標籤頁切換事件
+  bindTabEvents();
+  
+  // 載入相關商品推薦
+  loadRelatedProducts();
+}
+  
+  // 載入商品詳情
   function loadProductDetail(prodId) {
+
+    // 顯示載入中狀態
+    showLoading();
+
     fetch(`${window.api_prefix}/api/products/${prodId}`)
       .then(response => response.json())
       .then(data => {
+        
         if (data.status === 'success' && data.data) {
           const product = data.data;
           updateProductInfo(product);
+
+          // 更新商品圖片
+          updateProductImages(product.prodPicList || []);
+          // 更新商品描述和規格
+          updateProductDescription(product);
+          // 載入商品評論
+          loadProductReviews(prodId);
+          console.log('載入商品資料：', product);
+
+        } else {
+          console.error('載入商品詳情失敗:', data.message || '未知錯誤');
+          showError('無法載入商品資訊');
         }
       })
       .catch(error => {
@@ -70,7 +91,7 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // 更新商品資訊
   function updateProductInfo(product) {
-    // 更新商品標題
+  // 更新商品標題
     const titleElement = document.querySelector('.product-title');
     if (titleElement) {
       titleElement.textContent = product.prodName;
@@ -80,71 +101,394 @@ document.addEventListener('DOMContentLoaded', function() {
     const currentPriceElement = document.querySelector('.current-price');
     const originalPriceElement = document.querySelector('.original-price');
     if (currentPriceElement && originalPriceElement) {
-      const hasDiscount = product.prodDiscount !== null && product.prodDiscount > 0;
-      const originalPrice = product.prodPrice;
-      const discountedPrice = hasDiscount ? product.prodDiscount : originalPrice;
-      
+      // 假設預設顯示第一個規格價格
+      const firstSpec = product.prodSpecList && product.prodSpecList[0];
+      const originalPrice = firstSpec ? firstSpec.prodSpecPrice : 0;
+      const discountRate = product.prodDiscount ?? 1;
+      const discountedPrice = Math.round(originalPrice * discountRate);
+      const hasDiscount = discountRate > 0 && discountRate < 1;
+    
       currentPriceElement.textContent = `NT$ ${discountedPrice.toLocaleString()}`;
       originalPriceElement.textContent = `NT$ ${originalPrice.toLocaleString()}`;
       originalPriceElement.style.display = hasDiscount ? 'inline' : 'none';
+    
+      if (discountTagElement) {
+        discountTagElement.style.display = hasDiscount ? 'inline-block' : 'none';
+      }
+    
+      // 為後續選擇規格動態計算折扣價做準備
+      currentPriceElement.dataset.discountRate = discountRate;
     }
+    
+    // 更新評分
+    updateRating(product.prodRating || 0, product.prodRatingCount || 0);
     
     // 更新顏色選項
     updateColorOptions(product.prodColorList || []);
     
     // 更新規格選項
     updateSpecOptions(product.prodSpecList || []);
+    
+    // 更新麵包屑導航
+    updateBreadcrumb(product);
+  }
+  
+  // 更新評分
+  function updateRating(rating, count) {
+    const ratingElement = document.querySelector('.product-rating');
+    if (!ratingElement) return;
+    
+    // 生成星星HTML
+    const starsHtml = generateStarsHtml(rating);
+    ratingElement.innerHTML = `${starsHtml}<span>(${count} 則評價)</span>`;
+  }
+  
+  // 生成星星HTML
+  function generateStarsHtml(rating) {
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 >= 0.5;
+    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+    
+    let starsHtml = '';
+    
+    // 添加實心星星
+    for (let i = 0; i < fullStars; i++) {
+      starsHtml += '<i class="fas fa-star"></i>';
+    }
+    
+    // 添加半星（如果有）
+    if (hasHalfStar) {
+      starsHtml += '<i class="fas fa-star-half-alt"></i>';
+    }
+    
+    // 添加空心星星
+    for (let i = 0; i < emptyStars; i++) {
+      starsHtml += '<i class="far fa-star"></i>';
+    }
+    
+    return starsHtml;
+  }
+  
+  // 更新麵包屑導航
+  function updateBreadcrumb(product) {
+    if (!product || !product.prodName) return;
+    
+    const breadcrumbItems = document.querySelectorAll('.breadcrumb li');
+    if (breadcrumbItems.length >= 3) {
+      breadcrumbItems[2].textContent = product.prodName;
+    }
+  }
+  
+  // 更新商品圖片
+  function updateProductImages(images) {
+    const mainImage = document.getElementById('main-product-image');
+    const thumbnailContainer = document.querySelector('.thumbnail-images');
+    
+    if (!mainImage || !thumbnailContainer || !images.length) return;
+    
+    // 清空縮圖容器
+    thumbnailContainer.innerHTML = '';
+    
+    // 更新主圖
+    mainImage.src = `${window.api_prefix}/api/prodpics/${images[0].prodPicId}`;
+    mainImage.alt = images[0].prodPicName || '商品圖片';
+    
+    // 添加所有縮圖
+    images.forEach((image, index) => {
+      const thumbnailDiv = document.createElement('div');
+      thumbnailDiv.className = `thumbnail${index === 0 ? ' active' : ''}`;
+      thumbnailDiv.dataset.image = `${window.api_prefix}/api/prodpics/${image.prodPicId}`;
+      
+      const thumbnailImg = document.createElement('img');
+      thumbnailImg.src = `${window.api_prefix}/api/prodpics/${image.prodPicId}`;
+      thumbnailImg.alt = image.prodPicName || `商品圖片 ${index + 1}`;
+      
+      thumbnailDiv.appendChild(thumbnailImg);
+      thumbnailContainer.appendChild(thumbnailDiv);
+    });
+  }
+  
+  // 更新商品描述
+  function updateProductDescription(product) {
+    // 更新商品描述
+    const descriptionPanel = document.getElementById('description');
+    if (descriptionPanel && product.prodIntro) {
+      // 可以根據API返回的格式調整這裡的處理邏輯
+      const descriptionContent = descriptionPanel.querySelector('.product-description');
+      if (descriptionContent) {
+        // 假設API返回的是HTML格式的描述
+        descriptionContent.innerHTML = product.prodIntro;
+      }
+    }
+    
+    // 更新商品規格
+    const specsPanel = document.getElementById('specs');
+    if (specsPanel && product.prodSpec) {
+      const specsTable = specsPanel.querySelector('.specs-table');
+      if (specsTable) {
+        // 假設API返回的是規格對象
+        let specsHtml = '';
+        for (const [key, value] of Object.entries(product.prodSpec)) {
+          specsHtml += `
+            <tr>
+              <th>${key}</th>
+              <td>${value}</td>
+            </tr>
+          `;
+        }
+        specsTable.innerHTML = specsHtml;
+      }
+    }
   }
   
   // 更新顏色選項
   function updateColorOptions(colors) {
     const colorOptionsContainer = document.querySelector('.color-options');
-    if (!colorOptionsContainer || colors.length === 0) return;
+    if (!colorOptionsContainer || !colors || colors.length === 0) return;
     
     colorOptionsContainer.innerHTML = '';
+    
+    // 添加顏色選項標籤
+    const colorLabel = document.createElement('div');
+    colorLabel.className = 'color-label';
+    colorLabel.textContent = '顏色';
+    colorOptionsContainer.parentNode.insertBefore(colorLabel, colorOptionsContainer);
+    
     colors.forEach((color, index) => {
       const colorOption = document.createElement('div');
       colorOption.className = `color-option${index === 0 ? ' active' : ''}`;
       colorOption.dataset.colorId = color.prodColorId;
-      colorOption.dataset.colorName = color.colorName;
+      colorOption.dataset.colorName = color.colorName || `顏色 ${color.prodColorId}`;
       
       // 如果有顏色圖片，使用圖片；否則使用顏色名稱
       if (color.colorPic) {
-        colorOption.innerHTML = `<img src="${color.colorPic}" alt="${color.colorName}" />`;
+        colorOption.innerHTML = `<img src="${color.colorPic}" alt="${color.colorName || `顏色 ${color.prodColorId}`}" />`;
+      } else if (color.colorCode) {
+        colorOption.innerHTML = `<span style="background-color: ${color.colorCode}"></span>`;
       } else {
-        colorOption.innerHTML = `<span style="background-color: ${color.colorCode || '#ccc'}"></span>`;
+        // 如果沒有顏色圖片和顏色代碼，嘗試從API獲取
+        const imgUrl = `${window.api_prefix}/api/prod-colors/colorpic/${productId}/${color.prodColorId}`;
+        colorOption.innerHTML = `<img src="${imgUrl}" alt="${color.colorName || `顏色 ${color.prodColorId}`}" onerror="this.onerror=null; this.src='images/default-color.png';" />`;
       }
+      
+      // 添加顏色名稱
+      const colorName = document.createElement('span');
+      colorName.className = 'color-name';
+      colorName.textContent = color.colorName || `顏色 ${color.prodColorId}`;
+      colorOption.appendChild(colorName);
       
       colorOptionsContainer.appendChild(colorOption);
     });
+  
   }
   
   // 更新規格選項
   function updateSpecOptions(specs) {
-    // 在數量選擇之前插入規格選擇
-    const quantityGroup = document.querySelector('.option-group:has(#quantity)');
-    if (!quantityGroup || specs.length === 0) return;
-    
-    // 檢查是否已經有規格選擇
-    if (document.querySelector('.spec-option-group')) return;
-    
-    const specGroup = document.createElement('div');
-    specGroup.className = 'option-group spec-option-group';
-    specGroup.innerHTML = `
-      <label for="spec">規格</label>
-      <select id="spec" class="prod-spec-select">
-        ${specs.map(spec => 
-          `<option value="${spec.prodSpecId}" data-price="${spec.prodSpecPrice}">${spec.prodSpecName || `規格 ${spec.prodSpecId}`}</option>`
-        ).join('')}
-      </select>
-    `;
-    
-    quantityGroup.parentNode.insertBefore(specGroup, quantityGroup);
-    
-    // 綁定規格選擇事件
-    bindSpecSelect();
+  // 如果沒有規格或規格為空，則返回
+  if (!specs || specs.length === 0) return;
+  
+  // 使用更兼容的方式找到數量選擇器的父元素
+  const quantityInput = document.getElementById('quantity');
+  if (!quantityInput) return;
+  
+  const quantityGroup = quantityInput.closest('.option-group');
+  if (!quantityGroup) return;
+  
+  // 檢查是否已經有規格選擇
+  let specGroup = document.querySelector('.spec-option-group');
+  
+  if (!specGroup) {
+  // 創建新的規格選擇組
+  specGroup = document.createElement('div');
+  specGroup.className = 'option-group spec-option-group';
+  quantityGroup.parentNode.insertBefore(specGroup, quantityGroup);
   }
   
+  specGroup.innerHTML = `
+  <label for="spec">規格</label>
+  <select id="spec" class="prod-spec-select">
+  ${specs.map(spec => 
+  `<option value="${spec.prodSpecId}" data-price="${spec.prodSpecPrice}">${spec.prodSpecName || spec.specName || `規格 ${spec.prodSpecId}`}</option>`
+  ).join('')}
+  </select>
+  `;
+  
+  // 綁定規格選擇事件
+  bindSpecSelect();
+  }
+  
+  // 載入商品評論
+  function loadProductReviews(prodId) {
+    // 這裡應該調用獲取商品評論的API
+    
+    // 模擬API調用
+    setTimeout(() => {
+      // 模擬評論數據
+      const reviews = [
+        {
+          reviewerId: 1,
+          reviewerName: '陳先生',
+          reviewDate: '2023/05/15',
+          rating: 5,
+          content: '非常滿意這個帳篷！搭建簡單，大約15分鐘就能完成。頂部的透明設計真的很棒，晚上躺在帳篷裡看星星是一種奇妙的體驗。前庭空間也很實用，可以放置鞋子和一些裝備。整體防水性能良好，上週末遇到小雨測試了一下，完全沒有漏水問題。',
+          images: ['images/product-1.jpg']
+        },
+        {
+          reviewerId: 2,
+          reviewerName: '林小姐',
+          reviewDate: '2023/04/28',
+          rating: 4,
+          content: '帳篷品質不錯，材質感覺很耐用。四個人住有點擠，但三個人剛好。透明天窗設計很特別，是我選擇這款主要原因。唯一的小缺點是收納後體積還是有點大，放在車後車廂佔了不少空間。總體來說還是很推薦的一款帳篷。',
+          images: []
+        },
+        {
+          reviewerId: 3,
+          reviewerName: '王先生',
+          reviewDate: '2023/03/10',
+          rating: 3,
+          content: '帳篷整體設計不錯，但支架感覺不是很結實，擔心使用壽命問題。搭建說明不夠清晰，第一次搭建花了不少時間。防水性能還可以，但通風不是很理想，夏天可能會比較悶熱。',
+          images: []
+        }
+      ];
+      
+      // 更新評論區
+      updateReviewsSection(reviews);
+    }, 500);
+    
+    // 實際API調用應該類似於：
+    /*
+    fetch(`${window.api_prefix}/api/products/${prodId}/reviews`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success' && data.data) {
+          updateReviewsSection(data.data);
+        }
+      })
+      .catch(error => {
+        console.error('載入商品評論失敗:', error);
+      });
+    */
+  }
+  
+  // 更新評論區
+  function updateReviewsSection(reviews) {
+    const reviewsPanel = document.getElementById('reviews');
+    if (!reviewsPanel) return;
+    
+    // 更新評論總結
+    updateReviewsSummary(reviews);
+    
+    // 更新評論列表
+    updateReviewsList(reviews);
+  }
+  
+  // 更新評論總結
+  function updateReviewsSummary(reviews) {
+    if (!reviews || reviews.length === 0) return;
+    
+    // 計算平均評分
+    const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+    const averageRating = totalRating / reviews.length;
+    
+    // 計算各星級分佈
+    const ratingDistribution = [0, 0, 0, 0, 0]; // 1-5星的數量
+    reviews.forEach(review => {
+      const ratingIndex = Math.min(Math.max(Math.floor(review.rating), 1), 5) - 1;
+      ratingDistribution[ratingIndex]++;
+    });
+    
+    // 更新平均評分
+    const ratingNumberElement = document.querySelector('.rating-number');
+    if (ratingNumberElement) {
+      ratingNumberElement.textContent = averageRating.toFixed(1);
+    }
+    
+    // 更新星星
+    const ratingStarsElement = document.querySelector('.reviews-summary .rating-stars');
+    if (ratingStarsElement) {
+      ratingStarsElement.innerHTML = generateStarsHtml(averageRating);
+    }
+    
+    // 更新評論數量
+    const ratingCountElement = document.querySelector('.rating-count');
+    if (ratingCountElement) {
+      ratingCountElement.textContent = `${reviews.length} 則評價`;
+    }
+    
+    // 更新評分分佈條
+    const ratingBarItems = document.querySelectorAll('.rating-bar-item');
+    if (ratingBarItems.length === 5) {
+      ratingBarItems.forEach((item, index) => {
+        const starCount = 5 - index; // 5, 4, 3, 2, 1
+        const count = ratingDistribution[starCount - 1];
+        const percent = reviews.length > 0 ? (count / reviews.length * 100) : 0;
+        
+        const fillElement = item.querySelector('.rating-fill');
+        const percentElement = item.querySelector('.rating-percent');
+        
+        if (fillElement) {
+          fillElement.style.width = `${percent}%`;
+        }
+        
+        if (percentElement) {
+          percentElement.textContent = `${Math.round(percent)}%`;
+        }
+      });
+    }
+  }
+  
+  // 更新評論列表
+  function updateReviewsList(reviews) {
+    const reviewListElement = document.querySelector('.review-list');
+    if (!reviewListElement) return;
+    
+    // 清空評論列表
+    reviewListElement.innerHTML = '';
+    
+    // 添加評論
+    reviews.forEach(review => {
+      const reviewItem = document.createElement('div');
+      reviewItem.className = 'review-item';
+      
+      // 生成評論星星HTML
+      const starsHtml = generateStarsHtml(review.rating);
+      
+      // 生成評論圖片HTML
+      let imagesHtml = '';
+      if (review.images && review.images.length > 0) {
+        imagesHtml = `
+          <div class="review-images">
+            ${review.images.map(image => `<img src="${image}" alt="使用者評價照片" />`).join('')}
+          </div>
+        `;
+      }
+      
+      // 設置評論HTML
+      reviewItem.innerHTML = `
+        <div class="reviewer-info">
+          <img src="images/user-${review.reviewerId}.jpg" alt="使用者頭像" class="reviewer-avatar" onerror="this.onerror=null; this.src='images/default-avatar.jpg';" />
+          <div class="reviewer-details">
+            <div class="reviewer-name">${review.reviewerName}</div>
+            <div class="review-date">${review.reviewDate}</div>
+          </div>
+        </div>
+        <div class="review-rating">
+          ${starsHtml}
+        </div>
+        <div class="review-content">
+          <p>${review.content}</p>
+          ${imagesHtml}
+        </div>
+      `;
+      
+      reviewListElement.appendChild(reviewItem);
+    });
+    
+    // 更新分頁（如果需要）
+    // updateReviewPagination(totalPages, currentPage);
+  }
+  
+
   // 綁定顏色選擇事件
   function bindColorOptions() {
     document.addEventListener('click', function(e) {
@@ -158,19 +502,41 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // 綁定規格選擇事件
   function bindSpecSelect() {
-    const specSelect = document.querySelector('.prod-spec-select');
-    if (!specSelect) return;
+  const specSelect = document.querySelector('.prod-spec-select');
+  if (!specSelect) return;
+  
+  specSelect.addEventListener('change', function() {
+    const selectedOption = this.options[this.selectedIndex];
+    const selectedPrice = parseFloat(selectedOption.dataset.price) || 0;
     
-    specSelect.addEventListener('change', function() {
-      const selectedOption = this.options[this.selectedIndex];
-      const selectedPrice = parseFloat(selectedOption.dataset.price) || 0;
+    // 更新價格顯示
+    const currentPriceElement = document.querySelector('.current-price');
+    const originalPriceElement = document.querySelector('.original-price');
+    const discountRate = parseFloat(currentPriceElement.dataset.discountRate || 1);
+    const discountedPrice = Math.round(selectedPrice * discountRate);
+    currentPriceElement.textContent = `NT$ ${discountedPrice.toLocaleString()}`;
+    originalPriceElement.textContent = `NT$ ${selectedPrice.toLocaleString()}`;
+
+    
+    if (currentPriceElement && selectedPrice > 0) {
+      // 檢查是否有折扣
+      const hasDiscount = originalPriceElement && originalPriceElement.style.display !== 'none';
       
-      // 更新價格顯示
-      const currentPriceElement = document.querySelector('.current-price');
-      if (currentPriceElement && selectedPrice > 0) {
+      if (hasDiscount) {
+        // 如果有折扣，計算折扣後的價格
+        const discountRate = parseFloat(currentPriceElement.dataset.discountRate || 1);
+        const discountedPrice = Math.round(selectedPrice * discountRate);
+        currentPriceElement.textContent = `NT$ ${discountedPrice.toLocaleString()}`;
+        originalPriceElement.textContent = `NT$ ${selectedPrice.toLocaleString()}`;
+      } else {
+        // 如果沒有折扣，直接顯示選擇的價格
         currentPriceElement.textContent = `NT$ ${selectedPrice.toLocaleString()}`;
       }
-    });
+    }
+    
+    // 更新庫存狀態（如果需要）
+    // updateStockStatus(selectedOption.dataset.stock);
+  });
   }
   
   // 綁定數量選擇事件
@@ -311,35 +677,253 @@ function showAddToCartMessage() {
       this.style.backgroundColor = 'white';
     });
   }
-
-  // 添加動畫樣式
-  if (!document.querySelector('style[data-cart-animation]')) {
-    const style = document.createElement('style');
-    style.setAttribute('data-cart-animation', 'true');
-    style.textContent = `
-      @keyframes slideInRight {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-      }
-      @keyframes fadeOut {
-        from { opacity: 1; }
-        to { opacity: 0; }
-      }
-    `;
-    document.head.appendChild(style);
-  }
-
-  // 添加到頁面
-  document.body.appendChild(message);
-
-  // 5秒後移除（增加時間讓用戶有更多時間點擊查看購物車）
-  setTimeout(() => {
-    message.style.animation = 'fadeOut 0.3s ease';
-    setTimeout(() => {
-      if (message.parentNode) {
-        message.parentNode.removeChild(message);
-      }
-    }, 300);
-  }, 5000);
-}
 });
+
+// 載入相關商品（使用 /api/products/random）
+function loadRelatedProducts() {
+  const relatedProductsContainer = document.getElementById('related-products-container');
+  if (!relatedProductsContainer) return;
+  
+  // 顯示載入中狀態
+  relatedProductsContainer.innerHTML = '<div class="loading-indicator">載入中...</div>';
+  
+  // 使用隨機推薦商品 API
+  fetch(`${window.api_prefix}/api/products/random?limit=4`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'success' && Array.isArray(data.data)) {
+        const relatedProducts = data.data;
+
+        // 清空容器
+        relatedProductsContainer.innerHTML = '';
+
+        if (relatedProducts.length === 0) {
+          relatedProductsContainer.innerHTML = '<p class="no-products">暫無相關商品推薦</p>';
+          return;
+        }
+
+        // 渲染商品卡片
+        relatedProducts.forEach(product => {
+          relatedProductsContainer.appendChild(createProductCard(product));
+        });
+
+        // 綁定事件
+        bindRelatedProductEvents();
+      } else {
+        relatedProductsContainer.innerHTML = '<p class="error">載入推薦商品失敗</p>';
+      }
+    })
+    .catch(err => {
+      console.error('載入推薦商品失敗：', err);
+      relatedProductsContainer.innerHTML = '<p class="error">載入推薦商品失敗</p>';
+    });
+}
+
+// 創建Random商品卡片
+function createProductCard(product) {
+  const hasDiscount = product.prodDiscount !== null && product.prodDiscount < 1;
+  const firstSpec = product.prodSpecList?.[0];
+  const originalPrice = firstSpec ? firstSpec.prodSpecPrice : 0;  
+  const discountedPrice = hasDiscount ? Math.round(originalPrice * product.prodDiscount) : originalPrice;
+  
+  // 創建商品卡片元素
+  const card = document.createElement('div');
+  card.className = 'product-card';
+  card.dataset.productId = product.prodId;
+  
+  // 將原始價格和折扣信息存儲在卡片上，以便後續使用
+  card.dataset.originalPrice = originalPrice;
+  card.dataset.hasDiscount = hasDiscount;
+  card.dataset.discountRate = product.prodDiscount || 1;
+  
+  // 構建商品圖片 HTML
+  let productImageHtml = '';
+  if (product.prodPicList && product.prodPicList.length > 0) {
+    const firstPicId = product.prodPicList[0].prodPicId;
+    productImageHtml = `<img src="${window.api_prefix}/api/prodpics/${firstPicId}" alt="${product.prodName}" onerror="this.onerror=null; this.src='images/default-product.jpg';" />`;
+  } else {
+    productImageHtml = `<img src="images/default-product.jpg" alt="無圖片" />`;
+  }
+  
+  // 構建商品標籤 HTML
+  let tagHtml = '';
+  if (hasDiscount) {
+    tagHtml = `<span class="product-tag">促銷</span>`;
+  }
+  
+  // 構建商品顏色選擇 HTML
+  let colorOptionsHtml = '';
+  if (product.prodColorList && product.prodColorList.length > 0) {
+    colorOptionsHtml = '<div class="product-colors"><select class="color-select">';
+    product.prodColorList.forEach((color, index) => {
+      const colorName = color.colorName || `顏色 ${index + 1}`;
+      colorOptionsHtml += `<option value="${color.prodColorId}"${index === 0 ? ' selected' : ''}>${colorName}</option>`;
+    });
+    colorOptionsHtml += '</select></div>';
+  }
+  
+  // 構建商品規格選擇 HTML
+  let specOptionsHtml = '';
+  if (product.prodSpecList && product.prodSpecList.length > 0) {
+    specOptionsHtml = '<div class="product-specs"><select class="spec-select">';
+    product.prodSpecList.forEach((spec, index) => {
+      const specName = spec.prodSpecName || `規格 ${spec.prodSpecId}`;
+      // 為每個規格存儲其價格信息（如果有）
+      const specPrice = spec.prodSpecPrice || originalPrice;
+      specOptionsHtml += `<option value="${spec.prodSpecId}" data-price="${specPrice}"${index === 0 ? ' selected' : ''}>${specName}</option>`;
+    });
+    specOptionsHtml += '</select></div>';
+  }
+  
+  // 構建商品價格 HTML，添加一個唯一的類名以便後續更新
+  let priceHtml = `
+    <div class="product-price" id="price-${product.prodId}">
+      <span class="current-price">NT$ ${discountedPrice}</span>
+      ${hasDiscount ? `<span class="original-price">NT$ ${originalPrice}</span>` : ''}
+    </div>`;
+  
+  // 構建商品評分 HTML
+  const rating = product.prodRating || 4.5;
+  const ratingCount = product.prodRatingCount || 0;
+  const starsHtml = generateStarsHtml(rating);
+  
+  // 組合完整的商品卡片 HTML
+  card.innerHTML = `
+    <div class="product-image">
+      ${productImageHtml}
+      ${tagHtml}
+    </div>
+    <div class="product-info">
+      <h3><a href="product-detail.html?id=${product.prodId}">${product.prodName}</a></h3>
+      <div class="product-rating">
+        ${starsHtml}
+        <span>(${ratingCount})</span>
+      </div>
+      ${colorOptionsHtml}
+      ${specOptionsHtml}
+      ${priceHtml}
+      <div class="product-actions">
+        <button class="btn-view-details"><i class="fas fa-search"></i> 查看明細</button>
+        <button class="btn-add-cart"><i class="fas fa-shopping-cart"></i> 加入購物車</button>
+      </div>
+    </div>
+  `;
+  
+  return card;
+}
+
+// 綁定相關商品的事件
+function bindRelatedProductEvents() {
+  // 處理顏色選擇
+  const colorSelects = document.querySelectorAll('.related-products .color-select');
+  colorSelects.forEach(select => {
+    select.addEventListener('change', function() {
+      // 顏色選擇已經通過 select 元素的 value 屬性保存
+    });
+  });
+  
+  // 處理規格選擇
+  const specSelects = document.querySelectorAll('.related-products .spec-select');
+  specSelects.forEach(select => {
+    select.addEventListener('change', function() {
+      const productCard = this.closest('.product-card');
+      const hasDiscount = productCard.dataset.hasDiscount === 'true';
+      const discountRate = parseFloat(productCard.dataset.discountRate);
+      
+      // 獲取選中規格的價格
+      const selectedOption = this.options[this.selectedIndex];
+      const specPrice = parseFloat(selectedOption.dataset.price);
+      
+      // 計算折扣後價格
+      const discountedPrice = hasDiscount ? Math.round(specPrice * discountRate) : specPrice;
+      
+      // 更新價格顯示
+      const priceContainer = productCard.querySelector('.product-price');
+      priceContainer.querySelector('.current-price').textContent = `NT$ ${discountedPrice}`;
+      
+      if (hasDiscount) {
+        priceContainer.querySelector('.original-price').textContent = `NT$ ${specPrice}`;
+      }
+    });
+  });
+  
+  // 處理查看明細按鈕
+  const viewDetailsButtons = document.querySelectorAll('.related-products .btn-view-details');
+  viewDetailsButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      const productCard = this.closest('.product-card');
+      const productId = productCard.dataset.productId;
+      window.location.href = `product-detail.html?id=${productId}`;
+    });
+  });
+  
+  // 處理加入購物車按鈕
+  const addToCartButtons = document.querySelectorAll('.related-products .btn-add-cart');
+  addToCartButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      const productCard = this.closest('.product-card');
+      const productId = productCard.dataset.productId;
+      const productName = productCard.querySelector('.product-info h3 a').textContent;
+      const selectedSpecElement = productCard.querySelector('.product-specs select');
+      const selectedSpec = selectedSpecElement ? selectedSpecElement.value : null;
+      const selectedColorElement = productCard.querySelector('.product-colors .color-select');
+      const selectedColorId = selectedColorElement ? selectedColorElement.value : null;
+      
+      // 調用添加到購物車的函數
+      addProductToCart({
+        productId: productId,
+        name: productName,
+        specId: selectedSpec,
+        colorId: selectedColorId,
+        quantity: 1
+      });
+    });
+  });
+}
+
+// 添加商品到購物車
+function addProductToCart(productData) {
+  // 準備要發送的數據（符合後端 CartDTO_req 格式）
+  const cartData = {
+    memId: globalCartManager.getMemberId(),
+    prodId: parseInt(productData.productId),
+    prodColorId: parseInt(productData.colorId) || 1,
+    prodSpecId: parseInt(productData.specId) || 1,
+    cartProdQty: parseInt(productData.quantity) || 1,
+    isRent: false,
+    rentDays: 0
+  };
+  
+  console.log('加入購物車數據:', cartData);
+  
+  // 使用fetch API發送請求
+  fetch(`${window.api_prefix}/api/addCart`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(cartData)
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('網路回應不正常');
+    }
+    return response.json();
+  })
+  .then(data => {
+    console.log('加入購物車成功:', data);
+    
+    // 更新購物車數量顯示
+    if (data.status === 'success') {
+      globalCartManager.updateCartCount(); // 重新取得購物車數量
+    }
+    
+    // 顯示成功訊息
+    showAddToCartMessage();
+  })
+  .catch(error => {
+    console.error('加入購物車失敗:', error);
+    alert('加入購物車失敗，請稍後再試');
+  });
+}
+
