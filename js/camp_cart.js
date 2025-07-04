@@ -63,10 +63,10 @@ class CartManager {
     try {
       // 從 localStorage 的 campingCart 中取得 campId
       const campingCart = JSON.parse(localStorage.getItem("campingCart")) || [];
-      const campId = campingCart.length > 0 ? campingCart[0].id : null;
-      
+      const campId = campingCart.length > 0 ? campingCart[0].campId : null;
+
       console.log("loadBundleItems:", campId);
-      
+
       // 如果沒有 campId，返回空陣列
       if (!campId) {
         console.warn("沒有找到 campId，無法載入加購商品");
@@ -81,8 +81,10 @@ class CartManager {
       if (!response.ok) {
         throw new Error("Failed to fetch bundle items");
       }
-      this.bundleItems = await response.json();
-      console.log("加購商品資料載入成功", this.bundleItems.length);
+      const bundleItemsJson = await response.json();
+      this.bundleItems = bundleItemsJson.data;
+
+      console.log("加購商品資料載入成功", this.bundleItems);
       return this.bundleItems;
     } catch (error) {
       console.error("載入加購商品資料失敗:", error);
