@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>收藏文章測試</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="css/style.css" />
+    <style>
+        body {
+            background: linear-gradient(135deg, white 0%, white 100%) !important;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+
+        .favorites-main {
+            max-width: 1000px;
+            margin: 40px auto;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            padding: 40px 32px 32px 32px;
+            box-sizing: border-box;
+        }
+
+        .favorites-filter {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .favorites-filter select {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .favorites-count {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .article-table-container {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .article-table-header {
+            display: grid;
+            grid-template-columns: 160px 6fr 1fr 1fr 1fr;
+            gap: 20px;
+            padding: 20px 25px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+            font-weight: 600;
+            color: #495057;
+            align-items: center;
+        }
+
+        .header-item {
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .article-title-header {
+            text-align: left;
+        }
+
+        .article-list {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .article-item {
+            display: grid;
+            grid-template-columns: 160px 6fr 1fr 1fr 1fr;
+            gap: 20px;
+            padding: 20px 25px;
+            border-bottom: 1px solid #e9ecef;
+            align-items: center;
+            transition: background 0.2s ease;
+            min-height: 140px;
+        }
+
+        .article-item:hover {
+            background: #f8f9fa;
+        }
+
+        .article-item:last-child {
+            border-bottom: none;
+        }
+
+        .article-image-cell {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .article-image {
+            width: 142px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 10px;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .article-title-cell {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            text-align: left;
+            padding: 5px 0;
+        }
+
+        .article-title-link {
+            color: #333;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.15rem;
+            line-height: 1.4;
+            transition: color 0.2s ease;
+            margin-bottom: 4px;
+        }
+
+        .article-title-link:hover {
+            color: #3A5A40;
+        }
+
+        .article-preview {
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            max-height: 3.6em;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .article-tag {
+            display: inline-block;
+            background: #3A5A40;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            margin-bottom: 3px;
+        }
+
+        .article-author-cell,
+        .article-date-cell,
+        .article-stats-cell {
+            text-align: center;
+            color: #666;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .remove-favorite-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 5px;
+        }
+
+        .remove-favorite-btn:hover {
+            background: #c82333;
+            transform: translateY(-1px);
+        }
+
+        .loading-message {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 40px;
+        }
+
+        .pagination a {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            color: #666;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .pagination a:hover,
+        .pagination a.active {
+            background: #3A5A40;
+            color: white;
+            border-color: #3A5A40;
+        }
+
+        .favorites-search-box {
+            max-width: 500px;
+            margin: 32px auto 0 auto;
+        }
+
+        .favorites-search-box form {
+            display: flex;
+            background: white;
+            border-radius: 25px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .favorites-search-box input {
+            flex: 1;
+            padding: 15px 20px;
+            border: none;
+            font-size: 1rem;
+            outline: none;
+            background: transparent;
+            color: #333;
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+
+        .favorites-search-box input::placeholder {
+            color: #999;
+            font-style: italic;
+        }
+
+        .btn-search-submit {
+            background: #3A5A40;
+            color: white;
+            border: none;
+            padding: 15px 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            min-width: 80px;
+            width: 80px;
+            flex-shrink: 0;
+            margin-left: -10px;
+            border-radius: 0 25px 25px 0;
+        }
+
+        .btn-search-submit:hover {
+            background: #2d4731;
+            transform: scale(1.05);
+        }
+
+        .btn-search-submit:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+
+<body>
+    <main class="favorites-main">
+        <div class="favorites-search-box" style="margin-bottom: 24px; margin-top: 0;">
+            <form id="search-form" onsubmit="alert('搜尋功能測試'); return false;">
+                <input type="text" placeholder="搜尋收藏的文章..." name="search" id="search-input" autocomplete="off">
+                <button type="submit" class="btn-search-submit" title="搜尋">
+                    <i class="fas fa-search"></i>
+                </button>
+            </form>
+        </div>
+        <div class="favorites-filter">
+            <div class="filter-options">
+                <select name="sort" id="sort-favorites">
+                    <option value="latest">最新收藏</option>
+                    <option value="oldest">最早收藏</option>
+                    <option value="title">標題排序</option>
+                    <option value="author">作者排序</option>
+                </select>
+            </div>
+            <div class="favorites-count">共 <span id="favorites-count">4</span> 篇收藏</div>
+        </div>
+        <div class="article-table-container">
+            <div class="article-table-header">
+                <div class="header-item">圖片</div>
+                <div class="header-item article-title-header">標題</div>
+                <div class="header-item article-author-header">作者</div>
+                <div class="header-item article-date-header">收藏時間</div>
+                <div class="header-item article-stats-header">操作</div>
+            </div>
+            <div class="article-list" id="favorites-container">
+                <div class="article-item" data-article-id="30000023">
+                    <div class="article-image-cell">
+                        <img src="images/camp-1.jpg" alt="文章圖片" class="article-image">
+                    </div>
+                    <div class="article-title-cell">
+                        <a href="articles.html?id=30000023" class="article-title-link">露營急救知識必學</a>
+                        <div class="article-preview">
+                            戶外活動急救知識很重要！學會處理常見傷口：擦傷、割傷、燙傷。認識高山症症狀，知道如何應對。準備基本急救包，包含常用藥物和工具。參加急救課程，提升應急處理能力。安全第一，預防勝於治療。...
+                        </div>
+                        <span class="article-tag">新手指南</span>
+                    </div>
+                    <div class="article-author-cell">陳柏瑋</div>
+                    <div class="article-date-cell">2025/7/1</div>
+                    <div class="article-stats-cell">
+                        <button class="remove-favorite-btn" onclick="alert('移除收藏功能測試')">
+                            <i class="fas fa-trash"></i> 移除收藏
+                        </button>
+                    </div>
+                </div>
+                <div class="article-item" data-article-id="30000068">
+                    <div class="article-image-cell">
+                        <img src="images/camp-2.jpg" alt="文章圖片" class="article-image">
+                    </div>
+                    <div class="article-title-cell">
+                        <a href="articles.html?id=30000068" class="article-title-link">測試收藏用文章</a>
+                        <div class="article-preview">測試收藏用文章...</div>
+                        <span class="article-tag">新手指南</span>
+                    </div>
+                    <div class="article-author-cell">陳柏瑋</div>
+                    <div class="article-date-cell">2025/7/1</div>
+                    <div class="article-stats-cell">
+                        <button class="remove-favorite-btn" onclick="alert('移除收藏功能測試')">
+                            <i class="fas fa-trash"></i> 移除收藏
+                        </button>
+                    </div>
+                </div>
+                <div class="article-item" data-article-id="30000066">
+                    <div class="article-image-cell">
+                        <img src="images/camp-3.jpg" alt="文章圖片" class="article-image">
+                    </div>
+                    <div class="article-title-cell">
+                        <a href="articles.html?id=30000066" class="article-title-link">圖片測試</a>
+                        <div class="article-preview">圖片測試...</div>
+                        <span class="article-tag">新手指南</span>
+                    </div>
+                    <div class="article-author-cell">施欣妤</div>
+                    <div class="article-date-cell">2025/7/1</div>
+                    <div class="article-stats-cell">
+                        <button class="remove-favorite-btn" onclick="alert('移除收藏功能測試')">
+                            <i class="fas fa-trash"></i> 移除收藏
+                        </button>
+                    </div>
+                </div>
+                <div class="article-item" data-article-id="30000001">
+                    <div class="article-image-cell">
+                        <img src="images/camp-4.jpg" alt="文章圖片" class="article-image">
+                    </div>
+                    <div class="article-title-cell">
+                        <a href="articles.html?id=30000001" class="article-title-link">夏天了好熱</a>
+                        <div class="article-preview">如標題，真的好熱喔...</div>
+                        <span class="article-tag">新手指南</span>
+                    </div>
+                    <div class="article-author-cell">張小美</div>
+                    <div class="article-date-cell">2024/2/20</div>
+                    <div class="article-stats-cell">
+                        <button class="remove-favorite-btn" onclick="alert('移除收藏功能測試')">
+                            <i class="fas fa-trash"></i> 移除收藏
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="pagination">
+            <!-- 分頁將由 JavaScript 動態生成 -->
+        </div>
+    </main>
+</body>
+
+</html>
