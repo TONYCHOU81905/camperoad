@@ -1850,6 +1850,7 @@ function viewShopOrderDetail(orderId) {
           const paymentMethod = order.shopOrderPaymentStr || "";
           const shipmentMethod = order.shopOrderShipmentStr || "";
           const returnApplyText = order.shopReturnApplyStr || "";
+          const orderNoteText = order.shopOrderNote || "";
           const orderDate = order.shopOrderDate
             ? order.shopOrderDate.split("T")[0]
             : "";
@@ -1930,6 +1931,7 @@ function viewShopOrderDetail(orderId) {
                         ? order.shopOrderShipDate.split("T")[0]
                         : ""
                     }</span></div>
+                      <div class="info-item"><span class="info-label">訂單備註:</span><span class="info-value">${orderNoteText}</span></div>
                   </div>
                 </div>
                 <div class="order-info-section">
