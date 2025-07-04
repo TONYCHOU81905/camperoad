@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>編輯文章</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/role-system.css" />
+    <link href="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.snow.css" rel="stylesheet" />
+    <script src="js/camp-data.js"></script>
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(135deg, white 0%, white 100%) !important;
+        }
+
+        .site-footer,
+        footer {
+            margin-top: auto;
+        }
+
+        .article-edit-hero {
+            background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);
+            color: white;
+            padding: 60px 0;
+            text-align: center;
+        }
+
+        .article-edit-hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        .article-edit-hero p {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+
+        .article-edit-content {
+            padding: 60px 0;
+            background: #f8f9fa;
+        }
+
+        .article-form-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+            padding: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #3A5A40;
+            font-size: 1.1rem;
+        }
+
+        #editor {
+            height: 400px;
+            margin-bottom: 20px;
+        }
+
+        .quill {
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .submit-btn {
+            padding: 15px 40px;
+            background: #17a2b8;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .submit-btn:hover {
+            background: #138496;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(23, 162, 184, 0.3);
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: #17a2b8;
+            box-shadow: 0 0 0 3px rgba(23, 162, 184, 0.1);
+        }
+
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .message {
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            display: none;
+            font-weight: 500;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .message.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .member-info {
+            background: linear-gradient(135deg, #E9EDC9 0%, #f8f9fa 100%);
+            border: 2px solid #3A5A40;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .member-info .member-name {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #3A5A40;
+            margin-bottom: 8px;
+        }
+
+        .member-info .member-id {
+            color: #6c757d;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .login-required {
+            text-align: center;
+            padding: 60px 20px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        .login-required h2 {
+            color: #3A5A40;
+            margin-bottom: 20px;
+            font-size: 2rem;
+        }
+
+        .login-required p {
+            color: #6c757d;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .btn-login {
+            display: inline-block;
+            padding: 15px 30px;
+            background: #3A5A40;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-login:hover {
+            background: #2d4731;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(58, 90, 64, 0.3);
+        }
+
+        .back-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #6c757d;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 6px;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .back-btn:hover {
+            background: #5a6268;
+            transform: translateY(-1px);
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #E9EDC9;
+        }
+
+        .form-header h2 {
+            color: #17a2b8;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .form-header p {
+            color: #6c757d;
+            font-size: 1.1rem;
+        }
+
+        .article-info {
+            background: linear-gradient(135deg, #cce7e8 0%, #f8f9fa 100%);
+            border: 2px solid #17a2b8;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .article-info .article-id {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #17a2b8;
+            margin-bottom: 8px;
+        }
+
+        .article-info .article-status {
+            color: #6c757d;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #17a2b8;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .article-form-container {
+                margin: 20px;
+                padding: 30px 20px;
+            }
+
+            .article-edit-hero h1 {
+                font-size: 2rem;
+            }
+
+            .article-edit-hero p {
+                font-size: 1rem;
+            }
+
+            .form-header h2 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="container">
+            <div class="logo">
+                <a href="index.html">
+                    <img src="images/logo.svg" alt="露營路Logo" />
+                    <!-- <span>露營路</span> -->
+                </a>
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="index.html">營地搜尋</a></li>
+                    <li><a href="shop.html">裝備商城</a></li>
+                    <li><a href="article-type.html" class="active">論壇攻略</a></li>
+                    <li><a href="user-profile.html">關於我們</a></li>
+                </ul>
+            </nav>
+            <div class="user-actions">
+                <a href="#" class="btn-search"><i class="fas fa-search"></i></a>
+                <a href="cart.html" class="btn-cart"><i class="fas fa-shopping-cart"></i><span
+                        class="cart-count">0</span></a>
+                <a href="login.html" class="btn-login">登入 / 註冊</a>
+            </div>
+            <button class="mobile-menu-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </header>
+    <nav class="breadcrumb" style="margin: 16px 0 0 0; padding-left: 24px; font-size: 0.98rem;">
+        <a href="index.html">首頁</a> &gt; <a href="article-type.html">論壇攻略</a> &gt; <span>編輯文章</span>
+    </nav>
+
+    <section class="article-edit-hero">
+        <div class="container">
+            <h1>編輯文章</h1>
+            <p>修改您的文章內容，完善您的露營分享</p>
+        </div>
+    </section>
+
+    <section class="article-edit-content">
+        <div class="container">
+            <div class="article-form-container">
+                <a href="javascript:history.back()" class="back-btn">← 返回上一頁</a>
+
+                <div class="form-header">
+                    <h2>編輯文章內容</h2>
+                    <p>修改文章的標題、分類和內容</p>
+                </div>
+
+                <div id="message" class="message"></div>
+
+                <!-- 載入中提示 -->
+                <div id="loading-spinner" class="loading-spinner">
+                    <div class="spinner"></div>
+                    <p>正在載入文章資料...</p>
+                </div>
+
+                <!-- 會員資訊顯示區域 -->
+                <div id="member-info" class="member-info" style="display: none;">
+                    <div class="member-name" id="member-name"></div>
+                    <div class="member-id">會員ID: <span id="member-id"></span></div>
+                </div>
+
+                <!-- 文章資訊顯示區域 -->
+                <div id="article-info" class="article-info" style="display: none;">
+                    <div class="article-id">文章ID: <span id="article-id"></span></div>
+                    <div class="article-status">最後修改: <span id="last-modified"></span></div>
+                </div>
+
+                <!-- 需要登入提示 -->
+                <div id="login-required" class="login-required">
+                    <h2>請先登入</h2>
+                    <p>您需要登入會員帳號才能編輯文章</p>
+                    <a href="login.html" class="btn-login" onclick="setRedirectTarget()">前往登入</a>
+                </div>
+
+                <!-- 權限不足提示 -->
+                <div id="permission-denied" class="login-required" style="display: none;">
+                    <h2>權限不足</h2>
+                    <p>您只能編輯自己發布的文章</p>
+                    <a href="article-type.html" class="btn-login">返回文章分類</a>
+                </div>
+
+                <!-- 文章表單 -->
+                <form id="edit-article-form" style="display: none;">
+                    <div class="form-group">
+                        <label class="form-label" for="title">文章標題</label>
+                        <input type="text" id="title" name="title" placeholder="請輸入文章標題..." required />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="type">文章分類</label>
+                        <select id="type" name="type" required>
+                            <!-- 選項由 JS 動態產生 -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">文章內容</label>
+                        <div id="editor"></div>
+                    </div>
+                    <div style="text-align:center;">
+                        <button type="submit" class="submit-btn" id="submit-btn">
+                            <i class="fas fa-save"></i> 更新文章
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <img src="images/logo-white.svg" alt="露營路Logo" />
+                    <p>探索自然，體驗生活</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h3>關於我們</h3>
+                        <ul>
+                            <li><a href="#">公司簡介</a></li>
+                            <li><a href="#">服務條款</a></li>
+                            <li><a href="#">隱私政策</a></li>
+                            <li><a href="#">加入我們</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>營地資訊</h3>
+                        <ul>
+                            <li><a href="#">北部營地</a></li>
+                            <li><a href="#">中部營地</a></li>
+                            <li><a href="#">南部營地</a></li>
+                            <li><a href="#">東部營地</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>裝備商城</h3>
+                        <ul>
+                            <li><a href="#">全新商品</a></li>
+                            <li><a href="#">配送說明</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>幫助中心</h3>
+                        <ul>
+                            <li><a href="#">常見問題</a></li>
+                            <li><a href="#">使用教學</a></li>
+                            <li><a href="#">聯絡客服</a></li>
+                            <li><a href="#">緊急聯絡</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-youtube"></i></a>
+                    <a href="#"><i class="fab fa-line"></i></a>
+                </div>
+                <p class="copyright">© 2023 露營路 All Rights Reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Quill JS -->
+    <script src="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/header-auth.js"></script>
+    <script>
+        // 全域變數
+        let quill;
+        let currentMemberId = null;
+        let currentArticleId = null;
+        let originalArticleData = null;
+
+        // 上傳圖片到 article_image API
+        async function uploadImageToAPI(file, articleId = null) {
+            try {
+                console.log('🖼️ 開始上傳圖片:', {
+                    fileName: file.name,
+                    fileSize: file.size,
+                    articleId: articleId
+                });
+
+                // 使用 FormData 上傳檔案
+                const formData = new FormData();
+                formData.append('file', file);
+                if (articleId) {
+                    formData.append('articleId', articleId);
+                }
+
+                const response = await fetch(`${window.api_prefix}/api/article-images/upload-direct`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                console.log('📤 圖片上傳回應:', result);
+
+                if (response.ok && result.status === 'success') {
+                    const imageId = result.data.acImgId;
+                    console.log('✅ 圖片上傳成功，ID:', imageId);
+                    return {
+                        success: true,
+                        imageId: imageId,
+                        imageUrl: `${window.api_prefix}/api/article-images/${imageId}/image`
+                    };
+                } else {
+                    throw new Error(result.message || '圖片上傳失敗');
+                }
+            } catch (error) {
+                console.error('❌ 圖片上傳失敗:', error);
+                showMessage(`圖片上傳失敗: ${error.message}`, 'error');
+                return { success: false, error: error.message };
+            }
+        }
+
+        // 處理 Base64 圖片轉換為上傳圖片
+        async function handleBase64Images(htmlContent, articleId = null) {
+            if (!htmlContent || !htmlContent.includes('data:image')) {
+                return htmlContent;
+            }
+
+            console.log('🔄 開始處理 Base64 圖片...');
+
+            // 使用正則找出所有 Base64 圖片
+            const base64ImageRegex = /<img[^>]+src="data:image\/([^;]+);base64,([^"]+)"[^>]*>/g;
+            const matches = [...htmlContent.matchAll(base64ImageRegex)];
+
+            if (matches.length === 0) {
+                return htmlContent;
+            }
+
+            console.log(`📸 找到 ${matches.length} 張 Base64 圖片，開始轉換...`);
+            let processedContent = htmlContent;
+
+            for (let i = 0; i < matches.length; i++) {
+                const match = matches[i];
+                const [fullMatch, imageType, base64Data] = match;
+
+                try {
+                    // 將 Base64 轉換為 Blob
+                    const byteCharacters = atob(base64Data);
+                    const byteNumbers = new Array(byteCharacters.length);
+                    for (let j = 0; j < byteCharacters.length; j++) {
+                        byteNumbers[j] = byteCharacters.charCodeAt(j);
+                    }
+                    const byteArray = new Uint8Array(byteNumbers);
+                    const blob = new Blob([byteArray], { type: `image/${imageType}` });
+
+                    // 創建 File 物件
+                    const file = new File([blob], `pasted-image-${i + 1}.${imageType}`, {
+                        type: `image/${imageType}`
+                    });
+
+                    console.log(`📤 上傳第 ${i + 1} 張圖片...`);
+
+                    // 上傳圖片
+                    const uploadResult = await uploadImageToAPI(file, articleId);
+
+                    if (uploadResult.success) {
+                        // 替換 Base64 圖片為 API URL
+                        const newImageTag = `<img src="${uploadResult.imageUrl}" alt="上傳圖片" style="max-width: 100%; height: auto;" />`;
+                        processedContent = processedContent.replace(fullMatch, newImageTag);
+                        console.log(`✅ 第 ${i + 1} 張圖片替換成功`);
+                    } else {
+                        console.warn(`⚠️ 第 ${i + 1} 張圖片上傳失敗，保留佔位符`);
+                        // 可以選擇保留原圖片或替換為佔位符
+                        const placeholder = `<p>[圖片上傳失敗: ${uploadResult.error}]</p>`;
+                        processedContent = processedContent.replace(fullMatch, placeholder);
+                    }
+                } catch (error) {
+                    console.error(`❌ 處理第 ${i + 1} 張圖片時發生錯誤:`, error);
+                    const placeholder = `<p>[圖片處理錯誤: ${error.message}]</p>`;
+                    processedContent = processedContent.replace(fullMatch, placeholder);
+                }
+            }
+
+            console.log('🎉 Base64 圖片處理完成');
+            return processedContent;
+        }
+
+        // 初始化 Quill 編輯器
+        function initQuillEditor() {
+            quill = new Quill('#editor', {
+                theme: 'snow',
+                placeholder: '請輸入文章內容...',
+                modules: {
+                    toolbar: {
+                        container: [
+                            [{ 'header': [1, 2, 3, false] }],
+                            ['bold', 'italic', 'underline', 'strike'],
+                            [{ 'color': [] }, { 'background': [] }],
+                            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                            [{ 'align': [] }],
+                            ['link', 'image'],
+                            ['clean']
+                        ],
+                        handlers: {
+                            // 自定義圖片處理邏輯
+                            image: function () {
+                                console.log('🖼️ 觸發圖片上傳...');
+
+                                const input = document.createElement('input');
+                                input.setAttribute('type', 'file');
+                                input.setAttribute('accept', 'image/*');
+                                input.setAttribute('multiple', 'true'); // 允許多選
+                                input.click();
+
+                                input.onchange = async () => {
+                                    const files = input.files;
+                                    if (files.length === 0) return;
+
+                                    console.log(`📁 選擇了 ${files.length} 個檔案`);
+
+                                    const range = quill.getSelection(true);
+                                    if (!range) return;
+
+                                    let insertIndex = range.index;
+                                    let successCount = 0;
+                                    let failCount = 0;
+
+                                    for (let i = 0; i < files.length; i++) {
+                                        const file = files[i];
+
+                                        // 檢查檔案大小
+                                        if (file.size > 10 * 1024 * 1024) { // 10MB 限制
+                                            console.warn('⚠️ 檔案過大:', file.name);
+                                            quill.insertText(insertIndex, `[檔案過大，無法上傳: ${file.name}]\n`);
+                                            failCount++;
+                                            insertIndex += 1;
+                                            continue;
+                                        }
+
+                                        try {
+                                            const uploadResult = await uploadImageToAPI(file, currentArticleId);
+
+                                            if (uploadResult.success) {
+                                                // 插入圖片到編輯器
+                                                quill.insertEmbed(insertIndex, 'image', uploadResult.imageUrl);
+                                                quill.insertText(insertIndex + 1, '\n'); // 換行
+                                                successCount++;
+                                                insertIndex += 2;
+                                            } else {
+                                                quill.insertText(insertIndex, `[圖片上傳失敗: ${file.name}]\n`);
+                                                failCount++;
+                                                insertIndex += 1;
+                                            }
+                                        } catch (error) {
+                                            console.error('圖片上傳錯誤:', error);
+                                            quill.insertText(insertIndex, `[圖片上傳錯誤: ${file.name}]\n`);
+                                            failCount++;
+                                            insertIndex += 1;
+                                        }
+                                    }
+
+                                    // 只在有失敗時顯示錯誤訊息
+                                    if (failCount > 0 && successCount === 0) {
+                                        showMessage(`❌ 所有圖片上傳失敗`, 'error');
+                                    } else if (failCount > 0) {
+                                        showMessage(`⚠️ ${failCount} 張圖片上傳失敗`, 'warning');
+                                    }
+                                };
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 監聽貼上事件，處理貼上的圖片
+            quill.root.addEventListener('paste', async function (e) {
+                const clipboardData = e.clipboardData;
+                if (!clipboardData) return;
+
+                const items = clipboardData.items;
+                const images = [];
+
+                // 檢查剪貼簿中是否有圖片
+                for (let i = 0; i < items.length; i++) {
+                    if (items[i].type.indexOf('image') !== -1) {
+                        images.push(items[i].getAsFile());
+                    }
+                }
+
+                if (images.length > 0) {
+                    console.log(`📋 貼上了 ${images.length} 張圖片`);
+                    e.preventDefault(); // 阻止預設的貼上行為
+
+                    const range = quill.getSelection(true);
+                    if (!range) return;
+
+                    let insertIndex = range.index;
+                    let successCount = 0;
+                    let failCount = 0;
+
+                    for (const imageFile of images) {
+                        try {
+                            const uploadResult = await uploadImageToAPI(imageFile, currentArticleId);
+
+                            if (uploadResult.success) {
+                                quill.insertEmbed(insertIndex, 'image', uploadResult.imageUrl);
+                                quill.insertText(insertIndex + 1, '\n');
+                                successCount++;
+                                insertIndex += 2;
+                            } else {
+                                failCount++;
+                            }
+                        } catch (error) {
+                            console.error('貼上圖片上傳錯誤:', error);
+                            failCount++;
+                        }
+                    }
+
+                    // 只在全部失敗時顯示錯誤訊息
+                    if (failCount > 0 && successCount === 0) {
+                        showMessage('❌ 貼上的圖片處理失敗', 'error');
+                    }
+                }
+            });
+        }
+
+        // 顯示訊息函數
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = message;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+
+            if (type === 'success') {
+                setTimeout(() => {
+                    messageDiv.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        // 檢查登入狀態
+        function checkLoginStatus() {
+            const memberData = localStorage.getItem("currentMember") || sessionStorage.getItem("currentMember");
+
+            if (memberData) {
+                const member = JSON.parse(memberData);
+                return member;
+            }
+
+            return null;
+        }
+
+        // 設置登入後跳轉目標
+        function setRedirectTarget() {
+            sessionStorage.setItem('redirectAfterLogin', window.location.href);
+        }
+
+        // 從URL參數獲取文章ID
+        function getArticleIdFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('id');
+        }
+
+        // 動態載入文章分類
+        async function loadArticleTypes() {
+            const select = document.getElementById('type');
+            select.innerHTML = '';
+
+            try {
+                const response = await fetch(`${window.api_prefix}/api/article-types`);
+                const result = await response.json();
+
+                if (response.ok && result.status === 'success' && Array.isArray(result.data)) {
+                    result.data.forEach(type => {
+                        const option = document.createElement('option');
+                        option.value = type.acTypeId;
+                        option.textContent = type.acTypeKind;
+                        select.appendChild(option);
+                    });
+                } else {
+                    showMessage('無法載入文章分類', 'error');
+                }
+            } catch (error) {
+                console.error('載入分類時發生錯誤:', error);
+                showMessage('載入分類時發生錯誤', 'error');
+            }
+        }
+
+        // 載入文章資料（這裡會等待用戶提供 API 信息後完善）
+        async function loadArticleData(articleId) {
+            try {
+                console.log('開始載入文章資料，ID:', articleId);
+
+                // 顯示載入中
+                document.getElementById('loading-spinner').style.display = 'block';
+
+                // TODO: 這裡會根據用戶提供的 API 端點來實現
+                // 暫時使用現有的 API
+                const response = await fetch(`${window.api_prefix}/api/articles/${articleId}`);
+                const result = await response.json();
+
+                if (response.ok && result.status === 'success') {
+                    console.log('載入的文章資料:', result.data);
+                    return result.data;
+                } else {
+                    throw new Error(result.message || '載入文章失敗');
+                }
+            } catch (error) {
+                console.error('載入文章資料失敗:', error);
+                showMessage(`載入文章資料失敗: ${error.message}`, 'error');
+                return null;
+            } finally {
+                // 隱藏載入中
+                document.getElementById('loading-spinner').style.display = 'none';
+            }
+        }
+
+        // 檢查編輯權限
+        function checkEditPermission(articleData, currentMember) {
+            if (!currentMember || !articleData) {
+                return false;
+            }
+
+            // 檢查會員ID是否匹配
+            const memberIdFromStorage = currentMember.mem_id || currentMember.memId;
+            const articleAuthorId = articleData.memId || articleData.mem_id;
+
+            console.log('權限檢查:', {
+                memberIdFromStorage,
+                articleAuthorId,
+                match: memberIdFromStorage == articleAuthorId
+            });
+
+            return memberIdFromStorage == articleAuthorId;
+        }
+
+        // 填充表單資料
+        function populateForm(articleData) {
+            if (!articleData) return;
+
+            // 填入基本資料
+            document.getElementById('title').value = articleData.acTitle || '';
+            document.getElementById('type').value = articleData.acTypeId || '';
+
+            // 填入文章內容到 Quill 編輯器
+            if (articleData.acContext) {
+                quill.root.innerHTML = articleData.acContext;
+            }
+
+            // 顯示文章資訊
+            document.getElementById('article-id').textContent = articleData.acId || '未知';
+            document.getElementById('last-modified').textContent =
+                articleData.acTime ? new Date(articleData.acTime).toLocaleString() : '未知';
+            document.getElementById('article-info').style.display = 'block';
+
+            console.log('表單資料已填充:', {
+                title: articleData.acTitle,
+                type: articleData.acTypeId,
+                contentLength: articleData.acContext ? articleData.acContext.length : 0
+            });
+        }
+
+        // 初始化頁面
+        async function initPage() {
+            const currentMember = checkLoginStatus();
+            const articleId = getArticleIdFromUrl();
+
+            // 先初始化編輯器
+            initQuillEditor();
+
+            if (!articleId) {
+                showMessage('缺少文章ID參數', 'error');
+                return;
+            }
+
+            currentArticleId = articleId;
+
+            // 確保 memId 是數字格式
+            if (currentMember) {
+                if (currentMember.mem_id) {
+                    currentMemberId = parseInt(currentMember.mem_id);
+                } else if (currentMember.memId) {
+                    currentMemberId = parseInt(currentMember.memId);
+                }
+            }
+
+            if (currentMember && currentMemberId && !isNaN(currentMemberId)) {
+                // 顯示會員資訊
+                document.getElementById('member-name').textContent =
+                    currentMember.mem_name || currentMember.memName || '會員';
+                document.getElementById('member-id').textContent = currentMemberId;
+                document.getElementById('member-info').style.display = 'block';
+
+                // 載入文章分類
+                await loadArticleTypes();
+
+                // 載入文章資料
+                const articleData = await loadArticleData(articleId);
+
+                if (articleData) {
+                    originalArticleData = articleData;
+
+                    // 檢查編輯權限
+                    if (checkEditPermission(articleData, currentMember)) {
+                        // 有權限編輯
+                        populateForm(articleData);
+                        document.getElementById('login-required').style.display = 'none';
+                        document.getElementById('permission-denied').style.display = 'none';
+                        document.getElementById('edit-article-form').style.display = 'block';
+                    } else {
+                        // 沒有權限編輯
+                        document.getElementById('login-required').style.display = 'none';
+                        document.getElementById('permission-denied').style.display = 'block';
+                        document.getElementById('edit-article-form').style.display = 'none';
+                    }
+                }
+
+            } else {
+                // 未登入
+                document.getElementById('login-required').style.display = 'block';
+                document.getElementById('member-info').style.display = 'none';
+                document.getElementById('edit-article-form').style.display = 'none';
+                document.getElementById('permission-denied').style.display = 'none';
+            }
+        }
+
+        // 檢查內容是否包含圖片
+        function hasImages(content) {
+            return content.includes('<img') || content.includes('data:image');
+        }
+
+        // 清理 HTML 內容，移除不必要的標籤和屬性
+        function cleanHtmlContent(content) {
+            // 創建臨時 DOM 元素來清理內容
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = content;
+
+            // 移除空的段落
+            const emptyParagraphs = tempDiv.querySelectorAll('p:empty, p:only-child:has(br:only-child)');
+            emptyParagraphs.forEach(p => {
+                if (p.innerHTML === '' || p.innerHTML === '<br>') {
+                    p.remove();
+                }
+            });
+
+            // 確保內容不為空
+            if (tempDiv.innerHTML.trim() === '' || tempDiv.innerHTML === '<p><br></p>') {
+                return '<p>請輸入文章內容...</p>';
+            }
+
+            return tempDiv.innerHTML;
+        }
+
+        // 圖片分析功能
+        async function analyzeImages(content) {
+            try {
+                const response = await fetch(`${window.api_prefix}/api/articles/analyze-images`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(content)
+                });
+
+                const result = await response.json();
+                if (response.ok && result.status === 'success') {
+                    return result.data;
+                } else {
+                    console.warn('圖片分析失敗:', result);
+                    return null;
+                }
+            } catch (error) {
+                console.warn('圖片分析錯誤:', error);
+                return null;
+            }
+        }
+
+        // 顯示圖片分析結果
+        function showImageAnalysis(analysis) {
+            if (!analysis || analysis.totalImages === 0) return;
+
+            const strategyCounts = analysis.strategies;
+            let analysisMessage = `檢測到 ${analysis.totalImages} 張圖片 (總大小: ${analysis.totalSizeMB} MB)\n\n`;
+
+            if (strategyCounts.BASE64 > 0) {
+                analysisMessage += `📁 小檔案: ${strategyCounts.BASE64} 張 (直接嵌入)\n`;
+            }
+            if (strategyCounts.DIRECT_UPLOAD > 0) {
+                analysisMessage += `🖼️ 中檔案: ${strategyCounts.DIRECT_UPLOAD} 張 (直接上傳)\n`;
+            }
+            if (strategyCounts.CHUNKED_UPLOAD > 0) {
+                analysisMessage += `📦 大檔案: ${strategyCounts.CHUNKED_UPLOAD} 張 (分塊上傳)\n`;
+            }
+
+            showMessage(analysisMessage, 'warning');
+        }
+
+        // 檢測內容變化
+        function hasContentChanged(originalData, newData) {
+            if (!originalData) return true;
+
+            return (
+                originalData.acTitle !== newData.acTitle ||
+                originalData.acContext !== newData.acContext ||
+                originalData.acTypeId !== newData.acTypeId
+            );
+        }
+
+        // 表單送出事件 - 增強版
+        document.getElementById('edit-article-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const submitBtn = document.getElementById('submit-btn');
+            const form = document.getElementById('edit-article-form');
+
+            // 取得表單資料
+            const title = document.getElementById('title').value.trim();
+            const acTypeId = parseInt(document.getElementById('type').value);
+            const rawContent = quill.root.innerHTML;
+            const content = cleanHtmlContent(rawContent);
+
+            // 詳細驗證資料
+            if (!title) {
+                showMessage('請輸入文章標題', 'error');
+                return;
+            }
+
+            if (!acTypeId || isNaN(acTypeId)) {
+                showMessage('請選擇文章分類', 'error');
+                return;
+            }
+
+            if (!content || content === '<p>請輸入文章內容...</p>') {
+                showMessage('請輸入文章內容', 'error');
+                return;
+            }
+
+            if (!currentMemberId || isNaN(currentMemberId)) {
+                showMessage('會員資訊錯誤，請重新登入', 'error');
+                return;
+            }
+
+            if (!currentArticleId) {
+                showMessage('文章ID錯誤', 'error');
+                return;
+            }
+
+            // 準備發送的資料
+            const articleData = {
+                acTitle: title,
+                acContext: content,
+                memId: currentMemberId,
+                acTypeId: acTypeId
+            };
+
+            // 檢查是否有變化
+            if (!hasContentChanged(originalArticleData, articleData)) {
+                showMessage('沒有檢測到任何變化，無需更新', 'warning');
+                return;
+            }
+
+            try {
+                // 顯示載入狀態
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 分析圖片中...';
+                submitBtn.classList.add('loading');
+                form.classList.add('loading');
+
+                // 處理內容中的 Base64 圖片（如果有的話）
+                console.log('🔍 檢查內容中的 Base64 圖片...');
+                let processedContent = content;
+
+                if (content.includes('data:image')) {
+                    console.log('⚠️ 檢測到 Base64 圖片，開始處理...');
+                    showMessage('檢測到 Base64 圖片，正在自動上傳...', 'warning');
+
+                    try {
+                        processedContent = await handleBase64Images(content, currentArticleId);
+
+                        // 檢查處理結果
+                        const originalBase64Count = (content.match(/data:image/g) || []).length;
+                        const remainingBase64Count = (processedContent.match(/data:image/g) || []).length;
+                        const processedCount = originalBase64Count - remainingBase64Count;
+
+                        if (processedCount > 0) {
+                            showMessage(`✅ 已處理 ${processedCount} 張 Base64 圖片`, 'success');
+                        }
+
+                        console.log('📊 Base64 圖片處理結果:', {
+                            原始數量: originalBase64Count,
+                            處理數量: processedCount,
+                            剩餘數量: remainingBase64Count
+                        });
+
+                    } catch (error) {
+                        console.error('❌ Base64 圖片處理失敗:', error);
+                        showMessage('Base64 圖片處理失敗，將保持原狀', 'warning');
+                        // 如果處理失敗，使用原始內容
+                        processedContent = content;
+                    }
+                }
+
+                // 更新文章資料為處理後的內容
+                articleData.acContext = processedContent;
+
+                // 決定使用哪個 API 版本
+                const useEnhancedAPI = hasImages(processedContent);
+
+                // 先分析圖片（如果有的話）
+                let imageAnalysis = null;
+                if (useEnhancedAPI) {
+                    console.log('開始分析圖片...');
+                    imageAnalysis = await analyzeImages(processedContent);
+                    if (imageAnalysis) {
+                        showImageAnalysis(imageAnalysis);
+                        console.log('圖片分析結果:', imageAnalysis);
+
+                        // 檢查是否有需要特殊處理的大檔案
+                        if (imageAnalysis.strategies.CHUNKED_UPLOAD > 0) {
+                            showMessage('檢測到大檔案，將使用智能處理策略進行優化', 'warning');
+                        }
+                    }
+                }
+
+                // 更新按鈕狀態
+                if (useEnhancedAPI) {
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 智能更新中...';
+                } else {
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 更新中...';
+                }
+
+                console.log('準備更新文章:', {
+                    articleId: currentArticleId,
+                    data: articleData,
+                    原始內容長度: content.length,
+                    處理後內容長度: processedContent.length,
+                    hasImages: hasImages(processedContent),
+                    useEnhancedAPI,
+                    imageAnalysis
+                });
+                const apiUrl = useEnhancedAPI
+                    ? `${window.api_prefix}/api/articles/${currentArticleId}/edit`
+                    : `${window.api_prefix}/api/articles/${currentArticleId}`;
+
+                console.log('使用編輯API:', apiUrl, useEnhancedAPI ? '(增強版)' : '(基本版)');
+
+                const response = await fetch(apiUrl, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(articleData)
+                });
+
+                const result = await response.json();
+                console.log('更新 API 回應:', result);
+                console.log('更新 API 回應數據結構檢查:', {
+                    hasData: !!result.data,
+                    hasArticle: !!(result.data && result.data.article),
+                    articleAcId: result.data && result.data.article && result.data.article.acId,
+                    directAcId: result.data && result.data.acId,
+                    dataKeys: result.data ? Object.keys(result.data) : null
+                });
+
+                if (response.ok && result.status === 'success') {
+                    let successMessage = '文章更新成功！';
+
+                    // 根據使用的 API 版本顯示不同信息
+                    if (useEnhancedAPI && result.message && result.message.includes('圖片')) {
+                        successMessage += '圖片已重新處理並優化。';
+                    } else if (imageAnalysis && imageAnalysis.totalImages > 0) {
+                        if (useEnhancedAPI) {
+                            successMessage += `已智能處理 ${imageAnalysis.totalImages} 張圖片。`;
+                        } else {
+                            successMessage += `檢測到 ${imageAnalysis.totalImages} 張圖片，已保持原有狀態。`;
+                        }
+                    }
+
+                    successMessage += '即將跳轉到文章頁面...';
+                    showMessage(successMessage, 'success');
+
+                    // 2秒後跳轉到文章詳情頁面
+                    setTimeout(() => {
+                        // 檢查不同的回應格式
+                        let articleId = null;
+                        if (result.data && result.data.acId) {
+                            articleId = result.data.acId;          // 基本 API 格式
+                        } else if (result.data && result.data.article && result.data.article.acId) {
+                            articleId = result.data.article.acId;  // 智能 API 格式
+                        } else {
+                            articleId = currentArticleId;          // 使用當前文章ID作為備用
+                        }
+
+                        if (articleId) {
+                            window.location.href = `articles.html?id=${articleId}`;
+                        } else {
+                            console.warn('無法獲取文章ID，回應數據:', result.data);
+                            window.location.href = 'articles.html';
+                        }
+                    }, 2000);
+
+                } else {
+                    // 如果增強版 API 失敗，嘗試使用基本版 API 作為備用
+                    if (useEnhancedAPI && (response.status === 500 || result.message?.includes('實體關聯') || result.message?.includes('cascade'))) {
+                        console.log('增強版 API 可能仍有問題，嘗試使用基本版 API...');
+                        showMessage('增強版處理失敗，嘗試使用基本版 API...', 'warning');
+
+                        try {
+                            const fallbackResponse = await fetch(`${window.api_prefix}/api/articles/${currentArticleId}`, {
+                                method: 'PUT',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify(articleData)
+                            });
+
+                            const fallbackResult = await fallbackResponse.json();
+                            console.log('基本版 API 回應:', fallbackResult);
+
+                            if (fallbackResponse.ok && fallbackResult.status === 'success') {
+                                showMessage('文章更新成功！（使用基本版 API，圖片保持原狀）即將跳轉到文章頁面...', 'success');
+                                setTimeout(() => {
+                                    window.location.href = `articles.html?id=${currentArticleId}`;
+                                }, 2000);
+                                return;
+                            } else {
+                                throw new Error(fallbackResult.message || '基本版 API 也失敗了');
+                            }
+                        } catch (fallbackError) {
+                            console.error('基本版 API 也失敗:', fallbackError);
+                            showMessage('所有更新方式都失敗了，請稍後再試', 'error');
+                            return;
+                        }
+                    }
+
+                    // 顯示錯誤訊息
+                    let errorMessage = '更新失敗';
+                    if (result.message) {
+                        errorMessage += `: ${result.message}`;
+                    } else if (response.status === 403) {
+                        errorMessage += ': 沒有編輯權限';
+                    } else if (response.status === 404) {
+                        errorMessage += ': 文章不存在';
+                    } else if (response.status === 500) {
+                        errorMessage += ': 伺服器內部錯誤';
+                        if (useEnhancedAPI) {
+                            errorMessage += '，可能是圖片處理問題';
+                        }
+                    }
+                    showMessage(errorMessage, 'error');
+                }
+
+            } catch (error) {
+                console.error('發送請求時發生錯誤:', error);
+                showMessage('發送請求時發生錯誤，請檢查網路連線', 'error');
+            } finally {
+                // 恢復按鈕狀態
+                submitBtn.innerHTML = '<i class="fas fa-save"></i> 更新文章';
+                submitBtn.classList.remove('loading');
+                form.classList.remove('loading');
+            }
+        });
+
+        // 頁面載入時初始化
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('編輯頁面開始初始化...');
+            initPage();
+        });
+
+        // 測試函數供開發者使用
+        window.testEditAPI = async function (articleId, testData = null) {
+            if (!articleId) {
+                console.error('請提供文章ID，例如: testEditAPI(30000084)');
+                return;
+            }
+
+            const defaultTestData = {
+                acTitle: '測試更新標題 - ' + new Date().toLocaleTimeString(),
+                acContext: '<p>測試更新內容 - ' + new Date().toLocaleString() + '</p>',
+                memId: currentMemberId || 1001,
+                acTypeId: 1
+            };
+
+            const data = testData || defaultTestData;
+
+            console.log('🧪 開始測試編輯 API...');
+            console.log('測試資料:', data);
+
+            try {
+                // 測試增強版 API
+                console.log('📡 測試增強版 API...');
+                const enhancedResponse = await fetch(`${window.api_prefix}/api/articles/${articleId}/edit`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const enhancedResult = await enhancedResponse.json();
+                console.log('✅ 增強版 API 回應:', enhancedResult);
+
+                if (enhancedResponse.ok) {
+                    console.log('🎉 增強版 API 測試成功！');
+                    return { success: true, api: 'enhanced', result: enhancedResult };
+                } else {
+                    console.log('❌ 增強版 API 失敗，測試基本版...');
+                }
+
+                // 測試基本版 API
+                console.log('📡 測試基本版 API...');
+                const basicResponse = await fetch(`${window.api_prefix}/api/articles/${articleId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const basicResult = await basicResponse.json();
+                console.log('✅ 基本版 API 回應:', basicResult);
+
+                if (basicResponse.ok) {
+                    console.log('🎉 基本版 API 測試成功！');
+                    return { success: true, api: 'basic', result: basicResult };
+                } else {
+                    console.log('❌ 基本版 API 也失敗');
+                    return { success: false, error: basicResult };
+                }
+
+            } catch (error) {
+                console.error('💥 測試過程中發生錯誤:', error);
+                return { success: false, error: error.message };
+            }
+        };
+
+        // 快速測試當前文章
+        window.testCurrentArticle = function () {
+            if (currentArticleId) {
+                return window.testEditAPI(currentArticleId);
+            } else {
+                console.error('❌ 沒有當前文章ID，請先載入編輯頁面');
+            }
+        };
+
+        // 檢查內容長度和圖片狀況
+        window.checkContent = function () {
+            if (!quill) {
+                console.error('❌ 編輯器未初始化');
+                return;
+            }
+
+            const rawContent = quill.root.innerHTML;
+            const textContent = quill.getText();
+            const cleanedContent = cleanHtmlContent(rawContent);
+
+            console.log('📏 內容分析報告:');
+            console.log('────────────────────');
+            console.log('📝 原始 HTML 長度:', rawContent.length);
+            console.log('📄 純文字長度:', textContent.length);
+            console.log('🧹 清理後 HTML 長度:', cleanedContent.length);
+            console.log('🖼️ Base64 圖片數量:', (rawContent.match(/data:image/g) || []).length);
+            console.log('🔗 外部圖片數量:', (rawContent.match(/<img(?![^>]*data:image)[^>]*>/g) || []).length);
+            console.log('⚠️ 是否超過限制 (4000):', cleanedContent.length > 4000);
+
+            if (cleanedContent.length > 4000) {
+                console.log('🚨 需要縮減:', cleanedContent.length - 4000, '個字元');
+            }
+
+            // 檢測可能的圖片問題
+            const base64Count = (rawContent.match(/data:image/g) || []).length;
+            if (base64Count > 0) {
+                console.log('⚠️ 檢測到 Base64 圖片，建議：');
+                console.log('   1. 使用圖片按鈕上傳圖片');
+                console.log('   2. 或提交時會自動處理');
+            }
+
+            return {
+                raw: rawContent.length,
+                text: textContent.length,
+                cleaned: cleanedContent.length,
+                base64Images: base64Count,
+                externalImages: (rawContent.match(/<img(?![^>]*data:image)[^>]*>/g) || []).length,
+                exceeded: cleanedContent.length > 4000,
+                overBy: Math.max(0, cleanedContent.length - 4000)
+            };
+        };
+
+        // 測試圖片上傳功能
+        window.testImageUpload = async function (file) {
+            if (!file) {
+                console.error('請提供檔案，例如: testImageUpload(檔案物件)');
+                return;
+            }
+
+            if (!currentArticleId) {
+                console.warn('⚠️ 沒有當前文章ID，將使用 null');
+            }
+
+            console.log('🧪 測試圖片上傳...');
+            return await uploadImageToAPI(file, currentArticleId);
+        };
+
+        // 測試 Base64 處理功能
+        window.testBase64Processing = async function () {
+            if (!quill) {
+                console.error('❌ 編輯器未初始化');
+                return;
+            }
+
+            const content = quill.root.innerHTML;
+
+            if (!content.includes('data:image')) {
+                console.log('ℹ️ 目前內容中沒有 Base64 圖片');
+                return;
+            }
+
+            console.log('🧪 測試 Base64 圖片處理...');
+            const result = await handleBase64Images(content, currentArticleId);
+
+            console.log('📊 處理結果:');
+            console.log('原始長度:', content.length);
+            console.log('處理後長度:', result.length);
+            console.log('原始 Base64 數量:', (content.match(/data:image/g) || []).length);
+            console.log('處理後 Base64 數量:', (result.match(/data:image/g) || []).length);
+
+            return result;
+        };
+    </script>
+</body>
+
+</html>
