@@ -1218,12 +1218,14 @@ class UserProfileManager {
     }
   }
 
+
+  //折價券
   async loadCoupons() {
     const couponsGrid = document.getElementById("coupon-grid");
     if (!couponsGrid) return;
-
+  
     const coupons = this.memberCoupons;
-
+  
     if (!Array.isArray(coupons) || coupons.length === 0) {
       couponsGrid.innerHTML = `
         <div class="empty-state">
@@ -1232,15 +1234,15 @@ class UserProfileManager {
         </div>`;
       return;
     }
-
+  
     // 渲染折價券卡片
     couponsGrid.innerHTML = coupons
       .map((coupon) => {
         const now = new Date();
         const end = new Date(coupon.endDate);
         const isExpired = end < now;
-        const isUsed = coupon.usedDate != null;
-
+        const isUsed = coupon.usedAt != null;
+  
         let statusClass = "available";
         let statusText = "可使用";
         if (isUsed) {
@@ -1250,10 +1252,9 @@ class UserProfileManager {
           statusClass = "expired";
           statusText = "已過期";
         }
-
-        const typeText =
-          coupon.discountCodeType === 0 ? "營地折價券" : "商城折價券";
-
+  
+        const typeText = "商城折價券";
+  
         return `
           <div class="coupon-card ${statusClass}">
             <div class="coupon-header">
@@ -1261,7 +1262,14 @@ class UserProfileManager {
               <div class="coupon-status">${statusText}</div>
             </div>
             <div class="coupon-content">
-              <div class="coupon-title">活動名稱:${coupon.discountCode}</div>
+              <div class="coupon-title">${coupon.discountCode}</div>
+              <div class="coupon-discount">
+                折扣：
+                ${coupon.discountType === 'percentage' || coupon.discountType === 1
+                   ? `${coupon.discountValue * 100}% OFF`
+                   : `NT$${coupon.discountValue}`
+                 }
+              </div>
               <div class="coupon-description">單筆滿 NT$${
                 coupon.minOrderAmount
               } 可使用</div>
@@ -1271,37 +1279,13 @@ class UserProfileManager {
               )} ~ ${coupon.endDate.substring(0, 10)}</div>
             </div>
             <div class="coupon-footer">
-              <div class="coupon-code">請使用優惠碼：${
-                coupon.discountCodeId
-              }</div>
-              ${
-                !isExpired && !isUsed
-                  ? `<button class="btn-copy-code" data-code="${coupon.discountCodeId}">複製代碼</button>`
-                  : ""
-              }
-              ${
-                isUsed
-                  ? `<div class="coupon-used-date">使用日期：${coupon.usedDate.substring(
-                      0,
-                      10
-                    )}</div>`
-                  : ""
-              }
+              <div class="coupon-code">折扣碼：${coupon.discountCodeId}</div>
+              ${isUsed ? `<div class="coupon-used-date">使用日期：${coupon.usedAt.substring(0, 10)}</div>` : ""}
             </div>
           </div>`;
       })
       .join("");
-
-    // 複製按鈕功能
-    document.querySelectorAll(".btn-copy-code").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const code = btn.dataset.code;
-        navigator.clipboard.writeText(code).then(() => {
-          alert(`已複製折價券代碼：${code}`);
-        });
-      });
-    });
-
+  
     this.setupCouponFilters();
   }
 

@@ -355,6 +355,10 @@ function loadCampersTable() {
                 }
             </td>
         `;
+
+        
+
+
     tbody.appendChild(row);
   });
 }
@@ -1501,6 +1505,9 @@ function loadDiscountManagement() {
                     <div class="form-group">
                         <label>折扣金額/折扣百分比:</label>
                         <input type="number" name="value" required step="0.01" min="0">
+                        <small class="form-text text-muted">
+                        若為金額，請輸入數字如「100」；若為百分比，請輸入「10」代表 10% OFF。
+                        </small>
                     </div>
                     <div class="form-group">
                         <label>最低消費金額:</label>
@@ -1545,14 +1552,12 @@ function formatDate(dateString) {
 let isDiscountFormBound = false;
 // 載入折價券表格
 function loadDiscountTable() {
-
   // 失效日期由遠到近排序
   discountCodesData.sort((a, b) => {
     const dateA = new Date(a.endDate);
     const dateB = new Date(b.endDate);
     return dateB - dateA; 
   });
-
 
   const tbody = document.getElementById("discount-table-body");
   if (!tbody) return;
@@ -1561,88 +1566,89 @@ function loadDiscountTable() {
 
   if (discountCodesData.length === 0) {
     tbody.innerHTML = `
-            <tr>
-                <td colspan="7" class="empty-state">
-                    <i class="fas fa-tags"></i>
-                    <h3>暫無折價券</h3>
-                    <p>目前沒有建立任何折價券</p>
-                </td>
-            </tr>
-        `;
+      <tr>
+        <td colspan="7" class="empty-state">
+          <i class="fas fa-tags"></i>
+          <h3>暫無折價券</h3>
+          <p>目前沒有建立任何折價券</p>
+        </td>
+      </tr>
+    `;
     return;
   }
-  console.log("discountCodesData", discountCodesData);
 
   discountCodesData.forEach((discount, index) => {
-    
     const currentDate = new Date();
     const endDate = new Date(discount.endDate);
     const isActive = endDate > currentDate;
     const isExpiredToday =
       endDate.toDateString() === currentDate.toDateString() &&
       endDate <= currentDate;
-    const discountTypeText =
-      discount.discount_type === 1 ? "百分比" : "固定金額";
+
+    const discountTypeText = discount.discountType === 1 ? "百分比" : "固定金額";
     const discountValueText =
       discount.discountType === 1
         ? `${discount.discountValue * 100}%`
         : `${discount.discountValue}元`;
 
-    // 格式化折價券建立日期、生效日期、失效日期、生效期間、更新日期
+    // 格式化日期
     const formattedStartDate = formatDate(discount.startDate);
     const formattedEndDate = formatDate(discount.endDate);
     const dateRangeText = `${formattedStartDate} ~ ${formattedEndDate}`;
     const formattedUpdateDate = formatDate(discount.updated);
 
-    // 判斷是否顯示刪除按鈕（當日已過期則不顯示）
-    const showDeleteButton = !isExpiredToday && endDate > currentDate;
+    // 只在折價券有效且未過期當天才顯示按鈕
+    const isExpired = endDate <= currentDate;
+
+    // 操作按鈕
+    const actionCellContent = isExpired
+  ? `<span class="text-muted">已過期</span>`
+  : `
+    <button class="action-btn btn-edit-discount" onclick="editDiscount('${discount.discountCodeId}')">
+      編輯
+    </button>
+    <button class="action-btn btn-send" onclick="sendDiscountToAll('${discount.discountCodeId}')">
+      發送
+    </button>
+  `;
+
+    
 
     const row = document.createElement("tr");
     row.innerHTML = `
-             <td>
-               <button class="toggle-details-btn" id="toggle-btn-${index}" onclick="toggleDetails(${index})">▼</button>
-               ${discount.discountCode}
-            </td> 
-            <td>${discount.discountExplain}</td>
-            <td>${discountValueText}</td>  
-            <td>${discount.minOrderAmount}元</td>  
-            <td>${dateRangeText}</td>  
-            <td>${isActive ? "有效" : "已過期"}</td> 
-            <td>
-            ${
-              showDeleteButton
-                ? `
-              <button class="btn btn-edit-discount" onclick="editDiscount('${discount.discountCodeId}')">
-                  <i class="fas fa-edit"></i> 編輯
-              </button>
-              `
-                : `
-              <span class="text-muted">已過期</span>
-              `
-              }
-            </td>
-        `;
+      <td>
+        <button class="toggle-details-btn" id="toggle-btn-${index}" onclick="toggleDetails(${index})">▼</button>
+        ${discount.discountCode}
+      </td>
+      <td>${discount.discountExplain}</td>
+      <td>${discountValueText}</td>
+      <td>${discount.minOrderAmount}元</td>
+      <td>${dateRangeText}</td>
+      <td>${isActive ? "有效" : "已過期"}</td>
+      <td class="action-cell">${actionCellContent}</td>
+    `;
+
     tbody.appendChild(row);
 
     // 折疊區塊（預設隱藏）
-  const detailRow = document.createElement("tr");
-  detailRow.classList.add("discount-details-row");
-  detailRow.style.display = "none";
-  detailRow.id = `detail-row-${index}`;
+    const detailRow = document.createElement("tr");
+    detailRow.classList.add("discount-details-row");
+    detailRow.style.display = "none";
+    detailRow.id = `detail-row-${index}`;
 
-  detailRow.innerHTML = `
-    <td colspan="7" class="discount-detail-cell">
-      <div><strong>折價券編號：</strong>${discount.discountCodeId}</div>
-      <div><strong>折扣類型：</strong>${discountTypeText}</div>
-      <div><strong>建立日期：</strong>${formatDate(discount.created)}</div>
-      <div><strong>更新日期：</strong>${formattedUpdateDate}</div>
-    </td>
-  `;
+    detailRow.innerHTML = `
+      <td colspan="7" class="discount-detail-cell">
+        <div><strong>折價券編號：</strong>${discount.discountCodeId}</div>
+        <div><strong>折扣類型：</strong>${discountTypeText}</div>
+        <div><strong>建立日期：</strong>${formatDate(discount.created)}</div>
+        <div><strong>更新日期：</strong>${formattedUpdateDate}</div>
+      </td>
+    `;
 
-  tbody.appendChild(detailRow);
-
+    tbody.appendChild(detailRow);
   });
 }
+
 
 function toggleDetails(index) {
   const detailRow = document.getElementById(`detail-row-${index}`);
@@ -1859,6 +1865,37 @@ function editDiscount(discountCodeId) {
 
   // 重新觸發折扣類型格式調整
   form.elements["type"].dispatchEvent(new Event("change"));
+}
+
+// 發送折價券給所有會員
+function sendDiscountToAll(discountCodeId) {
+  if (!discountCodeId) {
+    alert("請選擇折價券");
+    return;
+  }
+
+  if (!confirm(`確定要將折價券 ${discountCodeId} 發送給所有會員嗎？`)) {
+    return;
+  }
+
+  fetch(`${window.api_prefix}/api/userdiscount/sendDiscountToAll?discountCodeId=${discountCodeId}`, {
+    method: "POST",
+  })
+  .then(response => {
+    if (!response.ok) {
+      return response.json().then(err => {
+        throw new Error(err.message || "發送失敗");
+      });
+    }
+    return response.json();
+  })
+  .then(data => {
+    alert("折價券已成功發送給所有會員！");
+    console.log("發送結果", data);
+  })
+  .catch(error => {
+    alert(`發送失敗：${error.message}`);
+  });
 }
 
 
