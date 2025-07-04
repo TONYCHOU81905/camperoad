@@ -53,44 +53,15 @@
       }
 
       .order-details {
-        margin: 30px 0;
-        text-align: left;
-        border: 1px solid #eee;
-        padding: 20px;
-        border-radius: 5px;
         width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
       }
 
-      order-items-list {
+      
+      #order-item {
         width: 100%;
-      }
-
-      .order-number {
-        font-size: 20px;
-        font-weight: bold;
-        color: #333;
-      }
-
-      .order-details h3 {
-        font-size: 18px;
-        margin-bottom: 15px;
-        color: #555;
-      }
-
-      .order-items-table {
-        width: 100%;
-        margin-bottom: 20px;
-        border-collapse: collapse;
-        table-layout: fixed;
-      }
-
-      .order-items-table th {
-        padding: 10px;
-        border-bottom: 1px solid #eee;
-      }
-
-      .order-items-table td {
-        padding: 0; /* 移除預設間距 */
+        box-sizing: border-box;
       }
 
       .order-item {
@@ -127,9 +98,7 @@
         margin-top: 5px;
       }
 
-      .order-items-table th {
-        background-color: #f9f9f9;
-      }
+    
 
       .order-total {
         font-size: 20px;
@@ -138,11 +107,6 @@
         color: #333;
       }
 
-      .order-items-table tfoot td {
-        padding: 10px;
-        border-top: 2px solid #eee;
-        font-weight: bold;
-      }
 
       .action-buttons {
         margin-top: 30px;
@@ -157,34 +121,6 @@
   <body>
     <!-- 頁頭 -->
     <header class="site-header">
-      <div class="container">
-        <div class="logo">
-          <a href="index.html">
-            <img src="images/logo.svg" alt="露途 Logo" />
-          </a>
-        </div>
-        <nav class="main-nav">
-          <ul>
-            <li><a href="index.html">營地預訂</a></li>
-            <li><a href="shop.html">裝備商城</a></li>
-            <li><a href="camp-guides.html">論壇攻略</a></li>
-            <li><a href="user-profile.html">關於我們</a></li>
-          </ul>
-        </nav>
-        <div class="user-actions">
-          <a href="#" class="btn-search"><i class="fas fa-search"></i></a>
-          <a href="shop_cart.html" class="btn-cart"
-            ><i class="fas fa-shopping-cart"></i
-            ><span class="cart-count">0</span></a
-          >
-          <a href="login.html" class="btn-login">登入 / 註冊</a>
-        </div>
-        <button class="mobile-menu-toggle">
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
-      </div>
     </header>
 
     <!-- 主要內容 -->
@@ -221,11 +157,11 @@
 
         <div class="order-details">
           <!-- <h3>訂單明細</h3> -->
-          <div id="order-items"></div>
+          <div id="order-item"></div>
         </div>
 
         <div class="action-buttons">
-          <a href="user-profile.html#shop-orders" class="btn primary-btn">查看我的訂單</a>
+          <a href="user-profile.html" class="btn primary-btn">查看我的訂單</a>
           <a href="index.html" class="btn secondary-btn">返回首頁</a>
         </div>
       </div>
@@ -233,59 +169,6 @@
 
     <!-- 頁尾 -->
     <footer class="site-footer">
-      <div class="container">
-        <div class="footer-content">
-          <div class="footer-logo">
-            <img src="images/logo-white.svg" alt="露途 Logo" />
-            <p>探索自然，體驗野趣</p>
-          </div>
-          <div class="footer-links">
-            <div class="footer-column">
-              <h3>關於我們</h3>
-              <ul>
-                <li><a href="#">公司簡介</a></li>
-                <li><a href="#">服務條款</a></li>
-                <li><a href="#">隱私政策</a></li>
-                <li><a href="#">加入我們</a></li>
-              </ul>
-            </div>
-            <div class="footer-column">
-              <h3>營地資訊</h3>
-              <ul>
-                <li><a href="#">北部營地</a></li>
-                <li><a href="#">中部營地</a></li>
-                <li><a href="#">南部營地</a></li>
-                <li><a href="#">東部營地</a></li>
-              </ul>
-            </div>
-            <div class="footer-column">
-              <h3>商城服務</h3>
-              <ul>
-                <li><a href="#">全新商品</a></li>
-                <li><a href="#">配送說明</a></li>
-              </ul>
-            </div>
-            <div class="footer-column">
-              <h3>幫助中心</h3>
-              <ul>
-                <li><a href="#">常見問題</a></li>
-                <li><a href="#">預訂指南</a></li>
-                <li><a href="#">聯絡客服</a></li>
-                <li><a href="#">緊急協助</a></li>
-              </ul>
-            </div>
-          </div>
-        </div>
-        <div class="footer-bottom">
-          <div class="social-links">
-            <a href="#"><i class="fab fa-facebook-f"></i></a>
-            <a href="#"><i class="fab fa-instagram"></i></a>
-            <a href="#"><i class="fab fa-youtube"></i></a>
-            <a href="#"><i class="fab fa-line"></i></a>
-          </div>
-          <p class="copyright">© 2023 露途 All Rights Reserved.</p>
-        </div>
-      </div>
     </footer>
 
     <div class="loading-overlay">
@@ -305,9 +188,10 @@
     <script src="js/main.js"></script>
     <script src="js/camp-data.js"></script>
     <script src="js/header-auth.js"></script>
+    <script src="js/include.js"></script>
     <script src="js/shop_cart.js"></script>
     <script>
-       async function clearCartNoConfirm() {
+      async function clearCartNoConfirm() {
           const memberInfo = sessionStorage.getItem('currentMember');
           const member = memberInfo ? JSON.parse(memberInfo) : null;
           const memId = member ? member.memId : null;
@@ -326,38 +210,37 @@
                 throw new Error(data.message || '清空購物車失敗');
               }
             } else {
-              sessionCartManager.clearCart();
+              if (window.sessionCartManager) window.sessionCartManager.clearCart();
             }
-            // 更新購物車數量
-            updateCartCount(0);
           } catch (error) {
             console.error('清空購物車失敗:', error);
-            document.getElementById('error-message').textContent = `無法清空購物車：${error.message}`;
           }
         }
 
-
-      document.addEventListener('DOMContentLoaded', async () => {
+        document.addEventListener('DOMContentLoaded', async () => {
           // 隱藏載入動畫
           const loadingOverlay = document.querySelector('.loading-overlay');
-          if (loadingOverlay) {
-            loadingOverlay.style.display = 'none';
-          }
+          if (loadingOverlay) loadingOverlay.style.display = 'none';
 
           // 解析 URL 參數
           const urlParams = new URLSearchParams(window.location.search);
           const orderId = urlParams.get('orderId');
           const isCamp = urlParams.get('isCamp') === 'true';
+          const shopOrderId = orderId?.startsWith('SHOP') ? orderId.replace('SHOP', '') : orderId;
 
           // 顯示訂單編號
-          document.getElementById('order-id').textContent = orderId || '未知';
+          const orderIdElement = document.getElementById('order-id');
+          if (orderIdElement) orderIdElement.textContent = shopOrderId || '未知';
 
-          // 提取 shopOrderId
-          const shopOrderId = orderId?.startsWith('SHOP') ? orderId.replace('SHOP', '') : null;
+          // 初始化 CheckoutManager
+          const checkoutManager = new CheckoutManager();
+          await checkoutManager.init();
+
+          // 執行 handlePaymentSuccess
+          await checkoutManager.handlePaymentSuccess({ orderId: shopOrderId });
 
           if (shopOrderId && !isCamp) {
             try {
-              // 呼叫 API 取得訂單資訊
               const response = await fetch(`${window.api_prefix}/api/getOneById?shopOrderId=${shopOrderId}`, {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json' }
@@ -368,18 +251,15 @@
               }
 
               const data = await response.json();
-              console.log('API 回應:', data); // 除錯用日誌
+              console.log('API 回應:', data);
 
               if (data.status === 'success' && data.data) {
                 const order = data.data;
-                console.log('訂單資料:', order); 
-                const orderItemsContainer = document.getElementById('order-items');
+                const orderItemsContainer = document.getElementById('order-item');
                 const orderTotalElement = document.getElementById('order-total');
 
-                // 更新總金額
-                 orderTotalElement.textContent = `NT$ ${(order.afterDiscountAmount || 0).toLocaleString()}`;
+                orderTotalElement.textContent = `NT$ ${(order.afterDiscountAmount || 0).toLocaleString()}`;
 
-                // 渲染訂單資訊
                 const orderInfo = `
                 <div class="order-item">
                   <div>
@@ -391,9 +271,8 @@
                   </div>
                 </div>
               `;
-                orderItemsContainer.innerHTML = orderInfo;
+                if (orderItemsContainer) orderItemsContainer.innerHTML = orderInfo;
 
-                // 清空購物車
                 await clearCartNoConfirm();
               } else {
                 throw new Error(data.message || '無法取得訂單資訊');
@@ -401,16 +280,67 @@
             } catch (error) {
               console.error('取得訂單資訊失敗:', error);
               document.getElementById('success-title').textContent = '無法顯示訂單資訊';
-              document.getElementById('order-items').textContent = '無法載入訂單詳情，請稍後再試';
-              document.getElementById('error-message').textContent = `錯誤：${error.message}`;
+              document.getElementById('order-item').textContent = '無法載入訂單詳情，請稍後再試';
             }
           } else {
             console.error('無效訂單參數:', { orderId, isCamp });
-            document.getElementById('success-title').textContent = '無法顯示訂單資訊';
-            document.getElementById('order-items').textContent = '無效的訂單編號或訂單類型';
-            document.getElementById('error-message').textContent = '僅支援商城訂單查詢，請確認訂單編號';
           }
         });
+
+        class CheckoutManager {
+          constructor() {
+            this.memId = null;
+          }
+
+          init = async () => {
+            let memberInfo = localStorage.getItem('currentMember') || sessionStorage.getItem('currentMember');
+            if (memberInfo) {
+              try {
+                const member = JSON.parse(memberInfo);
+                this.memId = member.mem_id || member.memId;
+                console.log('初始化 memId:', this.memId);
+              } catch (e) {
+                console.error('解析會員資料失敗:', e);
+              }
+            } else {
+              console.error('未找到會員資料');
+            }
+          };
+
+          handlePaymentSuccess = async (result) => {
+            console.log('付款成功', result);
+            if (!this.memId) {
+              console.error('memId 無效，無法更新折價券');
+              return;
+            }
+
+            // 從 localStorage 取得 discountCodeId（需結帳頁設置）
+            const discountCodeId = localStorage.getItem('lastDiscountCodeId');
+            console.log('更新折價券狀態:', { memId: this.memId, discountCodeId });
+
+            if (discountCodeId) {
+              try {
+                const response = await fetch(`${window.api_prefix}/api/userdiscount/used`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ memId: this.memId, discountCodeId })
+                });
+                if (!response.ok) {
+                  console.error('更新折價券失敗:', await response.text());
+                } else {
+                  console.log('折價券更新成功');
+                }
+              } catch (error) {
+                console.error('更新折價券錯誤:', error);
+              }
+            } else {
+              console.warn('無效的 discountCodeId');
+            }
+
+            // 清空購物車
+            await clearCartNoConfirm();
+          };
+        }
     </script>
   </body>
 </html>

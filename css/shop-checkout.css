@@ -260,6 +260,8 @@ textarea {
 }
 
 .order-item {
+  width: 100%;
+  box-sizing: border-box;
   display: flex;
   margin-bottom: 15px;
   padding-bottom: 15px;
@@ -476,4 +478,30 @@ textarea {
     flex-direction: column;
     gap: 0;
   }
+}
+
+#fill-member-info {
+  display: inline-block;
+  padding: 0.5em 1.5em;
+  background-color: #3a6ea5; /* 主色調，可依實際主色調調整 */
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px rgba(58,110,165,0.08);
+  margin-bottom: 1em;
+}
+#fill-member-info:hover, #fill-member-info:focus {
+  background-color: #28527a;
+  box-shadow: 0 4px 16px rgba(58,110,165,0.15);
+  outline: none;
+}
+
+.order-details {
+  width: 100%;
+  max-width: 600px; /* 或依你設計調整 */
+  margin: 0 auto;
 }

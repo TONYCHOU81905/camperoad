@@ -16,10 +16,39 @@
     />
     <link rel="stylesheet" href="css/style.css" />
     <link rel="stylesheet" href="css/role-system.css" />
-    <link rel="stylesheet" href="css/product-detail.css" />
   </head>
   <body>
-    <div id="header-container"></div>
+    <header class="site-header">
+      <div class="container">
+        <div class="logo">
+          <a href="index.html">
+            <img src="images/logo.svg" alt="露途 Logo" />
+          </a>
+        </div>
+        <nav class="main-nav">
+          <ul>
+            <li><a href="campsites.html">營地預訂</a></li>
+            <li><a href="shop.html" class="active">裝備商城</a></li>
+            <li><a href="camp-guides.html">論壇攻略</a></li>
+            <li><a href="#">關於我們</a></li>
+          </ul>
+        </nav>
+        <div class="user-actions">
+          <a href="shop_cart.html" class="btn-cart"
+            ><i class="fas fa-shopping-cart"></i
+            ><span class="cart-count">0</span></a
+          >
+          <a href="user-profile.html" class="btn-login"
+            ><i class="fas fa-user"></i
+          ></a>
+        </div>
+        <button class="mobile-menu-toggle">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+    </header>
 
     <div class="breadcrumb">
       <div class="container">
@@ -59,6 +88,7 @@
                 <i class="fas fa-star-half-alt"></i>
                 <!-- <span>(32 則評價)</span> -->
               </div>
+              <div class="product-id">商品編號: TENT-SKY-001</div>
             </div>
             <div class="product-price-container">
               <div class="product-price">
@@ -73,7 +103,6 @@
                   <!-- js動態載入 -->
                 </div>
               </div>
-
               <div class="option-group">
                 <label for="quantity">數量</label>
                 <div class="quantity-selector">
