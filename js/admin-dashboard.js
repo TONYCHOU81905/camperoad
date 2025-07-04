@@ -2095,6 +2095,10 @@ function viewShopOrderDetails(orderId) {
                 : ""
             }</span>
           </div>
+           <div class="info-item">
+            <span class="info-label">訂單備註:</span>
+            <span class="info-value">${order.shopOrderNote}</span>
+          </div>
         </div>
       </div>
       
@@ -2663,9 +2667,8 @@ function showEditShopOrderModal(orderId) {
     .join("");
 
   // 根據後端邏輯決定哪些欄位可以編輯
-  const canEditBasicFields =
-    order.shopOrderStatus === 0 || order.shopOrderStatus === 7; // 只有狀態0或7可以編輯基本欄位
-  const canEditStatus = true; // 永遠可以修改訂單狀態
+  const canEditBasicFields = order.shopOrderStatus === 0 || order.shopOrderStatus === 7; // 只有狀態0或7可以編輯基本欄位
+  const canEditStatus = order.shopOrderStatus !== 5; // 只有非已取消(5)才可修改訂單狀態
   const canEditReturnApply = order.shopOrderStatus === 3; // 只有狀態3可以編輯退貨申請
   // 根據後端邏輯：出貨日期在訂單狀態為3、4、5時才無法編輯，其他時間都可以編輯
   const canEditShipDate = ![3, 4, 5].includes(order.shopOrderStatus);
@@ -2691,7 +2694,7 @@ function showEditShopOrderModal(orderId) {
         </div>
         <div class="form-group">
           <label>訂單狀態</label>
-          <select id="edit-order-status" required>
+          <select id="edit-order-status" ${canEditStatus ? "" : "disabled"}>
             ${statusOptionsHtml}
           </select>
         </div>

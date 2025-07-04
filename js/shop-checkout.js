@@ -68,12 +68,38 @@ class CheckoutManager {
     });
     const productTotal = this.cartItems.reduce((sum, item) => sum + (item.prodPrice * item.cartProdQty), 0);
     let discountAmount = 0;
+    const discountSelect = document.getElementById('discount-select');
+
+    let discountCodeId = discountSelect ? discountSelect.value : null;
+    console.log('discountSelect 狀態:', {
+      discountSelectExists: !!discountSelect,
+      discountCodeId: discountCodeId || '未選擇折價券',
+      discountMapExists: !!this.discountMap
+    });
+    
+    // 折扣計算邏輯
+    if (discountCodeId && this.discountMap && this.discountMap[discountCodeId]) {
+      const discount = this.discountMap[discountCodeId];
+      if (discount.discountType === 0) {
+        // 金額折抵
+        discountAmount = Math.min(discount.discountValue, productTotal);
+      } else if (discount.discountType === 1) {
+        // 百分比折扣（四捨五入）
+        discountAmount = Math.round(productTotal * discount.discountValue);
+      }
+    }
+
+    this.discountAmount = discountAmount; // 記錄最新折扣金額
+    this.productTotal = productTotal; // 儲存商品總額
+
     const shippingFee = 60;
     const orderTotal = productTotal - discountAmount + shippingFee;
     if (orderSubtotalElement) orderSubtotalElement.textContent = `NT$ ${productTotal.toLocaleString()}`;
     if (orderShippingElement) orderShippingElement.textContent = `NT$ ${shippingFee.toLocaleString()}`;
     if (orderDiscountElement) orderDiscountElement.textContent = `-NT$ ${discountAmount.toLocaleString()}`;
     if (orderTotalElement) orderTotalElement.textContent = `NT$ ${orderTotal.toLocaleString()}`;
+   
+ 
   }
 
   bindEvents() {
@@ -107,7 +133,7 @@ class CheckoutManager {
     const viewOrderBtn = document.getElementById("view-order");
     if (viewOrderBtn) {
       viewOrderBtn.addEventListener("click", () => {
-        window.location.href = "user-profile.html#shop-orders";
+        window.location.href = "user-profile.html";
       });
     }
 
@@ -241,6 +267,30 @@ class CheckoutManager {
     }
 
     handleCvsSelectVisibility.call(this);
+
+    // 新增：同會員資訊按鈕
+    const fillMemberBtn = document.getElementById('fill-member-info');
+    if (fillMemberBtn) {
+      fillMemberBtn.addEventListener('click', () => {
+        let memberInfo = localStorage.getItem('currentMember') || sessionStorage.getItem('currentMember');
+        if (memberInfo) {
+          try {
+            const member = JSON.parse(memberInfo);
+            document.getElementById('customer-name').value = member.memName || '';
+            // 手機號碼格式化
+            let mobile = member.memMobile || '';
+            mobile = mobile.replace(/\D/g, ''); // 移除所有非數字
+            document.getElementById('customer-phone').value = mobile;
+            document.getElementById('customer-email').value = member.memEmail || '';
+            document.getElementById('customer-address').value = member.memAddr || '';
+          } catch (e) {
+            alert('會員資料解析失敗');
+          }
+        } else {
+          alert('找不到會員資料');
+        }
+      });
+    }
   }
 
   validateForm() {
@@ -327,7 +377,7 @@ class CheckoutManager {
     else if (this.selectedPaymentMethod === '3') shopOrderPayment = 3;
 
     const shopOrderShipFee = 60;
-    const discountCodeId = document.getElementById('discount-code')?.value || null;
+    const discountCodeId = document.getElementById('discount-select')?.value || null;
 
     const detailsDto = this.cartItems.map(item => ({
       prodId: item.prodId,
@@ -358,36 +408,73 @@ class CheckoutManager {
     console.log("處理伺服器付款", orderData);
     try {
       const shippingFee = 60;
-      const totalAmount = this.cartItems.reduce((sum, item) => sum + (item.prodPrice * item.cartProdQty), 0) + shippingFee;
+      const discountAmount = this.discountAmount || 0;
+      
+      
+      // 檢查 this.productTotal 是否存在
+      if (typeof this.productTotal !== 'number') {
+        console.error('productTotal 未定義，重新計算');
+        this.productTotal = this.cartItems.reduce((sum, item) => sum + (item.prodPrice * item.cartProdQty), 0);
+      }
+
+      const totalAmount = this.productTotal + shippingFee - discountAmount;
+
+      // 開頭日誌，確認變數狀態
+      console.log('processServerPayment 初始狀態:', {
+        productTotal: this.productTotal,
+        shippingFee,
+        discountAmount,
+        totalAmount
+      });
+
+      // 驗證總額
+      if (totalAmount <= 0) {
+        throw new Error('支付總額必須大於 0，請檢查折扣金額');
+      }
+
+
+      const packages = [
+        {
+          id: "pkg-total",
+          amount: totalAmount,
+          products: [{
+            name: "商品總額",
+            quantity: 1,
+            price: totalAmount
+          }]
+        }
+      ];
 
       const linepayBody = {
         amount: totalAmount,
         currency: "TWD",
-        packages: [
-          ...this.cartItems.map(item => ({
-            id: `pkg-${item.prodId}`,
-            amount: item.prodPrice * item.cartProdQty,
-            products: [{
-              name: item.prodName || `商品ID:${item.prodId}`,
-              quantity: item.cartProdQty,
-              price: item.prodPrice
-            }]
-          })),
-          {
-            id: "pkg-shipping",
-            amount: shippingFee,
-            products: [{
-              name: "運費",
-              quantity: 1,
-              price: shippingFee
-            }]
-          }
-        ],
+        packages,
         redirectUrls: {
           confirmUrl: `${window.api_prefix}/api/confirmpayment/{orderId}/${isCamp}`,
           cancelUrl: `${window.api_prefix}/linepay-cancel.html`
         }
       };
+
+      // 驗證 packages 總和
+      const packageTotal = linepayBody.packages.reduce((sum, pkg) => sum + pkg.amount, 0);
+      console.log('LinePay 總額驗證:', {
+        linepayBodyAmount: linepayBody.amount,
+        packageTotal: packageTotal,
+        isValid: packageTotal === linepayBody.amount,
+        productTotal: this.productTotal,
+        shippingFee,
+        discountAmount
+      });
+
+      if (packageTotal !== linepayBody.amount) {
+        throw new Error('Packages 總額與 linepayBody.amount 不一致');
+      }
+
+      // 驗證每個 package.amount 是否為正數
+      const invalidPackage = packages.find(pkg => pkg.amount <= 0);
+      if (invalidPackage) {
+        throw new Error(`無效的 package.amount: ${invalidPackage.id} 的金額為 ${invalidPackage.amount}`);
+      }
 
       const requestBody = {
         linepayBody,
@@ -533,11 +620,15 @@ class CheckoutManager {
 
   // 載入會員可用折價券
   async loadUserDiscounts() {
+    this.discountMap = {}; // 初始化空物件
     try {
       console.log('memId:', this.memId);
       const discountSelect = document.getElementById('discount-select');
       const discountInfoDiv = document.getElementById('discount-info');
-      if (!discountSelect) return;
+      if (!discountSelect) {
+        console.error('discount-select 元素未找到');
+        return;
+      }
       // 取得會員擁有的折價券ID
       const userDiscountResp = await fetch(`${window.api_prefix}/api/userdiscount/search/${this.memId}`);
       const userDiscountData = await userDiscountResp.json();
@@ -554,28 +645,30 @@ class CheckoutManager {
       const allDiscountData = await allDiscountResp.json();
       console.log('allDiscountData:', allDiscountData);
       // 建立折價券ID到詳細資料的對照表
-      const discountMap = {};
       allDiscountData.forEach(d => {
-        discountMap[d.discountCodeId] = d;
+        this.discountMap[d.discountCodeId] = d; // 使用 this.discountMap
       });
-      console.log('discountMap:', discountMap);
+      console.log('discountMap:', this.discountMap);
       // 渲染下拉選單
       discountSelect.innerHTML = '<option value="">請選擇折價券</option>' +
         userDiscounts.map(d => {
-          const detail = discountMap[d.discountCodeId];
+          const detail = this.discountMap[d.discountCodeId];
           if (!detail) return '';
           return `<option value="${detail.discountCodeId}">${detail.discountCode}（${detail.discountExplain}）</option>`;
         }).join('');
       // 綁定選擇事件
-      discountSelect.addEventListener('change', function() {
-        const selectedId = this.value;
-        if (selectedId && discountMap[selectedId]) {
-          const d = discountMap[selectedId];
+      discountSelect.addEventListener('change', () => {
+        const selectedId = discountSelect.value;
+        console.log('目前選到的 discountCodeId:', selectedId);
+        if (selectedId && this.discountMap && this.discountMap[selectedId]) {
+          const d = this.discountMap[selectedId];
           let typeText = d.discountType === 0 ? `折抵金額：NT$${d.discountValue}` : `折扣：${d.discountValue * 100}%`;
           discountInfoDiv.textContent = `${d.discountExplain}｜${typeText}`;
         } else {
           discountInfoDiv.textContent = '';
+          console.log('未選擇有效折價券或 discountMap 未初始化');
         }
+        this.renderOrderSummary(); // 重新渲染
       });
     } catch (e) {
       console.error('載入折價券失敗:', e);

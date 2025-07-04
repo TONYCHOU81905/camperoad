@@ -1,282 +1,278 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>訂單列表 - 露途</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
-    <link rel="stylesheet" href="css/style.css" />
-    <link rel="stylesheet" href="css/role-system.css" />
-    <link rel="stylesheet" href="css/campsite_order.css" />
-  </head>
-  <body>
-    <header class="site-header">
-      <div class="container">
-        <div class="logo">
-          <a href="index.html">
-            <img src="images/logo.svg" alt="露途 Logo" />
-          </a>
-        </div>
-        <nav class="main-nav">
-          <ul>
-            <li><a href="campsites.html">營地預訂</a></li>
-            <li><a href="shop.html">裝備商城</a></li>
-            <li><a href="camp-guides.html">論壇攻略</a></li>
-            <li><a href="#">關於我們</a></li>
-          </ul>
-        </nav>
-        <div class="user-actions">
-          <a href="cart.html" class="btn-cart">
-            <i class="fas fa-shopping-cart"></i>
-            <span class="cart-count">0</span>
-          </a>
-          <a href="user-profile.html" class="btn-login"
-            ><i class="fas fa-user"></i
-          ></a>
-        </div>
-        <button class="mobile-menu-toggle">
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
-      </div>
-    </header>
 
-    <div class="breadcrumb">
-      <div class="container">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>訂單列表 - 露途</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/role-system.css" />
+  <link rel="stylesheet" href="css/campsite_order.css" />
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="container">
+      <div class="logo">
+        <a href="index.html">
+          <img src="images/logo.svg" alt="露途 Logo" />
+        </a>
+      </div>
+      <nav class="main-nav">
         <ul>
-          <li><a href="index.html">首頁</a></li>
-          <li><a href="camper-dashboard.html">會員中心</a></li>
-          <li>訂單列表</li>
+          <li><a href="campsites.html">營地預訂</a></li>
+          <li><a href="shop.html">裝備商城</a></li>
+          <li><a href="article-type.html">論壇攻略</a></li>
+          <li><a href="#">關於我們</a></li>
         </ul>
+      </nav>
+      <div class="user-actions">
+        <a href="cart.html" class="btn-cart">
+          <i class="fas fa-shopping-cart"></i>
+          <span class="cart-count">0</span>
+        </a>
+        <a href="user-profile.html" class="btn-login"><i class="fas fa-user"></i></a>
+      </div>
+      <button class="mobile-menu-toggle">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </header>
+
+  <div class="breadcrumb">
+    <div class="container">
+      <ul>
+        <li><a href="index.html">首頁</a></li>
+        <li><a href="camper-dashboard.html">會員中心</a></li>
+        <li>訂單列表</li>
+      </ul>
+    </div>
+  </div>
+
+  <section class="order-list-section">
+    <div class="container">
+      <h1 class="page-title">我的訂單</h1>
+
+      <div class="order-table-container">
+        <table class="order-table">
+          <thead>
+            <tr>
+              <th>訂單編號</th>
+              <th>營地名稱</th>
+              <th>入住日期</th>
+              <th>退房日期</th>
+              <th>訂單金額</th>
+              <th>訂單狀態</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- 第一筆訂單 -->
+            <tr>
+              <td>ORD-20230615-78945</td>
+              <td>山林星空營地</td>
+              <td>2023/07/15</td>
+              <td>2023/07/17</td>
+              <td>NT$ 6,400</td>
+              <td><span class="status-badge success">已確認</span></td>
+              <td>
+                <a href="#" class="btn-view-detail">查看詳情</a>
+              </td>
+            </tr>
+            <!-- 第二筆訂單 -->
+            <tr>
+              <td>ORD-20230528-45678</td>
+              <td>森林湖畔營地</td>
+              <td>2023/06/10</td>
+              <td>2023/06/12</td>
+              <td>NT$ 5,800</td>
+              <td><span class="status-badge success">已確認</span></td>
+              <td>
+                <a href="#" class="btn-view-detail">查看詳情</a>
+              </td>
+            </tr>
+            <!-- 第三筆訂單 -->
+            <tr>
+              <td>ORD-20230420-34567</td>
+              <td>高山雲霧營地</td>
+              <td>2023/05/05</td>
+              <td>2023/05/07</td>
+              <td>NT$ 7,200</td>
+              <td><span class="status-badge completed">已完成</span></td>
+              <td>
+                <a href="#" class="btn-view-detail">查看詳情</a>
+              </td>
+            </tr>
+            <!-- 第四筆訂單 -->
+            <tr>
+              <td>ORD-20230315-23456</td>
+              <td>溪流露營區</td>
+              <td>2023/04/20</td>
+              <td>2023/04/22</td>
+              <td>NT$ 4,800</td>
+              <td><span class="status-badge completed">已完成</span></td>
+              <td>
+                <a href="#" class="btn-view-detail">查看詳情</a>
+              </td>
+            </tr>
+            <!-- 第五筆訂單 -->
+            <tr>
+              <td>ORD-20230210-12345</td>
+              <td>海濱度假營地</td>
+              <td>2023/03/15</td>
+              <td>2023/03/17</td>
+              <td>NT$ 8,500</td>
+              <td><span class="status-badge completed">已完成</span></td>
+              <td>
+                <a href="#" class="btn-view-detail">查看詳情</a>
+              </td>
+            </tr>
+            <!-- 第六筆訂單 (下一頁顯示) -->
+            <tr class="hidden-row">
+              <td>ORD-20230105-98765</td>
+              <td>峽谷探險營地</td>
+              <td>2023/02/10</td>
+              <td>2023/02/12</td>
+              <td>NT$ 6,200</td>
+              <td><span class="status-badge completed">已完成</span></td>
+              <td>
+                <a href="#" class="btn-view-detail">查看詳情</a>
+              </td>
+            </tr>
+            <!-- 第七筆訂單 (下一頁顯示) -->
+            <tr class="hidden-row">
+              <td>ORD-20221225-87654</td>
+              <td>雪景營地</td>
+              <td>2023/01/05</td>
+              <td>2023/01/07</td>
+              <td>NT$ 9,200</td>
+              <td><span class="status-badge completed">已完成</span></td>
+              <td>
+                <a href="#" class="btn-view-detail">查看詳情</a>
+              </td>
+            </tr>
+            <!-- 第八筆訂單 (下一頁顯示) -->
+            <tr class="hidden-row">
+              <td>ORD-20221120-76543</td>
+              <td>楓葉營地</td>
+              <td>2022/12/15</td>
+              <td>2022/12/17</td>
+              <td>NT$ 5,500</td>
+              <td><span class="status-badge completed">已完成</span></td>
+              <td>
+                <a href="#" class="btn-view-detail">查看詳情</a>
+              </td>
+            </tr>
+            <!-- 第九筆訂單 (下一頁顯示) -->
+            <tr class="hidden-row">
+              <td>ORD-20221015-65432</td>
+              <td>竹林營地</td>
+              <td>2022/11/10</td>
+              <td>2022/11/12</td>
+              <td>NT$ 4,800</td>
+              <td><span class="status-badge completed">已完成</span></td>
+              <td>
+                <a href="#" class="btn-view-detail">查看詳情</a>
+              </td>
+            </tr>
+            <!-- 第十筆訂單 (下一頁顯示) -->
+            <tr class="hidden-row">
+              <td>ORD-20220920-54321</td>
+              <td>瀑布營地</td>
+              <td>2022/10/05</td>
+              <td>2022/10/07</td>
+              <td>NT$ 7,800</td>
+              <td><span class="status-badge completed">已完成</span></td>
+              <td>
+                <a href="#" class="btn-view-detail">查看詳情</a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="pagination">
+          <span class="page-info">顯示 1-5 筆，共 10 筆</span>
+          <div class="page-controls">
+            <button class="page-btn prev-page" disabled>
+              <i class="fas fa-chevron-left"></i>
+            </button>
+            <button class="page-btn page-number active">1</button>
+            <button class="page-btn page-number">2</button>
+            <button class="page-btn next-page">
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
+  </section>
 
-    <section class="order-list-section">
-      <div class="container">
-        <h1 class="page-title">我的訂單</h1>
-
-        <div class="order-table-container">
-          <table class="order-table">
-            <thead>
-              <tr>
-                <th>訂單編號</th>
-                <th>營地名稱</th>
-                <th>入住日期</th>
-                <th>退房日期</th>
-                <th>訂單金額</th>
-                <th>訂單狀態</th>
-                <th>操作</th>
-              </tr>
-            </thead>
-            <tbody>
-              <!-- 第一筆訂單 -->
-              <tr>
-                <td>ORD-20230615-78945</td>
-                <td>山林星空營地</td>
-                <td>2023/07/15</td>
-                <td>2023/07/17</td>
-                <td>NT$ 6,400</td>
-                <td><span class="status-badge success">已確認</span></td>
-                <td>
-                  <a href="#" class="btn-view-detail">查看詳情</a>
-                </td>
-              </tr>
-              <!-- 第二筆訂單 -->
-              <tr>
-                <td>ORD-20230528-45678</td>
-                <td>森林湖畔營地</td>
-                <td>2023/06/10</td>
-                <td>2023/06/12</td>
-                <td>NT$ 5,800</td>
-                <td><span class="status-badge success">已確認</span></td>
-                <td>
-                  <a href="#" class="btn-view-detail">查看詳情</a>
-                </td>
-              </tr>
-              <!-- 第三筆訂單 -->
-              <tr>
-                <td>ORD-20230420-34567</td>
-                <td>高山雲霧營地</td>
-                <td>2023/05/05</td>
-                <td>2023/05/07</td>
-                <td>NT$ 7,200</td>
-                <td><span class="status-badge completed">已完成</span></td>
-                <td>
-                  <a href="#" class="btn-view-detail">查看詳情</a>
-                </td>
-              </tr>
-              <!-- 第四筆訂單 -->
-              <tr>
-                <td>ORD-20230315-23456</td>
-                <td>溪流露營區</td>
-                <td>2023/04/20</td>
-                <td>2023/04/22</td>
-                <td>NT$ 4,800</td>
-                <td><span class="status-badge completed">已完成</span></td>
-                <td>
-                  <a href="#" class="btn-view-detail">查看詳情</a>
-                </td>
-              </tr>
-              <!-- 第五筆訂單 -->
-              <tr>
-                <td>ORD-20230210-12345</td>
-                <td>海濱度假營地</td>
-                <td>2023/03/15</td>
-                <td>2023/03/17</td>
-                <td>NT$ 8,500</td>
-                <td><span class="status-badge completed">已完成</span></td>
-                <td>
-                  <a href="#" class="btn-view-detail">查看詳情</a>
-                </td>
-              </tr>
-              <!-- 第六筆訂單 (下一頁顯示) -->
-              <tr class="hidden-row">
-                <td>ORD-20230105-98765</td>
-                <td>峽谷探險營地</td>
-                <td>2023/02/10</td>
-                <td>2023/02/12</td>
-                <td>NT$ 6,200</td>
-                <td><span class="status-badge completed">已完成</span></td>
-                <td>
-                  <a href="#" class="btn-view-detail">查看詳情</a>
-                </td>
-              </tr>
-              <!-- 第七筆訂單 (下一頁顯示) -->
-              <tr class="hidden-row">
-                <td>ORD-20221225-87654</td>
-                <td>雪景營地</td>
-                <td>2023/01/05</td>
-                <td>2023/01/07</td>
-                <td>NT$ 9,200</td>
-                <td><span class="status-badge completed">已完成</span></td>
-                <td>
-                  <a href="#" class="btn-view-detail">查看詳情</a>
-                </td>
-              </tr>
-              <!-- 第八筆訂單 (下一頁顯示) -->
-              <tr class="hidden-row">
-                <td>ORD-20221120-76543</td>
-                <td>楓葉營地</td>
-                <td>2022/12/15</td>
-                <td>2022/12/17</td>
-                <td>NT$ 5,500</td>
-                <td><span class="status-badge completed">已完成</span></td>
-                <td>
-                  <a href="#" class="btn-view-detail">查看詳情</a>
-                </td>
-              </tr>
-              <!-- 第九筆訂單 (下一頁顯示) -->
-              <tr class="hidden-row">
-                <td>ORD-20221015-65432</td>
-                <td>竹林營地</td>
-                <td>2022/11/10</td>
-                <td>2022/11/12</td>
-                <td>NT$ 4,800</td>
-                <td><span class="status-badge completed">已完成</span></td>
-                <td>
-                  <a href="#" class="btn-view-detail">查看詳情</a>
-                </td>
-              </tr>
-              <!-- 第十筆訂單 (下一頁顯示) -->
-              <tr class="hidden-row">
-                <td>ORD-20220920-54321</td>
-                <td>瀑布營地</td>
-                <td>2022/10/05</td>
-                <td>2022/10/07</td>
-                <td>NT$ 7,800</td>
-                <td><span class="status-badge completed">已完成</span></td>
-                <td>
-                  <a href="#" class="btn-view-detail">查看詳情</a>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-
-          <div class="pagination">
-            <span class="page-info">顯示 1-5 筆，共 10 筆</span>
-            <div class="page-controls">
-              <button class="page-btn prev-page" disabled>
-                <i class="fas fa-chevron-left"></i>
-              </button>
-              <button class="page-btn page-number active">1</button>
-              <button class="page-btn page-number">2</button>
-              <button class="page-btn next-page">
-                <i class="fas fa-chevron-right"></i>
-              </button>
-            </div>
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-logo">
+          <img src="images/logo-white.svg" alt="露途 Logo" />
+          <span>露途</span>
+        </div>
+        <div class="footer-links">
+          <div class="footer-links-column">
+            <h3>關於我們</h3>
+            <ul>
+              <li><a href="#">公司介紹</a></li>
+              <li><a href="#">媒體報導</a></li>
+              <li><a href="#">隱私政策</a></li>
+              <li><a href="#">服務條款</a></li>
+            </ul>
+          </div>
+          <div class="footer-links-column">
+            <h3>營地資訊</h3>
+            <ul>
+              <li><a href="#">北部營地</a></li>
+              <li><a href="#">中部營地</a></li>
+              <li><a href="#">南部營地</a></li>
+              <li><a href="#">東部營地</a></li>
+            </ul>
+          </div>
+          <div class="footer-links-column">
+            <h3>顧客服務</h3>
+            <ul>
+              <li><a href="#">常見問題</a></li>
+              <li><a href="#">聯絡我們</a></li>
+              <li><a href="#">意見回饋</a></li>
+              <li><a href="#">緊急協助</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="footer-newsletter">
+          <h3>訂閱電子報</h3>
+          <p>獲取最新的營地資訊和優惠</p>
+          <form action="#" method="post">
+            <input type="email" placeholder="您的電子郵件" required />
+            <button type="submit">訂閱</button>
+          </form>
+          <div class="social-links">
+            <a href="#"><i class="fab fa-facebook-f"></i></a>
+            <a href="#"><i class="fab fa-instagram"></i></a>
+            <a href="#"><i class="fab fa-youtube"></i></a>
+            <a href="#"><i class="fab fa-line"></i></a>
           </div>
         </div>
       </div>
-    </section>
-
-    <footer class="site-footer">
-      <div class="container">
-        <div class="footer-content">
-          <div class="footer-logo">
-            <img src="images/logo-white.svg" alt="露途 Logo" />
-            <span>露途</span>
-          </div>
-          <div class="footer-links">
-            <div class="footer-links-column">
-              <h3>關於我們</h3>
-              <ul>
-                <li><a href="#">公司介紹</a></li>
-                <li><a href="#">媒體報導</a></li>
-                <li><a href="#">隱私政策</a></li>
-                <li><a href="#">服務條款</a></li>
-              </ul>
-            </div>
-            <div class="footer-links-column">
-              <h3>營地資訊</h3>
-              <ul>
-                <li><a href="#">北部營地</a></li>
-                <li><a href="#">中部營地</a></li>
-                <li><a href="#">南部營地</a></li>
-                <li><a href="#">東部營地</a></li>
-              </ul>
-            </div>
-            <div class="footer-links-column">
-              <h3>顧客服務</h3>
-              <ul>
-                <li><a href="#">常見問題</a></li>
-                <li><a href="#">聯絡我們</a></li>
-                <li><a href="#">意見回饋</a></li>
-                <li><a href="#">緊急協助</a></li>
-              </ul>
-            </div>
-          </div>
-          <div class="footer-newsletter">
-            <h3>訂閱電子報</h3>
-            <p>獲取最新的營地資訊和優惠</p>
-            <form action="#" method="post">
-              <input type="email" placeholder="您的電子郵件" required />
-              <button type="submit">訂閱</button>
-            </form>
-            <div class="social-links">
-              <a href="#"><i class="fab fa-facebook-f"></i></a>
-              <a href="#"><i class="fab fa-instagram"></i></a>
-              <a href="#"><i class="fab fa-youtube"></i></a>
-              <a href="#"><i class="fab fa-line"></i></a>
-            </div>
-          </div>
-        </div>
-        <div class="footer-bottom">
-          <p>&copy; 2023 露途 All Rights Reserved.</p>
-        </div>
+      <div class="footer-bottom">
+        <p>&copy; 2023 露途 All Rights Reserved.</p>
       </div>
-    </footer>
+    </div>
+  </footer>
 
-    <script src="js/main.js"></script>
-    <script src="js/campsite_order.js"></script>
-  </body>
+  <script src="js/main.js"></script>
+  <script src="js/campsite_order.js"></script>
+</body>
+
 </html>
