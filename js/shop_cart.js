@@ -75,7 +75,7 @@ async function initCartPage() {
     updateCartSummary(cartData.summary);
     
     // 更新購物車計數
-    updateCartCount(cartData.totalItems);
+    // updateCartCount(cartData.totalItems);
     
     // 檢查購物車是否為空
     checkEmptyCart(cartData.items.length);
@@ -320,29 +320,6 @@ function createCartItemElement(item, colorOptions, specOptions) {
 
 // 綁定購物車項目事件
 function bindCartItemEvents() {
-  // 綁定數量增加按鈕
-  document.querySelectorAll('.btn-increase').forEach(btn => {
-    btn.addEventListener('click', function() {
-      const input = this.parentElement.querySelector('input');
-      const currentValue = parseInt(input.value);
-      if (currentValue < parseInt(input.max)) {
-        input.value = currentValue + 1;
-        updateItemQuantity(this.closest('.cart-item'));
-      }
-    });
-  });
-  
-  // 綁定數量減少按鈕
-  document.querySelectorAll('.btn-decrease').forEach(btn => {
-    btn.addEventListener('click', function() {
-      const input = this.parentElement.querySelector('input');
-      const currentValue = parseInt(input.value);
-      if (currentValue > parseInt(input.min)) {
-        input.value = currentValue - 1;
-        updateItemQuantity(this.closest('.cart-item'));
-      }
-    });
-  });
   
   // 綁定數量輸入框變更事件
   document.querySelectorAll('.quantity-selector input').forEach(input => {
@@ -526,19 +503,19 @@ function updateCartSummary(summary) {
 }
 
 // 更新購物車計數
-function updateCartCount(count) {
-  // 使用全域購物車管理器
-  if (window.globalCartManager) {
-    window.globalCartManager.updateCartCount(count);
-  } else {
-    // 備用方案
-    const cartCountElements = document.querySelectorAll('.cart-count');
-    cartCountElements.forEach(element => {
-      element.textContent = count;
-      element.style.display = count > 0 ? 'inline' : 'none';
-    });
-  }
-}
+// function updateCartCount(count) {
+//   // 使用全域購物車管理器
+//   if (window.globalCartManager) {
+//     window.globalCartManager.updateCartCount(count);
+//   } else {
+//     // 備用方案
+//     const cartCountElements = document.querySelectorAll('.cart-count');
+//     cartCountElements.forEach(element => {
+//       element.textContent = count;
+//       element.style.display = count > 0 ? 'inline' : 'none';
+//     });
+//   }
+// }
 
 // 檢查購物車是否為空
 function checkEmptyCart(itemCount) {

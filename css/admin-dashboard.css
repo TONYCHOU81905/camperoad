@@ -1217,3 +1217,15 @@
 .data-table td:nth-child(7) {
   text-align: center;
 }
+
+/* 讓重置篩選按鈕的文字永遠顯示 */
+.action-btn.btn-reset {
+  white-space: nowrap !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  min-width: 90px !important;
+  flex-shrink: 0 !important;
+  max-width: none !important;
+  width: auto !important;
+  flex-grow: 0 !important;
+}

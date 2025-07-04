@@ -10,6 +10,18 @@ class UserProfileManager {
     this.memId = null;
     this.ownerId = null;
     this.currentOwnerId = null; // 記錄當前連接的營地主ID
+
+    // 訂單狀態常數
+    this.ORDER_STATUS = {
+      PENDING: 0, // 營地主未確認
+      CONFIRMED: 1, // 營地主已確認
+      CANCELLED: 2, // 露營者自行取消
+      COMPLETED: 3, // 訂單結案
+    };
+
+    // 事件綁定標記，避免重複綁定
+    this.cancelOrderEventsBound = false;
+
     this.init();
   }
 
@@ -265,6 +277,7 @@ class UserProfileManager {
     this.loadCampsiteOrders();
     this.loadPaymentMethods();
     this.initChatManagement();
+    // 取消訂單按鈕事件委託已在 renderOrders 中處理
 
     this.loadMemberAvatar();
   }
@@ -365,11 +378,11 @@ class UserProfileManager {
           if (order.orderDetails && order.orderDetails.length > 0) {
             order.orderDetails.forEach((detail) => {
               this.orderDetails.push({
-                order_details_id: detail.campsiteDetailsId,
-                campsite_order_id: order.campsiteOrderId,
-                campsite_type_id: detail.campsiteTypeId,
-                campsite_num: detail.campsiteNum,
-                campsite_amount: detail.campsiteAmount,
+                campsiteDetailsId: detail.campsiteDetailsId,
+                campsiteOrderId: order.campsiteOrderId,
+                campsiteTypeId: detail.campsiteTypeId,
+                campsiteNum: detail.campsiteNum,
+                campsiteAmount: detail.campsiteAmount,
               });
             });
           }
@@ -405,7 +418,6 @@ class UserProfileManager {
       );
       this.memberCoupons = await couponResponse.json();
       console.log("memberCoupons:", this.memberCoupons);
-
 
       // 載入營地資料
       const campsResponse = await fetch(`${window.api_prefix}/api/getallcamps`);
@@ -491,7 +503,6 @@ class UserProfileManager {
 
   renderOrders(orders) {
     const ordersList = document.getElementById("campsite-orders-list");
-    console.log("ordersList:" + ordersList);
 
     if (!ordersList) return;
 
@@ -507,17 +518,32 @@ class UserProfileManager {
       return;
     }
 
-    // 按訂單日期排序，最新的在上面
+    // 性能優化：使用 performance.mark 測量渲染時間
+    performance.mark("render-orders-start");
+
+    // 按入住日期排序，最新的在上面
     const sortedOrders = [...orders].sort((a, b) => {
-      const dateA = new Date(a.orderDate || "1970-01-01");
-      const dateB = new Date(b.orderDate || "1970-01-01");
+      const dateA = new Date(a.checkIn || "1970-01-01");
+      const dateB = new Date(b.checkIn || "1970-01-01");
       return dateB - dateA; // 降序排列，最新的在前
     });
 
-    ordersList.innerHTML = sortedOrders
-      .map((order) => {
-        console.log("ORDER:" + order.checkIn);
+    // 如果訂單數量過多，考慮分批渲染
+    const BATCH_SIZE = 10; // 每批渲染的訂單數量
 
+    if (sortedOrders.length > BATCH_SIZE) {
+      this.renderOrdersBatch(ordersList, sortedOrders, 0, BATCH_SIZE);
+    } else {
+      // 訂單數量較少時，直接渲染
+      ordersList.innerHTML = this.generateOrdersHTML(sortedOrders);
+      this.finalizeOrdersRender();
+    }
+  }
+
+  // 生成訂單 HTML
+  generateOrdersHTML(orders) {
+    return orders
+      .map((order) => {
         const camp = this.camps.find((c) => c.campId === order.campId);
         const statusText = this.getOrderStatusText(order.campsiteOrderStatus);
         const statusClass = this.getOrderStatusClass(order.campsiteOrderStatus);
@@ -525,15 +551,15 @@ class UserProfileManager {
 
         // 獲取該訂單的加購商品
         const orderDetailsList = this.orderDetails.filter(
-          (detail) => detail.campsite_order_id === order.campsiteOrderId
+          (detail) => detail.campsiteOrderId === order.campsiteOrderId
         );
 
         const bundleItems = [];
         orderDetailsList.forEach((detail) => {
           const bundleDetail = this.bundleDetails.find(
-            (bundle) => bundle.campsite_details_id === detail.order_details_id
+            (bundle) => bundle.campsiteDetailsId === detail.orderDetailsId
           );
-          if (bundleDetail && bundleDetail.bundle_buy_amount > 0) {
+          if (bundleDetail && bundleDetail.bundleBuyAmount > 0) {
             bundleItems.push(bundleDetail);
           }
         });
@@ -573,11 +599,11 @@ class UserProfileManager {
               .map(
                 (detail) => `
                   <div class="detail-item">
-                    <span>營地類型ID: ${detail.campsite_type_id}</span>
-                    <span>營地數量: ${detail.campsite_num}</span>
+                    <span>營地類型ID: ${detail.campsiteTypeId}</span>
+                    <span>營地數量: ${detail.campsiteNum}</span>
                     <span>營地金額: NT$ ${(
-                    detail.campsite_amount || 0
-                  ).toLocaleString()}</span>
+                      detail.campsiteAmount || 0
+                    ).toLocaleString()}</span>
                   </div>
                 `
               )
@@ -630,9 +656,9 @@ class UserProfileManager {
               .map(
                 (item) => `
                   <div class="bundle-item">
-                    <span>商品ID: ${item.bundle_id}</span>
-                    <span>數量: ${item.bundle_buy_num}</span>
-                    <span>金額: NT$ ${item.bundle_buy_amount.toLocaleString()}</span>
+                    <span>商品ID: ${item.bundleId}</span>
+                    <span>數量: ${item.bundleBuyNum}</span>
+                    <span>金額: NT$ ${item.bundleBuyAmount.toLocaleString()}</span>
                   </div>
                 `
               )
@@ -654,15 +680,178 @@ class UserProfileManager {
           `
             : ""
           }
+          
+          <div class="order-actions">
+            ${
+              order.campsiteOrderStatus < this.ORDER_STATUS.COMPLETED
+                ? `
+              <button class="btn-cancel-order" data-order-id="${order.campsiteOrderId}">
+                <i class="fas fa-times"></i> 取消訂單
+              </button>
+            `
+                : ""
+            }
+          </div>
         </div>
       `;
       })
       .join("");
-
-    // 渲染完商品明細表格後
-    bindCommentButtons();
   }
 
+  // 分批渲染訂單
+  renderOrdersBatch(ordersList, orders, startIndex, batchSize) {
+    const endIndex = Math.min(startIndex + batchSize, orders.length);
+    const batch = orders.slice(startIndex, endIndex);
+
+    if (startIndex === 0) {
+      // 第一批，清空並設置內容
+      ordersList.innerHTML = this.generateOrdersHTML(batch);
+    } else {
+      // 後續批次，追加內容
+      ordersList.insertAdjacentHTML(
+        "beforeend",
+        this.generateOrdersHTML(batch)
+      );
+    }
+
+    // 如果還有更多訂單需要渲染
+    if (endIndex < orders.length) {
+      // 使用 requestAnimationFrame 進行下一批渲染
+      requestAnimationFrame(() => {
+        this.renderOrdersBatch(ordersList, orders, endIndex, batchSize);
+      });
+    } else {
+      // 所有訂單渲染完成
+      this.finalizeOrdersRender();
+    }
+  }
+
+  // 完成訂單渲染的最終化處理
+  finalizeOrdersRender() {
+    // 只在初始化時綁定一次事件，避免重複綁定
+    if (!this.cancelOrderEventsBound) {
+      this.bindCancelOrderButtons();
+      this.cancelOrderEventsBound = true;
+    }
+
+    // 性能測量結束
+    performance.mark("render-orders-end");
+    performance.measure(
+      "render-orders-duration",
+      "render-orders-start",
+      "render-orders-end"
+    );
+
+    // 在開發環境下顯示性能信息
+    if (
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1"
+    ) {
+      const measure = performance.getEntriesByName("render-orders-duration")[0];
+      console.log(`訂單渲染耗時: ${measure.duration.toFixed(2)}ms`);
+    }
+  }
+
+  // 綁定取消訂單按鈕事件
+  bindCancelOrderButtons() {
+    const ordersList = document.getElementById("campsite-orders-list");
+    if (!ordersList) return;
+
+    // 檢查是否已經綁定過事件，避免重複綁定
+    if (ordersList.hasAttribute("data-events-bound")) {
+      return;
+    }
+
+    // 使用事件委託，避免動態生成的按鈕無法綁定事件
+    ordersList.addEventListener("click", async (e) => {
+      if (e.target.closest(".btn-cancel-order")) {
+        e.preventDefault();
+        const button = e.target.closest(".btn-cancel-order");
+        const orderId = button.getAttribute("data-order-id");
+        if (orderId) {
+          await this.cancelOrder(orderId);
+        }
+      }
+    });
+
+    // 標記已綁定事件
+    ordersList.setAttribute("data-events-bound", "true");
+  }
+
+  // 取消訂單
+  async cancelOrder(campsiteOrderId) {
+    // 確認對話框
+    if (!confirm("確定要取消此訂單嗎？取消後將無法恢復。")) {
+      return;
+    }
+
+    try {
+      // 顯示載入狀態
+      const cancelButton = document.querySelector(
+        `[data-order-id="${campsiteOrderId}"]`
+      );
+      if (cancelButton) {
+        cancelButton.disabled = true;
+        cancelButton.innerHTML =
+          '<i class="fas fa-spinner fa-spin"></i> 取消中...';
+      }
+
+      // 調用取消訂單 API（使用優化的 ApiClient）
+      const response = await fetch(
+        `${window.api_prefix}/api/campsite/order/cancel/${campsiteOrderId}`,
+        {
+          method: "GET",
+        }
+      );
+      const resultJson = await response.json();
+
+      // 修正 API 結果判斷邏輯
+      if (
+        resultJson.status == "success" ||
+        resultJson.success == true ||
+        resultJson.data == true
+      ) {
+        showMessage("訂單已成功取消", "success");
+
+        // 更新本地訂單狀態，避免重新載入全部資料
+        const order = this.campsiteOrders.find(
+          (o) => o.campsiteOrderId == campsiteOrderId
+        );
+
+        if (order) {
+          order.campsiteOrderStatus = 3;
+
+          // 局部更新訂單狀態，避免全量重新渲染
+          this.updateOrderStatusUI(campsiteOrderId, 3);
+        } else {
+          // 如果找不到訂單，才進行全量重新渲染
+          requestAnimationFrame(() => {
+            this.renderOrders(this.campsiteOrders);
+          });
+        }
+      } else {
+        showMessage(resultJson.message || "取消訂單失敗，請稍後再試", "error");
+
+        // 恢復按鈕狀態
+        if (cancelButton) {
+          cancelButton.disabled = false;
+          cancelButton.innerHTML = '<i class="fas fa-times"></i> 取消訂單';
+        }
+      }
+    } catch (error) {
+      console.error("取消訂單錯誤：", error);
+      showMessage("取消訂單失敗，請稍後再試", "error");
+
+      // 恢復按鈕狀態
+      const cancelButton = document.querySelector(
+        `[data-order-id="${campsiteOrderId}"]`
+      );
+      if (cancelButton) {
+        cancelButton.disabled = false;
+        cancelButton.innerHTML = '<i class="fas fa-times"></i> 取消訂單';
+      }
+    }
+  }
 
   // 載入營地訂單
   loadCampsiteOrders() {
@@ -670,6 +859,98 @@ class UserProfileManager {
     this.renderOrders(this.campsiteOrders);
   }
 
+  // 局部更新訂單狀態 UI，避免全量重新渲染
+  updateOrderStatusUI(orderId, newStatus) {
+    const orderItem = document
+      .querySelector(
+        `.order-item .btn-cancel-order[data-order-id="${orderId}"]`
+      )
+      ?.closest(".order-item");
+    if (!orderItem) return false;
+
+    // 更新訂單狀態文字和樣式
+    const statusElement = orderItem.querySelector(".order-status");
+    if (statusElement) {
+      const statusText = this.getOrderStatusText(newStatus);
+      const statusClass = this.getOrderStatusClass(newStatus);
+
+      // 移除所有狀態相關的類
+      statusElement.classList.remove(
+        "status-pending",
+        "status-confirmed",
+        "status-cancelled",
+        "status-completed"
+      );
+
+      // 添加新的狀態類
+      statusElement.classList.add(statusClass);
+
+      // 更新狀態文字
+      statusElement.textContent = statusText;
+    }
+
+    // 如果狀態變為已完成或已取消，移除取消按鈕
+    if (newStatus >= this.ORDER_STATUS.CANCELLED) {
+      const cancelButton = orderItem.querySelector(".btn-cancel-order");
+      if (cancelButton) {
+        cancelButton.remove();
+      }
+    }
+
+    return true;
+  }
+
+  // 僅重新載入營地訂單資料
+  async loadCampsiteOrdersOnly() {
+    // 顯示加載狀態
+    const ordersList = document.getElementById("campsite-orders-list");
+    if (ordersList) {
+      ordersList.innerHTML = `
+        <div class="loading-state">
+          <i class="fas fa-spinner fa-spin"></i>
+          <p>載入訂單資料中...</p>
+        </div>
+      `;
+    }
+
+    try {
+      const memId = this.currentMember.memId;
+      const ordersData = await ApiClient.request(
+        `${window.api_prefix}/member/${memId}/orders`
+      );
+
+      if (ordersData.status.trim() === "success") {
+        this.campsiteOrders = ordersData.data;
+
+        // 重新處理訂單詳情
+        this.orderDetails = [];
+        this.bundleDetails = [];
+
+        this.campsiteOrders.forEach((order) => {
+          if (order.orderDetails && order.orderDetails.length > 0) {
+            order.orderDetails.forEach((detail) => {
+              this.orderDetails.push({
+                campsiteDetailsId: detail.campsiteDetailsId,
+                campsiteOrderId: order.campsiteOrderId,
+                campsiteTypeId: detail.campsiteTypeId,
+                campsiteNum: detail.campsiteNum,
+                campsiteAmount: detail.campsiteAmount,
+              });
+            });
+          }
+        });
+
+        // 重新渲染訂單列表
+        this.renderOrders(this.campsiteOrders);
+      } else {
+        console.error("重新載入訂單資料失敗:", ordersData.message);
+        showMessage("載入訂單資料失敗", "error");
+      }
+    } catch (error) {
+      console.error("重新載入訂單資料時發生錯誤:", error);
+      showMessage("載入訂單資料失敗", "error");
+    }
+  }
 
   loadMemberData() {
     if (!this.currentMember) return;
@@ -750,7 +1031,7 @@ class UserProfileManager {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(memData),
-        credentials: "include", // 包含Cookie
+        // credentials: "include", // 包含Cookie
       });
 
       if (!response.ok) {
@@ -788,6 +1069,8 @@ class UserProfileManager {
   }
 
   loadCampsiteOrders() {
+    console.log("loadCampsiteOrders start!");
+
     // API已經根據會員ID篩選過訂單，直接使用
     this.renderOrders(this.campsiteOrders);
   }
@@ -876,7 +1159,6 @@ class UserProfileManager {
           if (!confirmDelete) return;
 
           try {
-
             const res = await fetch(
               `${window.api_prefix}/camptracklist/deleteCampTrackList`,
               {
@@ -890,8 +1172,6 @@ class UserProfileManager {
                 }),
               }
             );
-
-
 
 
             const result = await res.json();
@@ -961,7 +1241,10 @@ class UserProfileManager {
           statusText = "已過期";
         }
 
-        const typeText = coupon.discountCodeType === 0 ? "營地折價券" : "商城折價券";
+
+        const typeText =
+          coupon.discountCodeType === 0 ? "營地折價券" : "商城折價券";
+
 
         return `
           <div class="coupon-card ${statusClass}">
@@ -971,19 +1254,33 @@ class UserProfileManager {
             </div>
             <div class="coupon-content">
               <div class="coupon-title">活動名稱:${coupon.discountCode}</div>
-              <div class="coupon-description">單筆滿 NT$${coupon.minOrderAmount} 可使用</div>
-              <div class="coupon-valid">使用期限：${coupon.startDate.substring(0, 10)} ~ ${coupon.endDate.substring(0, 10)}</div>
+
+              <div class="coupon-description">單筆滿 NT$${
+                coupon.minOrderAmount
+              } 可使用</div>
+              <div class="coupon-valid">使用期限：${coupon.startDate.substring(
+                0,
+                10
+              )} ~ ${coupon.endDate.substring(0, 10)}</div>
             </div>
             <div class="coupon-footer">
-              <div class="coupon-code">請使用優惠碼：${coupon.discountCodeId}</div>
-              ${!isExpired && !isUsed
-            ? `<button class="btn-copy-code" data-code="${coupon.discountCodeId}">複製代碼</button>`
-            : ""
-          }
-              ${isUsed
-            ? `<div class="coupon-used-date">使用日期：${coupon.usedDate.substring(0, 10)}</div>`
-            : ""
-          }
+              <div class="coupon-code">請使用優惠碼：${
+                coupon.discountCodeId
+              }</div>
+              ${
+                !isExpired && !isUsed
+                  ? `<button class="btn-copy-code" data-code="${coupon.discountCodeId}">複製代碼</button>`
+                  : ""
+              }
+              ${
+                isUsed
+                  ? `<div class="coupon-used-date">使用日期：${coupon.usedDate.substring(
+                      0,
+                      10
+                    )}</div>`
+                  : ""
+              }
+
             </div>
           </div>`;
       })
@@ -1019,7 +1316,9 @@ class UserProfileManager {
       // const paymentData = await response.json();
 
       // 目前顯示靜態示範數據，實際應用時可以替換為 API 數據
-      const paymentMethodsList = document.querySelector('.payment-methods-list');
+      const paymentMethodsList = document.querySelector(
+        ".payment-methods-list"
+      );
       if (paymentMethodsList) {
         console.log("付款方式區域已載入，顯示示範數據");
         // 可以在這裡動態渲染真實的付款方式數據
@@ -1033,38 +1332,38 @@ class UserProfileManager {
   // 初始化付款方式事件
   initPaymentMethodEvents() {
     // 新增付款方式按鈕
-    const addPaymentBtn = document.querySelector('.btn-add-payment');
+    const addPaymentBtn = document.querySelector(".btn-add-payment");
     if (addPaymentBtn) {
-      addPaymentBtn.addEventListener('click', () => {
-        console.log('新增付款方式');
+      addPaymentBtn.addEventListener("click", () => {
+        console.log("新增付款方式");
         // 這裡可以打開新增付款方式的模態框
-        alert('新增付款方式功能開發中');
+        alert("新增付款方式功能開發中");
       });
     }
 
     // 編輯按鈕
-    document.querySelectorAll('.btn-edit').forEach(btn => {
-      btn.addEventListener('click', () => {
-        console.log('編輯付款方式');
-        alert('編輯付款方式功能開發中');
+    document.querySelectorAll(".btn-edit").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        console.log("編輯付款方式");
+        alert("編輯付款方式功能開發中");
       });
     });
 
     // 刪除按鈕
-    document.querySelectorAll('.btn-delete').forEach(btn => {
-      btn.addEventListener('click', () => {
-        if (confirm('確定要刪除此付款方式嗎？')) {
-          console.log('刪除付款方式');
-          alert('刪除付款方式功能開發中');
+    document.querySelectorAll(".btn-delete").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        if (confirm("確定要刪除此付款方式嗎？")) {
+          console.log("刪除付款方式");
+          alert("刪除付款方式功能開發中");
         }
       });
     });
 
     // 設為預設按鈕
-    document.querySelectorAll('.btn-set-default').forEach(btn => {
-      btn.addEventListener('click', () => {
-        console.log('設為預設付款方式');
-        alert('設為預設付款方式功能開發中');
+    document.querySelectorAll(".btn-set-default").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        console.log("設為預設付款方式");
+        alert("設為預設付款方式功能開發中");
       });
     });
   }
@@ -1126,9 +1425,9 @@ class UserProfileManager {
         filterTabs.forEach((t) => t.classList.remove("active"));
         tab.classList.add("active");
 
+
         // ✅ 每次點擊重新取得卡片（動態渲染的才抓得到）
         const couponCards = document.querySelectorAll(".coupon-card");
-
 
         couponCards.forEach((card) => {
           const isUsed = card.classList.contains("used");
@@ -1159,20 +1458,24 @@ class UserProfileManager {
 
   getOrderStatusText(status) {
     const statusMap = {
-      0: "營地主未確認",
-      1: "營地主已確認",
-      2: "露營者自行取消",
-      3: "訂單結案",
+      0: "露營者未付款",
+      1: "營地主未確認",
+      2: "營地主已確認",
+      3: "露營者自行取消",
+      4: "訂單結案",
+      5: "營地主自行取消",
     };
     return statusMap[status] || "未知狀態";
   }
 
   getOrderStatusClass(status) {
     const classMap = {
-      0: "pending",
-      1: "confirmed",
-      2: "cancelled",
-      3: "completed",
+      0: "pending", // 露營者未付款
+      1: "confirmed", // 營地主未確認
+      2: "confirmed", // 營地主已確認
+      3: "cancelled", // 露營者自行取消
+      4: "completed", // 訂單結案
+      5: "cancelled", // 營地主自行取消
     };
     return classMap[status] || "unknown";
   }
@@ -1831,6 +2134,7 @@ function viewShopOrderDetail(orderId) {
           const paymentMethod = order.shopOrderPaymentStr || "";
           const shipmentMethod = order.shopOrderShipmentStr || "";
           const returnApplyText = order.shopReturnApplyStr || "";
+          const orderNoteText = order.shopOrderNote || "";
           const orderDate = order.shopOrderDate
             ? order.shopOrderDate.split("T")[0]
             : "";
@@ -1902,10 +2206,13 @@ function viewShopOrderDetail(orderId) {
                     <div class="info-item"><span class="info-label">配送方式:</span><span class="info-value">${shipmentMethod}</span></div>
                     <div class="info-item"><span class="info-label">商品總數:</span><span class="info-value">${totalItems} 件</span></div>
                     <div class="info-item"><span class="info-label">退貨申請狀態:</span><span class="info-value">${returnApplyText}</span></div>
-                    <div class="info-item"><span class="info-label">出貨日期:</span><span class="info-value">${order.shopOrderShipDate
-              ? order.shopOrderShipDate.split("T")[0]
-              : ""
-            }</span></div>
+                    <div class="info-item"><span class="info-label">出貨日期:</span><span class="info-value">${
+                      order.shopOrderShipDate
+                        ? order.shopOrderShipDate.split("T")[0]
+                        : ""
+                    }</span></div>
+                      <div class="info-item"><span class="info-label">訂單備註:</span><span class="info-value">${orderNoteText}</span></div>
+
                   </div>
                 </div>
                 <div class="order-info-section">
@@ -1975,7 +2282,7 @@ function viewShopOrderDetail(orderId) {
           const btnReturn = document.getElementById("btn-return-order");
           if (btnCancel) btnCancel.style.display = "none";
           if (btnReturn) btnReturn.style.display = "none";
-          if (order.shopOrderStatus === 0 || order.shopOrderStatus === 1) {
+          if (order.shopOrderStatus === 0 || order.shopOrderStatus === 1 || order.shopOrderStatus === 7) {
             btnCancel.style.display = "";
           }
 
@@ -2180,6 +2487,7 @@ document.addEventListener("click", function (e) {
     closeShopOrderDetailModal();
   }
 });
+
 
 // === 收藏文章管理器（從 articles-favorites.html 移植，並整合到 user-profile.js） ===
 class FavoritesManager {
@@ -2572,3 +2880,100 @@ class FavoritesManager {
 
 // 初始化收藏管理器
 window.favoritesManager = new FavoritesManager();
+
+// ====== 性能優化和工具方法 ======
+
+// 通用 API 請求方法，包含錯誤處理和重試邏輯
+class ApiClient {
+  static async request(url, options = {}, retries = 2) {
+    const defaultOptions = {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    };
+
+    const finalOptions = { ...defaultOptions, ...options };
+
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        const response = await fetch(url, finalOptions);
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        return await response.json();
+      } catch (error) {
+        if (attempt === retries) {
+          throw error;
+        }
+
+        // 指數退避重試
+        const delay = Math.pow(2, attempt) * 1000;
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+  }
+}
+
+// 防抖函數
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
+
+// 節流函數
+function throttle(func, limit) {
+  let inThrottle;
+  return function () {
+    const args = arguments;
+    const context = this;
+    if (!inThrottle) {
+      func.apply(context, args);
+      inThrottle = true;
+      setTimeout(() => (inThrottle = false), limit);
+    }
+  };
+}
+
+// 內存優化：使用 WeakMap 緩存 DOM 元素
+const domCache = new WeakMap();
+
+// 獲取或緩存 DOM 元素
+function getCachedElement(selector, parent = document) {
+  if (!domCache.has(parent)) {
+    domCache.set(parent, new Map());
+  }
+
+  const cache = domCache.get(parent);
+  if (!cache.has(selector)) {
+    cache.set(selector, parent.querySelector(selector));
+  }
+
+  return cache.get(selector);
+}
+
+// 清理性能標記
+function cleanupPerformanceMarks() {
+  try {
+    performance.clearMarks();
+    performance.clearMeasures();
+  } catch (error) {
+    // 忽略不支持 Performance API 的瀏覽器
+  }
+}
+
+// 頁面卸載時清理資源
+window.addEventListener("beforeunload", () => {
+  cleanupPerformanceMarks();
+  domCache.clear();
+});
+

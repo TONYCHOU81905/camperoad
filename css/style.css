@@ -70,6 +70,8 @@ button,
   box-shadow: 0 6px 12px rgba(58, 90, 64, 0.2);
 }
 
+
+
 .camp-tag,
 .product-tag {
   background-color: #e76f51;
@@ -294,6 +296,15 @@ h4 {
   border-color: #dee2e6;
   color: #495057;
   padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+  border-radius: 4px;
 }
 
 .btn-login.logged-in:hover {
@@ -306,6 +317,7 @@ h4 {
   height: 24px;
   border-radius: 50%;
   object-fit: cover;
+  flex-shrink: 0;
 }
 
 .btn-login .user-name {
@@ -1771,6 +1783,53 @@ h4 {
   height: 67.59px;
 }
 
-select option {
-  color: #222;
+
+/* 表格樣式微調 */
+.data-table td, .data-table th {
+  padding: 10px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+
+/* 折價券詳細區塊樣式 */
+.discount-details-row {
+  background-color: #f9f9f9;
+}
+
+.discount-detail-cell {
+  padding: 10px;
+  font-size: 14px;
+  color: #444;
+}
+
+/* 展開箭頭按鈕 */
+.toggle-details-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  transform: rotate(0deg);
+  transition: transform 0.3s ease;
+  margin-right: 5px;
+}
+
+/* 旋轉狀態 */
+.toggle-details-btn.expanded {
+  transform: rotate(180deg);
+}
+
+/* 折價券編輯按鈕 */
+.btn-edit-discount {
+  background-color: #3a5a40;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-edit-discount:hover {
+  background-color: #678e6f;
+
 }

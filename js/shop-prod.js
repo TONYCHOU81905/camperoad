@@ -146,51 +146,53 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // ✅ 根據篩選條件載入商品
+  // 在fetchProducts函數中添加更新section-title的代碼
   function fetchProducts() {
-    const category = categorySelect.value;
-    const sort = sortSelect.value;
-    const priceRange = document.getElementById("price")?.value;
+      const categorySelect = document.getElementById("category");
+      const category = categorySelect.value;
+      const sort = sortSelect.value;
+      const priceRange = document.getElementById("price")?.value;
+      
+      // 更新section-title內容
+      updateSectionTitle(category, sort, priceRange);
+  
+      let url = `${window.api_prefix}/api/products`;
 
+      if (category) {
+        url = `${window.api_prefix}/api/products/type/${category}`;
+      } else if (priceRange){
+        url = `${window.api_prefix}/api/products/price-range?range=${priceRange}`;
+      }else if (sort === "latest") {
+        url = `${window.api_prefix}/api/products/latest?limit=5`;
+      } else if (sort === "popular") {
+        url = `${window.api_prefix}/api/products`;
+      } else if (sort === "discount") {
+        url = `${window.api_prefix}/api/products/discount`;
+      } else if (sort === "price-asc") {
+        url = `${window.api_prefix}/api/products/price-asc`;
+      } else if (sort === "price-desc") {
+        url = `${window.api_prefix}/api/products/price-desc`;
+      }
 
-    let url = `${window.api_prefix}/api/products`;
-
-    if (category) {
-      url = `${window.api_prefix}/api/products/type/${category}`;
-    } else if (priceRange){
-      url = `${window.api_prefix}/api/products/price-range?range=${priceRange}`;
-    }else if (sort === "latest") {
-      url = `${window.api_prefix}/api/products/latest`;
-    } else if (sort === "popular") {
-      url = `${window.api_prefix}/api/products`;
-    } else if (sort === "discount") {
-      url = `${window.api_prefix}/api/products/discount`;
-    } else if (sort === "price-asc") {
-      url = `${window.api_prefix}/api/products/price-asc`;
-    } else if (sort === "price-desc") {
-      url = `${window.api_prefix}/api/products/price-desc`;
-    }
-
-    console.log("API 請求網址：", url);
-
-    fetch(url)
-      .then((res) => res.json())
-      .then((data) => {
-
-        const products = data.data;
-        container.innerHTML = "";
-
-        products.forEach((prod) => {
-          const hasDiscount = prod.prodDiscount !== null && prod.prodDiscount !== undefined;
-          const featuresHtml = generateProductFeatures(prod);
-          const colorMap = new Map((prod.colorList || []).map(c => [c.colorId, c.colorName]));
-          const specMap = new Map((prod.specList || []).map(s => [s.specId, s.specName]));
-          const colors = prod.prodColorList || [];
-          let colorSelectHtml = '';
-
-          // 生成顏色選擇按鈕;若商品有多種顏色，才顯示顏色選擇區塊
-          if (colors.length > 0) {
-            colorSelectHtml += `<div class="product-color-select"><span class="label"></span>`;
-          
+      fetch(url)
+        .then((res) => res.json())
+        .then((data) => {
+  
+          const products = data.data;
+          container.innerHTML = "";
+  
+          products.forEach((prod) => {
+            const hasDiscount = prod.prodDiscount !== null && prod.prodDiscount !== undefined;
+            const featuresHtml = generateProductFeatures(prod);
+            const colorMap = new Map((prod.colorList || []).map(c => [c.colorId, c.colorName]));
+            const specMap = new Map((prod.specList || []).map(s => [s.specId, s.specName]));
+            const colors = prod.prodColorList || [];
+            let colorSelectHtml = '';
+  
+            // 生成顏色選擇按鈕;若商品有多種顏色，才顯示顏色選擇區塊
+            if (colors.length > 0) {
+              colorSelectHtml += `<div class="product-color-select"><span class="label"></span>`;
+            
             colors.forEach((color, index) => {
               const colorId = color.prodColorId;
               const colorName = colorMap.get(colorId) || `顏色 ${colorId}`;
@@ -304,17 +306,6 @@ document.addEventListener("DOMContentLoaded", function () {
         console.error("商品載入失敗：", err);
         hideLoadingOverlay(); // 發生錯誤時也要隱藏載入畫面
       });
-  }
-
-  // 格式化日期函數
-  function formatDate(date) {
-    if (typeof date === 'string') {
-      date = new Date(date);
-    }
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
   }
 
   // 生成星星評分HTML
@@ -572,3 +563,39 @@ document.querySelectorAll(".btn-add-cart").forEach((btn) => {
     }
   }
 });
+
+// 添加新函數用於更新section-title
+function updateSectionTitle(category, sort, priceRange) {
+    const sectionTitle = document.querySelector('.shop-products .section-title');
+    if (!sectionTitle) return;
+    
+    let titleText = '熱門商品';
+    let filterInfo = '';
+
+    const categorySelect = document.getElementById('category');
+
+    // 根據篩選條件更新標題
+    if (category) {
+        const categoryOption = categorySelect.options[categorySelect.selectedIndex];
+        const categoryName = categoryOption ? categoryOption.textContent : '';
+        titleText = categoryName;
+    } else if (sort === 'latest') {
+        titleText = '最新上架商品';
+    } else if (sort === 'discount') {
+        titleText = '折扣商品';
+    } else if (sort === 'price-asc') {
+        titleText = '價格由低至高商品';
+    } else if (sort === 'price-desc') {
+        titleText = '價格由高至低商品';
+    }
+    
+    // 如果有價格範圍，添加到篩選信息
+    if (priceRange) {
+        const priceOption = document.getElementById('price').options[document.getElementById('price').selectedIndex];
+        const priceText = priceOption ? priceOption.textContent : '';
+        filterInfo = `<span class="filter-info">${priceText}</span>`;
+    }
+    
+    // 更新section-title的內容
+    sectionTitle.innerHTML = titleText + (filterInfo ? ` - ${filterInfo}` : '');
+}

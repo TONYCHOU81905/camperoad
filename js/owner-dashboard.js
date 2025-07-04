@@ -6,7 +6,6 @@ class OwnerDashboard {
     this.campsiteData = [];
     this.bundleItemData = [];
     this.orderData = [];
-    this.discountCodeData = [];
     this.justUpdatedRoomTypeId = null; // 新增：記錄剛剛有上傳圖片的房型ID
     this.pendingCampImages = {}; // 新增：暫存待上傳的營地圖片
     this.deletedCampImages = {}; // 新增：記錄被刪除的營地圖片索引
@@ -173,20 +172,54 @@ class OwnerDashboard {
               (order) => order.campId == campId
             );
           }
-          const discountResponse = await fetch("data/discount_code.json");
-          if (discountResponse.ok) {
-            const allDiscountCodes = await discountResponse.json();
-            this.discountCodeData = allDiscountCodes.filter(
-              (code) => code.ownerId === this.currentOwner.ownerId
+          // 載入訂單詳細資料（只載入一次）
+          if (!this.orderDetails) {
+            this.orderDetails = [];
+            for (const order of this.orderData) {
+              const orderDetailsResponse = await fetch(
+                `${window.api_prefix}/api/campsite/order/getone/${order.campsiteOrderId}`
+              );
+              if (orderDetailsResponse.ok) {
+                const detailsJson = await orderDetailsResponse.json();
+                if (
+                  detailsJson.status === "success" &&
+                  detailsJson.data &&
+                  detailsJson.data.orderDetails
+                ) {
+                  this.orderDetails.push(...detailsJson.data.orderDetails);
+                }
+              }
+            }
+          }
+          // 載入會員資料
+          if (!this.memberData) {
+            const memberResponse = await fetch(
+              `${window.api_prefix}/member/getallmembers`
+            );
+            if (!memberResponse.ok) {
+              throw new Error(`載入會員資料失敗：${memberResponse.status}`);
+            }
+            this.memberData = await memberResponse.json();
+          }
+          // 載入房型資料
+          if (!this.campsiteTypeData || this.campsiteTypeData.length === 0) {
+            const campsiteTypeResponse = await fetch(
+              `${window.api_prefix}/campsite/getAllCampsite`
+            );
+            if (!campsiteTypeResponse.ok) {
+              throw new Error(
+                `載入房型資料失敗：${campsiteTypeResponse.status}`
+              );
+            }
+            const allCampsiteTypes = await campsiteTypeResponse.json();
+            this.campsiteTypeData = allCampsiteTypes.filter(
+              (type) => this.campData && type.campId === this.campData.campId
             );
           }
-
-          // 3. 切換到營地基本資料分頁，並 render
-          await this.showTabContent("camp-info");
-          // loading 隱藏，表單顯示
-          if (campInfoLoading) campInfoLoading.style.display = "none";
-          if (campInfoForm) campInfoForm.style.display = "";
-          this.initCampInfoForm();
+          // 移除折價券資料載入
+          // console.log("所有資料載入完成");
+          // 新增：初始化時自動載入房型資料
+          await this.loadCampsiteTypesByCampId(this.campData.campId);
         };
       }
     } catch (error) {
@@ -201,107 +234,119 @@ class OwnerDashboard {
         console.error("無法載入資料：缺少營地主資料");
         return;
       }
-      console.log("GGGGG:");
+      // 獲取營地主基本資料
+      await this.loadOwnerData();
       // 載入營地資料，只載入當前營地主的營地
-      const campResponse = await fetch(`${window.api_prefix}/api/getallcamps`);
-      if (!campResponse.ok) {
-        throw new Error(`載入營地資料失敗：${campResponse.status}`);
+      if (!this.allCamps) {
+        const campResponse = await fetch(
+          `${window.api_prefix}/api/getallcamps`
+        );
+        if (!campResponse.ok) {
+          throw new Error(`載入營地資料失敗：${campResponse.status}`);
+        }
+        const allCampsJson = await campResponse.json();
+        const allCamps = allCampsJson.data || [];
+        console.log("allCamps:" + allCamps);
+
+        this.allCamps = allCamps.filter(
+          (camp) => String(camp.ownerId) == String(this.currentOwner.ownerId)
+        );
       }
-      const allCampsJson = await campResponse.json();
-      const allCamps = allCampsJson.data;
-
-      // 根據登入的營地主ID篩選營地
-
-      this.allCamps = allCamps.filter(
-        (camp) => String(camp.ownerId) == String(this.currentOwner.ownerId)
-      );
-
-      // 如果該營地主沒有營地，顯示提示訊息
       if (this.allCamps.length === 0) {
         this.showMessage("您目前沒有營地資料，請先新增營地", "warning");
-        // 不要呼叫 this.initUI();
         return;
       }
-
-      // 預設選擇第一個營地
       this.campData = this.allCamps[0];
-      // 清空圖片刪除標記
       this.deletedCampImages = {};
-      // 清除圖片存在性快取
       this.imageExistsCache = {};
-
       // 載入營地房間資料
-      const campsiteResponse = await fetch(
-        `${window.api_prefix}/campsite/getAllCampsite`
-      );
-
-      if (!campsiteResponse.ok) {
-        throw new Error(`載入營地房間資料失敗：${campsiteResponse.status}`);
+      if (!this.campsiteData || this.campsiteData.length === 0) {
+        const campsiteResponse = await fetch(
+          `${window.api_prefix}/campsite/getAllCampsite`
+        );
+        if (!campsiteResponse.ok) {
+          throw new Error(`載入營地房間資料失敗：${campsiteResponse.status}`);
+        }
+        const allCampsitesJson = await campsiteResponse.json();
+        const allCampsites = allCampsitesJson.data || [];
+        console.log("allCampsites:" + allCampsites);
+        this.campsiteData = allCampsites.filter(
+          (campsite) =>
+            this.campData && campsite.campId === this.campData.campId
+        );
+        console.log("start_this.campsiteData", this.campsiteData);
       }
-
-      const allCampsitesJson = await campsiteResponse.json();
-      const allCampsites = allCampsitesJson.data;
-      this.campsiteData = allCampsites.filter(
-        (campsite) => this.campData && campsite.campId === this.campData.campId
-      );
-
+      //取得房型資料
+      await this.loadCampsiteTypesByCampId(this.campData.campId);
       // 載入加購商品資料 - 使用API
-      console.log("載入加購商品資料:", this.campData.campId);
-
-      await this.loadBundleItemsByCampId(this.campData.campId);
-
+      if (!this.bundleItemData || this.bundleItemData.length === 0) {
+        await this.loadBundleItemsByCampId(this.campData.campId);
+      }
       // 載入訂單資料
-      const orderResponse = await fetch(
-        `${window.api_prefix}/api/campsite/order/all`
-      );
-      if (!orderResponse.ok) {
-        throw new Error(`載入訂單資料失敗：${orderResponse.status}`);
+      if (!this.orderData || this.orderData.length === 0) {
+        const orderResponse = await fetch(
+          `${window.api_prefix}/api/campsite/order/all`
+        );
+        if (!orderResponse.ok) {
+          throw new Error(`載入訂單資料失敗：${orderResponse.status}`);
+        }
+        const allOrdersJson = await orderResponse.json();
+        const allOrders = allOrdersJson.data || [];
+        console.log("allOrders:" + allOrders);
+        this.orderData = allOrders.filter(
+          (order) => this.campData && order.campId === this.campData.campId
+        );
+        console.log("this.orderData:" + this.orderData);
       }
-      const allOrdersJson = await orderResponse.json();
-      const allOrders = allOrdersJson.data;
-      console.log("allOrders111:" + allOrders);
-
-      this.orderData = allOrders.filter(
-        (order) => this.campData && order.campId === this.campData.campId
-      );
-
-      // 載入訂單詳細資料
-      const orderDetailsResponse = await fetch(
-        "data/campsite_order_details.json"
-      );
-      if (!orderDetailsResponse.ok) {
-        throw new Error(`載入訂單詳細資料失敗：${orderDetailsResponse.status}`);
+      // 載入訂單詳細資料（只載入一次）
+      if (!this.orderDetails) {
+        this.orderDetails = [];
+        for (const order of this.orderData) {
+          const orderDetailsResponse = await fetch(
+            `${window.api_prefix}/api/campsite/order/getone/${order.campsiteOrderId}`
+          );
+          if (orderDetailsResponse.ok) {
+            const detailsJson = await orderDetailsResponse.json();
+            if (
+              detailsJson.status === "success" &&
+              detailsJson.data &&
+              detailsJson.data.orderDetails
+            ) {
+              this.orderDetails.push(...detailsJson.data.orderDetails);
+            }
+            console.log("orderDetails:" + this.orderDetails);
+          }
+        }
       }
-      this.orderDetails = await orderDetailsResponse.json();
-
       // 載入會員資料
-      const memberResponse = await fetch("data/mem.json");
-      if (!memberResponse.ok) {
-        throw new Error(`載入會員資料失敗：${memberResponse.status}`);
+      if (!this.memberData) {
+        const memberResponse = await fetch(
+          `${window.api_prefix}/member/getallmembers`
+        );
+        if (!memberResponse.ok) {
+          throw new Error(`載入會員資料失敗：${memberResponse.status}`);
+        }
+        const responseJson = await memberResponse.json();
+        this.memberData = responseJson.data;
       }
-      this.memberData = await memberResponse.json();
-
+      console.log("memberData:" + this.memberData);
       // 載入房型資料
-      const campsiteTypeResponse = await fetch("data/campsite_type.json");
-      if (!campsiteTypeResponse.ok) {
-        throw new Error(`載入房型資料失敗：${campsiteTypeResponse.status}`);
+      if (!this.campsiteTypeData || this.campsiteTypeData.length === 0) {
+        const campsiteTypeResponse = await fetch(
+          `${window.api_prefix}/campsite/getAllCampsite`
+        );
+        if (!campsiteTypeResponse.ok) {
+          throw new Error(`載入房型資料失敗：${campsiteTypeResponse.status}`);
+        }
+        const allCampsiteTypesJson = await campsiteTypeResponse.json();
+        const allCampsiteTypes = allCampsiteTypesJson.data;
+        console.log("allCampsiteTypes:" + allCampsiteTypes);
+        this.campsiteTypeData = allCampsiteTypes.filter(
+          (type) => this.campData && type.campId === this.campData.campId
+        );
       }
-      const allCampsiteTypes = await campsiteTypeResponse.json();
-      this.campsiteTypeData = allCampsiteTypes.filter(
-        (type) => this.campData && type.campId === this.campData.campId
-      );
-
-      // 載入折價券資料
-      const discountResponse = await fetch("data/discount_code.json");
-      if (!discountResponse.ok) {
-        throw new Error(`載入折價券資料失敗：${discountResponse.status}`);
-      }
-      const allDiscountCodes = await discountResponse.json();
-      this.discountCodeData = allDiscountCodes.filter(
-        (code) => code.ownerId === this.currentOwner.ownerId
-      );
-
-      console.log("所有資料載入完成");
+      // 移除折價券資料載入
+      // console.log("所有資料載入完成");
     } catch (error) {
       console.error("載入資料失敗：", error);
       this.showMessage(`載入資料失敗：${error.message}`, "error");
@@ -326,7 +371,8 @@ class OwnerDashboard {
         throw new Error(`載入加購項目失敗：${response.status}`);
       }
 
-      const data = await response.json();
+      const dataJson = await response.json();
+      const data = dataJson.data;
       console.log(`API回傳的加購項目資料：`, data);
 
       // 確保回傳的資料是陣列
@@ -444,6 +490,375 @@ class OwnerDashboard {
     }
   }
 
+  // 加載營地主基本資料
+  async loadOwnerData() {
+    try {
+      // 這裡使用currentOwner的資料，實際應用中應該從API獲取更詳細的資料
+      // 模擬API調用，實際應用中應替換為真實API
+      // const response = await fetch(`${window.api_prefix}/api/owner/profile`, {
+      //   method: "GET",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   credentials: "include",
+      // });
+
+      // if (!response.ok) {
+      //   throw new Error(`HTTP error! status: ${response.status}`);
+      // }
+
+      // const data = await response.json();
+      // this.ownerData = data;
+
+      // 暫時使用currentOwner的資料
+      this.ownerData = {
+        ...this.currentOwner,
+        ownerName: "王大明",
+        ownerPhone: "0912345678",
+        contactName: "李小華",
+        contactPhone: "0987654321",
+        address: "台北市信義區信義路五段7號",
+        email: "owner@example.com",
+        bankAccount: "012345678901234",
+        ownerIntro: "我們是一家專業的露營場地，提供最優質的露營體驗。",
+      };
+
+      // 初始化表單
+      this.initOwnerInfoForm();
+
+      return this.ownerData;
+    } catch (error) {
+      console.error("載入營地主資料時發生錯誤:", error);
+      return null;
+    }
+  }
+
+  // 初始化營地主基本資料表單
+  initOwnerInfoForm() {
+    if (!this.ownerData) return;
+
+    // 設置頭像
+    const avatarPreview = document.getElementById("avatar-preview");
+    if (avatarPreview) {
+      if (this.ownerData.avatar) {
+        avatarPreview.src = `${window.api_prefix}/api/owner/avatar/${this.ownerData.ownerId}`;
+      } else {
+        avatarPreview.src = "../images/default-avatar.png";
+      }
+    }
+
+    // 填充表單數據
+    const ownerId = document.getElementById("ownerId");
+    if (ownerId) ownerId.value = this.ownerData.ownerId || "";
+
+    const storeName = document.getElementById("storeName");
+    if (storeName) storeName.value = this.ownerData.storeName || "";
+
+    const taxId = document.getElementById("taxId");
+    if (taxId) taxId.value = this.ownerData.taxId || "";
+
+    const ownerName = document.getElementById("ownerName");
+    if (ownerName) ownerName.value = this.ownerData.ownerName || "";
+
+    const ownerPhone = document.getElementById("ownerPhone");
+    if (ownerPhone) ownerPhone.value = this.ownerData.ownerPhone || "";
+
+    const contactName = document.getElementById("contactName");
+    if (contactName) contactName.value = this.ownerData.contactName || "";
+
+    const contactPhone = document.getElementById("contactPhone");
+    if (contactPhone) contactPhone.value = this.ownerData.contactPhone || "";
+
+    const address = document.getElementById("address");
+    if (address) address.value = this.ownerData.address || "";
+
+    const email = document.getElementById("email");
+    if (email) email.value = this.ownerData.email || "";
+
+    const bankAccount = document.getElementById("bankAccount");
+    if (bankAccount) bankAccount.value = this.ownerData.bankAccount || "";
+
+    const ownerIntro = document.getElementById("ownerIntro");
+    if (ownerIntro) ownerIntro.value = this.ownerData.ownerIntro || "";
+  }
+
+  // 處理營地主基本資料表單提交
+  async handleOwnerInfoSubmit(e) {
+    e.preventDefault();
+
+    try {
+      const formData = new FormData(e.target);
+      const ownerData = {
+        ownerId: formData.get("ownerId"),
+        ownerName: formData.get("ownerName"),
+        ownerPhone: formData.get("ownerPhone"),
+        contactName: formData.get("contactName"),
+        contactPhone: formData.get("contactPhone"),
+        bankAccount: formData.get("bankAccount"),
+        ownerIntro: formData.get("ownerIntro"),
+      };
+
+      // 模擬API調用，實際應用中應替換為真實API
+      // const response = await fetch(`${window.api_prefix}/api/owner/update-profile`, {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify(ownerData),
+      //   credentials: "include",
+      // });
+
+      // if (!response.ok) {
+      //   throw new Error(`HTTP error! status: ${response.status}`);
+      // }
+
+      // const result = await response.json();
+
+      // 模擬成功響應
+      const result = { status: "success" };
+
+      if (result.status === "success") {
+        // 更新本地數據
+        this.ownerData = { ...this.ownerData, ...ownerData };
+
+        // 顯示成功訊息
+        Swal.fire({
+          icon: "success",
+          title: "成功",
+          text: "營地主資料已更新",
+          confirmButtonColor: "#3085d6",
+        });
+      } else {
+        throw new Error(result.message || "更新失敗");
+      }
+    } catch (error) {
+      console.error("更新營地主資料時發生錯誤:", error);
+
+      Swal.fire({
+        icon: "error",
+        title: "錯誤",
+        text: `更新營地主資料失敗: ${error.message}`,
+        confirmButtonColor: "#3085d6",
+      });
+    }
+  }
+
+  // 處理頭像更換
+  async handleAvatarChange(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // 檢查檔案類型
+    if (!file.type.match("image.*")) {
+      Swal.fire({
+        icon: "error",
+        title: "錯誤",
+        text: "請選擇圖片檔案",
+        confirmButtonColor: "#3085d6",
+      });
+      return;
+    }
+
+    // 檢查檔案大小 (限制為 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      Swal.fire({
+        icon: "error",
+        title: "錯誤",
+        text: "圖片大小不能超過 2MB",
+        confirmButtonColor: "#3085d6",
+      });
+      return;
+    }
+
+    try {
+      // 顯示預覽
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const avatarPreview = document.getElementById("avatar-preview");
+        if (avatarPreview) {
+          avatarPreview.src = event.target.result;
+        }
+      };
+      reader.readAsDataURL(file);
+
+      // 模擬上傳頭像
+      // const formData = new FormData();
+      // formData.append("avatar", file);
+
+      // const response = await fetch(`${window.api_prefix}/api/owner/upload-avatar`, {
+      //   method: "POST",
+      //   body: formData,
+      //   credentials: "include",
+      // });
+
+      // if (!response.ok) {
+      //   throw new Error(`HTTP error! status: ${response.status}`);
+      // }
+
+      // const result = await response.json();
+
+      // 模擬成功響應
+      const result = { status: "success" };
+
+      if (result.status === "success") {
+        Swal.fire({
+          icon: "success",
+          title: "成功",
+          text: "頭像已更新",
+          confirmButtonColor: "#3085d6",
+        });
+      } else {
+        throw new Error(result.message || "上傳失敗");
+      }
+    } catch (error) {
+      console.error("上傳頭像時發生錯誤:", error);
+
+      Swal.fire({
+        icon: "error",
+        title: "錯誤",
+        text: `上傳頭像失敗: ${error.message}`,
+        confirmButtonColor: "#3085d6",
+      });
+    }
+  }
+
+  // 顯示更改密碼模態框
+  showChangePasswordModal() {
+    // 創建模態框 HTML
+    const modalHtml = `
+      <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="changePasswordModalLabel">更改密碼</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <form id="changePasswordForm">
+                <div class="mb-3">
+                  <label for="currentPassword" class="form-label">目前密碼</label>
+                  <input type="password" class="form-control" id="currentPassword" name="currentPassword" required>
+                </div>
+                <div class="mb-3">
+                  <label for="newPassword" class="form-label">新密碼</label>
+                  <input type="password" class="form-control" id="newPassword" name="newPassword" required>
+                </div>
+                <div class="mb-3">
+                  <label for="confirmPassword" class="form-label">確認新密碼</label>
+                  <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+              <button type="button" class="btn btn-primary" id="submitChangePassword">確認更改</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // 檢查是否已存在模態框
+    let modalElement = document.getElementById("changePasswordModal");
+    if (!modalElement) {
+      // 添加模態框到頁面
+      const modalContainer = document.createElement("div");
+      modalContainer.innerHTML = modalHtml;
+      document.body.appendChild(modalContainer.firstElementChild);
+      modalElement = document.getElementById("changePasswordModal");
+    }
+
+    // 初始化模態框
+    const modal = new bootstrap.Modal(modalElement);
+
+    // 綁定提交事件
+    const submitBtn = document.getElementById("submitChangePassword");
+    if (submitBtn) {
+      submitBtn.addEventListener("click", () => this.handleChangePassword());
+    }
+
+    // 顯示模態框
+    modal.show();
+  }
+
+  // 處理更改密碼
+  async handleChangePassword() {
+    const currentPassword = document.getElementById("currentPassword").value;
+    const newPassword = document.getElementById("newPassword").value;
+    const confirmPassword = document.getElementById("confirmPassword").value;
+
+    // 驗證密碼
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      Swal.fire({
+        icon: "error",
+        title: "錯誤",
+        text: "請填寫所有密碼欄位",
+        confirmButtonColor: "#3085d6",
+      });
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      Swal.fire({
+        icon: "error",
+        title: "錯誤",
+        text: "新密碼與確認密碼不符",
+        confirmButtonColor: "#3085d6",
+      });
+      return;
+    }
+
+    try {
+      // 模擬API調用，實際應用中應替換為真實API
+      // const response = await fetch(`${window.api_prefix}/api/owner/change-password`, {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify({
+      //     currentPassword,
+      //     newPassword
+      //   }),
+      //   credentials: "include",
+      // });
+
+      // if (!response.ok) {
+      //   throw new Error(`HTTP error! status: ${response.status}`);
+      // }
+
+      // const result = await response.json();
+
+      // 模擬成功響應
+      const result = { status: "success" };
+
+      if (result.status === "success") {
+        // 關閉模態框
+        const modalElement = document.getElementById("changePasswordModal");
+        const modal = bootstrap.Modal.getInstance(modalElement);
+        modal.hide();
+
+        // 顯示成功訊息
+        Swal.fire({
+          icon: "success",
+          title: "成功",
+          text: "密碼已更改",
+          confirmButtonColor: "#3085d6",
+        });
+      } else {
+        throw new Error(result.message || "更改密碼失敗");
+      }
+    } catch (error) {
+      console.error("更改密碼時發生錯誤:", error);
+
+      Swal.fire({
+        icon: "error",
+        title: "錯誤",
+        text: `更改密碼失敗: ${error.message}`,
+        confirmButtonColor: "#3085d6",
+      });
+    }
+  }
+
   async renderCampImages() {
     try {
       if (!this.campData || !this.campData.campId) {
@@ -540,6 +955,37 @@ class OwnerDashboard {
           item.classList.add("active");
         });
       });
+
+    // 營地主基本資料表單提交事件
+    const ownerInfoForm = document.getElementById("ownerInfoForm");
+    if (ownerInfoForm) {
+      ownerInfoForm.addEventListener("submit", (e) =>
+        this.handleOwnerInfoSubmit(e)
+      );
+    }
+
+    // 更換頭像事件
+    const avatarInput = document.getElementById("avatar-input");
+    if (avatarInput) {
+      avatarInput.addEventListener("change", (e) => this.handleAvatarChange(e));
+    }
+
+    // 更改密碼按鈕事件
+    const changePasswordBtn = document.querySelector(".btn-change-password");
+    if (changePasswordBtn) {
+      changePasswordBtn.addEventListener("click", () =>
+        this.showChangePasswordModal()
+      );
+    }
+
+    // 取消變更按鈕事件
+    const cancelBtn = document.querySelector("#ownerInfoForm .btn-cancel");
+    if (cancelBtn) {
+      cancelBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        this.initOwnerInfoForm();
+      });
+    }
 
     // 登出按鈕
     // 處理登出按鈕（側邊欄中的登出按鈕）
@@ -961,7 +1407,10 @@ class OwnerDashboard {
     // 訂單狀態篩選
     const orderStatusFilter = document.getElementById("orderStatusFilter");
     if (orderStatusFilter) {
-      orderStatusFilter.addEventListener("change", async () => await this.renderOrders());
+      orderStatusFilter.addEventListener(
+        "change",
+        async () => await this.renderOrders()
+      );
     }
   }
 
@@ -990,6 +1439,14 @@ class OwnerDashboard {
 
     // 根據不同頁面載入對應資料
     switch (tabName) {
+      case "owner-info":
+        // 初始化營地主基本資料表單
+        this.initOwnerInfoForm();
+        break;
+      case "camp-info":
+        // 初始化營地基本資料表單
+        this.initCampInfoForm();
+        break;
       case "room-types":
         // 這裡改成每次都強制呼叫API
         this.renderRoomTypes(false, true).catch((error) => {
@@ -1224,7 +1681,9 @@ class OwnerDashboard {
     ) {
       try {
         const apiUrl = `${window.api_prefix}/campsitetype/${campId}/getCampsiteTypes`;
+
         const response = await fetch(apiUrl);
+        console.log("this.campsiteTypeData_start:", response);
         if (!response.ok) throw new Error(`API回應失敗：${response.status}`);
         const result = await response.json();
         this.campsiteTypeData = Array.isArray(result.data) ? result.data : [];
@@ -1475,11 +1934,20 @@ class OwnerDashboard {
     const htmlPromises = filteredOrders.map(async (order) => {
       // 使用 API 獲取該訂單的詳細資料
       let orderDetails = [];
+
       try {
-        const response = await fetch(`${window.api_prefix}/api/campsite/order/getone/${order.campsiteOrderId}`);
+        const response = await fetch(
+          `${window.api_prefix}/api/campsite/order/getone/${order.campsiteOrderId}`
+        );
+
         if (response.ok) {
           const result = await response.json();
-          if (result.status === "success" && result.data && result.data.orderDetails) {
+          if (
+            result.status === "success" &&
+            result.data &&
+            result.data.orderDetails
+          ) {
+            console.log("result.data:", result.data);
             orderDetails = result.data.orderDetails;
           }
         }
@@ -1487,36 +1955,41 @@ class OwnerDashboard {
         console.error(`獲取訂單 ${order.campsiteOrderId} 詳細資料失敗:`, error);
       }
       console.log("orderDetails:", orderDetails);
-        // 獲取會員姓名
-        const member = this.memberData.find((m) => m.memId === order.memId);
-        const memberName = member ? member.mem_name : `會員${order.memId}`;
+      // 獲取會員姓名
+      const member = this.memberData.find((m) => m.memId === order.memId);
+      const memberName = member ? member.memName : `會員${order.memId}`;
 
-        // 計算總營地數量和金額
-        const totalCampsiteNum = orderDetails.reduce(
-          (sum, detail) => sum + detail.campsiteNum,
-          0
-        );
-        const totalCampsiteAmount = orderDetails.reduce(
-          (sum, detail) => sum + detail.campsiteAmount,
-          0
-        );
+      // 計算總營地數量和金額
+      const totalCampsiteNum = orderDetails.reduce(
+        (sum, detail) => sum + detail.campsiteNum,
+        0
+      );
+      const totalCampsiteAmount = orderDetails.reduce(
+        (sum, detail) => sum + detail.campsiteAmount,
+        0
+      );
 
-        // 獲取房型名稱（顯示第一個房型，如果有多個則顯示"等N種房型"）
-        let roomTypeDisplay = "無";
-        if (orderDetails.length > 0) {
-          const firstRoomType = this.campsiteTypeData.find(
-            (type) => type.campsiteTypeId === orderDetails[0].campsiteTypeId
-          );
-          console.log("firstRoomType:" + firstRoomType);
-          if (firstRoomType) {
-            roomTypeDisplay =
-              orderDetails.length > 1
-                ? `${firstRoomType.campsite_name}等${orderDetails.length}種房型`
-                : firstRoomType.campsite_name;
-          }
+      // 獲取房型名稱（顯示第一個房型，如果有多個則顯示"等N種房型"）
+      let roomTypeDisplay = "無";
+      if (orderDetails.length > 0) {
+        console.log(
+          "this.campsiteTypeData:",
+          this.campsiteTypeData,
+          orderDetails[0].campsiteTypeId
+        );
+        const firstRoomType = this.campsiteTypeData.find(
+          (type) => type.campsiteTypeId === orderDetails[0].campsiteTypeId
+        );
+        console.log("firstRoomType:", firstRoomType);
+        if (firstRoomType) {
+          roomTypeDisplay =
+            orderDetails.length > 1
+              ? `${firstRoomType.campsiteName}等${orderDetails.length}種房型`
+              : firstRoomType.campsiteName;
         }
+      }
 
-        return `
+      return `
       <tr>
         <td>#${order.campsiteOrderId}</td>
         <td>${memberName}</td>
@@ -1544,7 +2017,7 @@ class OwnerDashboard {
         </td>
       </tr>
     `;
-      });
+    });
 
     const htmlArray = await Promise.all(htmlPromises);
     const html = htmlArray.join("");
@@ -1604,10 +2077,12 @@ class OwnerDashboard {
 
   getOrderStatusText(status) {
     const statusMap = {
-      1: "待付款",
-      2: "已付款",
-      3: "已完成",
-      4: "已取消",
+      0: "露營者未付款",
+      1: "營地主未確認",
+      2: "營地主已確認",
+      3: "露營者自行取消",
+      4: "訂單結案",
+      5: "營地主自行取消",
     };
     return statusMap[status] || "未知狀態";
   }
@@ -1644,31 +2119,37 @@ class OwnerDashboard {
 
   // 顯示訂單詳細資料
   showOrderDetails(orderId) {
+    console.log("aaaa");
+
     const order = this.orderData.find((o) => o.campsiteOrderId === orderId);
     if (!order) return;
-
+    console.log("orderDetails111", order);
     // 獲取訂單詳細資料
-    const orderDetails = this.orderDetails.filter(
-      (detail) => detail.campsiteOrderId === orderId
-    );
-    console.log(this.campData);
-    console.log(campData);
+    // const orderDetails = order.orderDetails.filter(
+    //   (detail) => detail.campsiteOrderId === orderId
+    // );
+    const orderDetails = order.orderDetails;
+    console.log("this.memberData", this.memberData);
+    console.log("orderDetails222", orderDetails);
 
     // 查找折價券信息
-    let discountInfo = null;
-    if (order.discountCodeId) {
-      discountInfo = this.discountCodeData.find(
-        (discount) => discount.discountCodeId === order.discountCodeId
-      );
-    }
+    // let discountInfo = null;
+    // if (order.discountCodeId) {
+    //   discountInfo = this.discountCodeData.find(
+    //     (discount) => discount.discountCodeId === order.discountCodeId
+    //   );
+    // }
 
     // 獲取會員資料
-    const member = memberData.find((m) => m.memId == order.memId);
-    const memberName = member ? member.mem_name : `會員${order.memId}`;
+    const member = this.memberData.find((m) => m.memId == order.memId);
+
+    const memberName = member ? member.memName : `會員${order.memId}`;
 
     // 獲取營地資料
     const camp = campData.find((c) => c.campId == order.campId);
-    const campName = camp ? camp.camp_name : "營地名稱";
+    const campName = this.campData ? this.campData.campName : "營地名稱";
+    // const campName = camp ? camp.campName : "營地名稱";
+    // console.log("camp:" + camp[0]);
 
     // 生成營地類型詳細資料
     const campsiteDetailsHtml = orderDetails
@@ -1676,19 +2157,17 @@ class OwnerDashboard {
         const campsiteType = this.campsiteTypeData.find(
           (type) => type.campsiteTypeId === detail.campsiteTypeId
         );
-
+        console.log("campsiteType", campsiteType);
         return `
         <div class="campsite-detail-item">
           <div class="campsite-info">
-            <h6>${campsiteType ? campsiteType.campsite_name : "未知房型"}</h6>
-            <p class="text-muted">房型ID: ${detail.campsiteTypeId}</p>
+            <h6>${campsiteType ? campsiteType.campsiteName : "未知房型"}</h6>
+            <p class="text-muted">房型ID: ${campsiteType.campsiteTypeId}</p>
             <p class="text-muted">可住人數: ${
-              campsiteType ? campsiteType.campsite_people : "N/A"
+              campsiteType ? campsiteType.campsitePeople : "N/A"
             }人</p>
             <p class="text-muted">單價: NT$ ${
-              campsiteType
-                ? campsiteType.campsite_price.toLocaleString()
-                : "N/A"
+              campsiteType ? campsiteType.campsitePrice.toLocaleString() : "N/A"
             }</p>
           </div>
           <div class="campsite-booking">
@@ -1699,13 +2178,14 @@ class OwnerDashboard {
       `;
       })
       .join("");
+    console.log("orderDetails:", this.orderDetails);
 
     // 計算總數量和金額
-    const totalCampsiteNum = orderDetails.reduce(
+    const totalCampsiteNum = this.orderDetails.reduce(
       (sum, detail) => sum + detail.campsiteNum,
       0
     );
-    const totalCampsiteAmount = orderDetails.reduce(
+    const totalCampsiteAmount = this.orderDetails.reduce(
       (sum, detail) => sum + detail.campsiteAmount,
       0
     );
@@ -1791,30 +2271,7 @@ class OwnerDashboard {
                     </div>
                   </div>
                   <div class="col-md-6">
-                    ${
-                      order.disAmount > 0
-                        ? `
-                    <div class="amount-item discount">
-                      <span>折扣:</span>
-                      <span class="text-success">-NT$ ${order.disAmount.toLocaleString()}</span>
-                    </div>
-                    ${
-                      discountInfo
-                        ? `
-                    <div class="amount-item discount-info">
-                      <span>折價券:</span>
-                      <span class="text-info">${discountInfo.discount_code}</span>
-                    </div>
-                    <div class="amount-item discount-detail">
-                      <span>折價說明:</span>
-                      <span class="text-muted">${discountInfo.discount_explain}</span>
-                    </div>
-                    `
-                        : ""
-                    }
-                    `
-                        : ""
-                    }
+                   
                     <div class="amount-item total">
                       <span><strong>實付金額:</strong></span>
                       <span><strong class="text-primary">NT$ ${order.aftAmount.toLocaleString()}</strong></span>
@@ -3451,7 +3908,7 @@ class OwnerDashboard {
       campIdSelect.innerHTML = this.allCamps
         .map(
           (camp) =>
-            `<option value="${camp.campId}">${camp.campId} - ${camp.camp_name}</option>`
+            `<option value="${camp.campId}">${camp.campId} - ${camp.campName}</option>`
         )
         .join("");
 
@@ -3476,7 +3933,9 @@ class OwnerDashboard {
             (campsite) => campsite.campId == campIdSelect.value
           );
 
-          const bundleResponse = await fetch("data/bundle_item.json");
+          const bundleResponse = await fetch(
+            `${window.api_prefix}/bundleitem/${campId}/getBundleItems`
+          );
           if (!bundleResponse.ok) {
             throw new Error(`載入加購商品資料失敗：${bundleResponse.status}`);
           }
@@ -3485,7 +3944,9 @@ class OwnerDashboard {
             (bundle) => bundle.campId == campIdSelect.value
           );
 
-          const orderResponse = await fetch("data/campsite_order.json");
+          const orderResponse = await fetch(
+            `${window.api_prefix}/campsite/getAllCampsiteOrders`
+          );
           if (!orderResponse.ok) {
             throw new Error(`載入訂單資料失敗：${orderResponse.status}`);
           }
@@ -3678,12 +4139,12 @@ class OwnerDashboard {
       console.log("設置會員ID:", this.currentOwner.memId);
     } else if (memIdInput) {
       // 如果營地主資料中沒有 mem_id，嘗試從 localStorage 或 sessionStorage 獲取會員資料
-      const memberData =
-        localStorage.getItem("currentMember") ||
-        sessionStorage.getItem("currentMember");
-      if (memberData) {
+      // const memberData =
+      //   localStorage.getItem("currentMember") ||
+      //   sessionStorage.getItem("currentMember");
+      if (this.memberData) {
         try {
-          const member = JSON.parse(memberData);
+          const member = JSON.parse(this.memberData);
           if (member && member.memId) {
             memIdInput.value = member.memId;
             console.log("從會員資料設置會員ID:", member.memId);
