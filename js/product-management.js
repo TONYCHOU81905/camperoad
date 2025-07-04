@@ -60,7 +60,7 @@ async function loadProductsData() {
     console.log("商品顏色資料：", productColorsData);
 
     // 4. 商品主資料
-    const prodResponse = await fetch(`${window.api_prefix}/api/products`);
+    const prodResponse = await fetch(`${window.api_prefix}/admin/products`);
     if (!prodResponse.ok) throw new Error(`商品資料錯誤: ${prodResponse.status}`);
     const prodData = await prodResponse.json();
 
