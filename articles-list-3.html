@@ -172,6 +172,8 @@
             align-items: center;
             transition: background 0.2s ease;
             min-height: 140px;
+            max-height: 160px;
+            overflow: hidden;
         }
 
         .article-item:hover {
@@ -186,6 +188,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            flex-shrink: 0;
         }
 
         .article-image {
@@ -202,6 +205,8 @@
             gap: 8px;
             text-align: left;
             padding: 5px 0;
+            overflow: hidden;
+            min-height: 0;
         }
 
         .article-title-link {
@@ -212,6 +217,10 @@
             line-height: 1.4;
             transition: color 0.2s ease;
             margin-bottom: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            display: block;
         }
 
         .article-title-link:hover {
@@ -228,6 +237,8 @@
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
+            word-wrap: break-word;
+            word-break: break-word;
         }
 
         .article-tag {
@@ -238,6 +249,7 @@
             border-radius: 12px;
             font-size: 0.7rem;
             margin-bottom: 3px;
+            white-space: nowrap;
         }
 
         .article-author-cell {
@@ -246,6 +258,9 @@
             font-size: 1rem;
             font-weight: 500;
             grid-column: 3;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .article-date-cell {
@@ -254,6 +269,9 @@
             font-size: 0.95rem;
             line-height: 1.4;
             grid-column: 4;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .article-stats-cell {
@@ -264,6 +282,7 @@
             font-size: 0.9rem;
             color: #888;
             grid-column: 5;
+            flex-shrink: 0;
         }
 
         .stat-item {
@@ -503,6 +522,7 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            background: linear-gradient(135deg, white 0%, white 100%) !important;
         }
 
         .site-footer,
@@ -542,6 +562,9 @@
             </button>
         </div>
     </header>
+    <nav class="breadcrumb" style="margin: 16px 0 0 0; padding-left: 24px; font-size: 0.98rem;">
+        <a href="index.html">首頁</a> &gt; <a href="article-type.html">論壇攻略</a> &gt; <span>營地推薦</span>
+    </nav>
 
     <section class="guide-hero">
         <div class="container">
@@ -550,7 +573,7 @@
                 <p>精選全台優質營地，詳細介紹各營地特色與實用攻略</p>
                 <div class="guide-search-box">
                     <form id="search-form" onsubmit="handleSearch(event)">
-                        <input type="text" placeholder="搜尋文章標題、內容或關鍵字..." name="search" id="search-input"
+                        <input type="text" placeholder="搜尋文章標題、內容、作者或關鍵字..." name="search" id="search-input"
                             autocomplete="off">
                         <button type="submit" class="btn-search-submit" title="搜尋">
                             <i class="fas fa-search"></i>
@@ -676,169 +699,12 @@
     </footer>
 
     <script src="js/main.js"></script>
-    <script src="js/view-counter.js"></script>
     <script src="js/articles.js"></script>
     <script src="js/header-auth.js"></script>
     <script src="js/camp-data.js"></script>
     <script>
-        // 查詢結果暫存
-        window.currentSearchArticles = null;
-        window.currentSearchSort = 'latest';
-
-        // 處理搜尋功能
-        async function handleSearch(event) {
-            event.preventDefault();
-
-            const searchInput = document.getElementById('search-input');
-            const searchTerm = searchInput.value.trim();
-
-            if (!searchTerm) {
-                window.currentSearchArticles = null;
-                window.currentSearchSort = 'latest';
-                articleManager.initArticleList(30003);
-                return;
-            }
-
-            try {
-                const articlesContainer = document.getElementById('articles-container');
-                articlesContainer.innerHTML = '<div class="loading-message">搜尋中...</div>';
-
-                const response = await fetch(`${window.api_prefix}/api/articles/search/advanced?keyword=${encodeURIComponent(searchTerm)}&acTypeId=30003`);
-                const result = await response.json();
-                let articles = (result.status === 'success' && result.data) ? result.data : [];
-
-                const authorRes = await fetch(`${window.api_prefix}/api/articles/search/by-member-name?memName=${encodeURIComponent(searchTerm)}`);
-                const authorResult = await authorRes.json();
-                let authorArticles = (authorResult.status === 'success' && authorResult.data) ? authorResult.data : [];
-
-                const allArticlesMap = new Map();
-                articles.concat(authorArticles).forEach(article => {
-                    allArticlesMap.set(article.acId, article);
-                });
-                let allArticles = Array.from(allArticlesMap.values());
-
-                // 預設排序：最新發文在最上面
-                allArticles.sort((a, b) => new Date(b.acTime) - new Date(a.acTime));
-                window.currentSearchArticles = allArticles;
-                window.currentSearchSort = 'latest';
-
-                if (allArticles.length > 0) {
-                    displaySearchResults(allArticles, 1);
-                    const articleCount = document.getElementById('article-count');
-                    if (articleCount) {
-                        articleCount.textContent = allArticles.length;
-                    }
-                } else {
-                    articlesContainer.innerHTML = '<div class="loading-message">沒有找到相關文章</div>';
-                    const articleCount = document.getElementById('article-count');
-                    if (articleCount) {
-                        articleCount.textContent = '0';
-                    }
-                }
-            } catch (error) {
-                console.error('搜尋失敗:', error);
-                const articlesContainer = document.getElementById('articles-container');
-                articlesContainer.innerHTML = '<div class="loading-message">搜尋失敗，請稍後再試</div>';
-            }
-        }
-
-        // 排序選單事件
         document.addEventListener('DOMContentLoaded', function () {
-            const sortSelect = document.getElementById('sort-guides');
-            if (sortSelect) {
-                sortSelect.addEventListener('change', function () {
-                    const sortType = this.value;
-                    window.currentSearchSort = sortType;
-                    const searchInput = document.getElementById('search-input');
-                    const searchTerm = searchInput ? searchInput.value.trim() : '';
-                    if (searchTerm) {
-                        // 有搜尋文字，重新查詢再排序
-                        handleSearch({ preventDefault: () => { } }, sortType);
-                    } else {
-                        // 無搜尋文字，直接依排序顯示
-                        articleManager.renderArticleList('articles-container', 30003, 1, sortType);
-                    }
-                });
-            }
-        });
-
-        // 顯示搜尋結果（支援分頁）
-        function displaySearchResults(articles, page = 1) {
-            const articlesContainer = document.getElementById('articles-container');
-            const itemsPerPage = 15;
-            const totalPages = Math.ceil(articles.length / itemsPerPage);
-            const currentPage = Math.max(1, Math.min(page, totalPages));
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = startIndex + itemsPerPage;
-            const pageArticles = articles.slice(startIndex, endIndex);
-
-            if (!pageArticles || pageArticles.length === 0) {
-                articlesContainer.innerHTML = '<div class="loading-message">沒有找到相關文章</div>';
-                // 隱藏分頁
-                document.querySelector('.pagination').innerHTML = '';
-                return;
-            }
-
-            let html = '';
-            pageArticles.forEach((article, index) => {
-                const articleDate = article.acTime ? new Date(article.acTime).toLocaleDateString('zh-TW') : '未知日期';
-                const authorName = articleManager.getAuthorName(article);
-                html += `
-                    <div class="article-item">
-                        <div class="article-image-cell">
-                            <img src="images/camp-${((startIndex + index) % 5) + 1}.jpg" alt="文章圖片" class="article-image" />
-                        </div>
-                        <div class="article-title-cell">
-                            <a href="articles.html?id=${article.acId}" class="article-title-link">${article.acTitle}</a>
-                            <div class="article-preview">${article.acContext ? article.acContext.substring(0, 100) + '...' : '無內容預覽'}</div>
-                            <span class="article-tag">營地推薦</span>
-                        </div>
-                        <div class="article-author-cell">${authorName}</div>
-                        <div class="article-date-cell">${articleDate}</div>
-                        <div class="article-stats-cell">
-                            <div class="stat-item">
-                                <i class="fas fa-eye"></i>
-                                <span class="view-count" data-article-id="${article.acId}">${articleManager.formatViewCount(article.acId)}</span>
-                            </div>
-                            <div class="stat-item">
-                                <i class="fas fa-thumbs-up" style="color:#dc3545"></i>
-                                <span class="like-count" style="color:#dc3545;font-weight:500;">${article.likeCount || 0}</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-            articlesContainer.innerHTML = html;
-
-            // 分頁渲染
-            const paginationContainer = document.querySelector('.pagination');
-            if (totalPages > 1) {
-                articleManager.renderPagination(totalPages, currentPage, 30003);
-                // 攔截分頁點擊，查詢分頁切換
-                const oldListener = paginationContainer._searchPaginationListener;
-                if (oldListener) paginationContainer.removeEventListener('click', oldListener);
-                const clickListener = (e) => {
-                    if (e.target.tagName === 'A') {
-                        e.preventDefault();
-                        const page = parseInt(e.target.dataset.page);
-                        displaySearchResults(articles, page);
-                    }
-                };
-                paginationContainer.addEventListener('click', clickListener);
-                paginationContainer._searchPaginationListener = clickListener;
-            } else if (totalPages === 1) {
-                paginationContainer.innerHTML = '<a href="#" class="active">1</a>';
-            } else {
-                paginationContainer.innerHTML = '';
-            }
-        }
-
-        setupArticleListSort(30003);
-        // 熱門文章載入
-        document.addEventListener('DOMContentLoaded', function () {
-            articleManager.loadArticlesWithStats(30003).then(() => {
-                articleManager.renderPopularArticles(30003);
-            });
+            articleManager.initArticleList(30003);
         });
     </script>
 </body>

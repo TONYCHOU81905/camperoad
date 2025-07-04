@@ -6,16 +6,17 @@ class ArticleManager {
         this.currentPage = 1;
         this.itemsPerPage = 15;
         this.currentTypeId = null;
+        this.currentSortType = 'latest'; // 新增：記錄目前排序方式
     }
 
     // 載入文章數據 - 使用 Spring Boot API
     async loadArticles(acTypeId = null) {
         try {
-            let url = 'http://localhost:8081/CJA101G02/api/articles';
+            let url = `${window.api_prefix}/api/articles`;
 
             // 如果有指定 acTypeId，使用進階搜尋 API 來過濾
             if (acTypeId) {
-                url = `http://localhost:8081/CJA101G02/api/articles/search/advanced?keyword=&acTypeId=${acTypeId}`;
+                url = `${window.api_prefix}/api/articles/search/advanced?keyword=&acTypeId=${acTypeId}`;
             }
 
             const response = await fetch(url);
@@ -148,36 +149,6 @@ class ArticleManager {
         return '露營愛好者';
     }
 
-    // 獲取文章瀏覽數
-    getViewCount(articleId) {
-        // 如果 viewCounter 存在，使用真實的瀏覽統計
-        if (typeof viewCounter !== 'undefined' && viewCounter) {
-            return viewCounter.getViewCount(articleId);
-        }
-
-        // 否則使用模擬數據（200以下的隨機數）
-        const randomViews = Math.floor(Math.random() * 200) + 1;
-        return randomViews;
-    }
-
-    // 格式化瀏覽數顯示
-    formatViewCount(articleId) {
-        const count = this.getViewCount(articleId);
-
-        if (typeof viewCounter !== 'undefined' && viewCounter) {
-            return viewCounter.formatViewCount(articleId);
-        }
-
-        // 備用格式化邏輯
-        if (count >= 10000) {
-            return (count / 10000).toFixed(1) + '萬';
-        } else if (count >= 1000) {
-            return (count / 1000).toFixed(1) + 'k';
-        } else {
-            return count.toString();
-        }
-    }
-
     // 生成模擬留言數
     generateCommentCount(articleId) {
         // 使用文章ID生成一個相對穩定的隨機數
@@ -271,21 +242,82 @@ class ArticleManager {
         }
     }
 
+    // 處理文章內容中的圖片占位符
+    async processImagePlaceholders(htmlContent, articleId) {
+        if (!htmlContent || !htmlContent.includes('[[IMAGE_PLACEHOLDER_')) {
+            console.log('沒有圖片占位符需要處理');
+            return htmlContent;
+        }
+
+        try {
+            console.log('開始處理圖片占位符，文章ID:', articleId);
+
+            // 獲取文章圖片列表
+            const imagesResponse = await fetch(`${window.api_prefix}/api/article-images/article/${articleId}`);
+            const imagesResult = await imagesResponse.json();
+
+            if (!imagesResponse.ok || imagesResult.status !== 'success') {
+                console.warn('無法載入文章圖片列表');
+                return htmlContent;
+            }
+
+            const images = imagesResult.data || [];
+            console.log('找到圖片列表:', images);
+
+            let processedContent = htmlContent;
+
+            // 替換圖片占位符
+            images.forEach((image, index) => {
+                const placeholder = `[[IMAGE_PLACEHOLDER_${index + 1}]]`;
+                const imageUrl = `${window.api_prefix}/api/article-images/${image.acImgId}/image`;
+
+                // 創建 img 標籤
+                const imgTag = `<img src="${imageUrl}" alt="文章圖片 ${index + 1}" class="article-image" style="max-width: 100%; height: auto; margin: 10px 0; border-radius: 8px;" />`;
+
+                processedContent = processedContent.replace(placeholder, imgTag);
+                console.log(`替換 ${placeholder} 為圖片 ID: ${image.acImgId}`);
+            });
+
+            // 移除剩餘的占位符（如果圖片數量少於占位符數量）
+            processedContent = processedContent.replace(/\[\[IMAGE_PLACEHOLDER_\d+\]\]/g, '');
+
+            console.log('圖片占位符處理完成');
+            return processedContent;
+
+        } catch (error) {
+            console.error('處理圖片占位符時發生錯誤:', error);
+            return htmlContent;
+        }
+    }
+
     // 設置當前文章
     setCurrentArticle(articleId) {
         this.currentArticle = this.getArticleById(articleId);
         return this.currentArticle;
     }
 
-    // 獲取分頁數據
-    getPaginatedArticles(typeId, page = 1) {
+    // 獲取分頁數據（排序邏輯貫穿所有頁數）
+    getPaginatedArticles(typeId, page = 1, sortType = 'latest') {
         let articles = typeId ? this.getArticlesByType(typeId) : this.articles;
 
         // 只顯示已發布的文章
         articles = articles.filter(article => article.acStatus === 0);
 
-        // 按發布時間排序（最新的在前）
-        articles.sort((a, b) => new Date(b.acTime) - new Date(a.acTime));
+        // 排序（先排序再分頁）
+        switch (sortType) {
+            case 'latest':
+                articles.sort((a, b) => new Date(b.acTime) - new Date(a.acTime));
+                break;
+            case 'popular':
+                articles.sort((a, b) => (b.acViewCount || 0) - (a.acViewCount || 0));
+                break;
+            case 'most-liked':
+                articles.sort((a, b) => (b.likeCount || 0) - (a.likeCount || 0));
+                break;
+            case 'most-commented':
+                articles.sort((a, b) => (b.replyCount || 0) - (a.replyCount || 0));
+                break;
+        }
 
         const totalArticles = articles.length;
         const totalPages = Math.ceil(totalArticles / this.itemsPerPage);
@@ -296,41 +328,46 @@ class ArticleManager {
             articles: articles.slice(startIndex, endIndex),
             totalArticles,
             totalPages,
-            currentPage: page
+            currentPage: page,
+            allSortedArticles: articles // 新增：完整排序後的資料
         };
     }
 
-    // 渲染分頁控制
-    renderPagination(totalPages, currentPage, typeId) {
+    // 渲染分頁控制（帶入排序方式）
+    renderPagination(totalPages, currentPage, typeId, sortType) {
         const paginationContainer = document.querySelector('.pagination');
         if (!paginationContainer) return;
 
         let paginationHTML = '';
 
-        // 上一頁按鈕
-        if (currentPage > 1) {
-            paginationHTML += `<a href="#" data-page="${currentPage - 1}" data-type="${typeId}">上一頁 <i class="fas fa-chevron-left"></i></a>`;
+        if (totalPages <= 1) {
+            // 只顯示「1」
+            paginationHTML = '<a href="#" class="active">1</a>';
+        } else {
+            // 頁碼按鈕
+            const maxVisiblePages = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+            if (endPage - startPage + 1 < maxVisiblePages) {
+                startPage = Math.max(1, endPage - maxVisiblePages + 1);
+            }
+
+            // 上一頁按鈕（在最前面）
+            if (currentPage > 1) {
+                paginationHTML += `<a href="#" data-page="${currentPage - 1}" data-type="${typeId}" data-sort="${sortType || this.currentSortType}"><i class="fas fa-chevron-left"></i> 上一頁</a>`;
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                const activeClass = i === currentPage ? 'active' : '';
+                paginationHTML += `<a href="#" class="${activeClass}" data-page="${i}" data-type="${typeId}" data-sort="${sortType || this.currentSortType}">${i}</a>`;
+            }
+
+            // 下一頁按鈕（在最後面）
+            if (currentPage < totalPages) {
+                paginationHTML += `<a href="#" data-page="${currentPage + 1}" data-type="${typeId}" data-sort="${sortType || this.currentSortType}">下一頁 <i class="fas fa-chevron-right"></i></a>`;
+            }
         }
-
-        // 頁碼按鈕
-        const maxVisiblePages = 5;
-        let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-
-        if (endPage - startPage + 1 < maxVisiblePages) {
-            startPage = Math.max(1, endPage - maxVisiblePages + 1);
-        }
-
-        for (let i = startPage; i <= endPage; i++) {
-            const activeClass = i === currentPage ? 'active' : '';
-            paginationHTML += `<a href="#" class="${activeClass}" data-page="${i}" data-type="${typeId}">${i}</a>`;
-        }
-
-        // 下一頁按鈕
-        if (currentPage < totalPages) {
-            paginationHTML += `<a href="#" data-page="${currentPage + 1}" data-type="${typeId}">下一頁 <i class="fas fa-chevron-right"></i></a>`;
-        }
-
         paginationContainer.innerHTML = paginationHTML;
 
         // 移除舊的事件監聽器
@@ -345,7 +382,8 @@ class ArticleManager {
             if (e.target.tagName === 'A') {
                 const page = parseInt(e.target.dataset.page);
                 const type = parseInt(e.target.dataset.type);
-                this.goToPage(page, type);
+                const sort = e.target.dataset.sort || this.currentSortType;
+                this.goToPage(page, type, sort);
             }
         };
 
@@ -353,11 +391,12 @@ class ArticleManager {
         paginationContainer._paginationListener = clickListener;
     }
 
-    // 跳轉到指定頁面
-    goToPage(page, typeId) {
+    // 跳轉到指定頁面（帶入排序方式）
+    goToPage(page, typeId, sortType) {
         this.currentPage = page;
         this.currentTypeId = typeId;
-        this.renderArticleList('articles-container', typeId, page);
+        this.currentSortType = sortType || this.currentSortType;
+        this.renderArticleList('articles-container', typeId, page, this.currentSortType);
         this.renderPopularArticles(typeId);
 
         // 更新 URL 參數
@@ -365,6 +404,9 @@ class ArticleManager {
         url.searchParams.set('page', page);
         if (typeId) {
             url.searchParams.set('type', typeId);
+        }
+        if (this.currentSortType) {
+            url.searchParams.set('sort', this.currentSortType);
         }
         window.history.pushState({}, '', url);
     }
@@ -401,27 +443,103 @@ class ArticleManager {
                     postTitle.textContent = article.acTitle;
                 }
 
-                // 如果是作者，添加刪除按鈕
+                // 如果是作者，添加編輯和刪除按鈕
                 if (isAuthor) {
-                    // 移除現有的刪除按鈕（如果存在）
+                    // 移除現有的按鈕（如果存在）
+                    const existingEditBtn = postHeader.querySelector('.edit-article-btn');
                     const existingDeleteBtn = postHeader.querySelector('.delete-article-btn');
+                    if (existingEditBtn) {
+                        existingEditBtn.remove();
+                    }
                     if (existingDeleteBtn) {
                         existingDeleteBtn.remove();
                     }
+
+                    // 創建按鈕容器
+                    const buttonContainer = document.createElement('div');
+                    buttonContainer.className = 'article-action-buttons';
+                    buttonContainer.style.cssText = `
+                    display: flex;
+                    gap: 10px;
+                    margin-top: 10px;
+                    flex-wrap: wrap;
+                `;
+
+                    // 創建編輯按鈕
+                    const editBtn = document.createElement('button');
+                    editBtn.className = 'edit-article-btn';
+                    editBtn.innerHTML = '<i class="fas fa-edit"></i> 編輯文章';
+                    editBtn.title = '編輯這篇文章';
+                    editBtn.style.cssText = `
+                    background: #17a2b8;
+                    color: white;
+                    border: none;
+                    padding: 8px 16px;
+                    border-radius: 4px;
+                    font-size: 0.9rem;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    display: flex;
+                    align-items: center;
+                    gap: 5px;
+                `;
+
+                    // 編輯按鈕懸停效果
+                    editBtn.addEventListener('mouseenter', () => {
+                        editBtn.style.background = '#138496';
+                        editBtn.style.transform = 'translateY(-1px)';
+                    });
+                    editBtn.addEventListener('mouseleave', () => {
+                        editBtn.style.background = '#17a2b8';
+                        editBtn.style.transform = 'translateY(0)';
+                    });
+
+                    // 添加編輯按鈕點擊事件
+                    editBtn.addEventListener('click', () => {
+                        console.log('編輯文章，文章ID:', article.acId);
+                        window.location.href = `article-edit.html?id=${article.acId}`;
+                    });
 
                     // 創建刪除按鈕
                     const deleteBtn = document.createElement('button');
                     deleteBtn.className = 'delete-article-btn';
                     deleteBtn.innerHTML = '<i class="fas fa-trash"></i> 刪除文章';
                     deleteBtn.title = '刪除這篇文章';
+                    deleteBtn.style.cssText = `
+                    background: #dc3545;
+                    color: white;
+                    border: none;
+                    padding: 8px 16px;
+                    border-radius: 4px;
+                    font-size: 0.9rem;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    display: flex;
+                    align-items: center;
+                    gap: 5px;
+                `;
 
-                    // 添加點擊事件
+                    // 刪除按鈕懸停效果
+                    deleteBtn.addEventListener('mouseenter', () => {
+                        deleteBtn.style.background = '#c82333';
+                        deleteBtn.style.transform = 'translateY(-1px)';
+                    });
+                    deleteBtn.addEventListener('mouseleave', () => {
+                        deleteBtn.style.background = '#dc3545';
+                        deleteBtn.style.transform = 'translateY(0)';
+                    });
+
+                    // 添加刪除按鈕點擊事件
                     deleteBtn.addEventListener('click', () => {
                         this.showDeleteConfirmation(article.acId, article.acTitle);
                     });
 
-                    // 將刪除按鈕插入到標題後面
-                    postTitle.insertAdjacentElement('afterend', deleteBtn);
+                    // 將按鈕添加到容器
+                    buttonContainer.appendChild(editBtn);
+                    buttonContainer.appendChild(deleteBtn);
+
+                    // 將按鈕容器插入到標題後面
+                    postTitle.insertAdjacentElement('afterend', buttonContainer);
                 }
             }
 
@@ -429,13 +547,6 @@ class ArticleManager {
             const postDate = postContent.querySelector('.post-date');
             if (postDate) {
                 postDate.innerHTML = `<i class="fas fa-calendar"></i> 發布時間：${formattedDate}`;
-            }
-
-            // 更新瀏覽次數
-            const viewCountElement = postContent.querySelector('.view-count');
-            if (viewCountElement) {
-                viewCountElement.setAttribute('data-article-id', article.acId);
-                viewCountElement.textContent = this.formatViewCount(article.acId);
             }
 
             // 更新作者資訊
@@ -503,11 +614,142 @@ class ArticleManager {
                 authorBadges.innerHTML = badges.join('');
             }
 
-            // 更新文章內容
+            // === 文章內容插入與圖片處理 ===
             const postBody = postContent.querySelector('.post-body');
-            if (postBody) {
-                const content = article.acContext ? article.acContext.replace(/\n/g, '<br>') : '無內容';
-                postBody.innerHTML = `<p>${content}</p>`;
+            if (postBody && article.acContext) {
+                // 先處理圖片占位符
+                this.processImagePlaceholders(article.acContext, article.acId).then(processedContent => {
+                    postBody.innerHTML = processedContent;
+
+                    // 修正圖片路徑與增強圖片顯示
+                    const images = postBody.querySelectorAll('img');
+                    console.log('找到圖片數量:', images.length);
+
+                    images.forEach((img, index) => {
+                        const currentSrc = img.getAttribute('src') || '';
+                        console.log(`處理圖片 ${index + 1}:`, currentSrc);
+
+                        // 先添加載入中的樣式
+                        img.classList.add('loading');
+                        img.style.display = 'block';
+                        img.style.minHeight = '100px';
+                        img.style.background = 'linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%)';
+                        img.style.backgroundSize = '200% 100%';
+                        img.style.animation = 'loading 1.5s infinite';
+
+                        // 修正各種可能的圖片路徑格式
+                        let correctedSrc = currentSrc;
+
+                        // 1. 修正 API 圖片路徑 (api/article-images/...)
+                        if (currentSrc.includes('api/article-images')) {
+                            const pathMatch = currentSrc.match(/api\/article-images\/(\d+)\/(.+)$/);
+                            if (pathMatch) {
+                                const imageId = pathMatch[1];
+                                const imagePath = pathMatch[2];
+                                correctedSrc = `${window.api_prefix}/api/article-images/${imageId}/${imagePath}`;
+                                console.log('修正 API 圖片路徑:', correctedSrc);
+                            }
+                        }
+                        // 2. 修正相對路徑 (/api/article-images/...)
+                        else if (currentSrc.startsWith('/api/article-images')) {
+                            correctedSrc = `${window.api_prefix}${currentSrc}`;
+                            console.log('修正相對路徑:', correctedSrc);
+                        }
+                        // 3. 修正相對路徑 (./api/article-images/...)
+                        else if (currentSrc.startsWith('./api/article-images')) {
+                            correctedSrc = `${window.api_prefix}${currentSrc.substring(1)}`;
+                            console.log('修正相對路徑:', correctedSrc);
+                        }
+                        // 4. 修正相對路徑 (../api/article-images/...)
+                        else if (currentSrc.startsWith('../api/article-images')) {
+                            correctedSrc = `${window.api_prefix}${currentSrc.substring(2)}`;
+                            console.log('修正相對路徑:', correctedSrc);
+                        }
+                        // 5. 修正 data:image 格式（保持不變）
+                        else if (currentSrc.startsWith('data:image')) {
+                            correctedSrc = currentSrc;
+                            console.log('保持 data:image 格式');
+                        }
+                        // 6. 修正絕對路徑（如果沒有協議）
+                        else if (currentSrc.startsWith('//')) {
+                            correctedSrc = `https:${currentSrc}`;
+                            console.log('修正協議相對路徑:', correctedSrc);
+                        }
+                        // 7. 其他情況，嘗試添加 API 前綴
+                        else if (!currentSrc.startsWith('http') && !currentSrc.startsWith('data:')) {
+                            correctedSrc = `${window.api_prefix}${currentSrc.startsWith('/') ? '' : '/'}${currentSrc}`;
+                            console.log('添加 API 前綴:', correctedSrc);
+                        }
+
+                        // 設置修正後的 src
+                        img.src = correctedSrc;
+
+                        // 圖片載入失敗處理
+                        img.onerror = function () {
+                            console.error('圖片載入失敗:', this.src);
+                            this.classList.remove('loading');
+                            this.classList.add('error');
+                            this.src = 'images/default-color.png'; // 使用預設圖片
+                            this.alt = '圖片載入失敗';
+                            this.style.background = '#fff5f5';
+                            this.style.border = '2px dashed #feb2b2';
+                            this.style.color = '#c53030';
+                            this.style.display = 'flex';
+                            this.style.alignItems = 'center';
+                            this.style.justifyContent = 'center';
+                            this.style.minHeight = '100px';
+                            this.style.fontSize = '0.9rem';
+                            this.textContent = '圖片載入失敗';
+                        };
+
+                        // 圖片載入成功處理
+                        img.onload = function () {
+                            console.log('圖片載入成功:', this.src);
+                            this.classList.remove('loading');
+                            this.classList.remove('error');
+                            this.style.background = 'transparent';
+                            this.style.border = '1px solid #e9ecef';
+                            this.style.color = 'inherit';
+                            this.style.display = 'block';
+                            this.style.alignItems = 'auto';
+                            this.style.justifyContent = 'auto';
+                            this.style.minHeight = 'auto';
+                            this.style.fontSize = 'inherit';
+                            this.textContent = '';
+                        };
+
+                        // 點擊放大
+                        img.style.cursor = 'pointer';
+                        img.onclick = function () {
+                            window.open(this.src, '_blank');
+                        };
+
+                        // 添加樣式類別
+                        img.classList.add('article-image');
+
+                        // 確保圖片有適當的樣式
+                        img.style.maxWidth = '100%';
+                        img.style.height = 'auto';
+                        img.style.borderRadius = '8px';
+                        img.style.margin = '15px 0';
+                        img.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
+                        img.style.transition = 'all 0.3s ease';
+                    });
+
+                    console.log('圖片處理完成');
+                }).catch(error => {
+                    console.error('處理圖片占位符失敗:', error);
+                    // 如果占位符處理失敗，直接顯示原始內容
+                    postBody.innerHTML = article.acContext;
+                });
+            }
+
+            // === 顯示瀏覽次數 ===
+            const viewCountElements = document.querySelectorAll('.view-count');
+            if (viewCountElements.length > 0 && typeof article.acViewCount !== 'undefined') {
+                viewCountElements.forEach(el => {
+                    el.textContent = article.acViewCount;
+                });
             }
         }
 
@@ -538,6 +780,13 @@ class ArticleManager {
 
         // --- 文章詳情 Like 功能 ---
         this.setupLikeFeature(article);
+
+        // --- 顯示文章詳細統計資訊 ---
+        // this.displayArticleStats(article.acId); // 已暫時隱藏統計資訊顯示
+
+        // --- 顯示圖片管理界面（僅作者可見）---
+        // const isAuthor = this.isCurrentUserAuthor(article);
+        // this.displayImageManagement(article.acId, isAuthor); // 已暫時隱藏圖片管理功能
     }
 
     // 獲取對應的列表頁面編號
@@ -552,27 +801,12 @@ class ArticleManager {
 
     // 渲染文章列表
     renderArticleList(containerId, typeId = null, page = 1, sortType = 'latest') {
+        this.currentSortType = sortType; // 新增：記錄目前排序方式
         const container = document.getElementById(containerId);
         if (!container) return;
 
-        let paginatedData = this.getPaginatedArticles(typeId, page);
+        let paginatedData = this.getPaginatedArticles(typeId, page, sortType);
         let articlesToShow = paginatedData.articles;
-
-        // 排序
-        switch (sortType) {
-            case 'latest':
-                articlesToShow.sort((a, b) => new Date(b.acTime) - new Date(a.acTime));
-                break;
-            case 'popular': // 最多觀看
-                articlesToShow.sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0));
-                break;
-            case 'most-liked':
-                articlesToShow.sort((a, b) => (b.likeCount || 0) - (a.likeCount || 0));
-                break;
-            case 'most-commented':
-                articlesToShow.sort((a, b) => (b.replyCount || 0) - (a.replyCount || 0));
-                break;
-        }
 
         // 更新文章計數
         const countElement = document.getElementById('article-count');
@@ -590,7 +824,19 @@ class ArticleManager {
         const htmlContent = articlesToShow.map((article, index) => {
             const authorName = this.getAuthorName(article); // 直接傳入整個文章物件
             const typeName = this.getArticleTypeName(article.acTypeId);
-            const preview = article.acContext ? article.acContext.substring(0, 80) + '...' : '無內容預覽';
+
+            // 清理 HTML 標籤，只保留純文字內容
+            let cleanContent = '';
+            if (article.acContext) {
+                // 創建臨時 DOM 元素來清理 HTML 標籤
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = article.acContext;
+                cleanContent = tempDiv.textContent || tempDiv.innerText || '';
+            }
+
+            // 截取預覽文字（限制在 80 字元內）
+            const preview = cleanContent ? (cleanContent.length > 80 ? cleanContent.substring(0, 80) + '...' : cleanContent) : '無內容預覽';
+
             return `
                 <div class="article-item">
                     <div class="article-image-cell">
@@ -618,7 +864,7 @@ class ArticleManager {
                     <div class="article-stats-cell">
                         <div class="stat-item">
                             <i class="fas fa-eye"></i>
-                            <span class="view-count" data-article-id="${article.acId}">${article.viewCount || 0}</span>
+                            <span class="view-count" data-article-id="${article.acId}">${article.acViewCount || 0}</span>
                         </div>
                         <div class="stat-item">
                             <i class="fas fa-thumbs-up" style="color:#dc3545;"></i>
@@ -637,26 +883,19 @@ class ArticleManager {
                         <div class="article-meta-mobile">
                             <span>作者：${authorName}</span>
                             <span>${this.formatDateShort(article.acTime)}</span>
-                            <span><i class="fas fa-eye"></i> <span class="view-count" data-article-id="${article.acId}">${article.viewCount || 0}</span></span>
-                        </div>
+                       </div>
                     </div>
                 </div>
             `;
         }).join('');
 
         container.innerHTML = htmlContent;
-        this.renderPagination(paginatedData.totalPages, page, typeId);
+        this.renderPagination(paginatedData.totalPages, page, typeId, sortType);
     }
 
     // 初始化文章詳情頁面
     async initArticleDetail() {
         try {
-            // 同時載入文章和會員資料
-            await Promise.all([
-                this.loadArticles(),
-                this.loadMembers()
-            ]);
-
             // 從 URL 參數獲取文章 ID
             const urlParams = new URLSearchParams(window.location.search);
             const articleId = urlParams.get('id');
@@ -664,15 +903,8 @@ class ArticleManager {
             if (articleId) {
                 await this.loadSingleArticle(parseInt(articleId));
             } else {
-                // 如果沒有指定 ID，顯示第一篇
-                const firstArticle = this.getLatestArticles(1)[0];
-                if (firstArticle) {
-                    await this.loadSingleArticle(firstArticle.acId);
-                    // 更新 URL 以反映當前顯示的文章
-                    const newUrl = new URL(window.location);
-                    newUrl.searchParams.set('id', firstArticle.acId);
-                    window.history.replaceState({}, '', newUrl);
-                }
+                // 如果沒有指定 ID，顯示錯誤訊息
+                this.showArticleError('缺少文章ID參數');
             }
         } catch (error) {
             console.error('初始化文章詳情頁面失敗:', error);
@@ -702,12 +934,9 @@ class ArticleManager {
             if (result.status === 'success' && result.data) {
                 this.currentArticle = result.data;
                 console.log('設置當前文章:', this.currentArticle);
+                // 新增：呼叫 API 增加瀏覽次數
+                await this.incrementViewCount(articleId);
                 this.renderArticleDetail(articleId);
-
-                // 記錄文章瀏覽
-                if (typeof viewCounter !== 'undefined' && viewCounter) {
-                    viewCounter.recordView(articleId);
-                }
 
                 // 初始化留言功能
                 await this.initReplyFeatures(articleId);
@@ -718,6 +947,23 @@ class ArticleManager {
         } catch (error) {
             console.error('載入文章時發生錯誤:', error);
             this.showArticleError('載入文章時發生錯誤');
+        }
+    }
+
+    // 新增：增加瀏覽次數
+    async incrementViewCount(articleId) {
+        try {
+            const response = await fetch(`${window.api_prefix}/api/articles/${articleId}/view`, {
+                method: 'POST'
+            });
+            const result = await response.json();
+            if (result.status === 'success') {
+                console.log('瀏覽次數已增加');
+            } else {
+                console.warn('增加瀏覽次數失敗:', result);
+            }
+        } catch (error) {
+            console.error('呼叫增加瀏覽次數 API 失敗:', error);
         }
     }
 
@@ -758,27 +1004,23 @@ class ArticleManager {
         }
     }
 
-    // 渲染熱門文章側邊欄
+    // 渲染熱門文章側邊欄（用排序後的完整資料）
     renderPopularArticles(typeId = null) {
         const container = document.getElementById('popular-articles-list');
         if (!container) return;
 
-        let articles = typeId ? this.getArticlesByType(typeId) : this.getLatestArticles(10);
+        // 直接用 articleManager.articles 做比對
+        let articles = this.articles.filter(article => article.acTypeId === parseInt(typeId));
 
-        // 根據瀏覽次數排序（從高到低）
-        articles.sort((a, b) => {
-            const viewCountA = this.getViewCount(a.acId);
-            const viewCountB = this.getViewCount(b.acId);
-            return viewCountB - viewCountA; // 降序排列
-        });
+        // 根據 acViewCount 排序（從高到低）
+        articles.sort((a, b) => (b.acViewCount || 0) - (a.acViewCount || 0));
 
-        articles = articles.slice(0, 3); // 只顯示前3篇
+        articles = articles.slice(0, 4); // 只顯示前4篇
 
-        const images = ['camp-1.jpg', 'camp-2.jpg', 'camp-3.jpg'];
+        const images = ['camp-1.jpg', 'camp-2.jpg', 'camp-3.jpg', 'camp-4.jpg', 'camp-5.jpg'];
 
         const htmlContent = articles.map((article, index) => {
             const authorName = this.getAuthorName(article); // 直接傳入整個文章物件
-
             return `
                 <li>
                     <a href="articles.html?id=${article.acId}">
@@ -786,7 +1028,8 @@ class ArticleManager {
                         <div class="popular-guide-info">
                             <h4>${article.acTitle}</h4>
                             <div class="popular-guide-meta">
-                                <span><i class="fas fa-eye"></i> <span class="view-count" data-article-id="${article.acId}">${this.formatViewCount(article.acId)}</span></span>
+                                <span><i class='fas fa-eye'></i> ${article.acViewCount || 0}</span>
+                                <span><i class='fas fa-thumbs-up'></i> ${article.likeCount || 0}</span>
                             </div>
                         </div>
                     </a>
@@ -1107,10 +1350,13 @@ class ArticleManager {
         }
     }
 
-    // 刪除文章
+    // 刪除文章（使用級聯刪除，包含相關圖片）
     async deleteArticle(articleId) {
         try {
-            const response = await fetch(`${window.api_prefix}/api/articles/${articleId}`, {
+            console.log('開始刪除文章，使用級聯刪除 API...');
+
+            // 使用新的級聯刪除 API
+            const response = await fetch(`${window.api_prefix}/api/articles/${articleId}/cascade`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1118,25 +1364,63 @@ class ArticleManager {
             });
 
             const result = await response.json();
-            console.log('刪除文章 API 回應:', result);
+            console.log('級聯刪除 API 回應:', result);
 
             if (result.status === 'success') {
-                console.log('文章刪除成功');
-                alert('文章已成功刪除');
+                console.log('文章及相關資源刪除成功');
+
+                const deletedInfo = result.data;
+                let message = '文章已成功刪除！';
+
+                if (deletedInfo && deletedInfo.deletedImageCount > 0) {
+                    message += `\n同時刪除了 ${deletedInfo.deletedImageCount} 張相關圖片。`;
+                }
+
+                alert(message);
+                console.log('刪除統計:', deletedInfo);
 
                 // 根據文章類型重定向到對應的列表頁面
                 const targetPage = this.getArticleListPage(this.currentArticle.acTypeId);
                 window.location.href = targetPage;
                 return true;
             } else {
-                console.error('刪除文章失敗:', result);
-                alert('刪除文章失敗: ' + result.message);
-                return false;
+                console.error('級聯刪除失敗:', result);
+                throw new Error(result.message || '級聯刪除失敗');
             }
         } catch (error) {
-            console.error('刪除文章時發生錯誤:', error);
-            alert('刪除文章時發生錯誤');
-            return false;
+            console.error('級聯刪除發生錯誤，嘗試使用備用刪除方式:', error);
+
+            // 如果新API失敗，回退到舊API
+            try {
+                console.log('使用備用刪除方式...');
+                const fallbackResponse = await fetch(`${window.api_prefix}/api/articles/${articleId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                const fallbackResult = await fallbackResponse.json();
+                console.log('備用刪除 API 回應:', fallbackResult);
+
+                if (fallbackResult.status === 'success') {
+                    console.log('備用刪除成功');
+                    alert('文章已刪除（注意：相關圖片可能未被清理）');
+
+                    // 根據文章類型重定向到對應的列表頁面
+                    const targetPage = this.getArticleListPage(this.currentArticle.acTypeId);
+                    window.location.href = targetPage;
+                    return true;
+                } else {
+                    console.error('備用刪除也失敗:', fallbackResult);
+                    alert('刪除文章失敗: ' + (fallbackResult.message || '未知錯誤'));
+                    return false;
+                }
+            } catch (fallbackError) {
+                console.error('備用刪除也發生錯誤:', fallbackError);
+                alert('刪除文章時發生錯誤，請稍後再試');
+                return false;
+            }
         }
     }
 
@@ -1156,6 +1440,280 @@ class ArticleManager {
         if (confirmed) {
             this.deleteArticle(articleId);
         }
+    }
+
+    // 新增：獲取文章詳細統計資訊
+    async getArticleStats(articleId) {
+        try {
+            console.log('獲取文章統計資訊:', articleId);
+
+            const response = await fetch(`${window.api_prefix}/api/articles/${articleId}/stats`);
+            const result = await response.json();
+
+            if (response.ok && result.status === 'success') {
+                console.log('文章統計資訊:', result.data);
+                return result.data;
+            } else {
+                console.error('獲取統計資訊失敗:', result);
+                return null;
+            }
+        } catch (error) {
+            console.error('獲取統計資訊時發生錯誤:', error);
+            return null;
+        }
+    }
+
+    // 新增：獲取上傳建議
+    async getUploadRecommendations() {
+        try {
+            const response = await fetch(`${window.api_prefix}/api/articles/upload-recommendations`);
+            const result = await response.json();
+
+            if (response.ok && result.status === 'success') {
+                console.log('上傳建議:', result.data);
+                return result.data;
+            } else {
+                console.error('獲取上傳建議失敗:', result);
+                return null;
+            }
+        } catch (error) {
+            console.error('獲取上傳建議時發生錯誤:', error);
+            return null;
+        }
+    }
+
+    // 新增：測試上傳策略
+    async testUploadStrategy(fileSize) {
+        try {
+            const response = await fetch(`${window.api_prefix}/api/article-images/upload-strategy?fileSize=${fileSize}`);
+            const result = await response.json();
+
+            if (response.ok && result.status === 'success') {
+                console.log('上傳策略測試結果:', result.data);
+                return result.data;
+            } else {
+                console.error('測試上傳策略失敗:', result);
+                return null;
+            }
+        } catch (error) {
+            console.error('測試上傳策略時發生錯誤:', error);
+            return null;
+        }
+    }
+
+    // 新增：分析文章內容中的圖片
+    async analyzeArticleImages(htmlContent) {
+        try {
+            const response = await fetch(`${window.api_prefix}/api/articles/analyze-images`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(htmlContent)
+            });
+
+            const result = await response.json();
+            if (response.ok && result.status === 'success') {
+                console.log('圖片分析結果:', result.data);
+                return result.data;
+            } else {
+                console.error('圖片分析失敗:', result);
+                return null;
+            }
+        } catch (error) {
+            console.error('圖片分析時發生錯誤:', error);
+            return null;
+        }
+    }
+
+    // 新增：獲取文章的所有圖片
+    async getArticleImages(articleId) {
+        try {
+            console.log('獲取文章圖片列表:', articleId);
+
+            const response = await fetch(`${window.api_prefix}/api/articles/${articleId}/images`);
+            const result = await response.json();
+
+            if (response.ok && result.status === 'success') {
+                console.log('文章圖片列表:', result.data);
+                return result.data;
+            } else {
+                console.error('獲取圖片列表失敗:', result);
+                return [];
+            }
+        } catch (error) {
+            console.error('獲取圖片列表時發生錯誤:', error);
+            return [];
+        }
+    }
+
+    // 新增：顯示文章圖片管理界面（僅作者可見）
+    async displayImageManagement(articleId, isAuthor = false) {
+        if (!isAuthor) return; // 只有作者才能看到圖片管理
+
+        const images = await this.getArticleImages(articleId);
+        if (images.length === 0) return;
+
+        console.log('=== 文章圖片管理 ===');
+        console.log(`共找到 ${images.length} 張圖片:`);
+
+        images.forEach((image, index) => {
+            const imageSize = image.acImg ? (image.acImg.length / 1024).toFixed(2) : '未知';
+            console.log(`圖片 ${index + 1}:`);
+            console.log(`  - ID: ${image.acImgId}`);
+            console.log(`  - 大小: ${imageSize} KB`);
+            console.log(`  - 預覽: ${window.api_prefix}/api/article-images/${image.acImgId}/image`);
+        });
+
+        // 在文章標題下方添加圖片管理按鈕
+        const postHeader = document.querySelector('.post-header');
+        if (postHeader && !postHeader.querySelector('.image-management-btn')) {
+            const imageManageBtn = document.createElement('button');
+            imageManageBtn.className = 'image-management-btn';
+            imageManageBtn.innerHTML = `<i class="fas fa-images"></i> 管理圖片 (${images.length})`;
+            imageManageBtn.style.cssText = `
+                background: #17a2b8;
+                color: white;
+                border: none;
+                padding: 6px 12px;
+                border-radius: 4px;
+                font-size: 0.85rem;
+                cursor: pointer;
+                margin-left: 10px;
+                transition: all 0.3s ease;
+            `;
+
+            imageManageBtn.addEventListener('click', () => {
+                this.showImageManagementModal(images, articleId);
+            });
+
+            const deleteBtn = postHeader.querySelector('.delete-article-btn');
+            if (deleteBtn) {
+                deleteBtn.insertAdjacentElement('beforebegin', imageManageBtn);
+            } else {
+                postHeader.appendChild(imageManageBtn);
+            }
+        }
+    }
+
+    // 新增：顯示圖片管理彈窗 - 增強版
+    showImageManagementModal(images, articleId) {
+        // 創建彈窗
+        const modal = document.createElement('div');
+        modal.className = 'image-management-modal';
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        `;
+
+        const modalContent = document.createElement('div');
+        modalContent.style.cssText = `
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            width: 90%;
+        `;
+
+        modalContent.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px;">
+                <h3 style="margin: 0; color: #3a5a40;">圖片管理 (${images.length} 張)</h3>
+                <button onclick="this.closest('.image-management-modal').remove()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            </div>
+            <div class="image-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;">
+                ${images.map((image, index) => {
+            const imageSize = image.acImg ? (image.acImg.length / 1024).toFixed(2) : '未知';
+            return `
+                        <div class="image-item" style="border: 1px solid #ddd; border-radius: 8px; padding: 10px; text-align: center;">
+                            <img src="${window.api_prefix}/api/article-images/${image.acImgId}/image" 
+                                 alt="文章圖片 ${index + 1}" 
+                                 style="width: 100%; height: 120px; object-fit: cover; border-radius: 4px; margin-bottom: 10px;">
+                            <div style="font-size: 0.9rem; color: #666; margin-bottom: 8px;">
+                                ID: ${image.acImgId}<br>
+                                大小: ${imageSize} KB
+                            </div>
+                            <button onclick="window.open('${window.api_prefix}/api/article-images/${image.acImgId}/image', '_blank')" 
+                                    style="background: #28a745; color: white; border: none; padding: 4px 8px; border-radius: 3px; cursor: pointer; font-size: 0.8rem; margin-right: 5px;">
+                                查看
+                            </button>
+                            <button onclick="navigator.clipboard.writeText('${window.api_prefix}/api/article-images/${image.acImgId}/image')" 
+                                    style="background: #17a2b8; color: white; border: none; padding: 4px 8px; border-radius: 3px; cursor: pointer; font-size: 0.8rem;">
+                                複製連結
+                            </button>
+                        </div>
+                    `;
+        }).join('')}
+            </div>
+        `;
+
+        modal.appendChild(modalContent);
+        document.body.appendChild(modal);
+
+        // 點擊背景關閉彈窗
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.remove();
+            }
+        });
+    }
+
+    // 新增：顯示文章統計資訊
+    async displayArticleStats(articleId) {
+        /* === 統計資訊顯示已暫時隱藏 === */
+        /*
+        const stats = await this.getArticleStats(articleId);
+        if (!stats) return;
+
+        // 更新文章標題旁的統計資訊
+        const statsContainer = document.querySelector('.post-meta');
+        if (statsContainer) {
+            const existingStats = statsContainer.querySelector('.article-stats');
+            if (existingStats) {
+                existingStats.remove();
+            }
+
+            const statsElement = document.createElement('div');
+            statsElement.className = 'article-stats';
+            statsElement.style.cssText = `
+                display: flex;
+                gap: 15px;
+                margin-top: 10px;
+                font-size: 0.9rem;
+                color: #666;
+                flex-wrap: wrap;
+            `;
+
+            statsElement.innerHTML = `
+                <span title="瀏覽次數"><i class="fas fa-eye"></i> ${stats.viewCount.toLocaleString()}</span>
+                <span title="圖片數量"><i class="fas fa-images"></i> ${stats.imageCount}</span>
+                <span title="內容長度"><i class="fas fa-file-text"></i> ${stats.contentLength.toLocaleString()} 字</span>
+                <span title="圖片總大小"><i class="fas fa-database"></i> ${stats.totalImageSizeMB} MB</span>
+            `;
+
+            statsContainer.appendChild(statsElement);
+        }
+
+        // 在控制台顯示詳細統計
+        console.log('=== 文章詳細統計 ===');
+        console.log('文章ID:', stats.acId);
+        console.log('標題:', stats.title);
+        console.log('瀏覽次數:', stats.viewCount.toLocaleString());
+        console.log('圖片數量:', stats.imageCount);
+        console.log('內容長度:', stats.contentLength.toLocaleString(), '字');
+        console.log('圖片總大小:', stats.totalImageSizeMB, 'MB');
+        console.log('發布時間:', new Date(stats.publishTime).toLocaleString());
+        console.log('文章狀態:', stats.status === 0 ? '顯示' : '隱藏');
+        */
     }
 
     // --- 文章詳情 Like 功能 ---
@@ -1266,10 +1824,7 @@ class ArticleManager {
                 const result = await res.json();
                 article.replyCount = (result.status === 'success') ? result.data : 0;
             } catch { article.replyCount = 0; }
-            // 瀏覽數
-            try {
-                article.viewCount = this.getViewCount(article.acId);
-            } catch { article.viewCount = 0; }
+
         }));
         return articles;
     }
@@ -1302,7 +1857,7 @@ async function debugApiResponse() {
         console.log('=== 開始調試 API 回應 ===');
 
         // 測試文章列表 API
-        const listResponse = await fetch('http://localhost:8081/CJA101G02/api/articles');
+        const listResponse = await fetch(`${window.api_prefix}/api/articles`);
         const listResult = await listResponse.json();
         console.log('文章列表 API 回應:', listResult);
 
@@ -1327,7 +1882,7 @@ async function debugApiResponse() {
         // 測試單一文章 API
         if (listResult.data && listResult.data.length > 0) {
             const articleId = listResult.data[0].acId;
-            const singleResponse = await fetch(`http://localhost:8081/CJA101G02/api/articles/${articleId}`);
+            const singleResponse = await fetch(`${window.api_prefix}/api/articles/${articleId}`);
             const singleResult = await singleResponse.json();
             console.log('單一文章 API 回應:', singleResult);
 
@@ -1377,11 +1932,176 @@ function setupArticleListSort(typeId) {
         let currentSort = sortSelect ? sortSelect.value : 'latest';
         articleManager.articles = articles;
         articleManager.renderArticleList('articles-container', typeId, 1, currentSort);
+        articleManager.renderPopularArticles(typeId);
         if (sortSelect) {
-            sortSelect.addEventListener('change', function () {
+            sortSelect.addEventListener('change', async function () {
                 currentSort = this.value;
+                // 每次切換都重新載入所有文章資料
+                let articles = await articleManager.loadArticlesWithStats(typeId);
+                articleManager.articles = articles;
                 articleManager.renderArticleList('articles-container', typeId, 1, currentSort);
+                articleManager.renderPopularArticles(typeId);
             });
         }
     });
 }
+
+// === 增強 API 測試工具 ===
+
+// 測試上傳建議 API
+async function testUploadRecommendations() {
+    console.log('=== 測試上傳建議 API ===');
+    const recommendations = await articleManager.getUploadRecommendations();
+
+    if (recommendations) {
+        console.log('上傳策略建議:', recommendations);
+        console.table(recommendations.strategies);
+    } else {
+        console.error('獲取上傳建議失敗');
+    }
+}
+
+// 測試上傳策略 API
+async function testUploadStrategy() {
+    console.log('=== 測試上傳策略 API ===');
+
+    // 測試不同檔案大小
+    const testSizes = [
+        { size: 1024 * 512, name: '512KB 小檔案' },
+        { size: 1024 * 1024 * 1.5, name: '1.5MB 小檔案' },
+        { size: 1024 * 1024 * 5, name: '5MB 中檔案' },
+        { size: 1024 * 1024 * 15, name: '15MB 大檔案' }
+    ];
+
+    for (const test of testSizes) {
+        console.log(`\n測試 ${test.name} (${test.size} bytes):`);
+        const strategy = await articleManager.testUploadStrategy(test.size);
+        if (strategy) {
+            console.log('建議策略:', strategy.strategy);
+            console.log('檔案大小:', (test.size / 1024 / 1024).toFixed(2), 'MB');
+        }
+    }
+}
+
+// 測試圖片分析 API
+async function testImageAnalysis() {
+    console.log('=== 測試圖片分析 API ===');
+
+    // 模擬包含多張圖片的 HTML 內容
+    const testHtml = `
+        <p>測試文章內容</p>
+        <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAAAAAAAD...">
+        <p>更多內容</p>
+        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAA...">
+    `;
+
+    const analysis = await articleManager.analyzeArticleImages(testHtml);
+    if (analysis) {
+        console.log('圖片分析結果:', analysis);
+        console.log('總圖片數:', analysis.totalImages);
+        console.log('總大小:', analysis.totalSizeMB, 'MB');
+        console.log('策略分佈:', analysis.strategies);
+    } else {
+        console.error('圖片分析失敗');
+    }
+}
+
+// 測試文章統計 API
+async function testArticleStats(articleId) {
+    /* === 統計測試功能已暫時隱藏 === */
+    /*
+    if (!articleId) {
+        console.error('請提供文章ID，例如: testArticleStats(30000082)');
+        return;
+    }
+
+    console.log(`=== 測試文章統計 API (ID: ${articleId}) ===`);
+
+    const stats = await articleManager.getArticleStats(articleId);
+    if (stats) {
+        console.log('文章統計:', stats);
+        console.table({
+            '瀏覽次數': stats.viewCount,
+            '圖片數量': stats.imageCount,
+            '內容長度': `${stats.contentLength} 字`,
+            '圖片總大小': `${stats.totalImageSizeMB} MB`,
+            '發布時間': new Date(stats.publishTime).toLocaleString(),
+            '文章狀態': stats.status === 0 ? '顯示' : '隱藏'
+        });
+    } else {
+        console.error('獲取文章統計失敗');
+    }
+    */
+}
+
+// 測試文章圖片管理 API
+async function testArticleImages(articleId) {
+    if (!articleId) {
+        console.error('請提供文章ID，例如: testArticleImages(30000082)');
+        return;
+    }
+
+    console.log(`=== 測試文章圖片管理 API (ID: ${articleId}) ===`);
+
+    const images = await articleManager.getArticleImages(articleId);
+    if (images && images.length > 0) {
+        console.log(`找到 ${images.length} 張圖片:`);
+        images.forEach((image, index) => {
+            const imageSize = image.acImg ? (image.acImg.length / 1024).toFixed(2) : '未知';
+            console.log(`圖片 ${index + 1}:`);
+            console.log(`  - ID: ${image.acImgId}`);
+            console.log(`  - 大小: ${imageSize} KB`);
+            console.log(`  - 預覽: ${window.api_prefix}/api/article-images/${image.acImgId}/image`);
+        });
+    } else {
+        console.log('該文章沒有圖片或獲取圖片失敗');
+    }
+}
+
+// 一鍵測試所有增強 API
+async function testAllEnhancedAPIs(articleId) {
+    console.log('🚀 開始測試所有增強 API...\n');
+
+    try {
+        await testUploadRecommendations();
+        console.log('\n' + '='.repeat(50) + '\n');
+
+        await testUploadStrategy();
+        console.log('\n' + '='.repeat(50) + '\n');
+
+        if (articleId) {
+            await testArticleStats(articleId);
+            console.log('\n' + '='.repeat(50) + '\n');
+
+            await testArticleImages(articleId);
+        } else {
+            console.log('⚠️ 未提供文章ID，跳過文章相關測試');
+            console.log('如需測試文章功能，請使用: testAllEnhancedAPIs(30000082)');
+        }
+
+        console.log('\n✅ 所有 API 測試完成！');
+    } catch (error) {
+        console.error('❌ 測試過程中發生錯誤:', error);
+    }
+}
+
+// 快速開始指南
+/* === 測試工具提示已暫時隱藏 === */
+/*
+console.log(`
+🎯 增強 API 測試工具已載入！
+
+可用的測試函數：
+📊 testUploadRecommendations() - 測試上傳建議
+🔧 testUploadStrategy() - 測試上傳策略
+📈 testArticleStats(articleId) - 測試文章統計
+🖼️ testArticleImages(articleId) - 測試圖片管理
+🚀 testAllEnhancedAPIs(articleId) - 一鍵測試所有API
+
+範例使用：
+testAllEnhancedAPIs(30000082)
+testArticleStats(30000082)
+
+💡 在 articles.html 頁面打開開發者工具控制台執行這些命令來測試新功能！
+`);
+*/

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>新增文章 - 露營路</title>
+    <title>新增文章 </title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono&display=swap"
@@ -26,6 +26,7 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            background: linear-gradient(135deg, white 0%, white 100%) !important;
         }
 
         .site-footer,
@@ -303,6 +304,9 @@
             </button>
         </div>
     </header>
+    <nav class="breadcrumb" style="margin: 16px 0 0 0; padding-left: 24px; font-size: 0.98rem;">
+        <a href="index.html">首頁</a> &gt; <a href="article-type.html">論壇攻略</a> &gt; <span>新增文章</span>
+    </nav>
 
     <section class="article-add-hero">
         <div class="container">
@@ -421,22 +425,255 @@
     <script src="js/main.js"></script>
     <script src="js/header-auth.js"></script>
     <script>
-        // 初始化 Quill 編輯器
-        const quill = new Quill('#editor', {
-            theme: 'snow',
-            placeholder: '請輸入文章內容...',
-            modules: {
-                toolbar: [
-                    [{ 'header': [1, 2, 3, false] }],
-                    ['bold', 'italic', 'underline', 'strike'],
-                    [{ 'color': [] }, { 'background': [] }],
-                    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                    [{ 'align': [] }],
-                    ['link', 'image'],
-                    ['clean']
-                ]
+        // 全域變數
+        let quill;
+        let currentMemberId = null;
+
+        // 上傳圖片到 article_image API
+        async function uploadImageToAPI(file, articleId = null) {
+            try {
+                console.log('🖼️ 開始上傳圖片:', {
+                    fileName: file.name,
+                    fileSize: file.size,
+                    articleId: articleId
+                });
+
+                // 使用 FormData 上傳檔案
+                const formData = new FormData();
+                formData.append('file', file);
+                if (articleId) {
+                    formData.append('articleId', articleId);
+                }
+
+                const response = await fetch(`${window.api_prefix}/api/article-images/upload-direct`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                console.log('📤 圖片上傳回應:', result);
+
+                if (response.ok && result.status === 'success') {
+                    const imageId = result.data.acImgId;
+                    console.log('✅ 圖片上傳成功，ID:', imageId);
+                    return {
+                        success: true,
+                        imageId: imageId,
+                        imageUrl: `${window.api_prefix}/api/article-images/${imageId}/image`
+                    };
+                } else {
+                    throw new Error(result.message || '圖片上傳失敗');
+                }
+            } catch (error) {
+                console.error('❌ 圖片上傳失敗:', error);
+                showMessage(`圖片上傳失敗: ${error.message}`, 'error');
+                return { success: false, error: error.message };
             }
-        });
+        }
+
+        // 處理 Base64 圖片轉換為上傳圖片
+        async function handleBase64Images(htmlContent, articleId = null) {
+            if (!htmlContent || !htmlContent.includes('data:image')) {
+                return htmlContent;
+            }
+
+            console.log('🔄 開始處理 Base64 圖片...');
+
+            // 使用正則找出所有 Base64 圖片
+            const base64ImageRegex = /<img[^>]+src="data:image\/([^;]+);base64,([^"]+)"[^>]*>/g;
+            const matches = [...htmlContent.matchAll(base64ImageRegex)];
+
+            if (matches.length === 0) {
+                return htmlContent;
+            }
+
+            console.log(`📸 找到 ${matches.length} 張 Base64 圖片，開始轉換...`);
+            let processedContent = htmlContent;
+
+            for (let i = 0; i < matches.length; i++) {
+                const match = matches[i];
+                const [fullMatch, imageType, base64Data] = match;
+
+                try {
+                    // 將 Base64 轉換為 Blob
+                    const byteCharacters = atob(base64Data);
+                    const byteNumbers = new Array(byteCharacters.length);
+                    for (let j = 0; j < byteCharacters.length; j++) {
+                        byteNumbers[j] = byteCharacters.charCodeAt(j);
+                    }
+                    const byteArray = new Uint8Array(byteNumbers);
+                    const blob = new Blob([byteArray], { type: `image/${imageType}` });
+
+                    // 創建 File 物件
+                    const file = new File([blob], `pasted-image-${i + 1}.${imageType}`, {
+                        type: `image/${imageType}`
+                    });
+
+                    console.log(`📤 上傳第 ${i + 1} 張圖片...`);
+
+                    // 上傳圖片
+                    const uploadResult = await uploadImageToAPI(file, articleId);
+
+                    if (uploadResult.success) {
+                        // 替換 Base64 圖片為 API URL
+                        const newImageTag = `<img src="${uploadResult.imageUrl}" alt="上傳圖片" style="max-width: 100%; height: auto;" />`;
+                        processedContent = processedContent.replace(fullMatch, newImageTag);
+                        console.log(`✅ 第 ${i + 1} 張圖片替換成功`);
+                    } else {
+                        console.warn(`⚠️ 第 ${i + 1} 張圖片上傳失敗，保留佔位符`);
+                        // 可以選擇保留原圖片或替換為佔位符
+                        const placeholder = `<p>[圖片上傳失敗: ${uploadResult.error}]</p>`;
+                        processedContent = processedContent.replace(fullMatch, placeholder);
+                    }
+                } catch (error) {
+                    console.error(`❌ 處理第 ${i + 1} 張圖片時發生錯誤:`, error);
+                    const placeholder = `<p>[圖片處理錯誤: ${error.message}]</p>`;
+                    processedContent = processedContent.replace(fullMatch, placeholder);
+                }
+            }
+
+            console.log('🎉 Base64 圖片處理完成');
+            return processedContent;
+        }
+
+        // 初始化 Quill 編輯器
+        function initQuillEditor() {
+            quill = new Quill('#editor', {
+                theme: 'snow',
+                placeholder: '請輸入文章內容...',
+                modules: {
+                    toolbar: {
+                        container: [
+                            [{ 'header': [1, 2, 3, false] }],
+                            ['bold', 'italic', 'underline', 'strike'],
+                            [{ 'color': [] }, { 'background': [] }],
+                            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                            [{ 'align': [] }],
+                            ['link', 'image'],
+                            ['clean']
+                        ],
+                        handlers: {
+                            // 自定義圖片處理邏輯
+                            image: function () {
+                                console.log('🖼️ 觸發圖片上傳...');
+
+                                const input = document.createElement('input');
+                                input.setAttribute('type', 'file');
+                                input.setAttribute('accept', 'image/*');
+                                input.setAttribute('multiple', 'true'); // 允許多選
+                                input.click();
+
+                                input.onchange = async () => {
+                                    const files = input.files;
+                                    if (files.length === 0) return;
+
+                                    console.log(`📁 選擇了 ${files.length} 個檔案`);
+
+                                    const range = quill.getSelection(true);
+                                    if (!range) return;
+
+                                    let insertIndex = range.index;
+                                    let successCount = 0;
+                                    let failCount = 0;
+
+                                    for (let i = 0; i < files.length; i++) {
+                                        const file = files[i];
+
+                                        // 檢查檔案大小
+                                        if (file.size > 10 * 1024 * 1024) { // 10MB 限制
+                                            console.warn('⚠️ 檔案過大:', file.name);
+                                            quill.insertText(insertIndex, `[檔案過大，無法上傳: ${file.name}]\n`);
+                                            failCount++;
+                                            insertIndex += 1;
+                                            continue;
+                                        }
+
+                                        try {
+                                            const uploadResult = await uploadImageToAPI(file, null);
+
+                                            if (uploadResult.success) {
+                                                // 插入圖片到編輯器
+                                                quill.insertEmbed(insertIndex, 'image', uploadResult.imageUrl);
+                                                quill.insertText(insertIndex + 1, '\n'); // 換行
+                                                successCount++;
+                                                insertIndex += 2;
+                                            } else {
+                                                quill.insertText(insertIndex, `[圖片上傳失敗: ${file.name}]\n`);
+                                                failCount++;
+                                                insertIndex += 1;
+                                            }
+                                        } catch (error) {
+                                            console.error('圖片上傳錯誤:', error);
+                                            quill.insertText(insertIndex, `[圖片上傳錯誤: ${file.name}]\n`);
+                                            failCount++;
+                                            insertIndex += 1;
+                                        }
+                                    }
+
+                                    // 只在有失敗時顯示錯誤訊息
+                                    if (failCount > 0 && successCount === 0) {
+                                        showMessage(`❌ 所有圖片上傳失敗`, 'error');
+                                    } else if (failCount > 0) {
+                                        showMessage(`⚠️ ${failCount} 張圖片上傳失敗`, 'warning');
+                                    }
+                                };
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 監聽貼上事件，處理貼上的圖片
+            quill.root.addEventListener('paste', async function (e) {
+                const clipboardData = e.clipboardData;
+                if (!clipboardData) return;
+
+                const items = clipboardData.items;
+                const images = [];
+
+                // 檢查剪貼簿中是否有圖片
+                for (let i = 0; i < items.length; i++) {
+                    if (items[i].type.indexOf('image') !== -1) {
+                        images.push(items[i].getAsFile());
+                    }
+                }
+
+                if (images.length > 0) {
+                    console.log(`📋 貼上了 ${images.length} 張圖片`);
+                    e.preventDefault(); // 阻止預設的貼上行為
+
+                    const range = quill.getSelection(true);
+                    if (!range) return;
+
+                    let insertIndex = range.index;
+                    let successCount = 0;
+                    let failCount = 0;
+
+                    for (const imageFile of images) {
+                        try {
+                            const uploadResult = await uploadImageToAPI(imageFile, null);
+
+                            if (uploadResult.success) {
+                                quill.insertEmbed(insertIndex, 'image', uploadResult.imageUrl);
+                                quill.insertText(insertIndex + 1, '\n');
+                                successCount++;
+                                insertIndex += 2;
+                            } else {
+                                failCount++;
+                            }
+                        } catch (error) {
+                            console.error('貼上圖片上傳錯誤:', error);
+                            failCount++;
+                        }
+                    }
+
+                    // 只在全部失敗時顯示錯誤訊息
+                    if (failCount > 0 && successCount === 0) {
+                        showMessage('❌ 貼上的圖片處理失敗', 'error');
+                    }
+                }
+            });
+        }
 
         // 顯示訊息函數
         function showMessage(message, type) {
@@ -448,7 +685,7 @@
             if (type === 'success') {
                 setTimeout(() => {
                     messageDiv.style.display = 'none';
-                }, 3000);
+                }, 5000);
             }
         }
 
@@ -528,20 +765,36 @@
         // 初始化頁面
         function initPage() {
             const currentMember = checkLoginStatus();
-            const memId = currentMember && (currentMember.mem_id || currentMember.memId);
 
+            // 確保 memId 是數字格式
+            let memId = null;
             if (currentMember) {
-                // 已登入，顯示會員資訊和表單
+                if (currentMember.mem_id) {
+                    memId = parseInt(currentMember.mem_id);
+                } else if (currentMember.memId) {
+                    memId = parseInt(currentMember.memId);
+                }
+            }
+
+            if (currentMember && memId && !isNaN(memId)) {
                 document.getElementById('login-required').style.display = 'none';
                 document.getElementById('member-info').style.display = 'block';
                 document.getElementById('add-article-form').style.display = 'block';
 
-                // 顯示會員資訊
-                document.getElementById('member-name').textContent = currentMember.mem_name;
-                document.getElementById('member-id').textContent = currentMember.mem_id;
+                document.getElementById('member-name').textContent = currentMember.mem_name || currentMember.memName || '會員';
+                document.getElementById('member-id').textContent = memId;
 
-                // 設定會員ID為隱藏欄位
-                window.currentMemberId = currentMember.mem_id;
+                window.currentMemberId = memId;
+                currentMemberId = memId;
+                let memIdInput = document.getElementById('mem-id-input');
+                if (!memIdInput) {
+                    memIdInput = document.createElement('input');
+                    memIdInput.type = 'hidden';
+                    memIdInput.id = 'mem-id-input';
+                    memIdInput.name = 'memId';
+                    document.getElementById('add-article-form').appendChild(memIdInput);
+                }
+                memIdInput.value = memId;
 
                 // 檢查是否是從登入頁面跳轉回來的
                 const urlParams = new URLSearchParams(window.location.search);
@@ -552,7 +805,6 @@
                 }
 
             } else {
-                // 未登入，顯示登入提示
                 document.getElementById('login-required').style.display = 'block';
                 document.getElementById('member-info').style.display = 'none';
                 document.getElementById('add-article-form').style.display = 'none';
@@ -560,6 +812,13 @@
                 // 儲存當前頁面 URL，用於登入後跳轉回來
                 const currentUrl = window.location.href;
                 sessionStorage.setItem('redirectAfterLogin', currentUrl);
+
+                // 如果會員資料有問題，清除本地儲存
+                if (currentMember && (!memId || isNaN(memId))) {
+                    console.warn('會員資料格式錯誤，清除本地儲存');
+                    localStorage.removeItem('currentMember');
+                    sessionStorage.removeItem('currentMember');
+                }
             }
         }
 
@@ -568,7 +827,73 @@
             return content.includes('<img') || content.includes('data:image');
         }
 
-        // 表單送出事件
+        // 清理 HTML 內容，移除不必要的標籤和屬性
+        function cleanHtmlContent(content) {
+            // 創建臨時 DOM 元素來清理內容
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = content;
+
+            // 移除空的段落
+            const emptyParagraphs = tempDiv.querySelectorAll('p:empty, p:only-child:has(br:only-child)');
+            emptyParagraphs.forEach(p => {
+                if (p.innerHTML === '' || p.innerHTML === '<br>') {
+                    p.remove();
+                }
+            });
+
+            // 確保內容不為空
+            if (tempDiv.innerHTML.trim() === '' || tempDiv.innerHTML === '<p><br></p>') {
+                return '<p>請輸入文章內容...</p>';
+            }
+
+            return tempDiv.innerHTML;
+        }
+
+        // 圖片分析功能
+        async function analyzeImages(content) {
+            try {
+                const response = await fetch(`${window.api_prefix}/api/articles/analyze-images`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(content)
+                });
+
+                const result = await response.json();
+                if (response.ok && result.status === 'success') {
+                    return result.data;
+                } else {
+                    console.warn('圖片分析失敗:', result);
+                    return null;
+                }
+            } catch (error) {
+                console.warn('圖片分析錯誤:', error);
+                return null;
+            }
+        }
+
+        // 顯示圖片分析結果
+        function showImageAnalysis(analysis) {
+            if (!analysis || analysis.totalImages === 0) return;
+
+            const strategyCounts = analysis.strategies;
+            let analysisMessage = `檢測到 ${analysis.totalImages} 張圖片 (總大小: ${analysis.totalSizeMB} MB)\n\n`;
+
+            if (strategyCounts.BASE64 > 0) {
+                analysisMessage += `📁 小檔案: ${strategyCounts.BASE64} 張 (直接嵌入)\n`;
+            }
+            if (strategyCounts.DIRECT_UPLOAD > 0) {
+                analysisMessage += `🖼️ 中檔案: ${strategyCounts.DIRECT_UPLOAD} 張 (直接上傳)\n`;
+            }
+            if (strategyCounts.CHUNKED_UPLOAD > 0) {
+                analysisMessage += `📦 大檔案: ${strategyCounts.CHUNKED_UPLOAD} 張 (分塊上傳)\n`;
+            }
+
+            showMessage(analysisMessage, 'warning');
+        }
+
+        // 表單送出事件 - 增強版
         document.getElementById('add-article-form').addEventListener('submit', async function (e) {
             e.preventDefault();
 
@@ -576,37 +901,111 @@
             const form = document.getElementById('add-article-form');
 
             // 取得表單資料
-            const title = document.getElementById('title').value;
+            const title = document.getElementById('title').value.trim();
             const acTypeId = parseInt(document.getElementById('type').value);
-            const content = quill.root.innerHTML; // 取得 HTML 格式內容
-            const memId = window.currentMemberId; // 使用當前登入會員的ID
+            const rawContent = quill.root.innerHTML;
+            const content = cleanHtmlContent(rawContent);
+            const memId = parseInt(currentMemberId);
 
-            // 驗證資料
-            if (!title || !acTypeId || !content.trim()) {
-                showMessage('請填寫所有必要欄位', 'error');
+            // 詳細驗證資料
+            if (!title) {
+                showMessage('請輸入文章標題', 'error');
                 return;
             }
 
-            // 準備發送的資料 (符合 ArticlesDTO 格式)
+            if (!acTypeId || isNaN(acTypeId)) {
+                showMessage('請選擇文章分類', 'error');
+                return;
+            }
+
+            if (!content || content === '<p>請輸入文章內容...</p>') {
+                showMessage('請輸入文章內容', 'error');
+                return;
+            }
+
+            if (!memId || isNaN(memId)) {
+                showMessage('會員資訊錯誤，請重新登入', 'error');
+                return;
+            }
+
+            // 準備發送的資料
             const articleData = {
                 acTitle: title,
                 acContext: content,
                 memId: memId,
-                acTypeId: acTypeId
+                acTypeId: acTypeId,
+                acStatus: 0
             };
 
             try {
                 // 顯示載入狀態
-                submitBtn.textContent = '發布中...';
+                submitBtn.textContent = '分析圖片中...';
                 submitBtn.classList.add('loading');
                 form.classList.add('loading');
 
-                // 檢查是否包含圖片，決定使用哪個 API
-                const apiUrl = hasImages(content)
-                    ? `${window.api_prefix}/api/articles/with-images`
+                // 處理內容中的 Base64 圖片（如果有的話）
+                console.log('🔍 檢查內容中的 Base64 圖片...');
+                let processedContent = content;
+
+                if (content.includes('data:image')) {
+                    console.log('⚠️ 檢測到 Base64 圖片，開始處理...');
+                    showMessage('檢測到 Base64 圖片，正在自動上傳...', 'warning');
+
+                    try {
+                        processedContent = await handleBase64Images(content, null);
+
+                        // 檢查處理結果
+                        const originalBase64Count = (content.match(/data:image/g) || []).length;
+                        const remainingBase64Count = (processedContent.match(/data:image/g) || []).length;
+                        const processedCount = originalBase64Count - remainingBase64Count;
+
+                        if (processedCount > 0) {
+                            showMessage(`✅ 已處理 ${processedCount} 張 Base64 圖片`, 'success');
+                        }
+
+                        console.log('📊 Base64 圖片處理結果:', {
+                            原始數量: originalBase64Count,
+                            處理數量: processedCount,
+                            剩餘數量: remainingBase64Count
+                        });
+
+                    } catch (error) {
+                        console.error('❌ Base64 圖片處理失敗:', error);
+                        showMessage('Base64 圖片處理失敗，將保持原狀', 'warning');
+                        // 如果處理失敗，使用原始內容
+                        processedContent = content;
+                    }
+                }
+
+                // 更新文章資料為處理後的內容
+                articleData.acContext = processedContent;
+
+                // 先分析圖片（如果有的話）
+                if (hasImages(processedContent)) {
+                    console.log('開始分析圖片...');
+                    const analysis = await analyzeImages(processedContent);
+                    if (analysis) {
+                        showImageAnalysis(analysis);
+                        console.log('圖片分析結果:', analysis);
+
+                        // 檢查是否有需要分塊上傳的大檔案
+                        if (analysis.strategies.CHUNKED_UPLOAD > 0) {
+                            showMessage('檢測到大檔案，建議壓縮圖片後再上傳以獲得更好效果', 'warning');
+                        }
+                    }
+                }
+
+                // 更新按鈕狀態
+                submitBtn.textContent = '智能發布中...';
+
+                // 使用智能創建 API
+                const apiUrl = hasImages(processedContent)
+                    ? `${window.api_prefix}/api/articles/smart-create`
                     : `${window.api_prefix}/api/articles`;
 
-                // 發送到 Spring Boot API
+                console.log('發送文章資料:', articleData);
+                console.log('使用智能API:', apiUrl);
+
                 const response = await fetch(apiUrl, {
                     method: 'POST',
                     headers: {
@@ -616,23 +1015,104 @@
                 });
 
                 const result = await response.json();
+                console.log('API 回應:', result);
+                console.log('API 回應數據結構檢查:', {
+                    hasData: !!result.data,
+                    hasArticle: !!(result.data && result.data.article),
+                    articleAcId: result.data && result.data.article && result.data.article.acId,
+                    directAcId: result.data && result.data.acId,
+                    dataKeys: result.data ? Object.keys(result.data) : null
+                });
 
                 if (response.ok && result.status === 'success') {
-                    if (hasImages(content)) {
-                        showMessage('文章新增成功！圖片內容已自動處理。', 'success');
-                    } else {
-                        showMessage('文章新增成功！', 'success');
+                    let successMessage = '文章新增成功！';
+
+                    if (result.data.analysis) {
+                        const analysis = result.data.analysis;
+                        if (analysis.totalImages > 0) {
+                            successMessage += `已智能處理 ${analysis.totalImages} 張圖片，`;
+                            successMessage += `使用了 ${Object.keys(analysis.strategies).filter(k => analysis.strategies[k] > 0).length} 種優化策略。`;
+                        }
+                    } else if (hasImages(processedContent)) {
+                        successMessage += '圖片已自動處理並優化。';
                     }
-                    // 清空表單
-                    form.reset();
-                    quill.setText('');
+
+                    successMessage += '即將跳轉到文章頁面...';
+                    showMessage(successMessage, 'success');
+
+                    // 跳轉到文章詳情頁面
+                    setTimeout(() => {
+                        // 智能 API 和基本 API 的回應格式可能不同，都要檢查
+                        let articleId = null;
+                        if (result.data.article && result.data.article.acId) {
+                            articleId = result.data.article.acId;  // 智能 API 格式
+                        } else if (result.data.acId) {
+                            articleId = result.data.acId;          // 基本 API 格式
+                        }
+
+                        if (articleId) {
+                            window.location.href = `articles.html?id=${articleId}`;
+                        } else {
+                            console.warn('無法獲取文章ID，回應數據:', result.data);
+                            window.location.href = 'articles.html';
+                        }
+                    }, 2000);
+
+                } else if (result.status === 'chunked_required') {
+                    // 需要分塊上傳的情況
+                    showMessage('檢測到超大檔案，請使用專用上傳工具或壓縮圖片後重試', 'warning');
+                    console.log('需要分塊上傳:', result.data);
+
                 } else {
-                    showMessage(`新增失敗: ${result.message || '未知錯誤'}`, 'error');
+                    // 如果智能 API 失敗，嘗試使用基本 API 作為備用
+                    if (hasImages(processedContent) && (response.status === 500 || result.message?.includes('實體關聯') || result.message?.includes('cascade'))) {
+                        console.log('智能 API 失敗，嘗試使用基本 API...');
+                        showMessage('圖片處理失敗，嘗試使用基本發布方式...', 'warning');
+
+                        try {
+                            const fallbackResponse = await fetch(`${window.api_prefix}/api/articles`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify(articleData)
+                            });
+
+                            const fallbackResult = await fallbackResponse.json();
+                            console.log('基本 API 回應:', fallbackResult);
+
+                            if (fallbackResponse.ok && fallbackResult.status === 'success') {
+                                showMessage('文章發布成功！（圖片使用基本處理）即將跳轉到文章頁面...', 'success');
+                                setTimeout(() => {
+                                    window.location.href = `articles.html?id=${fallbackResult.data.acId}`;
+                                }, 2000);
+                                return;
+                            } else {
+                                throw new Error(fallbackResult.message || '基本 API 也失敗了');
+                            }
+                        } catch (fallbackError) {
+                            console.error('基本 API 也失敗:', fallbackError);
+                            showMessage('所有發布方式都失敗了，請稍後再試', 'error');
+                            return;
+                        }
+                    }
+
+                    // 錯誤處理
+                    let errorMessage = '新增失敗';
+                    if (result.message) {
+                        errorMessage += `: ${result.message}`;
+                    } else if (response.status === 500) {
+                        errorMessage += ': 伺服器內部錯誤';
+                    } else if (response.status === 400) {
+                        errorMessage += ': 請求格式錯誤';
+                    }
+                    showMessage(errorMessage, 'error');
+                    console.error('API 錯誤:', result);
                 }
 
             } catch (error) {
                 console.error('發送請求時發生錯誤:', error);
-                showMessage('發送請求時發生錯誤，請檢查網路連線或伺服器狀態', 'error');
+                showMessage('發送請求時發生錯誤，請檢查網路連線', 'error');
             } finally {
                 // 恢復按鈕狀態
                 submitBtn.textContent = '發布文章';
@@ -674,11 +1154,94 @@
 
         // 頁面載入時初始化
         document.addEventListener('DOMContentLoaded', function () {
+            console.log('文章新增頁面開始初始化...');
             initPage();
             setupLoginStateListener();
             setupLoginRedirect();
             loadArticleTypes();
+            // 初始化 Quill 編輯器
+            initQuillEditor();
         });
+
+        // 測試函數供開發者使用
+        window.testImageUpload = async function (file) {
+            if (!file) {
+                console.error('請提供檔案，例如: testImageUpload(檔案物件)');
+                return;
+            }
+
+            console.log('🧪 測試圖片上傳...');
+            return await uploadImageToAPI(file, null);
+        };
+
+        // 檢查內容長度和圖片狀況
+        window.checkContent = function () {
+            if (!quill) {
+                console.error('❌ 編輯器未初始化');
+                return;
+            }
+
+            const rawContent = quill.root.innerHTML;
+            const textContent = quill.getText();
+            const cleanedContent = cleanHtmlContent(rawContent);
+
+            console.log('📏 內容分析報告:');
+            console.log('────────────────────');
+            console.log('📝 原始 HTML 長度:', rawContent.length);
+            console.log('📄 純文字長度:', textContent.length);
+            console.log('🧹 清理後 HTML 長度:', cleanedContent.length);
+            console.log('🖼️ Base64 圖片數量:', (rawContent.match(/data:image/g) || []).length);
+            console.log('🔗 外部圖片數量:', (rawContent.match(/<img(?![^>]*data:image)[^>]*>/g) || []).length);
+            console.log('⚠️ 是否超過限制 (4000):', cleanedContent.length > 4000);
+
+            if (cleanedContent.length > 4000) {
+                console.log('🚨 需要縮減:', cleanedContent.length - 4000, '個字元');
+            }
+
+            // 檢測可能的圖片問題
+            const base64Count = (rawContent.match(/data:image/g) || []).length;
+            if (base64Count > 0) {
+                console.log('⚠️ 檢測到 Base64 圖片，建議：');
+                console.log('   1. 使用圖片按鈕上傳圖片');
+                console.log('   2. 或提交時會自動處理');
+            }
+
+            return {
+                raw: rawContent.length,
+                text: textContent.length,
+                cleaned: cleanedContent.length,
+                base64Images: base64Count,
+                externalImages: (rawContent.match(/<img(?![^>]*data:image)[^>]*>/g) || []).length,
+                exceeded: cleanedContent.length > 4000,
+                overBy: Math.max(0, cleanedContent.length - 4000)
+            };
+        };
+
+        // 測試 Base64 處理功能
+        window.testBase64Processing = async function () {
+            if (!quill) {
+                console.error('❌ 編輯器未初始化');
+                return;
+            }
+
+            const content = quill.root.innerHTML;
+
+            if (!content.includes('data:image')) {
+                console.log('ℹ️ 目前內容中沒有 Base64 圖片');
+                return;
+            }
+
+            console.log('🧪 測試 Base64 圖片處理...');
+            const result = await handleBase64Images(content, null);
+
+            console.log('📊 處理結果:');
+            console.log('原始長度:', content.length);
+            console.log('處理後長度:', result.length);
+            console.log('原始 Base64 數量:', (content.match(/data:image/g) || []).length);
+            console.log('處理後 Base64 數量:', (result.match(/data:image/g) || []).length);
+
+            return result;
+        };
     </script>
 </body>
 

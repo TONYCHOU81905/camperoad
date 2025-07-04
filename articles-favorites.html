@@ -25,6 +25,7 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            background: linear-gradient(135deg, white 0%, white 100%) !important;
         }
 
         .site-footer,
@@ -917,7 +918,7 @@
             }
 
             // 顯示收藏文章
-            displayFavorites() {
+            async displayFavorites() {
                 const container = document.getElementById('favorites-container');
                 const countElement = document.getElementById('favorites-count');
 
@@ -934,7 +935,8 @@
                 }
 
                 let html = '';
-                this.filteredFavorites.forEach((article, index) => {
+                for (let index = 0; index < this.filteredFavorites.length; index++) {
+                    const article = this.filteredFavorites[index];
                     const favoriteDate = article.favoriteTime ?
                         new Date(article.favoriteTime).toLocaleDateString('zh-TW') :
                         '未知時間';
@@ -962,7 +964,7 @@
                             </div>
                         </div>
                     `;
-                });
+                }
 
                 container.innerHTML = html;
             }

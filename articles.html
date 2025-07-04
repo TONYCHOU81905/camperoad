@@ -13,6 +13,12 @@
     <link rel="stylesheet" href="css/style.css" />
     <link rel="stylesheet" href="css/role-system.css" />
     <script src="js/camp-data.js"></script>
+    <script>
+        // 確保 API 前綴在所有腳本執行前設置
+        if (!window.api_prefix) {
+            window.api_prefix = `http://localhost:8081/CJA101G02`;
+        }
+    </script>
     <style>
         .forum-container {
             padding: 40px 0;
@@ -56,7 +62,8 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
+            align-self: flex-start;
         }
 
         .author-avatar {
@@ -227,11 +234,38 @@
             margin-bottom: 15px;
         }
 
-        .post-body img {
+        /* 文章圖片樣式 */
+        .post-body img,
+        .article-image {
             max-width: 100%;
             height: auto;
-            border-radius: 4px;
+            border-radius: 8px;
             margin: 15px 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            display: block;
+            min-height: 50px;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+        }
+
+        .article-image:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .article-image-error {
+            background: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            padding: 20px;
+            text-align: center;
+            color: #6c757d;
+            border-radius: 8px;
+            margin: 15px 0;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .post-body a {
@@ -581,6 +615,35 @@
         footer {
             margin-top: auto;
         }
+
+        /* 圖片載入中狀態 */
+        .article-image.loading {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+
+        @keyframes loading {
+            0% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
+        /* 圖片載入失敗狀態 */
+        .article-image.error {
+            background: #fff5f5;
+            border: 2px dashed #feb2b2;
+            color: #c53030;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100px;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 
@@ -648,8 +711,7 @@
                                     發布時間：載入中...
                                 </div>
                                 <div class="post-stats">
-                                    <span><i class="fas fa-eye"></i> <span class="view-count"
-                                            data-article-id="">載入中...</span> 次瀏覽</span>
+                                    <span><i class="fas fa-eye"></i> <span class="view-count">0</span> 次瀏覽</span>
                                 </div>
                             </div>
                         </div>
@@ -680,7 +742,7 @@
                                     <i class="fas fa-link"></i>
                                 </a>
                             </div>
-                            <a href="#" id="btn-add-same-type" class="btn-cta" style="margin-left:20px;">投稿同分類文章</a>
+
                         </div>
                     </div>
                 </div>
@@ -780,7 +842,7 @@
     </footer>
 
     <script src="js/main.js"></script>
-    <script src="js/view-counter.js"></script>
+    <!-- <script src="js/article-display.js"></script> -->
     <script src="js/articles.js"></script>
     <script src="js/header-auth.js"></script>
     <script>
@@ -863,11 +925,11 @@
                     return;
                 }
 
-                console.log('準備發送收藏請求，會員資料:', {
-                    currentMember: this.currentMember,
-                    memId: memId,
-                    articleId: this.currentArticleId
-                });
+                // console.log('準備發送收藏請求，會員資料:', {  // 已隱藏調試輸出
+                //     currentMember: this.currentMember,
+                //     memId: memId,
+                //     articleId: this.currentArticleId
+                // });
 
                 try {
                     // 使用後端期望的數據格式 (camelCase)
@@ -877,7 +939,7 @@
                         acFavTime: new Date().toISOString().slice(0, 19) // 保持ISO格式，不替換T
                     };
 
-                    console.log('發送收藏請求:', favoriteData);
+                    // console.log('發送收藏請求:', favoriteData); // 已隱藏調試輸出
 
                     const response = await fetch(`${window.api_prefix}/api/favorites`, {
                         method: 'POST',
@@ -888,7 +950,7 @@
                     });
 
                     const result = await response.json();
-                    console.log('API回應:', result);
+                    // console.log('API回應:', result); // 已隱藏調試輸出
 
                     if (response.ok && result.status === 'success') {
                         this.favoriteBtn.classList.add('favorited');
@@ -899,11 +961,11 @@
                         this.saveToLocalStorage(favoriteData);
                     } else {
                         // 如果API失敗，使用模擬收藏
-                        console.log('API失敗，使用模擬收藏');
+                        // console.log('API失敗，使用模擬收藏'); // 已隱藏調試輸出
                         this.simulateFavorite(favoriteData);
                     }
                 } catch (error) {
-                    console.error('收藏API調用失敗，使用模擬收藏:', error);
+                    // console.error('收藏API調用失敗，使用模擬收藏:', error); // 已隱藏調試輸出
                     const favoriteData = {
                         acId: parseInt(this.currentArticleId),
                         memId: parseInt(memId),
@@ -933,7 +995,7 @@
                 if (existingIndex === -1) {
                     favorites.push(favoriteData);
                     localStorage.setItem('articleFavorites', JSON.stringify(favorites));
-                    console.log('收藏已儲存到localStorage');
+                    // console.log('收藏已儲存到localStorage'); // 已隱藏調試輸出
                 }
             }
 
@@ -953,19 +1015,19 @@
                     return;
                 }
 
-                console.log('發送取消收藏請求:', {
-                    memId: memId,
-                    acId: this.currentArticleId
-                });
+                // console.log('發送取消收藏請求:', {  // 已隱藏調試輸出
+                //     memId: memId,
+                //     acId: this.currentArticleId
+                // });
 
                 try {
                     const response = await fetch(`${window.api_prefix}/api/favorites/${memId}/${this.currentArticleId}`, {
                         method: 'DELETE'
                     });
 
-                    console.log('取消收藏API回應狀態:', response.status);
+                    // console.log('取消收藏API回應狀態:', response.status); // 已隱藏調試輸出
                     const result = await response.json();
-                    console.log('取消收藏API回應內容:', result);
+                    // console.log('取消收藏API回應內容:', result); // 已隱藏調試輸出
 
                     if (response.ok && result.status === 'success') {
                         this.favoriteBtn.classList.remove('favorited');
@@ -976,11 +1038,11 @@
                         this.removeFromLocalStorage();
                     } else {
                         // 如果API失敗，使用模擬取消收藏
-                        console.log('API失敗，使用模擬取消收藏');
+                        // console.log('API失敗，使用模擬取消收藏'); // 已隱藏調試輸出
                         this.simulateUnfavorite();
                     }
                 } catch (error) {
-                    console.error('取消收藏API調用失敗，使用模擬取消收藏:', error);
+                    // console.error('取消收藏API調用失敗，使用模擬取消收藏:', error); // 已隱藏調試輸出
                     this.simulateUnfavorite();
                 }
             }
@@ -1009,13 +1071,13 @@
                     !(fav.memId === memId && fav.acId === parseInt(this.currentArticleId))
                 );
                 localStorage.setItem('articleFavorites', JSON.stringify(filteredFavorites));
-                console.log('收藏已從localStorage移除');
+                // console.log('收藏已從localStorage移除'); // 已隱藏調試輸出
             }
 
             // 檢查收藏狀態
             async checkFavoriteStatus() {
                 if (!this.currentMember || !this.currentArticleId) {
-                    console.log('無法檢查收藏狀態: 缺少會員資訊或文章ID');
+                    // console.log('無法檢查收藏狀態: 缺少會員資訊或文章ID'); // 已隱藏調試輸出
                     return;
                 }
 
@@ -1026,10 +1088,10 @@
                     return;
                 }
 
-                console.log('檢查收藏狀態:', {
-                    memId: memId,
-                    acId: this.currentArticleId
-                });
+                // console.log('檢查收藏狀態:', {  // 已隱藏調試輸出
+                //     memId: memId,
+                //     acId: this.currentArticleId
+                // });
 
                 // 先檢查localStorage中的模擬收藏
                 const localFavorites = JSON.parse(localStorage.getItem('articleFavorites') || '[]');
@@ -1040,20 +1102,20 @@
                 if (isLocalFavorited) {
                     this.favoriteBtn.classList.add('favorited');
                     this.favoriteBtn.querySelector('span').textContent = '已收藏';
-                    console.log('文章已在localStorage中收藏');
+                    // console.log('文章已在localStorage中收藏'); // 已隱藏調試輸出
                     return;
                 }
 
                 try {
                     // 獲取所有收藏記錄，然後檢查當前文章是否在其中
                     const response = await fetch(`${window.api_prefix}/api/favorites`);
-                    console.log('獲取收藏列表API回應:', response.status);
+                    // console.log('獲取收藏列表API回應:', response.status); // 已隱藏調試輸出
 
                     const result = await response.json();
-                    console.log('收藏列表結果:', result);
+                    // console.log('收藏列表結果:', result); // 已隱藏調試輸出
 
                     if (response.ok && result.status === 'success' && result.data) {
-                        console.log('收藏列表詳細數據:', result.data);
+                        // console.log('收藏列表詳細數據:', result.data); // 已隱藏調試輸出
 
                         // 檢查當前文章是否在收藏列表中
                         // 後端返回的資料格式是 acId, memId
@@ -1066,11 +1128,11 @@
                         if (isFavorited) {
                             this.favoriteBtn.classList.add('favorited');
                             this.favoriteBtn.querySelector('span').textContent = '已收藏';
-                            console.log('文章已收藏');
+                            // console.log('文章已收藏'); // 已隱藏調試輸出
                         } else {
                             this.favoriteBtn.classList.remove('favorited');
                             this.favoriteBtn.querySelector('span').textContent = '收藏';
-                            console.log('文章未收藏');
+                            // console.log('文章未收藏'); // 已隱藏調試輸出
                         }
                     } else {
                         console.error('獲取收藏列表API回應錯誤:', result);
@@ -1199,36 +1261,49 @@
         `;
         document.head.appendChild(style);
 
-        // 初始化收藏管理器
-        const favoriteManager = new ArticleFavoriteManager();
+        // 初始化管理器（確保只執行一次）
+        let managersInitialized = false;
+        let favoriteManager;
+        let articleDisplayManager;
 
         // 當文章載入完成後設置文章ID
         document.addEventListener('DOMContentLoaded', function () {
-            // 從URL獲取文章ID
-            const urlParams = new URLSearchParams(window.location.search);
-            const articleId = urlParams.get('id');
+            if (managersInitialized) return;
+            managersInitialized = true;
 
-            if (articleId) {
-                favoriteManager.setCurrentArticleId(articleId);
-            }
+            // 初始化收藏管理器
+            favoriteManager = new ArticleFavoriteManager();
 
-            // 投稿同分類文章按鈕
-            const btnAddSameType = document.getElementById('btn-add-same-type');
-            if (btnAddSameType) {
-                // 取得當前文章 acTypeId
-                // 需等文章資料載入後才有 acTypeId
-                // 這裡假設 window.currentArticle 有 acTypeId
-                const checkAndSet = () => {
-                    if (window.currentArticle && window.currentArticle.acTypeId) {
-                        btnAddSameType.href = `articles-add.html?acTypeId=${window.currentArticle.acTypeId}`;
-                        btnAddSameType.style.display = '';
-                    } else {
-                        btnAddSameType.style.display = 'none';
-                        setTimeout(checkAndSet, 200); // 等待資料載入
+            // 等待 ArticleDisplayManager 類別載入完成
+            const waitForArticleDisplayManager = setInterval(() => {
+                if (window.ArticleDisplayManager) {
+                    // console.log('ArticleDisplayManager 類別已載入'); // 已隱藏調試輸出
+
+                    // 初始化文章顯示管理器
+                    try {
+                        articleDisplayManager = new window.ArticleDisplayManager();
+                        window.articleDisplayManager = articleDisplayManager;
+                        // console.log('ArticleDisplayManager 實例已建立，開始載入文章...'); // 已隱藏調試輸出
+                    } catch (error) {
+                        console.error('ArticleDisplayManager 實例建立失敗:', error);
                     }
-                };
-                checkAndSet();
-            }
+
+                    clearInterval(waitForArticleDisplayManager);
+
+                    // 等待文章顯示管理器載入完成
+                    const checkArticleLoaded = setInterval(() => {
+                        if (window.articleDisplayManager && window.articleDisplayManager.getCurrentArticleId()) {
+                            const articleId = window.articleDisplayManager.getCurrentArticleId();
+                            // console.log('文章ID已取得:', articleId); // 已隱藏調試輸出
+                            favoriteManager.setCurrentArticleId(articleId);
+                            clearInterval(checkArticleLoaded);
+                        } else if (window.articleDisplayManager) {
+                            // 如果實例存在但文章還沒載入，檢查是否有錯誤
+                            // console.log('ArticleDisplayManager 實例存在，但文章尚未載入...'); // 已隱藏調試輸出
+                        }
+                    }, 100);
+                }
+            }, 50);
         });
     </script>
     <script>
@@ -1361,94 +1436,241 @@
                 });
             }, 0);
         }
+        // 留言系統初始化（確保只執行一次）
+        let commentsInitialized = false;
+
         document.addEventListener('DOMContentLoaded', function () {
+            if (commentsInitialized) return;
+            commentsInitialized = true;
+
             const commentForm = document.querySelector('.comment-form');
             if (!commentForm) return;
             const textarea = commentForm.querySelector('textarea');
             const submitBtn = commentForm.querySelector('.btn-submit-comment');
 
             // 取得當前文章ID
-            const urlParams = new URLSearchParams(window.location.search);
-            const articleId = urlParams.get('id');
+            let articleId;
+            const checkArticleId = setInterval(() => {
+                if (window.articleDisplayManager && window.articleDisplayManager.getCurrentArticleId()) {
+                    articleId = window.articleDisplayManager.getCurrentArticleId();
+                    clearInterval(checkArticleId);
+                    initializeComments();
+                }
+            }, 100);
 
-            // 監聽排序選單
-            const sortSelect = document.querySelector('.sort-comments');
-            if (sortSelect) {
-                sortSelect.addEventListener('change', function () {
-                    renderRepliesSorted(this.value);
+            function initializeComments() {
+
+                // 監聽排序選單
+                const sortSelect = document.querySelector('.sort-comments');
+                if (sortSelect) {
+                    sortSelect.addEventListener('change', function () {
+                        renderRepliesSorted(this.value);
+                    });
+                }
+
+                // 載入留言
+                fetch(`${window.api_prefix}/api/replies/article/${articleId}`)
+                    .then(res => res.json())
+                    .then(result => {
+                        if (result.status === 'success' && Array.isArray(result.data)) {
+                            allReplies = result.data;
+                            renderRepliesSorted(sortSelect ? sortSelect.value : 'newest');
+                        }
+                    });
+
+                submitBtn.addEventListener('click', async function () {
+                    const replyContent = textarea.value.trim();
+                    if (!replyContent) {
+                        alert('請輸入留言內容');
+                        return;
+                    }
+                    // 取得登入會員
+                    const memberData = localStorage.getItem('currentMember') || sessionStorage.getItem('currentMember');
+                    if (!memberData) {
+                        alert('請先登入後再發表留言');
+                        return;
+                    }
+                    const member = JSON.parse(memberData);
+                    const memId = member.mem_id || member.memId;
+                    if (!memId) {
+                        alert('請先登入後再發表留言');
+                        return;
+                    }
+                    // 準備留言資料
+                    const replyData = {
+                        acId: articleId,
+                        memId: memId,
+                        replyContext: replyContent
+                    };
+                    if (replyToFloor && replyToContent) {
+                        replyData.replyToFloor = replyToFloor;
+                        replyData.replyToContent = replyToContent;
+                    }
+                    try {
+                        const response = await fetch(`${window.api_prefix}/api/replies`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(replyData)
+                        });
+                        const result = await response.json();
+                        if (result.status === 'success') {
+                            alert('留言成功！');
+                            textarea.value = '';
+                            clearReplyTo();
+                            // 重新載入留言區
+                            // location.reload();
+                            // 改為重新 fetch 並渲染
+                            fetch(`${window.api_prefix}/api/replies/article/${articleId}`)
+                                .then(res => res.json())
+                                .then(result => {
+                                    if (result.status === 'success' && Array.isArray(result.data)) {
+                                        allReplies = result.data;
+                                        renderRepliesSorted(sortSelect ? sortSelect.value : 'newest');
+                                    }
+                                });
+                        } else {
+                            alert('留言失敗: ' + (result.message || '未知錯誤'));
+                        }
+                    } catch (error) {
+                        alert('留言送出失敗，請稍後再試');
+                    }
                 });
             }
-
-            // 載入留言
-            fetch(`${window.api_prefix}/api/replies/article/${articleId}`)
-                .then(res => res.json())
-                .then(result => {
-                    if (result.status === 'success' && Array.isArray(result.data)) {
-                        allReplies = result.data;
-                        renderRepliesSorted(sortSelect ? sortSelect.value : 'newest');
-                    }
-                });
-
-            submitBtn.addEventListener('click', async function () {
-                const replyContent = textarea.value.trim();
-                if (!replyContent) {
-                    alert('請輸入留言內容');
-                    return;
-                }
-                // 取得登入會員
-                const memberData = localStorage.getItem('currentMember') || sessionStorage.getItem('currentMember');
-                if (!memberData) {
-                    alert('請先登入後再發表留言');
-                    return;
-                }
-                const member = JSON.parse(memberData);
-                const memId = member.mem_id || member.memId;
-                if (!memId) {
-                    alert('請先登入後再發表留言');
-                    return;
-                }
-                // 準備留言資料
-                const replyData = {
-                    acId: articleId,
-                    memId: memId,
-                    replyContext: replyContent
-                };
-                if (replyToFloor && replyToContent) {
-                    replyData.replyToFloor = replyToFloor;
-                    replyData.replyToContent = replyToContent;
-                }
-                try {
-                    const response = await fetch(`${window.api_prefix}/api/replies`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(replyData)
-                    });
-                    const result = await response.json();
-                    if (result.status === 'success') {
-                        alert('留言成功！');
-                        textarea.value = '';
-                        clearReplyTo();
-                        // 重新載入留言區
-                        // location.reload();
-                        // 改為重新 fetch 並渲染
-                        fetch(`${window.api_prefix}/api/replies/article/${articleId}`)
-                            .then(res => res.json())
-                            .then(result => {
-                                if (result.status === 'success' && Array.isArray(result.data)) {
-                                    allReplies = result.data;
-                                    renderRepliesSorted(sortSelect ? sortSelect.value : 'newest');
-                                }
-                            });
-                    } else {
-                        alert('留言失敗: ' + (result.message || '未知錯誤'));
-                    }
-                } catch (error) {
-                    alert('留言送出失敗，請稍後再試');
-                }
-            });
         });
+
         // 提供給外部呼叫
         window.setReplyTo = setReplyTo;
+    </script>
+    <script>
+        // 瀏覽次數處理（統一處理，避免重複）
+        document.addEventListener('DOMContentLoaded', function () {
+            // 等待文章顯示管理器載入完成後處理瀏覽次數
+            const checkArticleIdForView = setInterval(() => {
+                if (window.articleDisplayManager && window.articleDisplayManager.getCurrentArticleId()) {
+                    const acId = window.articleDisplayManager.getCurrentArticleId();
+                    // 使用 ViewCountManager 如果存在，否則使用內聯函數
+                    if (window.ViewCountManager) {
+                        window.ViewCountManager.increaseAndShowViewCount(acId);
+                    } else {
+                        increaseViewCount(acId);
+                    }
+                    clearInterval(checkArticleIdForView);
+                }
+            }, 100);
+
+            // 內聯瀏覽次數函數（備用）
+            async function increaseViewCount(acId) {
+                try {
+                    const response = await fetch(`${window.api_prefix}/api/articles/${acId}/view`, { method: 'POST' });
+                    const result = await response.json();
+                    const count = (result.status === 'success') ? result.data : 0;
+                    document.querySelectorAll('.view-count').forEach(el => {
+                        el.textContent = count.toLocaleString();
+                    });
+                } catch (error) {
+                    console.error('[ViewCount] 增加瀏覽次數失敗:', error);
+                    document.querySelectorAll('.view-count').forEach(el => {
+                        el.textContent = '0';
+                    });
+                }
+            }
+        });
+    </script>
+    <script>
+        /* === 調試功能已暫時隱藏 === */
+        /*
+        // 圖片調試功能
+        function debugImages() {
+            console.log('=== 圖片調試開始 ===');
+            console.log('API 前綴:', window.api_prefix);
+
+            // 檢查文章內容中的圖片
+            const postBody = document.querySelector('.post-body');
+            if (postBody) {
+                const images = postBody.querySelectorAll('img');
+                console.log('找到圖片數量:', images.length);
+
+                images.forEach((img, index) => {
+                    console.log(`圖片 ${index + 1}:`);
+                    console.log('  - src:', img.src);
+                    console.log('  - currentSrc:', img.getAttribute('src'));
+                    console.log('  - alt:', img.alt);
+                    console.log('  - width:', img.width);
+                    console.log('  - height:', img.height);
+                    console.log('  - naturalWidth:', img.naturalWidth);
+                    console.log('  - naturalHeight:', img.naturalHeight);
+                    console.log('  - complete:', img.complete);
+                    console.log('  - 是否載入成功:', img.naturalWidth > 0);
+                });
+            } else {
+                console.log('未找到 .post-body 元素');
+            }
+
+            // 檢查文章內容
+            if (postBody) {
+                console.log('文章內容 HTML:', postBody.innerHTML.substring(0, 500) + '...');
+            }
+
+            console.log('=== 圖片調試結束 ===');
+        }
+
+        // 頁面載入完成後執行調試
+        document.addEventListener('DOMContentLoaded', function () {
+            // 延遲執行，確保文章內容已載入
+            setTimeout(debugImages, 2000);
+
+            // 延遲執行圖片上傳建議測試
+            setTimeout(testUploadRecommendations, 3000);
+        });
+
+        // 測試圖片上傳建議功能
+        async function testUploadRecommendations() {
+            try {
+                console.log('=== 測試圖片上傳建議 ===');
+
+                const response = await fetch(`${window.api_prefix}/api/articles/upload-recommendations`);
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    console.log('上傳建議獲取成功:', result.data);
+                    console.log('Base64 策略:', result.data.strategies.BASE64);
+                    console.log('直接上傳策略:', result.data.strategies.DIRECT_UPLOAD);
+                    console.log('分塊上傳策略:', result.data.strategies.CHUNKED_UPLOAD);
+                } else {
+                    console.error('獲取上傳建議失敗:', result);
+                }
+            } catch (error) {
+                console.error('測試上傳建議時發生錯誤:', error);
+            }
+        }
+
+        // 測試智能上傳策略檢查
+        async function testUploadStrategy(fileSize) {
+            try {
+                console.log(`=== 測試上傳策略檢查 (檔案大小: ${fileSize} bytes) ===`);
+
+                const response = await fetch(`${window.api_prefix}/api/article-images/upload-strategy?fileSize=${fileSize}`);
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    console.log('建議策略:', result.data.strategy);
+                    console.log('檔案大小:', result.data.fileSize);
+                    console.log('Base64 上限:', result.data.maxBase64Size, 'bytes');
+                    console.log('直接上傳上限:', result.data.maxDirectSize, 'bytes');
+                    return result.data.strategy;
+                } else {
+                    console.error('獲取上傳策略失敗:', result);
+                    return null;
+                }
+            } catch (error) {
+                console.error('測試上傳策略時發生錯誤:', error);
+                return null;
+            }
+        }
+
+        // 添加到全域供手動測試
+        window.testUploadStrategy = testUploadStrategy;
+        */
     </script>
 </body>
 

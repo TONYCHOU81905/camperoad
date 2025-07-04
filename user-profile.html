@@ -347,9 +347,14 @@
 
           <!-- 文章收藏 -->
           <div class="profile-section" id="article-favorites">
+            <div id="delete-selected-bar"
+              style="display:none;justify-content:flex-end;align-items:center;gap:12px;margin-bottom:8px;">
+              <button id="delete-selected-btn" type="button"
+                style="padding: 6px 18px; border-radius: 5px; background: #dc3545; color: #fff; font-size: 1rem; font-weight: 500; border: none; cursor: pointer;">刪除勾選收藏</button>
+            </div>
             <div class="favorites-search-box" style="margin-bottom: 24px; margin-top: 0;">
               <form id="search-form" onsubmit="handleSearch(event)">
-                <input type="text" placeholder="搜尋收藏的文章..." name="search" id="search-input" autocomplete="off">
+                <input type="text" placeholder="搜尋文章標題、內容、作者或關鍵字..." name="search" id="search-input" autocomplete="off">
                 <button type="submit" class="btn-search-submit" title="搜尋">
                   <i class="fas fa-search"></i>
                 </button>
@@ -360,8 +365,8 @@
                 <select name="sort" id="sort-favorites">
                   <option value="latest">最新收藏</option>
                   <option value="oldest">最早收藏</option>
-                  <option value="title">標題排序</option>
-                  <option value="author">作者排序</option>
+                  <option value="most-commented">最多留言</option>
+                  <option value="most-viewed">最多觀看</option>
                 </select>
                 <select id="category-filter" style="min-width: 180px;"></select>
               </div>
@@ -507,313 +512,6 @@
   <script src="js/camp-data.js"></script>
   <script src="js/user-profile.js"></script>
   <script src="js/chat-management.js"></script>
-  <script>
-    // --- 收藏文章管理器（完整功能，取自 articles-favorites.html）---
-    class FavoritesManager {
-      constructor() {
-        this.currentMember = null;
-        this.favorites = [];
-        this.filteredFavorites = [];
-        this.membersData = null; // 會員資料
-        this.init();
-      }
-      init() {
-        this.checkLoginStatus();
-        this.loadMembersData();
-        this.loadFavorites();
-        this.setupEventListeners();
-      }
-      checkLoginStatus() {
-        const memberData = localStorage.getItem("currentMember") || sessionStorage.getItem("currentMember");
-        if (memberData) {
-          this.currentMember = JSON.parse(memberData);
-          this.currentMember.memId = this.currentMember.mem_id || this.currentMember.memId;
-        } else {
-          this.showEmptyState('請先登入才能查看收藏');
-        }
-      }
-      async loadMembersData() {
-        try {
-          const response = await fetch('data/mem.json');
-          this.membersData = await response.json();
-        } catch (error) {
-          this.membersData = [];
-        }
-      }
-      async loadFavorites() {
-        if (!this.currentMember) {
-          this.showEmptyState('請先登入');
-          return;
-        }
-        try {
-          const response = await fetch(`${window.api_prefix}/api/favorites`);
-          const result = await response.json();
-          if (response.ok && result.status === 'success' && result.data) {
-            this.favorites = result.data.filter(fav => fav.memId === (this.currentMember.mem_id || this.currentMember.memId));
-            await this.loadFavoriteArticles();
-          } else {
-            this.loadLocalFavorites();
-          }
-        } catch (error) {
-          this.loadLocalFavorites();
-        }
-      }
-      loadLocalFavorites() {
-        const localFavorites = JSON.parse(localStorage.getItem('articleFavorites') || '[]');
-        this.favorites = localFavorites.filter(fav => fav.memId === (this.currentMember.mem_id || this.currentMember.memId));
-        if (this.favorites.length > 0) {
-          this.loadFavoriteArticles();
-        } else {
-          this.showEmptyState();
-        }
-      }
-      async loadFavoriteArticles() {
-        try {
-          const response = await fetch(`${window.api_prefix}/api/articles`);
-          const result = await response.json();
-          if (response.ok && result.status === 'success' && result.data) {
-            const favoriteArticles = this.favorites.map(fav => {
-              const article = result.data.find(art => art.acId === fav.acId);
-              return { ...article, favoriteTime: fav.acFavTime };
-            }).filter(article => article.acId);
-            this.favorites = favoriteArticles;
-            this.filteredFavorites = [...favoriteArticles];
-            this.sortFavorites('latest');
-            this.displayFavorites();
-            this.updateCategories();
-          } else {
-            this.showEmptyState('無法載入文章資訊');
-          }
-        } catch (error) {
-          this.showEmptyState('載入失敗');
-        }
-      }
-      displayFavorites() {
-        const container = document.getElementById('favorites-container');
-        const countElement = document.getElementById('favorites-count');
-        if (!container) return;
-        if (this.filteredFavorites.length === 0) {
-          this.showEmptyState();
-          return;
-        }
-        if (countElement) {
-          countElement.textContent = this.filteredFavorites.length;
-        }
-        let html = '';
-        this.filteredFavorites.forEach((article, index) => {
-          const favoriteDate = article.favoriteTime ? new Date(article.favoriteTime).toLocaleDateString('zh-TW') : '未知時間';
-          const authorName = this.getAuthorName(article);
-          const articleType = this.getArticleType(article.acTypeId);
-          html += `
-            <div class="article-item" data-article-id="${article.acId}">
-              <div class="article-image-cell">
-                <img src="images/camp-${(index % 5) + 1}.jpg" alt="文章圖片" class="article-image" />
-              </div>
-              <div class="article-title-cell">
-                <a href="articles.html?id=${article.acId}" class="article-title-link">${article.acTitle}</a>
-                <div class="article-preview">${article.acContext ? article.acContext.substring(0, 100) + '...' : '無內容預覽'}</div>
-                <span class="article-tag">${articleType}</span>
-              </div>
-              <div class="article-author-cell">${authorName}</div>
-              <div class="article-date-cell">${favoriteDate}</div>
-              <div class="article-stats-cell">
-                <button class="remove-favorite-btn" onclick="favoritesManager.removeFavorite(${article.acId})">
-                  <i class="fas fa-trash"></i> 移除收藏
-                </button>
-              </div>
-            </div>
-          `;
-        });
-        container.innerHTML = html;
-      }
-      showEmptyState(message = '') {
-        const container = document.getElementById('favorites-container');
-        const countElement = document.getElementById('favorites-count');
-        if (countElement) {
-          countElement.textContent = '0';
-        }
-        if (container) {
-          container.innerHTML = `<div class="empty-favorites"><i class="fas fa-bookmark"></i><h3>還沒有收藏任何文章</h3><p>${message || '開始瀏覽論壇，收藏您喜歡的文章吧！'}</p><a href="article-type.html" class="btn-explore">瀏覽論壇</a></div>`;
-        }
-      }
-      async removeFavorite(articleId) {
-        if (!confirm('確定要移除這篇收藏嗎？')) return;
-        try {
-          const response = await fetch(`${window.api_prefix}/api/favorites/${this.currentMember.mem_id}/${articleId}`, { method: 'DELETE' });
-        } catch (error) { }
-        this.favorites = this.favorites.filter(fav => fav.acId !== articleId);
-        this.filteredFavorites = this.filteredFavorites.filter(fav => fav.acId !== articleId);
-        const localFavorites = JSON.parse(localStorage.getItem('articleFavorites') || '[]');
-        const updatedFavorites = localFavorites.filter(fav => !(fav.memId === (this.currentMember.mem_id || this.currentMember.memId) && fav.acId === articleId));
-        localStorage.setItem('articleFavorites', JSON.stringify(updatedFavorites));
-        const sortSelect = document.getElementById('sort-favorites');
-        if (sortSelect) {
-          this.sortFavorites(sortSelect.value);
-        } else {
-          this.sortFavorites('latest');
-        }
-        this.updateCategories();
-      }
-      getAuthorName(article) {
-        if (!article) return '未知作者';
-        const memberId = article.memId || article.mem_id;
-        if (!memberId) return '未知作者';
-        if (this.membersData) {
-          const member = this.membersData.find(m => m.mem_id === memberId);
-          return member ? member.mem_name : `用戶${memberId}`;
-        }
-        return `用戶${memberId}`;
-      }
-      getArticleType(acTypeId) {
-        const typeMap = { 30001: '新手指南', 30002: '裝備評測', 30003: '營地攻略', 30004: '露營食譜', 30005: '戶外技巧' };
-        return typeMap[acTypeId] || '其他';
-      }
-      searchFavorites(keyword) {
-        if (!keyword.trim()) {
-          this.filteredFavorites = [...this.favorites];
-        } else {
-          this.filteredFavorites = this.favorites.filter(article => article.acTitle.toLowerCase().includes(keyword.toLowerCase()) || (article.acContext && article.acContext.toLowerCase().includes(keyword.toLowerCase())));
-        }
-        const sortSelect = document.getElementById('sort-favorites');
-        if (sortSelect) {
-          this.sortFavorites(sortSelect.value);
-        } else {
-          this.sortFavorites('latest');
-        }
-      }
-      sortFavorites(sortType) {
-        switch (sortType) {
-          case 'latest':
-            this.filteredFavorites.sort((a, b) => new Date(b.favoriteTime) - new Date(a.favoriteTime));
-            break;
-          case 'oldest':
-            this.filteredFavorites.sort((a, b) => new Date(a.favoriteTime) - new Date(b.favoriteTime));
-            break;
-          case 'title':
-            this.filteredFavorites.sort((a, b) => a.acTitle.localeCompare(b.acTitle));
-            break;
-          case 'author':
-            this.filteredFavorites.sort((a, b) => this.getAuthorName(a).localeCompare(this.getAuthorName(b)));
-            break;
-        }
-        this.displayFavorites();
-      }
-      setupEventListeners() {
-        const searchInput = document.getElementById('search-input');
-        if (searchInput) {
-          searchInput.addEventListener('keypress', (event) => {
-            if (event.key === 'Enter') {
-              event.preventDefault();
-              this.searchFavorites(searchInput.value.trim());
-            }
-          });
-        }
-        const sortSelect = document.getElementById('sort-favorites');
-        if (sortSelect) {
-          sortSelect.value = 'latest';
-          sortSelect.addEventListener('change', (event) => {
-            this.sortFavorites(event.target.value);
-          });
-        }
-      }
-      // 更新分類統計
-      updateCategories() {
-        const categorySelect = document.getElementById('category-filter');
-        if (!categorySelect) return;
-
-        const categories = {};
-        this.favorites.forEach(article => {
-          const type = this.getArticleType(article.acTypeId);
-          categories[type] = (categories[type] || 0) + 1;
-        });
-
-        if (Object.keys(categories).length === 0) {
-          categorySelect.innerHTML = '<option value="all">全部 (0)</option>';
-          return;
-        }
-
-        let html = '';
-        // 添加「全部」選項
-        const totalCount = this.favorites.length;
-        html += `<option value="all">全部 (${totalCount})</option>`;
-
-        Object.entries(categories).forEach(([type, count]) => {
-          html += `<option value="${type}">${type} (${count})</option>`;
-        });
-
-        categorySelect.innerHTML = html;
-
-        // 監聽分類變更
-        categorySelect.onchange = (e) => {
-          this.filterByCategory(e.target.value);
-        };
-      }
-
-      // 按分類篩選
-      filterByCategory(category) {
-        if (category === 'all') {
-          // 顯示所有收藏
-          this.filteredFavorites = [...this.favorites];
-        } else {
-          // 篩選指定分類
-          this.filteredFavorites = this.favorites.filter(article =>
-            this.getArticleType(article.acTypeId) === category
-          );
-        }
-
-        // 應用當前排序
-        const sortSelect = document.getElementById('sort-favorites');
-        if (sortSelect) {
-          this.sortFavorites(sortSelect.value);
-        } else {
-          this.sortFavorites('latest');
-        }
-
-        // 更新數量顯示
-        const countElement = document.getElementById('favorites-count');
-        if (countElement) {
-          countElement.textContent = this.filteredFavorites.length;
-        }
-
-        // 顯示篩選結果
-        this.displayFavorites();
-      }
-    }
-    // 分頁切換時才初始化收藏管理器
-    let favoritesManager = null;
-    function showProfileSection(tabId) {
-      document.querySelectorAll('.profile-section').forEach(section => {
-        section.style.display = 'none';
-      });
-      const section = document.getElementById(tabId);
-      if (section) section.style.display = '';
-      if (tabId === 'article-favorites') {
-        if (!favoritesManager) favoritesManager = new FavoritesManager();
-      }
-    }
-    document.querySelectorAll('.profile-menu-item').forEach(item => {
-      item.addEventListener('click', function (e) {
-        e.preventDefault();
-        document.querySelectorAll('.profile-menu-item').forEach(i => i.classList.remove('active'));
-        this.classList.add('active');
-        const tab = this.getAttribute('data-tab');
-        showProfileSection(tab);
-      });
-    });
-    showProfileSection('profile-basic');
-    function handleSearch(event) {
-      event.preventDefault();
-      const searchInput = document.getElementById('search-input');
-      const searchTerm = searchInput.value.trim();
-      if (favoritesManager) {
-        if (!searchTerm) {
-          favoritesManager.searchFavorites(''); // 顯示全部
-        } else {
-          favoritesManager.searchFavorites(searchTerm);
-        }
-      }
-    }
-  </script>
   <link rel="stylesheet" href="css/chat.css" />
   <style>
     .profile-section#article-favorites {
@@ -821,7 +519,7 @@
       background: #fff;
       border-radius: 12px;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-      padding: 32px 24px;
+      padding: 15px 15px;
       box-sizing: border-box;
     }
 
@@ -1072,6 +770,85 @@
       transform: scale(0.95);
     }
   </style>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      // 文章類別資料，可根據實際API回傳調整
+      const articleTypes = [
+        { id: '', name: '全部文章' },
+        { id: 30001, name: '新手指南' },
+        { id: 30002, name: '裝備評測' },
+        { id: 30003, name: '營地推薦' }
+      ];
+
+      // 產生下拉選單
+      const categoryFilter = document.getElementById('category-filter');
+      if (categoryFilter) {
+        categoryFilter.innerHTML = articleTypes.map(type =>
+          `<option value="${type.id}">${type.name}</option>`
+        ).join('');
+      }
+
+      // 監聽選單變化
+      categoryFilter.addEventListener('change', function () {
+        const selectedType = this.value;
+        const allItems = document.querySelectorAll('#favorites-container .article-item');
+        allItems.forEach(item => {
+          const tag = item.querySelector('.article-tag');
+          if (!selectedType || (tag && tag.textContent.includes(articleTypes.find(t => t.id == selectedType)?.name || ''))) {
+            item.style.display = '';
+          } else {
+            item.style.display = 'none';
+          }
+        });
+      });
+
+      // 露天市集風格勾選邏輯
+      const selectAllCheckbox = document.getElementById('select-all-checkbox');
+      const deleteBar = document.getElementById('delete-selected-bar');
+      const deleteSelectedBtn = document.getElementById('delete-selected-btn');
+      function getAllCheckboxes() {
+        return document.querySelectorAll('#favorites-container .favorite-checkbox');
+      }
+      function updateSelectAllState() {
+        const boxes = getAllCheckboxes();
+        const checked = Array.from(boxes).filter(cb => cb.checked);
+        selectAllCheckbox.checked = boxes.length > 0 && checked.length === boxes.length;
+        selectAllCheckbox.indeterminate = checked.length > 0 && checked.length < boxes.length;
+        // 刪除bar顯示
+        if (checked.length > 0) {
+          deleteBar.style.display = 'flex';
+        } else {
+          deleteBar.style.display = 'none';
+        }
+      }
+      if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function () {
+          getAllCheckboxes().forEach(cb => cb.checked = selectAllCheckbox.checked);
+          updateSelectAllState();
+        });
+      }
+      document.addEventListener('change', function (e) {
+        if (e.target.classList.contains('favorite-checkbox')) {
+          updateSelectAllState();
+        }
+      });
+      if (deleteSelectedBtn) {
+        deleteSelectedBtn.addEventListener('click', function () {
+          const checked = Array.from(getAllCheckboxes()).filter(cb => cb.checked);
+          if (checked.length === 0) {
+            alert('請先勾選要刪除的收藏文章');
+            return;
+          }
+          const ids = checked.map(cb => cb.value);
+          // 這裡可改為呼叫API批次刪除
+          alert('將刪除收藏文章ID: ' + ids.join(', '));
+          // 實際刪除邏輯請依後端API補上
+        });
+      }
+      // 初始同步
+      updateSelectAllState();
+    });
+  </script>
 </body>
 
 </html>
