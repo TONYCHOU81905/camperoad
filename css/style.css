@@ -271,32 +271,19 @@ h4 {
 }
 
 .btn-login {
-  font-size: 16px;
-  display: block;
-  width: 100%;
-  border-radius: 0.5rem;
-  padding: 0.3rem;
-  text-decoration: none;
-  text-align: center;
-  border: 1px solid #3a5a40;
-  background-color: white;
-  color: #3a5a40;
-  transition: background-color 0.3s ease, color 0.3s ease;
-  cursor: pointer;
-}
-
-/* 定義閃爍動畫 */
-@keyframes flash-once {
-  0% { opacity: 1; }
-  50% { opacity: 0.4; }
-  100% { opacity: 1; }
+  border: none; /* 移除外框 */
+  border-radius: 0;
+  padding: 0;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* 滑鼠移上去觸發閃爍動畫一次 */
 .btn-login:hover {
-  animation: flash-once 0.3s ease-in-out;
-  background-color: #3a5a40;
-  color: white;
+  background-color: transparent; /* 移除懸停時的背景色 */
+  color: #2d4731; /* 保持懸停時的顏色變化 */
 }
 
 
