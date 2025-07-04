@@ -746,7 +746,8 @@
       async function loadCampImages() {
         const urlParams = new URLSearchParams(window.location.search);
         const campId = urlParams.get("id") || "1";
-        const galleryThumbsContainer = document.getElementById("gallery-thumbs");
+        const galleryThumbsContainer =
+          document.getElementById("gallery-thumbs");
         const mainImage = document.getElementById("main-image");
 
         if (!galleryThumbsContainer) {
@@ -762,17 +763,17 @@
 
         let validImages = [];
         let firstValidImage = null;
-        
+
         console.log(`開始載入營地 ${campId} 的圖片`);
 
         // 檢查最多4張圖片
         for (let i = 1; i <= 4; i++) {
           const imageUrl = `${window.api_prefix}/api/camps/${campId}/${i}`;
           console.log(`檢查圖片 ${i}: ${imageUrl}`);
-          
+
           // 使用圖片載入方式檢查，而不是HEAD請求
           const isImageValid = await checkImageExists(imageUrl);
-          
+
           if (isImageValid) {
             console.log(`圖片 ${i} 載入成功`);
             validImages.push({ index: i, url: imageUrl });
@@ -825,7 +826,7 @@
 
         console.log(`成功載入了 ${validImages.length} 張營地圖片`);
       }
-      
+
       // 檢查圖片是否存在的輔助函數
       function checkImageExists(imageUrl) {
         return new Promise((resolve) => {
@@ -846,6 +847,145 @@
           img.src = imageUrl;
         });
       }
+
+      // 新增：查詢可用營地功能
+      async function searchAvailableCamps() {
+        const checkIn = document.getElementById("check-in-date").value;
+        const checkOut = document.getElementById("check-out-date").value;
+        const guests = document.getElementById("guests").value;
+        if (!checkIn || !checkOut || !guests) {
+          alert("請選擇入住/退房日期與人數");
+          return;
+        }
+        // 更新網址列參數
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.set("check-in", checkIn);
+        urlParams.set("check-out", checkOut);
+        urlParams.set("guests", guests);
+        history.replaceState(
+          null,
+          "",
+          `${location.pathname}?${urlParams.toString()}`
+        );
+        // 取得所有營地資料（假設 window.campData 已載入）
+        const allCamps = window.campData || [];
+        // 取得本頁 campId
+        const campId = urlParams.get("id");
+        // 只查詢本頁營地
+        const filteredCamps = campId
+          ? allCamps.filter((c) => String(c.campId) === String(campId))
+          : allCamps;
+        // 構建API請求參數
+        const requestBody = new URLSearchParams();
+        filteredCamps.forEach((camp) =>
+          requestBody.append("campIds", camp.campId)
+        );
+        requestBody.append("people", guests);
+        requestBody.append("checkIn", checkIn);
+        requestBody.append("checkOut", checkOut);
+        // 呼叫API
+        let availableCamps = [];
+        console.log("呼叫API", requestBody);
+
+        try {
+          const response = await fetch(
+            `${window.api_prefix}/api/ca/available/Remaing`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/x-www-form-urlencoded" },
+              body: requestBody,
+            }
+          );
+          if (!response.ok) throw new Error("API請求失敗");
+          const apiResult = await response.json();
+          if (apiResult.status === "success" && apiResult.data) {
+            availableCamps = apiResult.data;
+          } else {
+            availableCamps = [];
+          }
+        } catch (error) {
+          alert("查詢可用營地失敗: " + error.message);
+          return;
+        }
+        renderAvailableRoomTypes(availableCamps, guests);
+      }
+
+      // 取代房型區塊內容
+      function renderAvailableRoomTypes(camps, guests) {
+        const roomTypesSection = document.querySelector(".room-types-section");
+        const container = roomTypesSection?.querySelector(
+          ".room-types-container"
+        );
+
+        console.log("roomTypesSection", roomTypesSection);
+        console.log("container", container);
+
+        if (!roomTypesSection || !container) {
+          console.warn(
+            "找不到 room-types-section 或 container，請確認 HTML 結構正確"
+          );
+          return;
+        }
+
+        // 修改標題
+        const sectionTitle = roomTypesSection.querySelector("h3");
+        if (sectionTitle) {
+          sectionTitle.textContent = `適合 ${guests} 人的房型選擇`;
+        }
+
+        // 如果沒房型資料
+        if (!camps || camps.length === 0) {
+          container.innerHTML = `
+            <div class="no-rooms-message">
+              <i class="fas fa-exclamation-circle"></i>
+              <p>查無可用房型，請更換條件再試。</p>
+            </div>`;
+          return;
+        }
+
+        console.log("campsite-detail.html", camps);
+
+        // 渲染房型卡片
+        container.innerHTML = camps
+          .map(
+            (camp) => `
+          <div class="room-type-card">
+            <div class="room-type-photos">
+              <div class="main-photo">
+                <img src="/images/camps/camp-placeholder.jpg" alt="${camp.campsiteTypeName}">
+              </div>
+            </div>
+            <div class="room-type-info">
+              <h3 class="room-type-name">${camp.campsiteTypeName}</h3>
+              <div class="room-type-details">
+                <p><i class="fas fa-users"></i> 適合 ${camp.people} 人</p>
+                <p><i class="fas fa-tent"></i> 剩餘 ${camp.remaining} 帳</p>
+                <p class="room-type-price"><i class="fas fa-dollar-sign"></i> NT$ ${camp.price} / 晚</p>
+              </div>
+              <button class="btn-add-to-cart" data-type-id="${camp.campsiteTypeId}">
+                <i class="fas fa-cart-plus"></i> 加入購物車
+              </button>
+            </div>
+          </div>`
+          )
+          .join("");
+
+        // 綁定購物車按鈕事件
+        container.querySelectorAll(".btn-add-to-cart").forEach((btn) => {
+          btn.addEventListener("click", function () {
+            const typeId = this.getAttribute("data-type-id");
+            if (typeof addToCart === "function") addToCart(typeId);
+          });
+        });
+      }
+
+      // 綁定 btn-book 點擊事件
+      document.addEventListener("DOMContentLoaded", function () {
+        const btnBook = document.getElementById("btn-book");
+        if (btnBook) {
+          btnBook.addEventListener("click", searchAvailableCamps);
+        }
+      });
     </script>
     <!-- WebSocket相關庫 -->
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
