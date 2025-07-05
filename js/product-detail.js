@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // 綁定加入收藏按鈕點擊事件
   if (addWishlistBtn) {
     addWishlistBtn.addEventListener('click', function() {
-      addToWishlist(productId);
+      toggleWishlist(productId);
     });
   }
   
@@ -36,6 +36,9 @@ function initProductDetail() {
   
   // 載入商品詳情
   loadProductDetail(productId);
+  
+  // 檢查收藏狀態
+  checkFavoriteStatus(productId);
   
   // 綁定顏色選擇事件
   bindColorOptions();
@@ -592,30 +595,6 @@ function initProductDetail() {
       });
     }
     
-    // 租借天數選擇器（如果有）
-    const rentDaysInput = document.getElementById('rent-days');
-    if (rentDaysInput) {
-      const rentDaysMinusBtn = rentDaysInput.parentNode.querySelector('.minus');
-      const rentDaysPlusBtn = rentDaysInput.parentNode.querySelector('.plus');
-      
-      if (rentDaysMinusBtn) {
-        rentDaysMinusBtn.addEventListener('click', function() {
-          const currentValue = parseInt(rentDaysInput.value);
-          if (currentValue > parseInt(rentDaysInput.min)) {
-            rentDaysInput.value = currentValue - 1;
-          }
-        });
-      }
-      
-      if (rentDaysPlusBtn) {
-        rentDaysPlusBtn.addEventListener('click', function() {
-          const currentValue = parseInt(rentDaysInput.value);
-          if (currentValue < parseInt(rentDaysInput.max)) {
-            rentDaysInput.value = currentValue + 1;
-          }
-        });
-      }
-    }
   }
   
   // 綁定購買方式選擇事件
@@ -686,68 +665,89 @@ function initProductDetail() {
     });
   }
   
-  // 加入收藏函數
-  function addToWishlist(prodId) {
-    // 檢查用戶是否登入
-    const isLoggedIn = globalCartManager.getMemberId() > 0;
-    
-    if (!isLoggedIn) {
-      alert('請先登入會員');
-      window.location.href = 'login.html?redirect=' + encodeURIComponent(window.location.href);
-      return;
-    }
-    
-    // 準備要發送的數據
-    const wishlistData = {
-      memId: globalCartManager.getMemberId(),
-      prodId: parseInt(prodId)
-    };
-    
-    console.log('加入收藏數據:', wishlistData);
-    
-    // 使用fetch API發送請求
-    fetch(`${window.api_prefix}/api/addWishlist`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(wishlistData)
-    })
+  // 切換收藏狀態
+function toggleWishlist(prodId) {
+  const memId = getCurrentMemberId();
+  
+  if (!memId) {
+    alert('請先登入會員');
+    window.location.href = 'login.html?redirect=' + encodeURIComponent(window.location.href);
+    return;
+  }
+  
+  const addWishlistBtn = document.querySelector('.btn-add-wishlist');
+  const isFavorite = addWishlistBtn && addWishlistBtn.dataset.isFavorite === 'true';
+  
+  if (isFavorite) {
+    // 取消收藏
+    removeFromWishlist(prodId, memId);
+  } else {
+    // 加入收藏
+    addToWishlist(prodId, memId);
+  }
+}
+
+// 加入收藏函數
+function addToWishlist(prodId, memId) {
+  fetch(`${window.api_prefix}/api/prodfavorites/${memId}/${prodId}`, {
+    method: 'POST'
+  })
     .then(response => {
-      if (!response.ok) {
-        throw new Error('網路回應不正常');
-      }
+      if (!response.ok) throw new Error('網路回應不正常');
       return response.json();
     })
     .then(data => {
       console.log('加入收藏成功:', data);
-      
-      // 更新收藏按鈕狀態
       const addWishlistBtn = document.querySelector('.btn-add-wishlist');
       if (addWishlistBtn) {
         addWishlistBtn.innerHTML = '<i class="fas fa-heart"></i>';
         addWishlistBtn.classList.add('active');
+        addWishlistBtn.dataset.isFavorite = 'true';
       }
-      
-      // 顯示成功訊息
-      showWishlistMessage();
+      showWishlistMessage('已添加到收藏');
     })
     .catch(error => {
       console.error('加入收藏失敗:', error);
       alert('加入收藏失敗，請稍後再試');
     });
-  }
+}
+
+// 取消收藏函數
+function removeFromWishlist(prodId, memId) {
+  fetch(`${window.api_prefix}/api/prodfavorites/${memId}/${prodId}`, {
+    method: 'DELETE'
+  })
+    .then(response => {
+      if (!response.ok) throw new Error('網路回應不正常');
+      return response.json();
+    })
+    .then(data => {
+      console.log('取消收藏成功:', data);
+      const addWishlistBtn = document.querySelector('.btn-add-wishlist');
+      if (addWishlistBtn) {
+        addWishlistBtn.innerHTML = '<i class="far fa-heart"></i>';
+        addWishlistBtn.classList.remove('active');
+        addWishlistBtn.dataset.isFavorite = 'false';
+      }
+      showWishlistMessage('已取消收藏');
+    })
+    .catch(error => {
+      console.error('取消收藏失敗:', error);
+      alert('取消收藏失敗，請稍後再試');
+    });
+}
+   
   
   // 顯示加入收藏成功訊息
-  function showWishlistMessage() {
-    // 創建提示消息
-    const message = document.createElement('div');
-    message.className = 'wishlist-message';
-    message.innerHTML = `
-      <i class="fas fa-heart"></i>
-      <span>已添加到收藏</span>
-      <a href="user-profile.html?tab=wishlist" class="view-wishlist-btn">查看收藏</a>
-    `;
+function showWishlistMessage(messageText = '已添加到收藏') {
+  // 創建提示消息
+  const message = document.createElement('div');
+  message.className = 'wishlist-message';
+  message.innerHTML = `
+    <i class="fas fa-heart"></i>
+    <span>${messageText}</span>
+    <a href="user-profile.html?tab=wishlist" class="view-wishlist-btn">查看收藏</a>
+  `;
   
     // 添加樣式
     message.style.cssText = `
@@ -829,7 +829,7 @@ function initProductDetail() {
     
     // 準備要發送的數據（符合後端 CartDTO_req 格式）
     const cartData = {
-      memId: globalCartManager.getMemberId(),  // 使用全域購物車管理器取得會員ID
+      memId: getCurrentMemberId(),  
       prodId: parseInt(productId),
       prodColorId: prodColorId,
       prodSpecId: prodSpecId,
@@ -1207,4 +1207,40 @@ function addProductToCart(productData) {
     console.error('加入購物車失敗:', error);
     alert('加入購物車失敗，請稍後再試');
   });
+}
+
+// 獲取當前登入會員的 ID
+function getCurrentMemberId() {
+  const memberData = localStorage.getItem('currentMember') || sessionStorage.getItem('currentMember');
+  if (memberData) {
+    try {
+      return JSON.parse(memberData).memId;
+    } catch (e) {
+      console.error('解析會員資料失敗', e);
+    }
+  }
+  return null;
+}
+
+// 檢查收藏狀態
+function checkFavoriteStatus(prodId) {
+  const memId = getCurrentMemberId();
+  if (!memId) return; // 未登入不檢查
+  
+  fetch(`${window.api_prefix}/api/prodfavorites/isFavoriteOrNot/${memId}/${prodId}`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'success' && data.data) {
+        // 如果已收藏，更新按鈕狀態
+        const addWishlistBtn = document.querySelector('.btn-add-wishlist');
+        if (addWishlistBtn) {
+          addWishlistBtn.innerHTML = '<i class="fas fa-heart"></i>';
+          addWishlistBtn.classList.add('active');
+          addWishlistBtn.dataset.isFavorite = 'true';
+        }
+      }
+    })
+    .catch(error => {
+      console.error('檢查收藏狀態失敗:', error);
+    });
 }
