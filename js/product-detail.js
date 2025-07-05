@@ -1,6 +1,56 @@
 // 使用全域購物車管理器
 // 移除重複的ShopCartManager類別定義
 
+// Session Cart 管理工具（如果不存在則創建）
+if (typeof sessionCartManager === 'undefined') {
+  const sessionCartManager = {
+    getCart: function() {
+      const cart = sessionStorage.getItem('sessionCart');
+      return cart ? JSON.parse(cart) : [];
+    },
+    saveCart: function(cart) {
+      sessionStorage.setItem('sessionCart', JSON.stringify(cart));
+    },
+    addToCart: function(item) {
+      const cart = this.getCart();
+      const exist = cart.find(c =>
+        c.prodId === item.prodId &&
+        c.prodColorId === item.prodColorId &&
+        c.prodSpecId === item.prodSpecId
+      );
+      if (exist) {
+        exist.cartProdQty += item.cartProdQty;
+      } else {
+        cart.push(item);
+      }
+      this.saveCart(cart);
+    },
+    updateItem: function(prodId, prodColorId, prodSpecId, qty) {
+      let cart = this.getCart();
+      const existIndex = cart.findIndex(c => c.prodId === prodId);
+      if (existIndex !== -1) {
+        cart[existIndex].prodColorId = prodColorId;
+        cart[existIndex].prodSpecId = prodSpecId;
+        cart[existIndex].cartProdQty = qty;
+        this.saveCart(cart);
+      }
+    },
+    removeItem: function(prodId, prodColorId, prodSpecId) {
+      let cart = this.getCart();
+      cart = cart.filter(c =>
+        !(c.prodId === prodId && c.prodColorId === prodColorId && c.prodSpecId === prodSpecId)
+      );
+      this.saveCart(cart);
+    },
+    clearCart: function() {
+      sessionStorage.removeItem('sessionCart');
+    }
+  };
+  
+  // 將 sessionCartManager 設為全域變數
+  window.sessionCartManager = sessionCartManager;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   // 獲取加入購物車按鈕
   const addToCartBtn = document.querySelector('.btn-add-cart');
@@ -806,60 +856,76 @@ function showWishlistMessage(messageText = '已添加到收藏') {
   }
   
   // 加入購物車函數
-  function addToCart(buyNow = false) {
-    // 獲取商品資訊
-    const quantity = document.getElementById('quantity').value;
-    
-    // 找出選中的顏色ID
-    const selectedColorOption = document.querySelector('.color-option.active');
-    const prodColorId = selectedColorOption ? parseInt(selectedColorOption.dataset.colorId) : 1; // 預設為1
-    
-    // 找出選中的規格ID
-    const selectedSpecSelect = document.querySelector('.prod-spec-select');
-    const prodSpecId = selectedSpecSelect ? parseInt(selectedSpecSelect.value) : 1; // 現在value是規格ID
-    
-    // 檢查購買方式
-    const isPurchase = !document.querySelector('.purchase-option[data-type="rent"].active');
-    
-    // 如果是租借，獲取租借天數
-    let rentDays = 0;
-    if (!isPurchase) {
-      rentDays = parseInt(document.getElementById('rent-days').value) || 1;
-    }
-    
-    // 準備要發送的數據（符合後端 CartDTO_req 格式）
-    const cartData = {
-      memId: getCurrentMemberId(),  
-      prodId: parseInt(productId),
-      prodColorId: prodColorId,
-      prodSpecId: prodSpecId,
-      cartProdQty: parseInt(quantity),
-      isRent: !isPurchase,
-      rentDays: rentDays
-    };
-    
-    console.log('加入購物車數據:', cartData);
-    
-    // 使用fetch API發送請求
-    fetch(`${window.api_prefix}/api/addCart`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(cartData)
-    })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('網路回應不正常');
-      }
-      return response.json();
-    })
-    .then(data => {
-      console.log('加入購物車成功:', data);
+  async function addToCart(buyNow = false) {
+    try {
+      // 獲取商品資訊
+      const quantity = document.getElementById('quantity').value;
       
-      // 更新購物車數量顯示
-      if (data.status === 'success') {
-        globalCartManager.updateCartCount(); // 重新取得購物車數量
+      // 找出選中的顏色ID
+      const selectedColorOption = document.querySelector('.color-option.active');
+      const prodColorId = selectedColorOption ? parseInt(selectedColorOption.dataset.colorId) : 1; // 預設為1
+      
+      // 找出選中的規格ID
+      const selectedSpecSelect = document.querySelector('.prod-spec-select');
+      const prodSpecId = selectedSpecSelect ? parseInt(selectedSpecSelect.value) : 1; // 現在value是規格ID
+      
+      // 檢查購買方式
+      const isPurchase = !document.querySelector('.purchase-option[data-type="rent"].active');
+      
+      // 如果是租借，獲取租借天數
+      let rentDays = 0;
+      if (!isPurchase) {
+        rentDays = parseInt(document.getElementById('rent-days').value) || 1;
+
+      }
+      
+      // 準備要發送的數據（符合後端 CartDTO_req 格式）
+      const cartData = {
+        prodId: parseInt(productId),
+        prodColorId: prodColorId,
+        prodSpecId: prodSpecId,
+        cartProdQty: parseInt(quantity),
+        isRent: !isPurchase,
+        rentDays: rentDays
+      };
+      
+      console.log('加入購物車數據:', cartData);
+      
+      // 檢查用戶是否登入
+      const memberInfo = sessionStorage.getItem('currentMember');
+      const member = memberInfo ? JSON.parse(memberInfo) : null;
+      const memId = member ? member.memId : null;
+      
+      if (memId) {
+        // 已登入用戶，使用 API
+        cartData.memId = memId;
+        
+        const response = await fetch(`${window.api_prefix}/api/addCart`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(cartData)
+        });
+        
+        if (!response.ok) {
+          throw new Error('網路回應不正常');
+        }
+        
+        const data = await response.json();
+        console.log('加入購物車成功:', data);
+        
+        if (data.status === 'success') {
+          // 更新購物車數量顯示
+          if (typeof globalCartManager !== 'undefined' && globalCartManager.updateCartCount) {
+            globalCartManager.updateCartCount();
+          }
+        } else {
+          throw new Error(data.message || '加入購物車失敗');
+        }
+      } else {
+        // 未登入用戶，使用 sessionStorage
+        sessionCartManager.addToCart(cartData);
       }
       
       // 顯示成功訊息
@@ -869,11 +935,11 @@ function showWishlistMessage(messageText = '已添加到收藏') {
       if (buyNow) {
         window.location.href = 'shop_cart.html';
       }
-    })
-    .catch(error => {
+      
+    } catch (error) {
       console.error('加入購物車失敗:', error);
       alert('加入購物車失敗，請稍後再試');
-    });
+    }
   }
   
   // 顯示加入購物車成功訊息
@@ -1164,49 +1230,64 @@ function bindRelatedProductEvents() {
 }
 
 // 添加商品到購物車
-function addProductToCart(productData) {
-  // 準備要發送的數據（符合後端 CartDTO_req 格式）
-  const cartData = {
-    memId: globalCartManager.getMemberId(),
-    prodId: parseInt(productData.productId),
-    prodColorId: parseInt(productData.colorId) || 1,
-    prodSpecId: parseInt(productData.specId) || 1,
-    cartProdQty: parseInt(productData.quantity) || 1,
-    isRent: false,
-    rentDays: 0
-  };
-  
-  console.log('加入購物車數據:', cartData);
-  
-  // 使用fetch API發送請求
-  fetch(`${window.api_prefix}/api/addCart`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(cartData)
-  })
-  .then(response => {
-    if (!response.ok) {
-      throw new Error('網路回應不正常');
-    }
-    return response.json();
-  })
-  .then(data => {
-    console.log('加入購物車成功:', data);
+async function addProductToCart(productData) {
+  try {
+    // 準備要發送的數據（符合後端 CartDTO_req 格式）
+    const cartData = {
+      prodId: parseInt(productData.productId),
+      prodColorId: parseInt(productData.colorId) || 1,
+      prodSpecId: parseInt(productData.specId) || 1,
+      cartProdQty: parseInt(productData.quantity) || 1,
+      isRent: false,
+      rentDays: 0
+    };
     
-    // 更新購物車數量顯示
-    if (data.status === 'success') {
-      globalCartManager.updateCartCount(); // 重新取得購物車數量
+    console.log('加入購物車數據:', cartData);
+    
+    // 檢查用戶是否登入
+    const memberInfo = sessionStorage.getItem('currentMember');
+    const member = memberInfo ? JSON.parse(memberInfo) : null;
+    const memId = member ? member.memId : null;
+    
+    if (memId) {
+      // 已登入用戶，使用 API
+      cartData.memId = memId;
+      
+      const response = await fetch(`${window.api_prefix}/api/addCart`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(cartData)
+      });
+      
+      if (!response.ok) {
+        throw new Error('網路回應不正常');
+      }
+      
+      const data = await response.json();
+      console.log('加入購物車成功:', data);
+      
+      if (data.status === 'success') {
+        // 更新購物車數量顯示
+        if (typeof globalCartManager !== 'undefined' && globalCartManager.updateCartCount) {
+          globalCartManager.updateCartCount();
+        }
+      } else {
+        throw new Error(data.message || '加入購物車失敗');
+      }
+    } else {
+      // 未登入用戶，使用 sessionStorage
+      sessionCartManager.addToCart(cartData);
     }
     
     // 顯示成功訊息
     showAddToCartMessage();
-  })
-  .catch(error => {
+    
+  } catch (error) {
     console.error('加入購物車失敗:', error);
-    alert('加入購物車失敗，請稍後再試');
-  });
+    // alert('加入購物車失敗，請稍後再試');
+  }
 }
 
 // 獲取當前登入會員的 ID
