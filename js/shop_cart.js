@@ -593,6 +593,7 @@ function recalculateCartSummary() {
 }
 
 // console.log('送出新增/修改購物車API', {memId, payload });
+// 新增購物車內容
 fetch(`${window.api_prefix}/api/addCart`, {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
