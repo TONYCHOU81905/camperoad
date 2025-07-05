@@ -89,11 +89,6 @@ class CheckoutManager {
       if (item.isBundle) {
         // 加購商品
         orderItemElement.innerHTML = `
-          <div class="order-item-image">
-            <img src="/images/bundles/bundle-${item.bundleId}.jpg" alt="${
-          item.bundleName
-        }">
-          </div>
           <div class="order-item-details">
             <div class="order-item-title">${item.bundleName}</div>
             <div class="order-item-info">數量: ${item.quantity || 1}</div>
@@ -117,12 +112,6 @@ class CheckoutManager {
         const totalPrice = (campsiteType.campsitePrice + tentPrice) * nights;
 
         orderItemElement.innerHTML = `
-          <div class="order-item-image">
-            <img src="${
-              item.image ||
-              `${window.api_prefix}/campsitetype/${item.campsiteTypeId}/${item.campId}/images/1`
-            }" alt="${campsiteType.name}">
-          </div>
           <div class="order-item-details">
             <div class="order-item-title">${campsiteType.campsiteName}</div>
             <div class="order-item-info">${this.formatDate(
@@ -142,11 +131,6 @@ class CheckoutManager {
       orderItemElement.className = "order-item bundle-item";
 
       orderItemElement.innerHTML = `
-        <div class="order-item-image">
-          <img src="/images/bundles/bundle-${item.bundleId}.jpg" alt="${
-        item.bundleName
-      }">
-        </div>
         <div class="order-item-details">
           <div class="order-item-title">${item.bundleName}</div>
           <div class="order-item-info">數量: ${item.quantity || 1}</div>
@@ -232,6 +216,30 @@ class CheckoutManager {
     if (backToCheckoutBtn) {
       backToCheckoutBtn.addEventListener("click", () => {
         this.hidePaymentResultModal();
+      });
+    }
+
+    // 新增：同會員資訊按鈕
+    const fillMemberBtn = document.getElementById('fill-member-info');
+    if (fillMemberBtn) {
+      fillMemberBtn.addEventListener('click', () => {
+        let memberInfo = localStorage.getItem('currentMember') || sessionStorage.getItem('currentMember');
+        if (memberInfo) {
+          try {
+            const member = JSON.parse(memberInfo);
+            document.getElementById('customer-name').value = member.memName || '';
+            // 手機號碼格式化
+            let mobile = member.memMobile || '';
+            mobile = mobile.replace(/\D/g, ''); // 移除所有非數字
+            document.getElementById('customer-phone').value = mobile;
+            document.getElementById('customer-email').value = member.memEmail || '';
+            document.getElementById('customer-address').value = member.memAddr || '';
+          } catch (e) {
+            alert('會員資料解析失敗');
+          }
+        } else {
+          alert('找不到會員資料');
+        }
       });
     }
   }
