@@ -643,7 +643,7 @@ class CheckoutManager {
         return;
       }
       // 取得會員擁有的折價券ID
-      const userDiscountResp = await fetch(`${window.api_prefix}/api/userdiscount/search/${this.memId}`);
+      const userDiscountResp = await fetch(`${window.api_prefix}/api/userdiscount/notUsed/${this.memId}`);
       const userDiscountData = await userDiscountResp.json();
       console.log('userDiscountData:', userDiscountData);
       const userDiscounts = Array.isArray(userDiscountData) ? userDiscountData : [];
