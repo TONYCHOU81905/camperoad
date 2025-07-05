@@ -226,7 +226,7 @@ class CampCartPageManager {
         <div class="cart-item-details bundle-item-details">
           <div class="bundle-item-header">
             <h3 class="cart-item-title">${bundleName}</h3>
-            <span class="bundle-item-badge">加購商品</span>
+         
           </div>
           <div class="cart-item-info">
             <div class="info-row">

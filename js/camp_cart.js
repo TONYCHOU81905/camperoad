@@ -211,7 +211,7 @@ class CartManager {
     let bundleItemsStorage =
       JSON.parse(localStorage.getItem("bundleItems")) || [];
     const bundleIndex = bundleItemsStorage.findIndex(
-      (bundleItem) => (bundleItem.bundleId || bundleItem.bundle_id) === bundleId
+      (bundleItem) => bundleItem.bundleId == bundleId
     );
 
     if (bundleIndex > -1) {
