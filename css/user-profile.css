@@ -738,12 +738,29 @@
   padding-top: 16px;
   border-top: 1px solid #eee;
   display: flex;
-  justify-content: flex-end;
+  justify-content: flex-start;
   gap: 12px;
 }
 
 /* 取消訂單按鈕樣式 */
 .btn-cancel-order {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(220, 53, 69, 0.2);
+}
+
+/* 退貨訂單按鈕樣式 */
+.btn-return-order {
   background-color: #dc3545;
   color: white;
   border: none;
