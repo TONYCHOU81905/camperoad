@@ -46,7 +46,7 @@ class CartPageManager {
       bundleItemsContainer.style.display = "block";
     }
 
-    // 獲取第一個營地項目的信息（用於統一顯示日期和加載加購商品）
+    // 獲取第一個營地項目的信息（用於統一顯示日期）
     const campItems = cartItems.filter((item) => !item.isBundle);
     if (campItems.length > 0) {
       try {
@@ -80,9 +80,6 @@ class CartPageManager {
 
         // 儲存住宿天數到localStorage
         localStorage.setItem("days", nights);
-
-        // 顯示加購商品
-        this.renderBundleItems(campId, bundleItemsContainer);
       } catch (error) {
         console.error("處理日期資訊時發生錯誤:", error);
         // 顯示錯誤信息
@@ -96,6 +93,13 @@ class CartPageManager {
         `;
         cartItemsContainer.appendChild(errorElement);
       }
+    }
+
+    // 總是顯示加購商品（不依賴於是否有營地項目）
+    try {
+      this.renderBundleItems(null, bundleItemsContainer);
+    } catch (error) {
+      console.error("載入加購商品時發生錯誤:", error);
     }
 
     // 渲染營地項目
@@ -211,30 +215,26 @@ class CartPageManager {
     const storedBundleItems = cartManager.getBundleItems();
     storedBundleItems.forEach((item) => {
       const cartItemElement = document.createElement("div");
-      cartItemElement.className = "cart-item bundle-item";
+      cartItemElement.className = "cart-item bundle-item no-image";
       cartItemElement.dataset.bundleId = item.bundleId;
 
       cartItemElement.innerHTML = `
-        <div class="cart-item-image">
-          <img src="/images/bundles/bundle-${item.bundleId}.jpg" alt="${
-        item.bundleName
-      }">
-        </div>
-        <div class="cart-item-details">
-          <h3 class="cart-item-title">${item.bundleName}</h3>
+        <div class="cart-item-details bundle-item-details">
+          <div class="bundle-item-header">
+            <h3 class="cart-item-title">${item.bundleName || "未知商品"}</h3>
+            <span class="bundle-item-badge">加購商品</span>
+          </div>
           <div class="cart-item-info">
             <div class="info-row">
-              <span class="info-label">類型：</span>
-              <span class="info-value">加購商品</span>
+              <span class="info-label">單價：</span>
+              <span class="info-value">NT$ ${(
+                item.bundlePrice || 0
+              ).toLocaleString()}</span>
             </div>
           </div>
         </div>
         <div class="cart-item-price">
           <div class="price-details">
-            <div class="price-row">
-              <span class="price-label">單價：</span>
-              <span class="price-value">NT$ ${item.bundlePrice.toLocaleString()}</span>
-            </div>
             <div class="price-row">
               <span class="price-label">數量：</span>
               <span class="price-value">
@@ -254,7 +254,7 @@ class CartPageManager {
             <div class="price-row total">
               <span class="price-label">小計：</span>
               <span class="price-value">NT$ ${(
-                item.bundlePrice * (item.quantity || 1)
+                (item.bundlePrice || 0) * (item.quantity || 1)
               ).toLocaleString()}</span>
             </div>
           </div>
@@ -275,10 +275,11 @@ class CartPageManager {
 
   // 渲染加購商品選項
   renderBundleItems(campId, container) {
-    const bundleItems = cartManager.getBundleItemsByCampId(campId);
-    console.log("bbbb" + bundleItems);
+    // 使用 cartManager.bundleItems 而不是 getBundleItemsByCampId
+    const bundleItems = cartManager.bundleItems;
+    console.log("Available bundle items:", bundleItems);
 
-    if (bundleItems.length === 0) {
+    if (!bundleItems || bundleItems.length === 0) {
       container.innerHTML = "<p class='no-bundles'>此營地暫無加購商品</p>";
       return;
     }
@@ -288,20 +289,35 @@ class CartPageManager {
     bundleGrid.className = "bundle-grid";
 
     bundleItems.forEach((item) => {
+      // 轉換數據格式以保持一致性
+      const normalizedItem = {
+        bundleId: item.bundle_id || item.bundleId,
+        bundleName: item.bundle_name || item.bundleName,
+        bundlePrice: item.bundle_price || item.bundlePrice,
+        bundleDescription: item.bundle_description || item.bundleDescription
+      };
+      
       const bundleCard = document.createElement("div");
-      bundleCard.className = "bundle-card";
+      bundleCard.className = "bundle-card no-image";
       bundleCard.innerHTML = `
-        <div class="bundle-image">
-          <img src="/images/bundles/bundle-${item.bundleId}.jpg" alt="${
-        item.bundleName
-      }">
-        </div>
         <div class="bundle-details">
-          <h3 class="bundle-name">${item.bundleName}</h3>
-          <div class="bundle-price">NT$ ${item.bundlePrice.toLocaleString()}</div>
-          <button class="add-bundle-btn" data-bundle-id="${
-            item.bundleId
-          }">加入購物車</button>
+          <div class="bundle-header">
+            <h3 class="bundle-name">${normalizedItem.bundleName || "未知商品"}</h3>
+            <div class="bundle-price">NT$ ${(
+              normalizedItem.bundlePrice || 0
+            ).toLocaleString()}</div>
+          </div>
+          ${
+            normalizedItem.bundleDescription
+              ? `<p class="bundle-description">${normalizedItem.bundleDescription}</p>`
+              : ""
+          }
+          <div class="bundle-actions">
+            <button class="add-bundle-btn" data-bundle-id="${normalizedItem.bundleId}">
+              <i class="fas fa-plus"></i>
+              加入購物車
+            </button>
+          </div>
         </div>
       `;
       bundleGrid.appendChild(bundleCard);
@@ -315,11 +331,21 @@ class CartPageManager {
       btn.addEventListener("click", () => {
         const bundleId = btn.dataset.bundleId;
         const bundleItem = bundleItems.find(
-          (item) => item.bundleId == bundleId
+          (item) => (item.bundle_id || item.bundleId) == bundleId
         );
         if (bundleItem) {
+          console.log("Adding bundle item to cart:", bundleItem);
           cartManager.addBundleItem(bundleItem);
           this.renderCart(); // 重新渲染購物車
+          this.updateCartSummary(); // 更新總價
+
+          // 顯示成功提示
+          btn.innerHTML = '<i class="fas fa-check"></i> 已加入';
+          btn.disabled = true;
+          setTimeout(() => {
+            btn.innerHTML = '<i class="fas fa-plus"></i> 加入購物車';
+            btn.disabled = false;
+          }, 1500);
         }
       });
     });
@@ -329,13 +355,16 @@ class CartPageManager {
   updateCartItemCount(bundleId, newCount) {
     let bundleItemsStorage = cartManager.getBundleItems();
     const bundleIndex = bundleItemsStorage.findIndex(
-      (item) => item.bundleId === bundleId
+      (item) => (item.bundle_id || item.bundleId) === bundleId
     );
 
     if (bundleIndex > -1) {
       bundleItemsStorage[bundleIndex].quantity = newCount;
       localStorage.setItem("bundleItems", JSON.stringify(bundleItemsStorage));
       this.renderCart();
+      this.updateCartSummary();
+    } else {
+      console.error('Bundle item not found for update:', bundleId);
     }
   }
 
