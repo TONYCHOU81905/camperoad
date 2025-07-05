@@ -113,13 +113,13 @@
               <form class="profile-form">
                 <div class="avatar-upload">
                   <div class="avatar-preview">
-                    <img src="images/user-3.jpg" alt="使用者頭像" />
+                    <img id="preview-image" src="images/user-3.jpg" alt="使用者頭像" />
                   </div>
                   <div class="avatar-edit">
-                    <label for="avatar-input" class="btn-upload"
+                    <!-- <label for="avatar-input" class="btn-upload"
                       >更換頭像</label
-                    >
-                    <input type="file" id="avatar-input" accept="image/*" />
+                    > -->
+                    <input type="file" id="profile-picture" accept="image/*" />
                     <p class="upload-hint">
                       建議使用 1:1 比例的圖片，檔案大小不超過 2MB
                     </p>
@@ -161,7 +161,8 @@
                 <div class="form-row">
                   <div class="form-group">
                     <label for="profile-birthday">生日</label>
-                    <input type="date" id="profile-birthday" value="" />
+                    <input id="profile-birthday" value="" readonly />
+                    <p class="form-hint">生日資料無法修改</p>
                   </div>
                   <div class="form-group">
                     <label for="profile-gender">性別</label>
