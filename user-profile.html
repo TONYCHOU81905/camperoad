@@ -1,438 +1,457 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>個人資料設定 - 露途</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
-    <link rel="stylesheet" href="css/style.css" />
-    <link rel="stylesheet" href="css/role-system.css" />
-    <link rel="stylesheet" href="css/user-profile.css" />
-  </head>
 
-  <body class="profile-page">
-    <header class="site-header">
-      <div class="container">
-        <div class="logo">
-          <a href="index.html">
-            <img src="images/logo.svg" alt="露途 Logo" />
-          </a>
-        </div>
-        <nav class="main-nav">
-          <ul>
-            <li><a href="campsites.html">營地預訂</a></li>
-            <li><a href="shop.html">裝備商城</a></li>
-            <li><a href="camp-guides.html">論壇攻略</a></li>
-            <li><a href="user-profile.html">關於我們</a></li>
-          </ul>
-        </nav>
-        <div class="user-actions">
-          <a href="#" class="btn-search"><i class="fas fa-search"></i></a>
-          <a href="camp_cart.html" class="btn-cart"
-            ><i class="fas fa-shopping-cart"></i>
-            </a>
-          <a href="login.html" class="btn-login">登入 / 註冊</a>
-        </div>
-        <button class="mobile-menu-toggle">
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>個人資料設定 - 露途</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/role-system.css" />
+  <link rel="stylesheet" href="css/user-profile.css" />
+</head>
+
+<body class="profile-page">
+  <header class="site-header">
+    <div class="container">
+      <div class="logo">
+        <a href="index.html">
+          <img src="images/logo.svg" alt="露途 Logo" />
+        </a>
       </div>
-    </header>
+      <nav class="main-nav">
+        <ul>
+          <li><a href="campsites.html">營地預訂</a></li>
+          <li><a href="shop.html">裝備商城</a></li>
+          <li><a href="camp-guides.html">論壇攻略</a></li>
+          <li><a href="user-profile.html">關於我們</a></li>
+        </ul>
+      </nav>
+      <div class="user-actions">
+        <a href="#" class="btn-search"><i class="fas fa-search"></i></a>
+        <a href="camp_cart.html" class="btn-cart"><i class="fas fa-shopping-cart"></i>
+        </a>
+        <a href="login.html" class="btn-login">登入 / 註冊</a>
+      </div>
+      <button class="mobile-menu-toggle">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </header>
 
-    <div class="dashboard-container">
-      <main class="dashboard-content">
-        <div class="profile-container">
-          <div class="profile-sidebar">
-            <div class="profile-menu">
-              <a
-                href="#profile-basic"
-                class="profile-menu-item active"
-                data-tab="profile-basic"
-              >
-                <i class="fas fa-user"></i> 基本資料
-              </a>
-              <a
-                href="#campsite-orders"
-                class="profile-menu-item"
-                data-tab="campsite-orders"
-              >
-                <i class="fas fa-campground"></i> 營地訂單管理
-              </a>
-              <a
-                href="#favorite-camps"
-                class="profile-menu-item"
-                data-tab="favorite-camps"
-              >
-                <i class="fas fa-heart"></i> 營地收藏
-              </a>
-              <a
-                href="#shop-orders"
-                class="profile-menu-item"
-                data-tab="shop-orders"
-              >
-                <i class="fas fa-shopping-bag"></i> 商城訂單管理
-              </a>
-              <a
-                href="#favorite-products"
-                class="profile-menu-item"
-                data-tab="favorite-products"
-              >
-                <i class="fas fa-star"></i> 商品收藏
-              </a>
-              <a href="#coupons" class="profile-menu-item" data-tab="coupons">
-                <i class="fas fa-ticket-alt"></i> 折價券管理
-              </a>
-              <a href="#payment" class="profile-menu-item" data-tab="payment">
-                <i class="fas fa-credit-card"></i> 付款方式
-              </a>
-              <a href="#chat-management" class="profile-menu-item" data-tab="chat-management">
-                <i class="fas fa-comments"></i> 聊天管理
-              </a>
-              <div class="menu-divider"></div>
-              <a href="#" class="profile-menu-item logout-btn" id="logoutBtn">
-                <i class="fas fa-sign-out-alt"></i> 登出
-              </a>
+  <div class="dashboard-container">
+    <main class="dashboard-content">
+      <div class="profile-container">
+        <div class="profile-sidebar">
+          <div class="profile-menu">
+            <a href="#profile-basic" class="profile-menu-item active" data-tab="profile-basic">
+              <i class="fas fa-user"></i> 基本資料
+            </a>
+            <a href="#campsite-orders" class="profile-menu-item" data-tab="campsite-orders">
+              <i class="fas fa-campground"></i> 營地訂單管理
+            </a>
+            <a href="#favorite-camps" class="profile-menu-item" data-tab="favorite-camps">
+              <i class="fas fa-heart"></i> 營地收藏
+            </a>
+            <a href="#shop-orders" class="profile-menu-item" data-tab="shop-orders">
+              <i class="fas fa-shopping-bag"></i> 商城訂單管理
+            </a>
+            <a href="#favorite-products" class="profile-menu-item" data-tab="favorite-products">
+              <i class="fas fa-star"></i> 商品收藏
+            </a>
+            <a href="#coupons" class="profile-menu-item" data-tab="coupons">
+              <i class="fas fa-ticket-alt"></i> 折價券管理
+            </a>
+            <a href="#payment" class="profile-menu-item" data-tab="payment">
+              <i class="fas fa-credit-card"></i> 付款方式
+            </a>
+            <a href="#article-favorites" class="profile-menu-item" data-tab="article-favorites">
+              <i class="fas fa-bookmark"></i> 文章收藏
+            </a>
+            <a href="#chat-management" class="profile-menu-item" data-tab="chat-management">
+              <i class="fas fa-comments"></i> 聊天管理
+            </a>
+            <div class="menu-divider"></div>
+            <a href="#" class="profile-menu-item logout-btn" id="logoutBtn">
+              <i class="fas fa-sign-out-alt"></i> 登出
+            </a>
+          </div>
+        </div>
+
+        <div class="profile-content">
+          <!-- 基本資料 -->
+          <div class="profile-section active" id="profile-basic">
+            <h2>基本資料</h2>
+            <form class="profile-form">
+              <div class="avatar-upload">
+                <div class="avatar-preview">
+                  <img src="images/user-3.jpg" alt="使用者頭像" />
+                </div>
+                <div class="avatar-edit">
+                  <label for="avatar-input" class="btn-upload">更換頭像</label>
+                  <input type="file" id="avatar-input" accept="image/*" />
+                  <p class="upload-hint">
+                    建議使用 1:1 比例的圖片，檔案大小不超過 2MB
+                  </p>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="profile-id">會員編號</label>
+                  <input type="text" id="profile-id" value="" readonly />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="profile-name">姓名</label>
+                  <input type="text" id="profile-name" value="" />
+                </div>
+                <div class="form-group">
+                  <label for="profile-email">電子郵件</label>
+                  <input type="email" id="profile-email" value="" disabled />
+                  <p class="form-hint">電子郵件為您的登入帳號，無法修改</p>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="profile-password">密碼</label>
+                  <div class="password-field">
+                    <input type="password" id="profile-password" value="********" disabled />
+                    <button type="button" class="btn-change-password">更改密碼</button>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="profile-phone">手機號碼</label>
+                  <input type="tel" id="profile-phone" value="" />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="profile-birthday">生日</label>
+                  <input type="date" id="profile-birthday" value="" />
+                </div>
+                <div class="form-group">
+                  <label for="profile-gender">性別</label>
+                  <select id="profile-gender" disabled>
+                    <option value="">請選擇</option>
+                    <option value="1">男性</option>
+                    <option value="2">女性</option>
+                    <option value="0">其他</option>
+                  </select>
+                  <p class="form-hint">性別資料無法修改</p>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="profile-address">地址</label>
+                <input type="text" id="profile-address" value="" />
+              </div>
+
+              <div class="form-group">
+                <label for="profile-bio">個人簡介</label>
+                <textarea id="profile-bio" rows="4" placeholder="分享您的露營經驗或興趣..."></textarea>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="btn-save">儲存變更</button>
+                <button type="reset" class="btn-cancel">取消變更</button>
+              </div>
+            </form>
+          </div>
+
+          <!-- 營地訂單管理 -->
+          <div class="profile-section" id="campsite-orders">
+            <h2>營地訂單管理</h2>
+            <div class="orders-container">
+              <div class="orders-filter">
+                <select id="order-status-filter">
+                  <option value="">所有狀態</option>
+                  <option value="1">待付款</option>
+                  <option value="2">已付款</option>
+                  <option value="3">已完成</option>
+                  <option value="4">已取消</option>
+                </select>
+              </div>
+              <div class="orders-list" id="campsite-orders-list">
+                <div class="empty-state">
+                  <i class="fas fa-campground"></i>
+                  <h3>載入中...</h3>
+                  <p>正在載入您的訂單資料</p>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div class="profile-content">
-            <!-- 基本資料 -->
-            <div class="profile-section active" id="profile-basic">
-              <h2>基本資料</h2>
-              <form class="profile-form">
-                <div class="avatar-upload">
-                  <div class="avatar-preview">
-                    <img src="images/user-3.jpg" alt="使用者頭像" />
-                  </div>
-                  <div class="avatar-edit">
-                    <label for="avatar-input" class="btn-upload"
-                      >更換頭像</label
-                    >
-                    <input type="file" id="avatar-input" accept="image/*" />
-                    <p class="upload-hint">
-                      建議使用 1:1 比例的圖片，檔案大小不超過 2MB
-                    </p>
-                  </div>
+          <!-- 營地收藏 -->
+          <div class="profile-section" id="favorite-camps">
+            <h2>營地收藏</h2>
+            <div class="favorites-container">
+              <div class="favorites-grid" id="favorite-camps-grid">
+                <div class="empty-state">
+                  <i class="fas fa-heart"></i>
+                  <h3>載入中...</h3>
+                  <p>正在載入您的收藏營地</p>
                 </div>
-
-                <div class="form-row">
-                  <div class="form-group">
-                    <label for="profile-id">會員編號</label>
-                    <input type="text" id="profile-id" value="" readonly />
-                  </div>
-                </div>
-                <div class="form-row">
-                  <div class="form-group">
-                    <label for="profile-name">姓名</label>
-                    <input type="text" id="profile-name" value="" />
-                  </div>
-                  <div class="form-group">
-                    <label for="profile-email">電子郵件</label>
-                    <input type="email" id="profile-email" value="" disabled />
-                    <p class="form-hint">電子郵件為您的登入帳號，無法修改</p>
-                  </div>
-                </div>
-
-                <div class="form-row">
-                  <div class="form-group">
-                    <label for="profile-password">密碼</label>
-                    <div class="password-field">
-                      <input type="password" id="profile-password" value="********" disabled />
-                      <button type="button" class="btn-change-password">更改密碼</button>
-                    </div>
-                  </div>
-                  <div class="form-group">
-                    <label for="profile-phone">手機號碼</label>
-                    <input type="tel" id="profile-phone" value="" />
-                  </div>
-                </div>
-
-                <div class="form-row">
-                  <div class="form-group">
-                    <label for="profile-birthday">生日</label>
-                    <input type="date" id="profile-birthday" value="" />
-                  </div>
-                  <div class="form-group">
-                    <label for="profile-gender">性別</label>
-                    <select id="profile-gender" disabled>
-                      <option value="">請選擇</option>
-                      <option value="1">男性</option>
-                      <option value="2">女性</option>
-                      <option value="0">其他</option>
-                    </select>
-                    <p class="form-hint">性別資料無法修改</p>
-                  </div>
-                </div>
-
-                <div class="form-group">
-                  <label for="profile-address">地址</label>
-                  <input type="text" id="profile-address" value="" />
-                </div>
-
-                <div class="form-group">
-                  <label for="profile-bio">個人簡介</label>
-                  <textarea
-                    id="profile-bio"
-                    rows="4"
-                    placeholder="分享您的露營經驗或興趣..."
-                  ></textarea>
-                </div>
-
-                <div class="form-actions">
-                  <button type="submit" class="btn-save">儲存變更</button>
-                  <button type="reset" class="btn-cancel">取消變更</button>
-                </div>
-              </form>
+              </div>
             </div>
+          </div>
 
-            <!-- 營地訂單管理 -->
-            <div class="profile-section" id="campsite-orders">
-              <h2>營地訂單管理</h2>
-              <div class="orders-container">
-                <div class="orders-filter">
-                  <select id="order-status-filter">
-                    <option value="">所有狀態</option>
-                    <option value="1">待付款</option>
-                    <option value="2">已付款</option>
-                    <option value="3">已完成</option>
-                    <option value="4">已取消</option>
-                  </select>
-                </div>
-                <div class="orders-list" id="campsite-orders-list">
+          <!-- 商城訂單管理 -->
+          <div class="profile-section" id="shop-orders">
+            <h2>商城訂單管理</h2>
+            <div class="orders-container">
+              <div class="table-container">
+                <div class="orders-list" id="shop-orders-list">
                   <div class="empty-state">
-                    <i class="fas fa-campground"></i>
-                    <h3>載入中...</h3>
-                    <p>正在載入您的訂單資料</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- 營地收藏 -->
-            <div class="profile-section" id="favorite-camps">
-              <h2>營地收藏</h2>
-              <div class="favorites-container">
-                <div class="favorites-grid" id="favorite-camps-grid">
-                  <div class="empty-state">
-                    <i class="fas fa-heart"></i>
-                    <h3>載入中...</h3>
-                    <p>正在載入您的收藏營地</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- 商城訂單管理 -->
-            <div class="profile-section" id="shop-orders">
-              <h2>商城訂單管理</h2>
-              <div class="orders-container">
-                <div class="table-container">
-                  <div class="orders-list" id="shop-orders-list">
-                    <div class="empty-state">
-                      <i class="fas fa-shopping-bag"></i>
-                      <h3>尚無商城訂單</h3>
-                      <p>您還沒有購買任何商品</p>
-                      <a href="shop.html" class="btn-primary">前往商城</a>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- 商城訂單詳情 Modal -->
-            <div id="shop-order-detail-modal" class="modal" style="display:none;">
-              <div class="modal-content">
-                <span class="close-btn" onclick="closeShopOrderDetailModal()">&times;</span>
-                <div id="shop-order-detail-content"></div>
-              </div>
-            </div>
-
-            <!-- 商品收藏 -->
-            <div class="profile-section" id="favorite-products">
-              <h2>商品收藏</h2>
-              <div class="favorites-container">
-                <div class="favorites-grid" id="favorite-products-grid">
-                  <div class="empty-state">
-                    <i class="fas fa-heart"></i>
-                    <h3>尚無收藏商品</h3>
-                    <p>您還沒有收藏任何商品</p>
+                    <i class="fas fa-shopping-bag"></i>
+                    <h3>尚無商城訂單</h3>
+                    <p>您還沒有購買任何商品</p>
                     <a href="shop.html" class="btn-primary">前往商城</a>
                   </div>
                 </div>
               </div>
             </div>
+          </div>
 
-            <!-- 折價券管理 -->
-            <div class="profile-section" id="coupons">
-              <h2>折價券管理</h2>
-              <div class="coupons-filter">
-                <div class="filter-tabs">
-                  <button class="filter-tab active" data-status="all">
-                    全部券種
-                  </button>
-                  <button class="filter-tab" data-status="available">
-                    可使用
-                  </button>
-                  <button class="filter-tab" data-status="used">已使用</button>
-                  <button class="filter-tab" data-status="expired">
-                    已過期
-                  </button>
-                </div>
-              </div>
-              <div class="coupons-grid" id="coupon-grid">
-                <!-- 折價券卡片會透過 JS 動態加入 -->
-              </div>
+          <!-- 商城訂單詳情 Modal -->
+          <div id="shop-order-detail-modal" class="modal" style="display:none;">
+            <div class="modal-content">
+              <span class="close-btn" onclick="closeShopOrderDetailModal()">&times;</span>
+              <div id="shop-order-detail-content"></div>
             </div>
+          </div>
 
-            <!-- 付款方式 -->
-            <div class="profile-section" id="payment">
-              <h2>付款方式</h2>
-              <div class="payment-section">
-                <div class="add-payment-method">
-                  <button class="btn-add-payment">
-                    <i class="fas fa-plus"></i>
-                    新增付款方式
-                  </button>
-                </div>
-
-                <div class="payment-methods-list">
-                  <!-- 示範信用卡 -->
-                  <div class="payment-method-card">
-                    <div class="payment-card-header">
-                      <div class="card-type">
-                        <i class="fab fa-cc-visa"></i>
-                        <span>VISA</span>
-                      </div>
-                      <div class="card-actions">
-                        <button class="btn-edit">
-                          <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn-delete">
-                          <i class="fas fa-trash"></i>
-                        </button>
-                      </div>
-                    </div>
-                    <div class="payment-card-content">
-                      <div class="card-number">**** **** **** 1234</div>
-                      <div class="card-holder">王小明</div>
-                      <div class="card-expiry">有效期限: 12/26</div>
-                    </div>
-                    <div class="payment-card-footer">
-                      <span class="default-badge">預設付款方式</span>
-                    </div>
-                  </div>
-
-                  <!-- 示範LINE PAY -->
-                  <div class="payment-method-card">
-                    <div class="payment-card-header">
-                      <div class="card-type">
-                        <i class="fab fa-line"></i>
-                        <span>LINE PAY</span>
-                      </div>
-                      <div class="card-actions">
-                        <button class="btn-edit">
-                          <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn-delete">
-                          <i class="fas fa-trash"></i>
-                        </button>
-                      </div>
-                    </div>
-                    <div class="payment-card-content">
-                      <div class="card-number">已綁定 LINE 帳號</div>
-                      <div class="card-holder">wang.xiaoming@email.com</div>
-                      <div class="card-status">狀態: 已驗證</div>
-                    </div>
-                    <div class="payment-card-footer">
-                      <button class="btn-set-default">設為預設</button>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="payment-security">
-                  <div class="security-info">
-                    <h4><i class="fas fa-shield-alt"></i> 安全保障</h4>
-                    <ul>
-                      <li>所有付款資訊均採用SSL加密傳輸</li>
-                      <li>信用卡資訊不會儲存在我們的伺服器上</li>
-                      <li>支援3D驗證確保交易安全</li>
-                      <li>24小時交易監控系統</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- 聊天管理 -->
-            <div class="profile-section" id="chat-management">
-              <h2>聊天管理</h2>
-              <div class="chat-management-container">
-                <div class="chat-list" id="chat-list">
-                  <div class="empty-state">
-                    <i class="fas fa-comments"></i>
-                    <h3>載入中...</h3>
-                    <p>正在載入您的聊天記錄</p>
-                  </div>
+          <!-- 商品收藏 -->
+          <div class="profile-section" id="favorite-products">
+            <h2>商品收藏</h2>
+            <div class="favorites-container">
+              <div class="favorites-grid" id="favorite-products-grid">
+                <div class="empty-state">
+                  <i class="fas fa-heart"></i>
+                  <h3>尚無收藏商品</h3>
+                  <p>您還沒有收藏任何商品</p>
+                  <a href="shop.html" class="btn-primary">前往商城</a>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </main>
-    </div>
 
-    <!-- 懸浮聊天室 -->
-    <div class="chat-widget" style="display: none;">
-      <div class="chat-window" id="chat-window">
-        <div class="chat-header">
-          <div class="chat-title">
-            <i class="fas fa-comments"></i>
-            <span id="chat-title-text">營地客服</span>
+          <!-- 折價券管理 -->
+          <div class="profile-section" id="coupons">
+            <h2>折價券管理</h2>
+            <div class="coupons-filter">
+              <div class="filter-tabs">
+                <button class="filter-tab active" data-status="all">
+                  全部券種
+                </button>
+                <button class="filter-tab" data-status="available">
+                  可使用
+                </button>
+                <button class="filter-tab" data-status="used">已使用</button>
+                <button class="filter-tab" data-status="expired">
+                  已過期
+                </button>
+              </div>
+            </div>
+            <div class="coupons-grid" id="coupon-grid">
+              <!-- 折價券卡片會透過 JS 動態加入 -->
+            </div>
           </div>
-          <button class="btn-close-chat" id="btn-close-chat">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
-        <div class="chat-body" id="chat-messages">
-          <!-- 聊天訊息將在這裡動態生成 -->
-        </div>
-        <div class="chat-footer">
-          <div class="chat-input-container">
-            <input
-              type="text"
-              class="chat-input"
-              id="chat-message-input"
-              placeholder="輸入訊息..."
-            />
-            <button class="chat-send" id="btn-send-message">
-              <i class="fas fa-paper-plane"></i>
-            </button>
+
+          <!-- 付款方式 -->
+          <div class="profile-section" id="payment">
+            <h2>付款方式</h2>
+            <div class="payment-section">
+              <div class="add-payment-method">
+                <button class="btn-add-payment">
+                  <i class="fas fa-plus"></i>
+                  新增付款方式
+                </button>
+              </div>
+
+              <div class="payment-methods-list">
+                <!-- 示範信用卡 -->
+                <div class="payment-method-card">
+                  <div class="payment-card-header">
+                    <div class="card-type">
+                      <i class="fab fa-cc-visa"></i>
+                      <span>VISA</span>
+                    </div>
+                    <div class="card-actions">
+                      <button class="btn-edit">
+                        <i class="fas fa-edit"></i>
+                      </button>
+                      <button class="btn-delete">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="payment-card-content">
+                    <div class="card-number">**** **** **** 1234</div>
+                    <div class="card-holder">王小明</div>
+                    <div class="card-expiry">有效期限: 12/26</div>
+                  </div>
+                  <div class="payment-card-footer">
+                    <span class="default-badge">預設付款方式</span>
+                  </div>
+                </div>
+
+                <!-- 示範LINE PAY -->
+                <div class="payment-method-card">
+                  <div class="payment-card-header">
+                    <div class="card-type">
+                      <i class="fab fa-line"></i>
+                      <span>LINE PAY</span>
+                    </div>
+                    <div class="card-actions">
+                      <button class="btn-edit">
+                        <i class="fas fa-edit"></i>
+                      </button>
+                      <button class="btn-delete">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="payment-card-content">
+                    <div class="card-number">已綁定 LINE 帳號</div>
+                    <div class="card-holder">wang.xiaoming@email.com</div>
+                    <div class="card-status">狀態: 已驗證</div>
+                  </div>
+                  <div class="payment-card-footer">
+                    <button class="btn-set-default">設為預設</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="payment-security">
+                <div class="security-info">
+                  <h4><i class="fas fa-shield-alt"></i> 安全保障</h4>
+                  <ul>
+                    <li>所有付款資訊均採用SSL加密傳輸</li>
+                    <li>信用卡資訊不會儲存在我們的伺服器上</li>
+                    <li>支援3D驗證確保交易安全</li>
+                    <li>24小時交易監控系統</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 文章收藏 -->
+          <div class="profile-section" id="article-favorites">
+            <div id="delete-selected-bar"
+              style="display:none;justify-content:flex-end;align-items:center;gap:12px;margin-bottom:8px;">
+              <button id="delete-selected-btn" type="button"
+                style="padding: 6px 18px; border-radius: 5px; background: #dc3545; color: #fff; font-size: 1rem; font-weight: 500; border: none; cursor: pointer;">刪除勾選收藏</button>
+            </div>
+            <div class="favorites-search-box" style="margin-bottom: 24px; margin-top: 0;">
+              <form id="search-form">
+                <input type="text" placeholder="搜尋文章標題、內容、作者或關鍵字..." name="search" id="search-input" autocomplete="off">
+                <button type="submit" class="btn-search-submit" title="搜尋">
+                  <i class="fas fa-search"></i>
+                </button>
+              </form>
+            </div>
+            <div class="favorites-filter">
+              <div class="filter-options" style="display: flex; gap: 12px; align-items: center;">
+                <select name="sort" id="sort-favorites">
+                  <option value="latest">最新收藏</option>
+                  <option value="oldest">最早收藏</option>
+                  <option value="most-commented">最多留言</option>
+                  <option value="most-viewed">最多觀看</option>
+                </select>
+                <select id="category-filter" style="min-width: 180px;"></select>
+              </div>
+              <div class="favorites-count">共 <span id="favorites-count">0</span> 篇收藏</div>
+            </div>
+            <div class="article-table-container">
+              <div class="article-table-header">
+                <div class="header-item">圖片</div>
+                <div class="header-item article-title-header">標題</div>
+                <div class="header-item article-author-header">作者</div>
+                <div class="header-item article-date-header">收藏時間</div>
+                <div class="header-item article-stats-header">操作</div>
+              </div>
+              <div class="article-list" id="favorites-container">
+                <div class="empty-state">
+                  <i class="fas fa-bookmark"></i>
+                  <h3>尚無收藏文章</h3>
+                  <p>您還沒有收藏任何文章，快去發現精彩內容吧！</p>
+                </div>
+              </div>
+            </div>
+            <div class="pagination">
+              <!-- 分頁將由 JavaScript 動態生成 -->
+            </div>
+          </div>
+
+          <!-- 聊天管理 -->
+          <div class="profile-section" id="chat-management">
+            <h2>聊天管理</h2>
+            <div class="chat-management-container">
+              <div class="chat-list" id="chat-list">
+                <div class="empty-state">
+                  <i class="fas fa-comments"></i>
+                  <h3>載入中...</h3>
+                  <p>正在載入您的聊天記錄</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+    </main>
+  </div>
+
+  <!-- 懸浮聊天室 -->
+  <div class="chat-widget" style="display: none;">
+    <div class="chat-window" id="chat-window">
+      <div class="chat-header">
+        <div class="chat-title">
+          <i class="fas fa-comments"></i>
+          <span id="chat-title-text">營地客服</span>
+        </div>
+        <button class="btn-close-chat" id="btn-close-chat">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="chat-body" id="chat-messages">
+        <!-- 聊天訊息將在這裡動態生成 -->
+      </div>
+      <div class="chat-footer">
+        <div class="chat-input-container">
+          <input type="text" class="chat-input" id="chat-message-input" placeholder="輸入訊息..." />
+          <button class="chat-send" id="btn-send-message">
+            <i class="fas fa-paper-plane"></i>
+          </button>
+        </div>
+      </div>
     </div>
-    
-    <!-- 隱藏的會員ID和營地主ID輸入框 -->
-    <input type="hidden" id="memId" value="" />
-    <input type="hidden" id="ownerId" value="" />
-    <!-- WebSocket相關庫 -->
-    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
-    
-    <script src="js/camp-data.js"></script>
-    <script src="js/user-profile.js"></script>
-    <script src="js/chat-management.js"></script>
-    <link rel="stylesheet" href="css/chat.css" />
-  </body>
+  </div>
+
+  <!-- 隱藏的會員ID和營地主ID輸入框 -->
+  <input type="hidden" id="memId" value="" />
+  <input type="hidden" id="ownerId" value="" />
+  <!-- WebSocket相關庫 -->
+  <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+
+  <script src="js/camp-data.js"></script>
+  <script src="js/user-profile.js"></script>
+  <script src="js/chat-management.js"></script>
+  <link rel="stylesheet" href="css/chat.css" />
+
+
+
+</body>
+
 </html>

@@ -428,6 +428,7 @@
         // 全域變數
         let quill;
         let currentMemberId = null;
+        let temporaryArticleId = null;  // 追蹤暫存文章ID
 
         // 上傳圖片到 article_image API
         async function uploadImageToAPI(file, articleId = null) {
@@ -435,7 +436,8 @@
                 console.log('🖼️ 開始上傳圖片:', {
                     fileName: file.name,
                     fileSize: file.size,
-                    articleId: articleId
+                    articleId: articleId,
+                    temporaryArticleId: temporaryArticleId  // 添加這行來追蹤
                 });
 
                 // 使用 FormData 上傳檔案
@@ -443,6 +445,12 @@
                 formData.append('file', file);
                 if (articleId) {
                     formData.append('articleId', articleId);
+                    console.log('使用提供的文章ID上傳:', articleId);
+                } else if (temporaryArticleId) {
+                    formData.append('articleId', temporaryArticleId);
+                    console.log('使用暫存文章ID上傳:', temporaryArticleId);
+                } else {
+                    console.log('沒有可用的文章ID');
                 }
 
                 const response = await fetch(`${window.api_prefix}/api/article-images/upload-direct`, {
@@ -462,11 +470,11 @@
                         imageUrl: `${window.api_prefix}/api/article-images/${imageId}/image`
                     };
                 } else {
-                    throw new Error(result.message || '圖片上傳失敗');
+                    throw new Error(result.message || '直接圖片上傳失敗');
                 }
             } catch (error) {
                 console.error('❌ 圖片上傳失敗:', error);
-                showMessage(`圖片上傳失敗: ${error.message}`, 'error');
+                showMessage('圖片上傳失敗: ' + error.message, 'error');
                 return { success: false, error: error.message };
             }
         }
@@ -553,14 +561,22 @@
                             ['clean']
                         ],
                         handlers: {
-                            // 自定義圖片處理邏輯
-                            image: function () {
+                            image: async function () {
                                 console.log('🖼️ 觸發圖片上傳...');
+
+                                // 檢查是否有標題和分類
+                                const title = document.getElementById('title').value.trim();
+                                const typeId = document.getElementById('type').value;
+
+                                if (!title || !typeId) {
+                                    showMessage('請先填寫文章標題和選擇分類', 'warning');
+                                    return;
+                                }
 
                                 const input = document.createElement('input');
                                 input.setAttribute('type', 'file');
                                 input.setAttribute('accept', 'image/*');
-                                input.setAttribute('multiple', 'true'); // 允許多選
+                                input.setAttribute('multiple', 'true');
                                 input.click();
 
                                 input.onchange = async () => {
@@ -569,18 +585,27 @@
 
                                     console.log(`📁 選擇了 ${files.length} 個檔案`);
 
-                                    const range = quill.getSelection(true);
-                                    if (!range) return;
+                                    // 確保有暫存文章ID
+                                    if (!temporaryArticleId) {
+                                        console.log('沒有暫存文章ID，創建新的暫存文章');
+                                        const newArticleId = await createTemporaryArticle();
+                                        if (!newArticleId) {
+                                            showMessage('無法建立暫存文章，請稍後再試', 'error');
+                                            return;
+                                        }
+                                    } else {
+                                        console.log('使用現有暫存文章:', temporaryArticleId);
+                                    }
 
-                                    let insertIndex = range.index;
+                                    const range = quill.getSelection(true);
+                                    let insertIndex = range ? range.index : 0;
                                     let successCount = 0;
                                     let failCount = 0;
 
                                     for (let i = 0; i < files.length; i++) {
                                         const file = files[i];
 
-                                        // 檢查檔案大小
-                                        if (file.size > 10 * 1024 * 1024) { // 10MB 限制
+                                        if (file.size > 10 * 1024 * 1024) {
                                             console.warn('⚠️ 檔案過大:', file.name);
                                             quill.insertText(insertIndex, `[檔案過大，無法上傳: ${file.name}]\n`);
                                             failCount++;
@@ -589,12 +614,12 @@
                                         }
 
                                         try {
-                                            const uploadResult = await uploadImageToAPI(file, null);
+                                            // 使用暫存文章ID上傳圖片
+                                            const uploadResult = await uploadImageToAPI(file, temporaryArticleId);
 
                                             if (uploadResult.success) {
-                                                // 插入圖片到編輯器
                                                 quill.insertEmbed(insertIndex, 'image', uploadResult.imageUrl);
-                                                quill.insertText(insertIndex + 1, '\n'); // 換行
+                                                quill.insertText(insertIndex + 1, '\n');
                                                 successCount++;
                                                 insertIndex += 2;
                                             } else {
@@ -610,7 +635,7 @@
                                         }
                                     }
 
-                                    // 只在有失敗時顯示錯誤訊息
+                                    // 顯示上傳結果
                                     if (failCount > 0 && successCount === 0) {
                                         showMessage(`❌ 所有圖片上傳失敗`, 'error');
                                     } else if (failCount > 0) {
@@ -642,16 +667,36 @@
                     console.log(`📋 貼上了 ${images.length} 張圖片`);
                     e.preventDefault(); // 阻止預設的貼上行為
 
-                    const range = quill.getSelection(true);
-                    if (!range) return;
+                    // 檢查是否有標題和分類
+                    const title = document.getElementById('title').value.trim();
+                    const typeId = document.getElementById('type').value;
 
-                    let insertIndex = range.index;
+                    if (!title || !typeId) {
+                        showMessage('請先填寫文章標題和選擇分類', 'warning');
+                        return;
+                    }
+
+                    // 確保有暫存文章ID
+                    if (!temporaryArticleId) {
+                        console.log('沒有暫存文章ID，創建新的暫存文章');
+                        const newArticleId = await createTemporaryArticle();
+                        if (!newArticleId) {
+                            showMessage('無法建立暫存文章，請稍後再試', 'error');
+                            return;
+                        }
+                    } else {
+                        console.log('使用現有暫存文章:', temporaryArticleId);
+                    }
+
+                    const range = quill.getSelection(true);
+                    let insertIndex = range ? range.index : 0;
                     let successCount = 0;
                     let failCount = 0;
 
                     for (const imageFile of images) {
                         try {
-                            const uploadResult = await uploadImageToAPI(imageFile, null);
+                            // 使用暫存文章ID上傳圖片
+                            const uploadResult = await uploadImageToAPI(imageFile, temporaryArticleId);
 
                             if (uploadResult.success) {
                                 quill.insertEmbed(insertIndex, 'image', uploadResult.imageUrl);
@@ -667,9 +712,11 @@
                         }
                     }
 
-                    // 只在全部失敗時顯示錯誤訊息
+                    // 顯示上傳結果
                     if (failCount > 0 && successCount === 0) {
                         showMessage('❌ 貼上的圖片處理失敗', 'error');
+                    } else if (failCount > 0) {
+                        showMessage(`⚠️ ${failCount} 張圖片上傳失敗`, 'warning');
                     }
                 }
             });
@@ -928,191 +975,67 @@
                 return;
             }
 
-            // 準備發送的資料
-            const articleData = {
-                acTitle: title,
-                acContext: content,
-                memId: memId,
-                acTypeId: acTypeId,
-                acStatus: 0
-            };
-
             try {
                 // 顯示載入狀態
-                submitBtn.textContent = '分析圖片中...';
+                submitBtn.textContent = '發布中...';
                 submitBtn.classList.add('loading');
                 form.classList.add('loading');
 
-                // 處理內容中的 Base64 圖片（如果有的話）
-                console.log('🔍 檢查內容中的 Base64 圖片...');
-                let processedContent = content;
+                // 準備發送的資料
+                const articleData = {
+                    acTitle: title,
+                    acContext: content,
+                    memId: memId,
+                    acTypeId: acTypeId,
+                    acStatus: 0  // 改為正式發布狀態
+                };
 
-                if (content.includes('data:image')) {
-                    console.log('⚠️ 檢測到 Base64 圖片，開始處理...');
-                    showMessage('檢測到 Base64 圖片，正在自動上傳...', 'warning');
+                let response;
+                let result;
 
-                    try {
-                        processedContent = await handleBase64Images(content, null);
-
-                        // 檢查處理結果
-                        const originalBase64Count = (content.match(/data:image/g) || []).length;
-                        const remainingBase64Count = (processedContent.match(/data:image/g) || []).length;
-                        const processedCount = originalBase64Count - remainingBase64Count;
-
-                        if (processedCount > 0) {
-                            showMessage(`✅ 已處理 ${processedCount} 張 Base64 圖片`, 'success');
-                        }
-
-                        console.log('📊 Base64 圖片處理結果:', {
-                            原始數量: originalBase64Count,
-                            處理數量: processedCount,
-                            剩餘數量: remainingBase64Count
-                        });
-
-                    } catch (error) {
-                        console.error('❌ Base64 圖片處理失敗:', error);
-                        showMessage('Base64 圖片處理失敗，將保持原狀', 'warning');
-                        // 如果處理失敗，使用原始內容
-                        processedContent = content;
-                    }
+                // 如果有暫存文章，則更新該文章
+                if (temporaryArticleId) {
+                    response = await fetch(`${window.api_prefix}/api/articles/${temporaryArticleId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(articleData)
+                    });
+                } else {
+                    // 如果沒有暫存文章，則新建文章
+                    response = await fetch(`${window.api_prefix}/api/articles`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(articleData)
+                    });
                 }
 
-                // 更新文章資料為處理後的內容
-                articleData.acContext = processedContent;
-
-                // 先分析圖片（如果有的話）
-                if (hasImages(processedContent)) {
-                    console.log('開始分析圖片...');
-                    const analysis = await analyzeImages(processedContent);
-                    if (analysis) {
-                        showImageAnalysis(analysis);
-                        console.log('圖片分析結果:', analysis);
-
-                        // 檢查是否有需要分塊上傳的大檔案
-                        if (analysis.strategies.CHUNKED_UPLOAD > 0) {
-                            showMessage('檢測到大檔案，建議壓縮圖片後再上傳以獲得更好效果', 'warning');
-                        }
-                    }
-                }
-
-                // 更新按鈕狀態
-                submitBtn.textContent = '智能發布中...';
-
-                // 使用智能創建 API
-                const apiUrl = hasImages(processedContent)
-                    ? `${window.api_prefix}/api/articles/smart-create`
-                    : `${window.api_prefix}/api/articles`;
-
-                console.log('發送文章資料:', articleData);
-                console.log('使用智能API:', apiUrl);
-
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(articleData)
-                });
-
-                const result = await response.json();
-                console.log('API 回應:', result);
-                console.log('API 回應數據結構檢查:', {
-                    hasData: !!result.data,
-                    hasArticle: !!(result.data && result.data.article),
-                    articleAcId: result.data && result.data.article && result.data.article.acId,
-                    directAcId: result.data && result.data.acId,
-                    dataKeys: result.data ? Object.keys(result.data) : null
-                });
+                result = await response.json();
 
                 if (response.ok && result.status === 'success') {
-                    let successMessage = '文章新增成功！';
+                    showMessage('文章發布成功！即將跳轉到文章頁面...', 'success');
 
-                    if (result.data.analysis) {
-                        const analysis = result.data.analysis;
-                        if (analysis.totalImages > 0) {
-                            successMessage += `已智能處理 ${analysis.totalImages} 張圖片，`;
-                            successMessage += `使用了 ${Object.keys(analysis.strategies).filter(k => analysis.strategies[k] > 0).length} 種優化策略。`;
-                        }
-                    } else if (hasImages(processedContent)) {
-                        successMessage += '圖片已自動處理並優化。';
-                    }
-
-                    successMessage += '即將跳轉到文章頁面...';
-                    showMessage(successMessage, 'success');
+                    // 清除暫存文章ID（因為已經正式發布）
+                    temporaryArticleId = null;
 
                     // 跳轉到文章詳情頁面
                     setTimeout(() => {
-                        // 智能 API 和基本 API 的回應格式可能不同，都要檢查
-                        let articleId = null;
-                        if (result.data.article && result.data.article.acId) {
-                            articleId = result.data.article.acId;  // 智能 API 格式
-                        } else if (result.data.acId) {
-                            articleId = result.data.acId;          // 基本 API 格式
-                        }
-
+                        const articleId = result.data.acId;
                         if (articleId) {
                             window.location.href = `articles.html?id=${articleId}`;
                         } else {
-                            console.warn('無法獲取文章ID，回應數據:', result.data);
                             window.location.href = 'articles.html';
                         }
                     }, 2000);
-
-                } else if (result.status === 'chunked_required') {
-                    // 需要分塊上傳的情況
-                    showMessage('檢測到超大檔案，請使用專用上傳工具或壓縮圖片後重試', 'warning');
-                    console.log('需要分塊上傳:', result.data);
-
                 } else {
-                    // 如果智能 API 失敗，嘗試使用基本 API 作為備用
-                    if (hasImages(processedContent) && (response.status === 500 || result.message?.includes('實體關聯') || result.message?.includes('cascade'))) {
-                        console.log('智能 API 失敗，嘗試使用基本 API...');
-                        showMessage('圖片處理失敗，嘗試使用基本發布方式...', 'warning');
-
-                        try {
-                            const fallbackResponse = await fetch(`${window.api_prefix}/api/articles`, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify(articleData)
-                            });
-
-                            const fallbackResult = await fallbackResponse.json();
-                            console.log('基本 API 回應:', fallbackResult);
-
-                            if (fallbackResponse.ok && fallbackResult.status === 'success') {
-                                showMessage('文章發布成功！（圖片使用基本處理）即將跳轉到文章頁面...', 'success');
-                                setTimeout(() => {
-                                    window.location.href = `articles.html?id=${fallbackResult.data.acId}`;
-                                }, 2000);
-                                return;
-                            } else {
-                                throw new Error(fallbackResult.message || '基本 API 也失敗了');
-                            }
-                        } catch (fallbackError) {
-                            console.error('基本 API 也失敗:', fallbackError);
-                            showMessage('所有發布方式都失敗了，請稍後再試', 'error');
-                            return;
-                        }
-                    }
-
-                    // 錯誤處理
-                    let errorMessage = '新增失敗';
-                    if (result.message) {
-                        errorMessage += `: ${result.message}`;
-                    } else if (response.status === 500) {
-                        errorMessage += ': 伺服器內部錯誤';
-                    } else if (response.status === 400) {
-                        errorMessage += ': 請求格式錯誤';
-                    }
-                    showMessage(errorMessage, 'error');
-                    console.error('API 錯誤:', result);
+                    throw new Error(result.message || '發布失敗');
                 }
-
             } catch (error) {
-                console.error('發送請求時發生錯誤:', error);
-                showMessage('發送請求時發生錯誤，請檢查網路連線', 'error');
+                console.error('發布文章時發生錯誤:', error);
+                showMessage(`發布失敗: ${error.message}`, 'error');
             } finally {
                 // 恢復按鈕狀態
                 submitBtn.textContent = '發布文章';
@@ -1159,8 +1082,15 @@
             setupLoginStateListener();
             setupLoginRedirect();
             loadArticleTypes();
-            // 初始化 Quill 編輯器
             initQuillEditor();
+
+            // 監聽頁面離開事件
+            window.addEventListener('beforeunload', async function (e) {
+                // 如果有暫存文章且沒有正式發布，則刪除
+                if (temporaryArticleId) {
+                    await deleteTemporaryArticle();
+                }
+            });
         });
 
         // 測試函數供開發者使用
@@ -1242,6 +1172,73 @@
 
             return result;
         };
+
+        // 創建暫存文章
+        async function createTemporaryArticle() {
+            try {
+                console.log('開始創建暫存文章，當前暫存ID:', temporaryArticleId);
+
+                // 如果已經有暫存文章ID，直接返回
+                if (temporaryArticleId) {
+                    console.log('使用現有暫存文章:', temporaryArticleId);
+                    return temporaryArticleId;
+                }
+
+                const tempArticleData = {
+                    acTitle: document.getElementById('title').value || '暫存文章',
+                    acContext: '<p>暫存文章內容</p>',
+                    memId: currentMemberId,
+                    acTypeId: parseInt(document.getElementById('type').value),
+                    acStatus: 2  // 使用狀態 2 表示暫存
+                };
+
+                console.log('準備創建新暫存文章:', tempArticleData);
+
+                const response = await fetch(`${window.api_prefix}/api/articles`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(tempArticleData)
+                });
+
+                const result = await response.json();
+                console.log('創建暫存文章結果:', result);
+
+                if (response.ok && result.status === 'success') {
+                    temporaryArticleId = result.data.acId;  // 儲存暫存文章ID
+                    console.log('新暫存文章創建成功，ID:', temporaryArticleId);
+                    return temporaryArticleId;
+                } else {
+                    throw new Error(result.message || '建立暫存文章失敗');
+                }
+            } catch (error) {
+                console.error('建立暫存文章失敗:', error);
+                showMessage('建立暫存文章失敗，請稍後再試', 'error');
+                return null;
+            }
+        }
+
+        // 添加刪除暫存文章的函數
+        async function deleteTemporaryArticle() {
+            if (!temporaryArticleId) return;
+
+            try {
+                const response = await fetch(`${window.api_prefix}/api/articles/${temporaryArticleId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    console.log('暫存文章已刪除:', temporaryArticleId);
+                } else {
+                    console.error('刪除暫存文章失敗:', temporaryArticleId);
+                }
+            } catch (error) {
+                console.error('刪除暫存文章時發生錯誤:', error);
+            } finally {
+                temporaryArticleId = null;  // 重置暫存文章ID
+            }
+        }
     </script>
 </body>
 

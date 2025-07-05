@@ -139,7 +139,7 @@
 
         .article-table-header {
             display: grid;
-            grid-template-columns: 160px 6fr 1fr 1fr 1fr;
+            grid-template-columns: 160px 4fr 1fr 1.5fr 1fr;
             gap: 20px;
             padding: 20px 25px;
             background: #f8f9fa;
@@ -165,7 +165,7 @@
 
         .article-item {
             display: grid;
-            grid-template-columns: 160px 6fr 1fr 1fr 1fr;
+            grid-template-columns: 160px 4fr 1fr 1.5fr 1fr;
             gap: 20px;
             padding: 20px 25px;
             border-bottom: 1px solid #e9ecef;
@@ -265,13 +265,25 @@
 
         .article-date-cell {
             text-align: center;
-            color: #666;
-            font-size: 0.95rem;
-            line-height: 1.4;
+            color: #333;
+            font-size: 0.85rem;
+            line-height: 1.2;
             grid-column: 4;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 2px;
+            min-width: 90px;
+        }
+
+        .article-date-cell .date-line {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .article-date-cell .time-line {
+            font-weight: 400;
+            color: #333;
         }
 
         .article-stats-cell {
@@ -490,6 +502,25 @@
                 color: #666;
             }
 
+            .mobile-date {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-end;
+                gap: 1px;
+            }
+
+            .mobile-date .date-line {
+                font-weight: 500;
+                color: #333;
+                font-size: 0.75rem;
+            }
+
+            .mobile-date .time-line {
+                font-weight: 400;
+                color: #333;
+                font-size: 0.75rem;
+            }
+
             .article-title-cell:not(.article-content-mobile .article-title-cell),
             .article-author-cell,
             .article-date-cell,
@@ -572,7 +603,7 @@
                 <h1>營地推薦</h1>
                 <p>精選全台優質營地，詳細介紹各營地特色與實用攻略</p>
                 <div class="guide-search-box">
-                    <form id="search-form" onsubmit="handleSearch(event)">
+                    <form id="search-form">
                         <input type="text" placeholder="搜尋文章標題、內容、作者或關鍵字..." name="search" id="search-input"
                             autocomplete="off">
                         <button type="submit" class="btn-search-submit" title="搜尋">
@@ -703,8 +734,8 @@
     <script src="js/header-auth.js"></script>
     <script src="js/camp-data.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            articleManager.initArticleList(30003);
+        document.addEventListener('DOMContentLoaded', async function () {
+            await setupArticleListSort(30003);
         });
     </script>
 </body>

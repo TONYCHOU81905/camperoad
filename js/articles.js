@@ -7,23 +7,29 @@ class ArticleManager {
         this.itemsPerPage = 15;
         this.currentTypeId = null;
         this.currentSortType = 'latest'; // 新增：記錄目前排序方式
+        this.currentSearchKeyword = ''; // 新增：記錄目前搜尋關鍵字
     }
 
-    // 載入文章數據 - 使用 Spring Boot API
-    async loadArticles(acTypeId = null) {
+    // 載入文章數據 - 使用 Spring Boot API（支援搜尋和類型過濾）
+    async loadArticles(acTypeId = null, searchKeyword = '') {
         try {
             let url = `${window.api_prefix}/api/articles`;
 
-            // 如果有指定 acTypeId，使用進階搜尋 API 來過濾
-            if (acTypeId) {
-                url = `${window.api_prefix}/api/articles/search/advanced?keyword=&acTypeId=${acTypeId}`;
+            // 如果有搜尋關鍵字或指定類型，使用進階搜尋 API
+            if (searchKeyword || acTypeId) {
+                url = `${window.api_prefix}/api/articles/search/advanced?keyword=${encodeURIComponent(searchKeyword || '')}`;
+                if (acTypeId) {
+                    url += `&acTypeId=${acTypeId}`;
+                }
             }
 
+            console.log('載入文章API URL:', url);
             const response = await fetch(url);
             const result = await response.json();
 
             if (result.status === 'success' && result.data) {
                 this.articles = result.data || [];
+                console.log(`載入了 ${this.articles.length} 篇文章`);
             } else {
                 console.error('API 回應錯誤:', result);
                 this.articles = [];
@@ -98,6 +104,21 @@ class ArticleManager {
         const minutes = date.getMinutes().toString().padStart(2, '0');
 
         return `${month}/${day} ${hours}:${minutes}`;
+    }
+
+    // 格式化為兩行顯示的日期（用於文章列表）
+    formatDateTwoLines(dateString) {
+        const date = new Date(dateString);
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        const hours = date.getHours().toString().padStart(2, '0');
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+
+        return {
+            dateLine: `${year}-${month}-${day}`,
+            timeLine: `${hours}:${minutes}`
+        };
     }
 
     // 根據會員ID獲取作者名稱
@@ -566,28 +587,45 @@ class ArticleManager {
                 console.log('找到統計項目數量:', stats.length);
                 console.log('統計項目:', stats);
 
-                if (stats.length >= 2) {
+                if (stats.length >= 3) {
                     // 計算作者的發文數
                     const authorId = article.memId || article.mem_id;
                     console.log('作者ID:', authorId);
                     console.log('文章資料:', article);
                     console.log('會員資料:', this.members);
 
+                    // 🎯 在這裡觸發作者頭像更新，因為這裡確實獲取到了作者ID
+                    if (authorId && window.replySystem && typeof window.replySystem.updateArticleAuthorAvatar === 'function') {
+                        console.log('🎯 從作者統計更新觸發頭像更新，作者ID:', authorId);
+                        // 稍微延遲觸發，確保 DOM 元素已準備就緒
+                        setTimeout(() => {
+                            window.replySystem.updateArticleAuthorAvatar({ memId: authorId, forceUpdate: true });
+                        }, 100);
+                    }
+
+                    // 設置會員編號
+                    if (authorId) {
+                        stats[0].textContent = authorId;
+                        console.log('會員編號:', authorId);
+                    } else {
+                        stats[0].textContent = '未知';
+                    }
+
                     // 使用異步方法獲取發文數
                     this.getAuthorArticleCount(authorId).then(count => {
                         console.log('作者發文數:', count);
-                        stats[0].textContent = count;
+                        stats[1].textContent = count;
                     }).catch(error => {
                         console.error('獲取發文數失敗:', error);
-                        stats[0].textContent = '0';
+                        stats[1].textContent = '0';
                     });
 
                     // 獲取作者註冊時間
                     const authorRegDate = this.getAuthorRegDate(authorId);
                     console.log('作者註冊時間:', authorRegDate);
-                    stats[1].textContent = authorRegDate;
+                    stats[2].textContent = authorRegDate;
                 } else {
-                    console.log('統計項目數量不足，需要2個但只有', stats.length, '個');
+                    console.log('統計項目數量不足，需要3個但只有', stats.length, '個');
                 }
             } else {
                 console.log('未找到作者統計元素');
@@ -791,17 +829,14 @@ class ArticleManager {
 
     // 獲取對應的列表頁面編號
     getListPageNumber(typeId) {
-        const pageMap = {
-            30001: 1, // 新手指南
-            30002: 2, // 料理技巧
-            30003: 3  // 裝備評測
-        };
-        return pageMap[typeId] || 1;
+        return this.currentPage;
     }
 
+    // 從文章內容提取第一張圖片的URL
+
     // 渲染文章列表
-    renderArticleList(containerId, typeId = null, page = 1, sortType = 'latest') {
-        this.currentSortType = sortType; // 新增：記錄目前排序方式
+    async renderArticleList(containerId, typeId = null, page = 1, sortType = 'latest') {
+        this.currentSortType = sortType;
         const container = document.getElementById(containerId);
         if (!container) return;
 
@@ -820,15 +855,22 @@ class ArticleManager {
             return;
         }
 
+        // 獲取所有文章的圖片
+        const articleImages = await Promise.all(
+            articlesToShow.map(article => this.getFirstArticleImage(article.acId))
+        );
+
         // 論壇風格的文章列表HTML
         const htmlContent = articlesToShow.map((article, index) => {
-            const authorName = this.getAuthorName(article); // 直接傳入整個文章物件
+            const authorName = this.getAuthorName(article);
             const typeName = this.getArticleTypeName(article.acTypeId);
+
+            // 使用文章圖片，如果沒有則使用預設圖片
+            const imageUrl = articleImages[index] || `images/camp-${(index % 5) + 1}.jpg`;
 
             // 清理 HTML 標籤，只保留純文字內容
             let cleanContent = '';
             if (article.acContext) {
-                // 創建臨時 DOM 元素來清理 HTML 標籤
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = article.acContext;
                 cleanContent = tempDiv.textContent || tempDiv.innerText || '';
@@ -840,7 +882,7 @@ class ArticleManager {
             return `
                 <div class="article-item">
                     <div class="article-image-cell">
-                        <img src="images/camp-${(index % 5) + 1}.jpg" alt="${article.acTitle}" class="article-image">
+                        <img src="${imageUrl}" alt="${article.acTitle}" class="article-image">
                     </div>
                     <div class="article-title-cell">
                         <a href="articles.html?id=${article.acId}" class="article-title-link">
@@ -859,7 +901,8 @@ class ArticleManager {
                         ${authorName}
                     </div>
                     <div class="article-date-cell">
-                        ${this.formatDateShort(article.acTime)}
+                        <div class="date-line">${this.formatDateTwoLines(article.acTime).dateLine}</div>
+                        <div class="time-line">${this.formatDateTwoLines(article.acTime).timeLine}</div>
                     </div>
                     <div class="article-stats-cell">
                         <div class="stat-item">
@@ -882,7 +925,10 @@ class ArticleManager {
                         </div>
                         <div class="article-meta-mobile">
                             <span>作者：${authorName}</span>
-                            <span>${this.formatDateShort(article.acTime)}</span>
+                            <span class="mobile-date">
+                                <div class="date-line">${this.formatDateTwoLines(article.acTime).dateLine}</div>
+                                <div class="time-line">${this.formatDateTwoLines(article.acTime).timeLine}</div>
+                            </span>
                        </div>
                     </div>
                 </div>
@@ -1005,7 +1051,7 @@ class ArticleManager {
     }
 
     // 渲染熱門文章側邊欄（用排序後的完整資料）
-    renderPopularArticles(typeId = null) {
+    async renderPopularArticles(typeId = null) {
         const container = document.getElementById('popular-articles-list');
         if (!container) return;
 
@@ -1017,14 +1063,21 @@ class ArticleManager {
 
         articles = articles.slice(0, 4); // 只顯示前4篇
 
-        const images = ['camp-1.jpg', 'camp-2.jpg', 'camp-3.jpg', 'camp-4.jpg', 'camp-5.jpg'];
+        // 獲取所有文章的圖片
+        const articleImages = await Promise.all(
+            articles.map(article => this.getFirstArticleImage(article.acId))
+        );
 
         const htmlContent = articles.map((article, index) => {
-            const authorName = this.getAuthorName(article); // 直接傳入整個文章物件
+            const authorName = this.getAuthorName(article);
+
+            // 使用文章圖片，如果沒有則使用預設圖片
+            const imageUrl = articleImages[index] || `images/camp-${(index % 5) + 1}.jpg`;
+
             return `
                 <li>
                     <a href="articles.html?id=${article.acId}">
-                        <img src="images/${images[index % images.length]}" alt="${article.acTitle}" />
+                        <img src="${imageUrl}" alt="${article.acTitle}" />
                         <div class="popular-guide-info">
                             <h4>${article.acTitle}</h4>
                             <div class="popular-guide-meta">
@@ -1056,8 +1109,11 @@ class ArticleManager {
             this.currentPage = page;
             this.currentTypeId = typeId;
 
-            this.renderArticleList('articles-container', typeId, page);
-            this.renderPopularArticles(typeId);
+            // 同時渲染文章列表和熱門文章
+            await Promise.all([
+                this.renderArticleList('articles-container', typeId, page),
+                this.renderPopularArticles(typeId)
+            ]);
         } catch (error) {
             console.error('初始化文章列表頁面失敗:', error);
         }
@@ -1320,6 +1376,13 @@ class ArticleManager {
     async initReplyFeatures(articleId) {
         console.log('初始化留言功能，文章ID:', articleId);
         const replies = await this.loadArticleReplies(articleId);
+
+        // 檢查是否已經有新版留言系統
+        if (window.replySystem && window.replySystem.allReplies) {
+            console.log('🔄 檢測到新版留言系統，跳過舊版渲染');
+            return;
+        }
+
         this.renderReplies(replies, 1, 10);
         this.updateReplyCount(replies.length);
         // ...（後續表單事件邏輯不變）
@@ -1806,10 +1869,10 @@ class ArticleManager {
         };
     }
 
-    // 新增：載入所有文章並查詢每篇的 likeCount、replyCount、viewCount
-    async loadArticlesWithStats(acTypeId = null) {
-        // 1. 取得所有文章
-        let articles = await this.loadArticles(acTypeId);
+    // 新增：載入所有文章並查詢每篇的 likeCount、replyCount、viewCount（支援搜尋）
+    async loadArticlesWithStats(acTypeId = null, searchKeyword = '') {
+        // 1. 取得所有文章（支援搜尋關鍵字）
+        let articles = await this.loadArticles(acTypeId, searchKeyword);
         // 2. 依序查詢每篇的 likeCount、replyCount、viewCount
         await Promise.all(articles.map(async (article) => {
             // 按讚數
@@ -1827,6 +1890,79 @@ class ArticleManager {
 
         }));
         return articles;
+    }
+
+    // 新增：搜尋文章方法
+    async searchArticles(keyword, typeId = null) {
+        try {
+            this.currentSearchKeyword = keyword;
+            this.currentTypeId = typeId;
+
+            // 載入搜尋結果（包含統計資料）
+            const articles = await this.loadArticlesWithStats(typeId, keyword);
+            this.articles = articles;
+
+            // 更新文章數量顯示
+            this.updateArticleCount();
+
+            // 重新渲染文章列表（保持當前排序）
+            this.renderArticleList('articles-container', typeId, 1, this.currentSortType);
+
+            // 更新熱門文章側邊欄
+            this.renderPopularArticles(typeId);
+
+            console.log(`搜尋 "${keyword}" 找到 ${articles.length} 篇文章`);
+            return articles;
+        } catch (error) {
+            console.error('搜尋文章失敗:', error);
+            return [];
+        }
+    }
+
+    // 新增：更新文章數量顯示
+    updateArticleCount() {
+        const countElement = document.getElementById('article-count');
+        if (countElement) {
+            countElement.textContent = this.articles.length;
+        }
+    }
+
+    // 新增：清除搜尋
+    async clearSearch(typeId = null) {
+        this.currentSearchKeyword = '';
+
+        // 清空搜尋框
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) {
+            searchInput.value = '';
+        }
+
+        // 重新載入所有文章（包含統計資料）
+        const articles = await this.loadArticlesWithStats(typeId, '');
+        this.articles = articles;
+        this.updateArticleCount();
+        this.renderArticleList('articles-container', typeId, 1, this.currentSortType);
+        this.renderPopularArticles(typeId);
+
+        console.log('已清除搜尋條件');
+    }
+
+    // 獲取文章的第一張圖片
+    async getFirstArticleImage(articleId) {
+        try {
+            const response = await fetch(`${window.api_prefix}/api/article-images/article/${articleId}`);
+            const result = await response.json();
+
+            if (result.status === 'success' && result.data && result.data.length > 0) {
+                // 根據圖片ID排序，取最小的
+                const sortedImages = result.data.sort((a, b) => a.acImgId - b.acImgId);
+                return `${window.api_prefix}/api/article-images/${sortedImages[0].acImgId}/image`;
+            }
+            return null;
+        } catch (error) {
+            console.error('獲取文章圖片失敗:', error);
+            return null;
+        }
     }
 }
 
@@ -1924,26 +2060,110 @@ function testGetAuthorName() {
     });
 }
 
-// 初始化三個列表頁時掛上排序選單事件
-function setupArticleListSort(typeId) {
-    document.addEventListener('DOMContentLoaded', async function () {
-        const sortSelect = document.getElementById('sort-guides');
-        let articles = await articleManager.loadArticlesWithStats(typeId);
-        let currentSort = sortSelect ? sortSelect.value : 'latest';
-        articleManager.articles = articles;
-        articleManager.renderArticleList('articles-container', typeId, 1, currentSort);
-        articleManager.renderPopularArticles(typeId);
-        if (sortSelect) {
-            sortSelect.addEventListener('change', async function () {
-                currentSort = this.value;
-                // 每次切換都重新載入所有文章資料
-                let articles = await articleManager.loadArticlesWithStats(typeId);
+// 初始化三個列表頁時掛上排序選單和搜尋功能事件
+async function setupArticleListSort(typeId) {
+    // 設定當前類型ID
+    articleManager.currentTypeId = typeId;
+
+    // 載入初始文章數據
+    const sortSelect = document.getElementById('sort-guides');
+    let currentSort = sortSelect ? sortSelect.value : 'latest';
+    articleManager.currentSortType = currentSort;
+
+    let articles = await articleManager.loadArticlesWithStats(typeId);
+    articleManager.articles = articles;
+    articleManager.updateArticleCount();
+    articleManager.renderArticleList('articles-container', typeId, 1, currentSort);
+    articleManager.renderPopularArticles(typeId);
+
+    // 設定排序選單事件監聽器
+    if (sortSelect) {
+        sortSelect.addEventListener('change', async function () {
+            currentSort = this.value;
+            articleManager.currentSortType = currentSort;
+
+            // 如果有搜尋關鍵字，保持搜尋狀態並重新排序
+            if (articleManager.currentSearchKeyword) {
+                // 使用搜尋結果重新載入統計資料並排序
+                let articles = await articleManager.loadArticlesWithStats(typeId, articleManager.currentSearchKeyword);
                 articleManager.articles = articles;
+                articleManager.updateArticleCount();
                 articleManager.renderArticleList('articles-container', typeId, 1, currentSort);
                 articleManager.renderPopularArticles(typeId);
-            });
-        }
-    });
+            } else {
+                // 沒有搜尋時，重新載入所有文章並排序
+                let articles = await articleManager.loadArticlesWithStats(typeId);
+                articleManager.articles = articles;
+                articleManager.updateArticleCount();
+                articleManager.renderArticleList('articles-container', typeId, 1, currentSort);
+                articleManager.renderPopularArticles(typeId);
+            }
+        });
+    }
+
+    // 設定搜尋功能事件監聽器
+    const searchForm = document.getElementById('search-form');
+    const searchInput = document.getElementById('search-input');
+
+    if (searchForm && searchInput) {
+        // 表單提交事件（處理搜尋按鈕點擊）
+        searchForm.addEventListener('submit', function (event) {
+            event.preventDefault();
+            const keyword = searchInput.value.trim();
+            console.log('表單提交搜尋:', keyword);
+            handleSearch(keyword, typeId);
+        });
+
+        // Enter鍵搜尋（主要搜尋方式）
+        searchInput.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                const keyword = searchInput.value.trim();
+                console.log('Enter鍵搜尋:', keyword);
+                handleSearch(keyword, typeId);
+            }
+        });
+
+        // 備用Enter鍵搜尋（使用keypress事件）
+        searchInput.addEventListener('keypress', function (event) {
+            if (event.key === 'Enter' || event.keyCode === 13) {
+                event.preventDefault();
+                const keyword = searchInput.value.trim();
+                console.log('備用Enter鍵搜尋:', keyword);
+                handleSearch(keyword, typeId);
+            }
+        });
+
+        // 即時搜尋（當輸入框清空時）
+        searchInput.addEventListener('input', function (event) {
+            const keyword = event.target.value.trim();
+            if (keyword === '') {
+                console.log('清空搜尋框，清除搜尋條件');
+                // 清空搜尋框時，清除搜尋條件
+                articleManager.clearSearch(typeId);
+            }
+        });
+
+        console.log('搜尋功能事件監聽器已設定完成');
+    } else {
+        console.warn('搜尋表單或輸入框未找到');
+    }
+}
+
+// 處理搜尋的全域函數（供HTML onsubmit調用）
+async function handleSearch(keyword, typeId = null) {
+    // 如果沒有傳入typeId，使用當前的typeId
+    if (typeId === null) {
+        typeId = articleManager.currentTypeId;
+    }
+
+    if (keyword && keyword.length > 0) {
+        console.log(`執行搜尋: "${keyword}", 類型ID: ${typeId}`);
+        await articleManager.searchArticles(keyword, typeId);
+    } else {
+        console.log('清除搜尋條件');
+        await articleManager.clearSearch(typeId);
+    }
 }
 
 // === 增強 API 測試工具 ===

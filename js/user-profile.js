@@ -602,8 +602,8 @@ class UserProfileManager {
                     <span>營地類型ID: ${detail.campsiteTypeId}</span>
                     <span>營地數量: ${detail.campsiteNum}</span>
                     <span>營地金額: NT$ ${(
-                      detail.campsiteAmount || 0
-                    ).toLocaleString()}</span>
+                    detail.campsiteAmount || 0
+                  ).toLocaleString()}</span>
                   </div>
                 `
               )
@@ -682,15 +682,14 @@ class UserProfileManager {
           }
           
           <div class="order-actions">
-            ${
-              order.campsiteOrderStatus < this.ORDER_STATUS.COMPLETED
-                ? `
+            ${order.campsiteOrderStatus < this.ORDER_STATUS.COMPLETED
+            ? `
               <button class="btn-cancel-order" data-order-id="${order.campsiteOrderId}">
                 <i class="fas fa-times"></i> 取消訂單
               </button>
             `
-                : ""
-            }
+            : ""
+          }
           </div>
         </div>
       `;
@@ -1255,31 +1254,27 @@ class UserProfileManager {
             <div class="coupon-content">
               <div class="coupon-title">活動名稱:${coupon.discountCode}</div>
 
-              <div class="coupon-description">單筆滿 NT$${
-                coupon.minOrderAmount
-              } 可使用</div>
+              <div class="coupon-description">單筆滿 NT$${coupon.minOrderAmount
+          } 可使用</div>
               <div class="coupon-valid">使用期限：${coupon.startDate.substring(
-                0,
-                10
-              )} ~ ${coupon.endDate.substring(0, 10)}</div>
+            0,
+            10
+          )} ~ ${coupon.endDate.substring(0, 10)}</div>
             </div>
             <div class="coupon-footer">
-              <div class="coupon-code">請使用優惠碼：${
-                coupon.discountCodeId
-              }</div>
-              ${
-                !isExpired && !isUsed
-                  ? `<button class="btn-copy-code" data-code="${coupon.discountCodeId}">複製代碼</button>`
-                  : ""
-              }
-              ${
-                isUsed
-                  ? `<div class="coupon-used-date">使用日期：${coupon.usedDate.substring(
-                      0,
-                      10
-                    )}</div>`
-                  : ""
-              }
+              <div class="coupon-code">請使用優惠碼：${coupon.discountCodeId
+          }</div>
+              ${!isExpired && !isUsed
+            ? `<button class="btn-copy-code" data-code="${coupon.discountCodeId}">複製代碼</button>`
+            : ""
+          }
+              ${isUsed
+            ? `<div class="coupon-used-date">使用日期：${coupon.usedDate.substring(
+              0,
+              10
+            )}</div>`
+            : ""
+          }
 
             </div>
           </div>`;
@@ -2206,11 +2201,10 @@ function viewShopOrderDetail(orderId) {
                     <div class="info-item"><span class="info-label">配送方式:</span><span class="info-value">${shipmentMethod}</span></div>
                     <div class="info-item"><span class="info-label">商品總數:</span><span class="info-value">${totalItems} 件</span></div>
                     <div class="info-item"><span class="info-label">退貨申請狀態:</span><span class="info-value">${returnApplyText}</span></div>
-                    <div class="info-item"><span class="info-label">出貨日期:</span><span class="info-value">${
-                      order.shopOrderShipDate
-                        ? order.shopOrderShipDate.split("T")[0]
-                        : ""
-                    }</span></div>
+                    <div class="info-item"><span class="info-label">出貨日期:</span><span class="info-value">${order.shopOrderShipDate
+              ? order.shopOrderShipDate.split("T")[0]
+              : ""
+            }</span></div>
                       <div class="info-item"><span class="info-label">訂單備註:</span><span class="info-value">${orderNoteText}</span></div>
 
                   </div>
@@ -2694,7 +2688,7 @@ class FavoritesManager {
   }
 
   getArticleType(acTypeId) {
-    const typeMap = { 30001: '新手指南', 30002: '裝備評測', 30003: '營地推薦', 30004: '露營食譜', 30005: '戶外技巧' };
+    const typeMap = { 30001: '新手指南', 30002: '裝備評測', 30003: '營地推薦' };
     return typeMap[acTypeId] || '其他';
   }
 
@@ -2786,6 +2780,19 @@ class FavoritesManager {
         }
       });
     }
+
+    // 添加搜尋表單submit事件監聽
+    const searchForm = document.getElementById('search-form');
+    if (searchForm) {
+      searchForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) {
+          this.searchFavorites(searchInput.value.trim());
+        }
+      });
+    }
+
     const sortSelect = document.getElementById('sort-favorites');
     if (sortSelect) {
       sortSelect.value = 'latest';
@@ -2975,5 +2982,173 @@ function cleanupPerformanceMarks() {
 window.addEventListener("beforeunload", () => {
   cleanupPerformanceMarks();
   domCache.clear();
+});
+
+// ===== 文章收藏相關JavaScript ===== 
+// 文章收藏的UI控制邏輯
+function initArticleFavoritesUI() {
+  // 文章類別資料，可根據實際API回傳調整
+  const articleTypes = [
+    { id: '', name: '全部文章' },
+    { id: 30001, name: '新手指南' },
+    { id: 30002, name: '裝備評測' },
+    { id: 30003, name: '營地推薦' }
+  ];
+
+  // 產生下拉選單
+  const categoryFilter = document.getElementById('category-filter');
+  if (categoryFilter) {
+    categoryFilter.innerHTML = articleTypes.map(type =>
+      `<option value="${type.id}">${type.name}</option>`
+    ).join('');
+
+    // 監聽選單變化
+    categoryFilter.addEventListener('change', function () {
+      const selectedType = this.value;
+      const allItems = document.querySelectorAll('#favorites-container .article-item');
+      allItems.forEach(item => {
+        const tag = item.querySelector('.article-tag');
+        if (!selectedType || (tag && tag.textContent.includes(articleTypes.find(t => t.id == selectedType)?.name || ''))) {
+          item.style.display = '';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    });
+  }
+
+  // 露天市集風格勾選邏輯
+  const selectAllCheckbox = document.getElementById('select-all-checkbox');
+  const deleteBar = document.getElementById('delete-selected-bar');
+  const deleteSelectedBtn = document.getElementById('delete-selected-btn');
+
+  function getAllCheckboxes() {
+    return document.querySelectorAll('#favorites-container .favorite-checkbox');
+  }
+
+  function updateSelectAllState() {
+    const boxes = getAllCheckboxes();
+    const checked = Array.from(boxes).filter(cb => cb.checked);
+
+    if (selectAllCheckbox) {
+      selectAllCheckbox.checked = boxes.length > 0 && checked.length === boxes.length;
+      selectAllCheckbox.indeterminate = checked.length > 0 && checked.length < boxes.length;
+    }
+
+    // 刪除bar顯示
+    if (deleteBar) {
+      if (checked.length > 0) {
+        deleteBar.style.display = 'flex';
+      } else {
+        deleteBar.style.display = 'none';
+      }
+    }
+  }
+
+  if (selectAllCheckbox) {
+    selectAllCheckbox.addEventListener('change', function () {
+      getAllCheckboxes().forEach(cb => cb.checked = selectAllCheckbox.checked);
+      updateSelectAllState();
+    });
+  }
+
+  // 使用事件委託處理動態生成的複選框
+  document.addEventListener('change', function (e) {
+    if (e.target.classList.contains('favorite-checkbox')) {
+      updateSelectAllState();
+    }
+  });
+
+  if (deleteSelectedBtn) {
+    deleteSelectedBtn.addEventListener('click', function () {
+      const checked = Array.from(getAllCheckboxes()).filter(cb => cb.checked);
+      if (checked.length === 0) {
+        alert('請先勾選要刪除的收藏文章');
+        return;
+      }
+      const ids = checked.map(cb => cb.value);
+
+      if (confirm(`確定要刪除 ${ids.length} 篇收藏文章嗎？`)) {
+        // 呼叫批次刪除功能
+        batchRemoveFavorites(ids);
+      }
+    });
+  }
+
+  // 初始同步
+  updateSelectAllState();
+}
+
+// 批次刪除收藏文章
+async function batchRemoveFavorites(articleIds) {
+  try {
+    // 顯示載入狀態
+    const deleteBtn = document.getElementById('delete-selected-btn');
+    if (deleteBtn) {
+      deleteBtn.disabled = true;
+      deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 刪除中...';
+    }
+
+    const promises = articleIds.map(async (articleId) => {
+      try {
+        // 如果有API，使用API刪除
+        if (window.favoritesManager && typeof window.favoritesManager.removeFavorite === 'function') {
+          await window.favoritesManager.removeFavorite(articleId);
+        } else {
+          // 否則使用本地儲存
+          const localFavorites = JSON.parse(localStorage.getItem('articleFavorites') || '[]');
+          const updatedFavorites = localFavorites.filter(fav =>
+            !(fav.memId === (window.userProfileManager?.currentMember?.memId || window.userProfileManager?.currentMember?.mem_id) && fav.acId == articleId)
+          );
+          localStorage.setItem('articleFavorites', JSON.stringify(updatedFavorites));
+        }
+        return { success: true, articleId };
+      } catch (error) {
+        return { success: false, articleId, error };
+      }
+    });
+
+    const results = await Promise.allSettled(promises);
+    const successful = results.filter(r => r.status === 'fulfilled' && r.value.success).length;
+    const failed = results.filter(r => r.status === 'rejected' || (r.status === 'fulfilled' && !r.value.success)).length;
+
+    if (successful > 0) {
+      showMessage(`成功刪除 ${successful} 篇文章收藏`, 'success');
+
+      // 重新載入收藏列表
+      if (window.favoritesManager && typeof window.favoritesManager.loadFavorites === 'function') {
+        await window.favoritesManager.loadFavorites();
+      } else {
+        // 手動移除DOM元素
+        articleIds.forEach(id => {
+          const item = document.querySelector(`[data-article-id="${id}"]`);
+          if (item) item.remove();
+        });
+      }
+    }
+
+    if (failed > 0) {
+      showMessage(`${failed} 篇文章刪除失敗`, 'error');
+    }
+
+  } catch (error) {
+    console.error('批次刪除收藏失敗:', error);
+    showMessage('刪除失敗，請稍後再試', 'error');
+  } finally {
+    // 恢復按鈕狀態
+    const deleteBtn = document.getElementById('delete-selected-btn');
+    if (deleteBtn) {
+      deleteBtn.disabled = false;
+      deleteBtn.innerHTML = '刪除勾選收藏';
+    }
+  }
+}
+
+// 在 DOMContentLoaded 中初始化文章收藏UI
+document.addEventListener('DOMContentLoaded', function () {
+  // 檢查是否在用戶資料頁面且有文章收藏區段
+  if (document.getElementById('article-favorites')) {
+    initArticleFavoritesUI();
+  }
 });
 
