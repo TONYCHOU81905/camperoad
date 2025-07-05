@@ -211,13 +211,14 @@ class CartManager {
     let bundleItemsStorage =
       JSON.parse(localStorage.getItem("bundleItems")) || [];
     const bundleIndex = bundleItemsStorage.findIndex(
-      (bundleItem) => (bundleItem.bundleId || bundleItem.bundleId) === bundleId
+      (bundleItem) => (bundleItem.bundleId || bundleItem.bundle_id) === bundleId
     );
 
     if (bundleIndex > -1) {
       bundleItemsStorage.splice(bundleIndex, 1);
       localStorage.setItem("bundleItems", JSON.stringify(bundleItemsStorage));
       this.updateCartCount();
+      console.log(`Successfully removed bundle item: ${bundleId}`);
     } else {
       console.error("Bundle item not found for removal:", bundleId);
     }
@@ -275,7 +276,8 @@ class CartManager {
     const bundleItemsStorage =
       JSON.parse(localStorage.getItem("bundleItems")) || [];
     const bundleTotal = bundleItemsStorage.reduce((total, item) => {
-      return total + item.bundlePrice * (item.quantity || 1);
+      const price = item.bundlePrice || item.bundle_price || 0;
+      return total + price * (item.quantity || 1);
     }, 0);
 
     return campsiteTotal + bundleTotal;
