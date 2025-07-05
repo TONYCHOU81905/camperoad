@@ -363,7 +363,6 @@ function displayChatList(data, memId) {
   data.secondList.forEach((ownerId, index) => {
     // 查找營地資料
     const camp = campData.find((c) => c.ownerId == ownerId);
-    console.log("營地名稱：", campData);
 
     const campName = camp ? camp.campName : `營地 ${ownerId}`;
     const chatId = data.chatIdList[index];
