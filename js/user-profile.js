@@ -5,6 +5,8 @@ class UserProfileManager {
     this.campsiteOrders = [];
     this.favoriteCamps = [];
     this.camps = [];
+    this.campsiteTypes = []; // 營地類型資料
+    this.bundleItemData = []; // 加購商品資料
     // WebSocket 相關屬性
     this.stompClient = null;
     this.memId = null;
@@ -377,6 +379,8 @@ class UserProfileManager {
         this.campsiteOrders.forEach((order) => {
           if (order.orderDetails && order.orderDetails.length > 0) {
             order.orderDetails.forEach((detail) => {
+              console.log(" order.orderDetails:", detail);
+
               this.orderDetails.push({
                 campsiteDetailsId: detail.campsiteDetailsId,
                 campsiteOrderId: order.campsiteOrderId,
@@ -428,6 +432,50 @@ class UserProfileManager {
       } else {
         console.error("獲取營地資料失敗:", campsData.message);
         this.camps = [];
+      }
+
+      // 載入營地類型資料
+      try {
+        const campsiteResponse = await fetch(
+          `${window.api_prefix}/campsite/getAllCampsite`
+        );
+        if (!campsiteResponse.ok) {
+          throw new Error(`載入營地房間資料失敗：${campsiteResponse.status}`);
+        }
+        const allCampsitesJson = await campsiteResponse.json();
+        const allCampsites = allCampsitesJson.data || [];
+        console.log("allCampsites:", allCampsites);
+        this.campsiteTypes = allCampsites;
+      } catch (error) {
+        console.error("載入營地類型資料失敗:", error);
+        this.campsiteTypes = [];
+      }
+
+      // 載入加購商品資料
+      try {
+        // 獲取所有營地的加購商品
+        const allBundleItems = [];
+        for (const camp of this.camps) {
+          try {
+            const bundleResponse = await fetch(
+              `${window.api_prefix}/bundleitem/all`
+            );
+            if (bundleResponse.ok) {
+              const bundleDataJson = await bundleResponse.json();
+              const bundleData = bundleDataJson.data;
+              if (bundleData && Array.isArray(bundleData)) {
+                allBundleItems.push(...bundleData);
+              }
+            }
+          } catch (bundleError) {
+            console.error(`載入營地 ${camp.campId} 加購商品失敗:`, bundleError);
+          }
+        }
+        this.bundleItemData = allBundleItems;
+        console.log("bundleItemData:", this.bundleItemData);
+      } catch (error) {
+        console.error("載入加購商品資料失敗:", error);
+        this.bundleItemData = [];
       }
     } catch (error) {
       console.error("載入數據失敗:", error);
@@ -540,6 +588,81 @@ class UserProfileManager {
     }
   }
 
+  // 根據營地類型ID獲取營地類型名稱
+  getCampsiteTypeName(campsiteTypeId) {
+    if (!campsiteTypeId || !this.campsiteTypes) {
+      return "未知類型";
+    }
+
+    const campsiteType = this.campsiteTypes.find(
+      (type) => type.campsiteTypeId === campsiteTypeId
+    );
+
+    return campsiteType
+      ? campsiteType.campsiteIdName
+      : `類型ID: ${campsiteTypeId}`;
+  }
+
+  // 根據bundleId獲取加購商品詳細信息
+  getBundleItemDetails(bundleId) {
+    if (!bundleId || !this.bundleItemData) {
+      return null;
+    }
+
+    return this.bundleItemData.find((item) => item.bundleId === bundleId);
+  }
+
+  // 生成加購商品詳細HTML
+  generateBundleItemsHTML(campsiteOrderId) {
+    // 獲取該訂單的加購商品
+    const orderDetailsList = this.orderDetails.filter(
+      (detail) => detail.campsiteOrderId === campsiteOrderId
+    );
+
+    const bundleItems = [];
+    orderDetailsList.forEach((detail) => {
+      const bundleDetail = this.bundleDetails.find(
+        (bundle) => bundle.campsiteDetailsId === detail.orderDetailsId
+      );
+      if (bundleDetail && bundleDetail.bundleBuyAmount > 0) {
+        // 獲取加購商品的詳細信息
+        const bundleInfo = this.getBundleItemDetails(bundleDetail.bundleId);
+        bundleItems.push({
+          ...bundleDetail,
+          bundleInfo: bundleInfo,
+        });
+      }
+    });
+
+    if (bundleItems.length === 0) {
+      return '<p class="no-bundle-items">暫無加購商品詳細資料</p>';
+    }
+
+    return bundleItems
+      .map((item) => {
+        const bundleInfo = item.bundleInfo;
+        return `
+            <div class="bundle-item-detail">
+              <div class="bundle-item-info">
+                <h6>${bundleInfo ? bundleInfo.bundleName : "未知商品"}</h6>
+                <div class="bundle-item-specs">
+                  <span class="bundle-price">單價: NT$ ${
+                    bundleInfo ? bundleInfo.price.toLocaleString() : "0"
+                  }</span>
+                  <span class="bundle-quantity">數量: ${
+                    item.bundleBuyNum || 0
+                  }</span>
+                  <span class="bundle-total">小計: NT$ ${(
+                    item.bundleBuyAmount || 0
+                  ).toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
+          `;
+      })
+      .join("");
+  }
+
   // 生成訂單 HTML
   generateOrdersHTML(orders) {
     return orders
@@ -603,7 +726,9 @@ class UserProfileManager {
                   .map(
                     (detail) => `
                   <div class="detail-item">
-                    <span>營地類型ID: ${detail.campsiteTypeId}</span>
+                    <span>營地類型: ${this.getCampsiteTypeName(
+                      detail.campsiteTypeId
+                    )}</span>
                     <span>營地數量: ${detail.campsiteNum}</span>
                     <span>營地金額: NT$ ${(
                       detail.campsiteAmount || 0
@@ -654,22 +779,23 @@ class UserProfileManager {
           </div>
           
           ${
-            bundleItems.length > 0
+            (order.bundleAmount || 0) > 0
               ? `
             <div class="bundle-items">
-              <h5><i class="fas fa-plus-circle"></i> 加購商品</h5>
-              <div class="bundle-list">
-                ${bundleItems
-                  .map(
-                    (item) => `
-                  <div class="bundle-item">
-                    <span>商品ID: ${item.bundleId}</span>
-                    <span>數量: ${item.bundleBuyNum}</span>
-                    <span>金額: NT$ ${item.bundleBuyAmount.toLocaleString()}</span>
-                  </div>
-                `
-                  )
-                  .join("")}
+              <div class="bundle-header">
+                <h5><i class="fas fa-plus-circle"></i> 加購商品</h5>
+                <button class="btn-toggle-bundle" data-order-id="${
+                  order.campsiteOrderId
+                }">
+                  <i class="fas fa-chevron-down"></i> 查看詳情
+                </button>
+              </div>
+              <div class="bundle-details" id="bundle-details-${
+                order.campsiteOrderId
+              }" style="display: none;">
+                <div class="bundle-list">
+                  ${this.generateBundleItemsHTML(order.campsiteOrderId)}
+                </div>
               </div>
             </div>
           `
@@ -739,6 +865,7 @@ class UserProfileManager {
     // 只在初始化時綁定一次事件，避免重複綁定
     if (!this.cancelOrderEventsBound) {
       this.bindCancelOrderButtons();
+      this.bindBundleToggleButtons();
       this.cancelOrderEventsBound = true;
     }
 
@@ -784,6 +911,39 @@ class UserProfileManager {
 
     // 標記已綁定事件
     ordersList.setAttribute("data-events-bound", "true");
+  }
+
+  // 綁定加購商品展開按鈕事件
+  bindBundleToggleButtons() {
+    const ordersList = document.getElementById("campsite-orders-list");
+    if (!ordersList) return;
+
+    // 使用事件委託處理加購商品展開按鈕
+    ordersList.addEventListener("click", (e) => {
+      if (e.target.closest(".btn-toggle-bundle")) {
+        e.preventDefault();
+        const button = e.target.closest(".btn-toggle-bundle");
+        const orderId = button.getAttribute("data-order-id");
+        const bundleDetails = document.getElementById(
+          `bundle-details-${orderId}`
+        );
+        const icon = button.querySelector("i");
+
+        if (bundleDetails) {
+          if (bundleDetails.style.display === "none") {
+            // 展開
+            bundleDetails.style.display = "block";
+            icon.className = "fas fa-chevron-up";
+            button.innerHTML = '<i class="fas fa-chevron-up"></i> 收起詳情';
+          } else {
+            // 收起
+            bundleDetails.style.display = "none";
+            icon.className = "fas fa-chevron-down";
+            button.innerHTML = '<i class="fas fa-chevron-down"></i> 查看詳情';
+          }
+        }
+      }
+    });
   }
 
   // 取消訂單
@@ -1507,7 +1667,7 @@ class UserProfileManager {
   // WebSocket 連接方法
   connect() {
     // 每次連接時都重新獲取最新的ID值
-    this.memId = document.getElementById("memId").value.trim();
+    this.memId = this.currentMember.memId;
     this.ownerId = document.getElementById("ownerId").value.trim();
 
     console.log(
