@@ -566,7 +566,7 @@ async function checkRemainingRoomCount(
 
     const dataJson = await response.json();
     const data = dataJson.data;
-    console.log("API回應數據:", dataJson);
+    console.log("API回應數據1:", dataJson);
 
     // 查找對應房型的剩餘數量
     const roomTypeData = data.find(

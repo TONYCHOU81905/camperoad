@@ -182,7 +182,8 @@ document.addEventListener("DOMContentLoaded", function () {
           container.innerHTML = "";
   
           products.forEach((prod) => {
-            const hasDiscount = prod.prodDiscount !== null && prod.prodDiscount !== undefined;
+            // 確保只有真正有折扣的商品才標記為促銷
+            const hasDiscount = prod.prodDiscount !== null && prod.prodDiscount !== undefined && prod.prodDiscount < 1 && prod.prodDiscount > 0;
             const featuresHtml = generateProductFeatures(prod);
             const colorMap = new Map((prod.colorList || []).map(c => [c.colorId, c.colorName]));
             const specMap = new Map((prod.specList || []).map(s => [s.specId, s.specName]));
@@ -266,7 +267,7 @@ document.addEventListener("DOMContentLoaded", function () {
             <div class="product-card">
               <div class="product-image">
                 ${productImageHtml}
-                <span class="product-tag">${prod.prodTag || '熱銷'}</span>
+                <span class="${hasDiscount ? 'product-tag' : 'product-tag2'}">${hasDiscount ? '促銷' : (prod.prodTag || '熱銷')}</span>
               </div>
               <div class="product-info">
                 <h3><a href="product-detail.html?id=${prod.prodId}">${prod.prodName}</a></h3>
