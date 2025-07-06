@@ -5,6 +5,8 @@ class UserProfileManager {
     this.campsiteOrders = [];
     this.favoriteCamps = [];
     this.camps = [];
+    this.campsiteTypes = []; // 營地類型資料
+    this.bundleItemData = []; // 加購商品資料
     // WebSocket 相關屬性
     this.stompClient = null;
     this.memId = null;
@@ -273,6 +275,7 @@ class UserProfileManager {
     this.initTabs();
     this.loadMemberData();
     this.loadFavoriteCamps();
+    this.loadFavoriteProducts(); // 添加收藏商品載入
     this.loadCoupons();
     this.loadCampsiteOrders();
     this.loadPaymentMethods();
@@ -377,6 +380,8 @@ class UserProfileManager {
         this.campsiteOrders.forEach((order) => {
           if (order.orderDetails && order.orderDetails.length > 0) {
             order.orderDetails.forEach((detail) => {
+              console.log(" order.orderDetails:", detail);
+
               this.orderDetails.push({
                 campsiteDetailsId: detail.campsiteDetailsId,
                 campsiteOrderId: order.campsiteOrderId,
@@ -428,6 +433,50 @@ class UserProfileManager {
       } else {
         console.error("獲取營地資料失敗:", campsData.message);
         this.camps = [];
+      }
+
+      // 載入營地類型資料
+      try {
+        const campsiteResponse = await fetch(
+          `${window.api_prefix}/campsite/getAllCampsite`
+        );
+        if (!campsiteResponse.ok) {
+          throw new Error(`載入營地房間資料失敗：${campsiteResponse.status}`);
+        }
+        const allCampsitesJson = await campsiteResponse.json();
+        const allCampsites = allCampsitesJson.data || [];
+        console.log("allCampsites:", allCampsites);
+        this.campsiteTypes = allCampsites;
+      } catch (error) {
+        console.error("載入營地類型資料失敗:", error);
+        this.campsiteTypes = [];
+      }
+
+      // 載入加購商品資料
+      try {
+        // 獲取所有營地的加購商品
+        const allBundleItems = [];
+        for (const camp of this.camps) {
+          try {
+            const bundleResponse = await fetch(
+              `${window.api_prefix}/bundleitem/all`
+            );
+            if (bundleResponse.ok) {
+              const bundleDataJson = await bundleResponse.json();
+              const bundleData = bundleDataJson.data;
+              if (bundleData && Array.isArray(bundleData)) {
+                allBundleItems.push(...bundleData);
+              }
+            }
+          } catch (bundleError) {
+            console.error(`載入營地 ${camp.campId} 加購商品失敗:`, bundleError);
+          }
+        }
+        this.bundleItemData = allBundleItems;
+        console.log("bundleItemData:", this.bundleItemData);
+      } catch (error) {
+        console.error("載入加購商品資料失敗:", error);
+        this.bundleItemData = [];
       }
     } catch (error) {
       console.error("載入數據失敗:", error);
@@ -540,6 +589,81 @@ class UserProfileManager {
     }
   }
 
+  // 根據營地類型ID獲取營地類型名稱
+  getCampsiteTypeName(campsiteTypeId) {
+    if (!campsiteTypeId || !this.campsiteTypes) {
+      return "未知類型";
+    }
+
+    const campsiteType = this.campsiteTypes.find(
+      (type) => type.campsiteTypeId === campsiteTypeId
+    );
+
+    return campsiteType
+      ? campsiteType.campsiteIdName
+      : `類型ID: ${campsiteTypeId}`;
+  }
+
+  // 根據bundleId獲取加購商品詳細信息
+  getBundleItemDetails(bundleId) {
+    if (!bundleId || !this.bundleItemData) {
+      return null;
+    }
+
+    return this.bundleItemData.find((item) => item.bundleId === bundleId);
+  }
+
+  // 生成加購商品詳細HTML
+  generateBundleItemsHTML(campsiteOrderId) {
+    // 獲取該訂單的加購商品
+    const orderDetailsList = this.orderDetails.filter(
+      (detail) => detail.campsiteOrderId === campsiteOrderId
+    );
+
+    const bundleItems = [];
+    orderDetailsList.forEach((detail) => {
+      const bundleDetail = this.bundleDetails.find(
+        (bundle) => bundle.campsiteDetailsId === detail.orderDetailsId
+      );
+      if (bundleDetail && bundleDetail.bundleBuyAmount > 0) {
+        // 獲取加購商品的詳細信息
+        const bundleInfo = this.getBundleItemDetails(bundleDetail.bundleId);
+        bundleItems.push({
+          ...bundleDetail,
+          bundleInfo: bundleInfo,
+        });
+      }
+    });
+
+    if (bundleItems.length === 0) {
+      return '<p class="no-bundle-items">暫無加購商品詳細資料</p>';
+    }
+
+    return bundleItems
+      .map((item) => {
+        const bundleInfo = item.bundleInfo;
+        return `
+            <div class="bundle-item-detail">
+              <div class="bundle-item-info">
+                <h6>${bundleInfo ? bundleInfo.bundleName : "未知商品"}</h6>
+                <div class="bundle-item-specs">
+                  <span class="bundle-price">單價: NT$ ${
+                    bundleInfo ? bundleInfo.price.toLocaleString() : "0"
+                  }</span>
+                  <span class="bundle-quantity">數量: ${
+                    item.bundleBuyNum || 0
+                  }</span>
+                  <span class="bundle-total">小計: NT$ ${(
+                    item.bundleBuyAmount || 0
+                  ).toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
+          `;
+      })
+      .join("");
+  }
+
   // 生成訂單 HTML
   generateOrdersHTML(orders) {
     return orders
@@ -603,7 +727,9 @@ class UserProfileManager {
                   .map(
                     (detail) => `
                   <div class="detail-item">
-                    <span>營地類型ID: ${detail.campsiteTypeId}</span>
+                    <span>營地類型: ${this.getCampsiteTypeName(
+                      detail.campsiteTypeId
+                    )}</span>
                     <span>營地數量: ${detail.campsiteNum}</span>
                     <span>營地金額: NT$ ${(
                       detail.campsiteAmount || 0
@@ -654,22 +780,23 @@ class UserProfileManager {
           </div>
           
           ${
-            bundleItems.length > 0
+            (order.bundleAmount || 0) > 0
               ? `
             <div class="bundle-items">
-              <h5><i class="fas fa-plus-circle"></i> 加購商品</h5>
-              <div class="bundle-list">
-                ${bundleItems
-                  .map(
-                    (item) => `
-                  <div class="bundle-item">
-                    <span>商品ID: ${item.bundleId}</span>
-                    <span>數量: ${item.bundleBuyNum}</span>
-                    <span>金額: NT$ ${item.bundleBuyAmount.toLocaleString()}</span>
-                  </div>
-                `
-                  )
-                  .join("")}
+              <div class="bundle-header">
+                <h5><i class="fas fa-plus-circle"></i> 加購商品</h5>
+                <button class="btn-toggle-bundle" data-order-id="${
+                  order.campsiteOrderId
+                }">
+                  <i class="fas fa-chevron-down"></i> 查看詳情
+                </button>
+              </div>
+              <div class="bundle-details" id="bundle-details-${
+                order.campsiteOrderId
+              }" style="display: none;">
+                <div class="bundle-list">
+                  ${this.generateBundleItemsHTML(order.campsiteOrderId)}
+                </div>
               </div>
             </div>
           `
@@ -739,6 +866,7 @@ class UserProfileManager {
     // 只在初始化時綁定一次事件，避免重複綁定
     if (!this.cancelOrderEventsBound) {
       this.bindCancelOrderButtons();
+      this.bindBundleToggleButtons();
       this.cancelOrderEventsBound = true;
     }
 
@@ -784,6 +912,39 @@ class UserProfileManager {
 
     // 標記已綁定事件
     ordersList.setAttribute("data-events-bound", "true");
+  }
+
+  // 綁定加購商品展開按鈕事件
+  bindBundleToggleButtons() {
+    const ordersList = document.getElementById("campsite-orders-list");
+    if (!ordersList) return;
+
+    // 使用事件委託處理加購商品展開按鈕
+    ordersList.addEventListener("click", (e) => {
+      if (e.target.closest(".btn-toggle-bundle")) {
+        e.preventDefault();
+        const button = e.target.closest(".btn-toggle-bundle");
+        const orderId = button.getAttribute("data-order-id");
+        const bundleDetails = document.getElementById(
+          `bundle-details-${orderId}`
+        );
+        const icon = button.querySelector("i");
+
+        if (bundleDetails) {
+          if (bundleDetails.style.display === "none") {
+            // 展開
+            bundleDetails.style.display = "block";
+            icon.className = "fas fa-chevron-up";
+            button.innerHTML = '<i class="fas fa-chevron-up"></i> 收起詳情';
+          } else {
+            // 收起
+            bundleDetails.style.display = "none";
+            icon.className = "fas fa-chevron-down";
+            button.innerHTML = '<i class="fas fa-chevron-down"></i> 查看詳情';
+          }
+        }
+      }
+    });
   }
 
   // 取消訂單
@@ -1460,6 +1621,204 @@ class UserProfileManager {
     });
   }
 
+  // 載入收藏商品
+  async loadFavoriteProducts() {
+    console.log("loadFavoriteProducts 方法開始執行");
+    const favoritesGrid = document.getElementById("favorite-products-grid");
+    console.log("favoritesGrid 元素:", favoritesGrid);
+    if (!favoritesGrid) {
+        console.log("找不到 favorite-products-grid 元素，方法提前返回");
+        return;
+    }
+
+    // 取得會員ID
+    let memId = null;
+    const memberInfo =
+        localStorage.getItem("currentMember") ||
+        sessionStorage.getItem("currentMember");
+
+    console.log("memberInfo:", memberInfo);
+
+    if (memberInfo) {
+        try {
+            const memberObj = JSON.parse(memberInfo);
+            memId = memberObj.memId || memberObj.mem_id || memberObj.id;
+        } catch (e) {
+            memId = null;
+        }
+    }
+
+    console.log("memId", memId);
+
+    if (!memId) {
+        favoritesGrid.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-exclamation-circle"></i>
+                <h3>請先登入</h3>
+                <p>登入後即可查看您收藏的商品</p>
+                <a href="login.html" class="btn-primary">前往登入</a>
+            </div>
+        `;
+        return;
+    }
+
+    // 顯示載入中狀態
+    favoritesGrid.innerHTML = `
+        <div class="empty-state">
+            <i class="fas fa-spinner fa-spin"></i>
+            <h3>載入中...</h3>
+            <p>正在載入您的收藏商品</p>
+        </div>
+    `;
+
+    try {
+        // 使用新的 API 端點獲取收藏商品
+        const response = await fetch(`${window.api_prefix}/api/prodfavorites/member/${memId}`);
+        const data = await response.json();
+
+        if (data.status === "success" && Array.isArray(data.data) && data.data.length > 0) {
+            // 渲染收藏商品
+            const favoriteProducts = data.data;
+            let html = '';
+
+            favoriteProducts.forEach(product => {
+                // 計算折扣價格
+                const hasDiscount = product.prodDiscount !== null && product.prodDiscount < 1;
+                const firstSpec = product.prodSpecList?.[0];
+                const originalPrice = firstSpec ? firstSpec.prodSpecPrice : 0;
+                const discountedPrice = hasDiscount ? Math.round(originalPrice * product.prodDiscount) : originalPrice;
+                
+                // 獲取商品圖片
+                const productImage = product.prodPicList && product.prodPicList.length > 0
+                    ? `${window.api_prefix}/api/prodpics/${product.prodPicList[0].prodPicId}`
+                    : 'images/default-product.jpg';
+                
+                // 獲取所有商品規格
+                let specsHTML = '';
+                if (product.prodSpecList && product.prodSpecList.length > 0) {
+                    specsHTML = '<div class="prod-specs"><i class="fas fa-tag"></i> 規格：';
+                    product.prodSpecList.forEach((spec, index) => {
+                        const price = hasDiscount ? Math.round(spec.prodSpecPrice * product.prodDiscount) : spec.prodSpecPrice;
+                        specsHTML += `<span>${spec.prodSpecName} (NT$ ${price})</span>`;
+                        if (index < product.prodSpecList.length - 1) {
+                            specsHTML += ', ';
+                        }
+                    });
+                    specsHTML += '</div>';
+                } else {
+                    specsHTML = '<div class="prod-specs"><i class="fas fa-tag"></i> 規格：無規格</div>';
+                }
+                
+                // 獲取所有商品顏色
+                let colorsHTML = '';
+                if (product.prodColorList && product.prodColorList.length > 0) {
+                    colorsHTML = '<div class="prod-colors"><i class="fas fa-palette"></i> 顏色：';
+                    product.prodColorList.forEach((color, index) => {
+                        colorsHTML += `<span>${color.colorName}</span>`;
+                        if (index < product.prodColorList.length - 1) {
+                            colorsHTML += ', ';
+                        }
+                    });
+                    colorsHTML += '</div>';
+                } else {
+                    colorsHTML = '<div class="prod-colors"><i class="fas fa-palette"></i> 顏色：無顏色</div>';
+                }
+
+                html += `
+                    <div class="favorite-item favorite-camp-item" data-prod-id="${product.prodId}">
+                        <div class="camp-image">
+                            <img src="${productImage}" alt="${product.prodName}" onerror="this.onerror=null; this.src='images/default-product.jpg';" />
+                            <button class="btn-remove-favorite" data-id="${product.prodId}">
+                                <i class="fas fa-heart"></i>
+                            </button>
+                        </div>
+                        <div class="camp-info">
+                            <h4>${product.prodName}</h4>
+                            <div class="camp-description">
+                                ${specsHTML}
+                                ${colorsHTML}
+                            </div>
+                            <div class="favorite-price">
+                                ${hasDiscount ? `<span class="original-price">NT$ ${originalPrice}</span>` : ''}
+                                <span class="current-price">NT$ ${discountedPrice}</span>
+                            </div>
+                            <div class="camp-actions">
+                                <a href="product-detail.html?id=${product.prodId}" class="btn-view">查看商品</a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            favoritesGrid.innerHTML = html;
+
+            // 綁定移除收藏按鈕事件
+            document.querySelectorAll('#favorite-products-grid .btn-remove-favorite').forEach(btn => {
+                btn.addEventListener('click', async function() {
+                    const prodId = this.dataset.id;
+                    try {
+                        const response = await fetch(`${window.api_prefix}/api/prodfavorites/${memId}/${prodId}`, {
+                            method: 'DELETE'
+                        });
+                        const data = await response.json();
+                        
+                        if (data.status === 'success') {
+                            // 移除成功，添加動畫效果
+                            showMessage('已從收藏中移除', 'success');
+                            const card = this.closest('.favorite-item');
+                            
+                            // 加上動畫 class
+                            card.classList.add('removing');
+                            
+                            // 動畫結束後再移除 DOM
+                            setTimeout(() => card.remove(), 300);
+                            
+                            // 如果移除後沒有收藏商品，顯示空狀態
+                            setTimeout(() => {
+                                if (document.querySelectorAll('#favorite-products-grid .favorite-item').length === 0) {
+                                    favoritesGrid.innerHTML = `
+                                        <div class="empty-state">
+                                            <i class="fas fa-heart"></i>
+                                            <h3>尚無收藏商品</h3>
+                                            <p>您還沒有收藏任何商品</p>
+                                            <a href="shop.html" class="btn-primary">前往商城</a>
+                                        </div>
+                                    `;
+                                }
+                            }, 350);
+                        } else {
+                            showMessage('移除收藏失敗，請稍後再試', 'error');
+                        }
+                    } catch (error) {
+                        console.error('移除收藏錯誤:', error);
+                        showMessage('移除收藏失敗，請稍後再試', 'error');
+                    }
+                });
+            });
+        } else {
+            // 沒有收藏商品，顯示空狀態
+            favoritesGrid.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-heart"></i>
+                    <h3>尚無收藏商品</h3>
+                    <p>您還沒有收藏任何商品</p>
+                    <a href="shop.html" class="btn-primary">前往商城</a>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('載入收藏商品錯誤:', error);
+        favoritesGrid.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>載入失敗</h3>
+                <p>無法載入收藏商品，請稍後再試</p>
+                <button class="btn-primary" onclick="userProfileManager.loadFavoriteProducts()">重新載入</button>
+            </div>
+        `;
+    }
+  }
+
   getOrderStatusText(status) {
     const statusMap = {
       0: "露營者未付款",
@@ -1507,7 +1866,7 @@ class UserProfileManager {
   // WebSocket 連接方法
   connect() {
     // 每次連接時都重新獲取最新的ID值
-    this.memId = document.getElementById("memId").value.trim();
+    this.memId = this.currentMember.memId;
     this.ownerId = document.getElementById("ownerId").value.trim();
 
     console.log(
