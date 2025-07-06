@@ -1610,29 +1610,18 @@ function loadDiscountTable() {
 
     const row = document.createElement("tr");
     row.innerHTML = `
-             <td>
-               <button class="toggle-details-btn" id="toggle-btn-${index}" onclick="toggleDetails(${index})">▼</button>
-               ${discount.discountCode}
-            </td> 
-            <td>${discount.discountExplain}</td>
-            <td>${discountValueText}</td>  
-            <td>${discount.minOrderAmount}元</td>  
-            <td>${dateRangeText}</td>  
-            <td>${isActive ? "有效" : "已過期"}</td> 
-            <td>
-            ${
-              showDeleteButton
-                ? `
-              <button class="btn btn-edit-discount" onclick="editDiscount('${discount.discountCodeId}')">
-                  <i class="fas fa-edit"></i> 編輯
-              </button>
-              `
-                : `
-              <span class="text-muted">已過期</span>
-              `
-            }
-            </td>
-        `;
+                <td>
+                   <button class="toggle-details-btn" id="toggle-btn-${index}" onclick="toggleDetails(${index})">▼</button>
+                     ${discount.discountCode}
+                </td>
+                <td>${discount.discountExplain}</td>
+                <td>${discountValueText}</td>
+                <td>${discount.minOrderAmount}元</td>
+                <td>${dateRangeText}</td>
+                <td>${isActive ? "有效" : "已過期"}</td>
+                <td class="action-cell">${actionCellContent}</td>
+                 `;
+
     tbody.appendChild(row);
 
     // 折疊區塊（預設隱藏）
