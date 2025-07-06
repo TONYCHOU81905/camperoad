@@ -1,279 +1,335 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>結帳 - 露途</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/cart-page.css" />
+    <link rel="stylesheet" href="css/checkout.css" />
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>結帳 - 露途</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono&display=swap"
-    rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <link rel="stylesheet" href="css/style.css" />
-  <link rel="stylesheet" href="css/cart-page.css" />
-  <link rel="stylesheet" href="css/checkout.css" />
-</head>
-
-<body>
-  <header class="site-header">
-    <div class="container">
-      <div class="logo">
-        <a href="index.html">
-          <img src="images/logo.svg" alt="露途 Logo" />
-        </a>
-      </div>
-      <nav class="main-nav">
-        <ul>
-          <li><a href="campsites.html">營地預訂</a></li>
-          <li><a href="shop.html">裝備商城</a></li>
-          <li><a href="article-type.html">論壇攻略</a></li>
-          <li><a href="user-profile.html">關於我們</a></li>
-        </ul>
-      </nav>
-      <div class="user-actions">
-        <a href="camp_cart.html" class="btn-cart">
-          <i class="fas fa-shopping-cart"></i>
-          <span class="cart-count">0</span>
-        </a>
-        <a href="user-profile.html" class="btn-login"><i class="fas fa-user"></i></a>
-      </div>
-      <button class="mobile-menu-toggle">
-        <span></span>
-        <span></span>
-        <span></span>
-      </button>
-    </div>
-  </header>
-
-  <div class="breadcrumb">
-    <div class="container">
-      <ul>
-        <li><a href="index.html">首頁</a></li>
-        <li><a href="camp_cart.html">購物車</a></li>
-        <li>結帳</li>
-      </ul>
-    </div>
-  </div>
-
-  <section class="checkout-section">
-    <div class="container">
-      <h1 class="section-title">結帳</h1>
-
-      <div class="checkout-container">
-        <!-- 結帳流程指示器 -->
-        <div class="checkout-steps">
-          <div class="step active">
-            <div class="step-number">1</div>
-            <div class="step-label">確認訂單</div>
-          </div>
-          <div class="step-connector"></div>
-          <div class="step active">
-            <div class="step-number">2</div>
-            <div class="step-label">付款方式</div>
-          </div>
-          <div class="step-connector"></div>
-          <div class="step">
-            <div class="step-number">3</div>
-            <div class="step-label">完成訂單</div>
-          </div>
+  <body>
+    <header class="site-header">
+      <div class="container">
+        <div class="logo">
+          <a href="index.html">
+            <img src="images/logo.svg" alt="露途 Logo" />
+          </a>
         </div>
-
-        <div class="checkout-content">
-          <!-- 左側：付款表單 -->
-          <div class="payment-section">
-            <h2>選擇付款方式</h2>
-
-            <div class="payment-methods">
-              <div class="payment-method active" data-method="line-pay">
-                <div class="payment-method-header">
-                  <input type="radio" name="payment-method" id="line-pay" checked />
-                  <label for="line-pay">LINE Pay</label>
-                  <div class="payment-icons">
-                    <img src="images/linepay.png" alt="LINE Pay" class="line-pay-icon-large" />
-                  </div>
-                </div>
-                <div class="payment-method-content">
-                  <div class="line-pay-info">
-                    <p>
-                      選擇 LINE Pay 付款後，您將被導向 LINE Pay
-                      付款頁面完成交易。
-                    </p>
-                    <p>交易完成後，系統會自動將您導回本網站。</p>
-                  </div>
-                </div>
-              </div>
-
-              <div class="payment-method" data-method="credit-card">
-                <div class="payment-method-header">
-                  <input type="radio" name="payment-method" id="credit-card" />
-                  <label for="credit-card">信用卡付款</label>
-                  <div class="payment-icons">
-                    <i class="fab fa-cc-visa"></i>
-                    <i class="fab fa-cc-mastercard"></i>
-                    <i class="fab fa-cc-jcb"></i>
-                  </div>
-                </div>
-                <div class="payment-method-content">
-                  <form id="credit-card-form" class="payment-form">
-                    <div class="form-group">
-                      <label for="card-number">卡號</label>
-                      <input type="text" id="card-number" placeholder="1234 5678 9012 3456" maxlength="19" />
-                    </div>
-                    <div class="form-row">
-                      <div class="form-group">
-                        <label for="card-expiry">有效期限 (MM/YY)</label>
-                        <input type="text" id="card-expiry" placeholder="MM/YY" maxlength="5" />
-                      </div>
-                      <div class="form-group">
-                        <label for="card-cvc">安全碼</label>
-                        <input type="text" id="card-cvc" placeholder="CVC" maxlength="3" />
-                      </div>
-                    </div>
-                    <div class="form-group">
-                      <label for="card-name">持卡人姓名</label>
-                      <input type="text" id="card-name" placeholder="請輸入持卡人姓名" />
-                    </div>
-                  </form>
-                </div>
-              </div>
-            </div>
-
-            <div class="customer-info">
-              <h2>訂購人資訊</h2>
-              <form id="customer-form">
-                <div class="form-row">
-                  <div class="form-group">
-                    <label for="customer-name">姓名</label>
-                    <input type="text" id="customer-name" placeholder="請輸入姓名" required />
-                  </div>
-                  <div class="form-group">
-                    <label for="customer-phone">電話</label>
-                    <input type="tel" id="customer-phone" placeholder="請輸入電話" required />
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label for="customer-email">電子郵件</label>
-                  <input type="email" id="customer-email" placeholder="請輸入電子郵件" required />
-                </div>
-                <div class="form-group">
-                  <label for="customer-address">地址</label>
-                  <input type="text" id="customer-address" placeholder="請輸入地址" required />
-                </div>
-                <div class="form-group">
-                  <label for="customer-note">備註</label>
-                  <textarea id="customer-note" placeholder="有什麼想告訴我們的嗎？"></textarea>
-                </div>
-              </form>
-            </div>
-          </div>
-
-          <!-- 右側：訂單摘要 -->
-          <div class="order-summary-section">
-            <div class="order-summary-card">
-              <h2>訂單摘要</h2>
-              <div id="order-items" class="order-items">
-                <!-- 訂單項目將由JavaScript動態生成 -->
-              </div>
-              <div class="summary-totals">
-                <div class="summary-row">
-                  <span class="summary-label">商品總計</span>
-                  <span id="order-subtotal" class="summary-value">NT$ 0</span>
-                </div>
-                <div class="summary-row total">
-                  <span class="summary-label">總計</span>
-                  <span id="order-total" class="summary-value">NT$ 0</span>
-                </div>
-              </div>
-              <button id="submit-payment" class="btn-submit-payment">
-                確認付款
-              </button>
-              <a href="camp_cart.html" class="btn-back-to-cart">返回購物車</a>
-            </div>
-          </div>
+        <nav class="main-nav">
+          <ul>
+            <li><a href="campsites.html">營地預訂</a></li>
+            <li><a href="shop.html">裝備商城</a></li>
+            <li><a href="camp-guides.html">論壇攻略</a></li>
+            <li><a href="user-profile.html">關於我們</a></li>
+          </ul>
+        </nav>
+        <div class="user-actions">
+          <a href="camp_cart.html" class="btn-cart">
+            <i class="fas fa-shopping-cart"></i>
+            <span class="cart-count">0</span>
+          </a>
+          <a href="user-profile.html" class="btn-login"
+            ><i class="fas fa-user"></i
+          ></a>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 付款處理中彈窗 -->
-  <div id="payment-processing-modal" class="modal">
-    <div class="modal-content">
-      <div class="loading-spinner"></div>
-      <h2>付款處理中</h2>
-      <p>請稍候，正在處理您的付款...</p>
-    </div>
-  </div>
-
-  <!-- 付款結果彈窗 -->
-  <div id="payment-result-modal" class="modal">
-    <div class="modal-content">
-      <div id="payment-success" class="payment-result">
-        <i class="fas fa-check-circle success-icon"></i>
-        <h2>付款成功</h2>
-        <p>您的訂單已成功付款！</p>
-        <p>訂單編號: <span id="order-number"></span></p>
-        <button id="view-order" class="btn-view-order">查看訂單</button>
-      </div>
-      <div id="payment-failure" class="payment-result">
-        <i class="fas fa-times-circle failure-icon"></i>
-        <h2>付款失敗</h2>
-        <p>很抱歉，處理您的付款時發生錯誤。</p>
-        <p id="failure-reason"></p>
-        <button id="retry-payment" class="btn-retry-payment">重試付款</button>
-        <button id="back-to-checkout" class="btn-back-to-checkout">
-          返回結帳頁面
+        <button class="mobile-menu-toggle">
+          <span></span>
+          <span></span>
+          <span></span>
         </button>
       </div>
-    </div>
-  </div>
+    </header>
 
-  <footer class="site-footer">
-    <div class="container">
-      <div class="footer-content">
-        <div class="footer-logo">
-          <img src="images/logo-white.svg" alt="露途 Logo" />
-          <p>探索自然，體驗野趣</p>
-        </div>
-        <div class="footer-links">
-          <div class="footer-column">
-            <h3>關於我們</h3>
-            <ul>
-              <li><a href="#">公司簡介</a></li>
-              <li><a href="#">服務條款</a></li>
-              <li><a href="#">隱私政策</a></li>
-              <li><a href="#">加入我們</a></li>
-            </ul>
+    <div class="breadcrumb">
+      <div class="container">
+        <ul>
+          <li><a href="index.html">首頁</a></li>
+          <li><a href="camp_cart.html">購物車</a></li>
+          <li>結帳</li>
+        </ul>
+      </div>
+    </div>
+
+    <section class="checkout-section">
+      <div class="container">
+        <h1 class="section-title">結帳</h1>
+
+        <div class="checkout-container">
+          <!-- 結帳流程指示器 -->
+          <div class="checkout-steps">
+            <div class="step active">
+              <div class="step-number">1</div>
+              <div class="step-label">確認訂單</div>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step active">
+              <div class="step-number">2</div>
+              <div class="step-label">付款方式</div>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step">
+              <div class="step-number">3</div>
+              <div class="step-label">完成訂單</div>
+            </div>
           </div>
-          <div class="footer-column">
-            <h3>客戶服務</h3>
-            <ul>
-              <li><a href="#">常見問題</a></li>
-              <li><a href="#">聯絡我們</a></li>
-              <li><a href="#">退款政策</a></li>
-              <li><a href="#">營地合作</a></li>
-            </ul>
-          </div>
-          <div class="footer-column">
-            <h3>追蹤我們</h3>
-            <div class="social-links">
-              <a href="#"><i class="fab fa-facebook-f"></i></a>
-              <a href="#"><i class="fab fa-instagram"></i></a>
-              <a href="#"><i class="fab fa-twitter"></i></a>
-              <a href="#"><i class="fab fa-youtube"></i></a>
+
+          <div class="checkout-content">
+            <!-- 左側：付款表單 -->
+            <div class="payment-section">
+              <h2>選擇付款方式</h2>
+
+              <div class="payment-methods">
+                <div class="payment-method active" data-method="line-pay">
+                  <div class="payment-method-header">
+                    <input type="radio" name="payment-method" id="line-pay" checked />
+                    <label for="line-pay">LINE Pay</label>
+                    <div class="payment-icons">
+                      <img
+                        src="images/linepay.png"
+                        alt="LINE Pay"
+                        class="line-pay-icon-large"
+                      />
+                    </div>
+                  </div>
+                  <div class="payment-method-content">
+                    <div class="line-pay-info">
+                      <p>
+                        選擇 LINE Pay 付款後，您將被導向 LINE Pay
+                        付款頁面完成交易。
+                      </p>
+                      <p>交易完成後，系統會自動將您導回本網站。</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="payment-method" data-method="credit-card">
+                  <div class="payment-method-header">
+                    <input
+                      type="radio"
+                      name="payment-method"
+                      id="credit-card"
+                    />
+                    <label for="credit-card">信用卡付款</label>
+                    <div class="payment-icons">
+                      <i class="fab fa-cc-visa"></i>
+                      <i class="fab fa-cc-mastercard"></i>
+                      <i class="fab fa-cc-jcb"></i>
+                    </div>
+                  </div>
+                  <div class="payment-method-content">
+                    <form id="credit-card-form" class="payment-form">
+                      <div class="form-group">
+                        <label for="card-number">卡號</label>
+                        <input
+                          type="text"
+                          id="card-number"
+                          placeholder="1234 5678 9012 3456"
+                          maxlength="19"
+                        />
+                      </div>
+                      <div class="form-row">
+                        <div class="form-group">
+                          <label for="card-expiry">有效期限 (MM/YY)</label>
+                          <input
+                            type="text"
+                            id="card-expiry"
+                            placeholder="MM/YY"
+                            maxlength="5"
+                          />
+                        </div>
+                        <div class="form-group">
+                          <label for="card-cvc">安全碼</label>
+                          <input
+                            type="text"
+                            id="card-cvc"
+                            placeholder="CVC"
+                            maxlength="3"
+                          />
+                        </div>
+                      </div>
+                      <div class="form-group">
+                        <label for="card-name">持卡人姓名</label>
+                        <input
+                          type="text"
+                          id="card-name"
+                          placeholder="請輸入持卡人姓名"
+                        />
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+
+              <div class="customer-info">
+                <h2>訂購人資訊</h2>
+                <button type="button" id="fill-member-info">同會員資訊</button>
+                <form id="customer-form">
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label for="customer-name">姓名</label>
+                      <input
+                        type="text"
+                        id="customer-name"
+                        placeholder="請輸入姓名"
+                        required
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label for="customer-phone">電話</label>
+                      <input
+                        type="tel"
+                        id="customer-phone"
+                        placeholder="請輸入電話"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label for="customer-email">電子郵件</label>
+                    <input
+                      type="email"
+                      id="customer-email"
+                      placeholder="請輸入電子郵件"
+                      required
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="customer-address">地址</label>
+                    <input
+                      type="text"
+                      id="customer-address"
+                      placeholder="請輸入地址"
+                      required
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="customer-note">備註</label>
+                    <textarea
+                      id="customer-note"
+                      placeholder="有什麼想告訴我們的嗎？"
+                    ></textarea>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            <!-- 右側：訂單摘要 -->
+            <div class="order-summary-section">
+              <div class="order-summary-card">
+                <h2>訂單摘要</h2>
+                <div id="order-items" class="order-items">
+                  <!-- 訂單項目將由JavaScript動態生成 -->
+                </div>
+                <div class="summary-totals">
+                  <div class="summary-row">
+                    <span class="summary-label">商品總計</span>
+                    <span id="order-subtotal" class="summary-value">NT$ 0</span>
+                  </div>
+                  <div class="summary-row total">
+                    <span class="summary-label">總計</span>
+                    <span id="order-total" class="summary-value">NT$ 0</span>
+                  </div>
+                </div>
+                <button id="submit-payment" class="btn-submit-payment">
+                  確認付款
+                </button>
+                <a href="camp_cart.html" class="btn-back-to-cart">返回購物車</a>
+              </div>
             </div>
           </div>
         </div>
       </div>
-      <div class="footer-bottom">
-        <p>&copy; 2023 露途 All Rights Reserved.</p>
+    </section>
+
+    <!-- 付款處理中彈窗 -->
+    <div id="payment-processing-modal" class="modal">
+      <div class="modal-content">
+        <div class="loading-spinner"></div>
+        <h2>付款處理中</h2>
+        <p>請稍候，正在處理您的付款...</p>
       </div>
     </div>
-  </footer>
 
-  <script src="js/camp-data.js"></script>
-  <script src="js/camp_cart.js"></script>
-  <script src="js/checkout.js"></script>
-</body>
+    <!-- 付款結果彈窗 -->
+    <div id="payment-result-modal" class="modal">
+      <div class="modal-content">
+        <div id="payment-success" class="payment-result">
+          <i class="fas fa-check-circle success-icon"></i>
+          <h2>付款成功</h2>
+          <p>您的訂單已成功付款！</p>
+          <p>訂單編號: <span id="order-number"></span></p>
+          <button id="view-order" class="btn-view-order">查看訂單</button>
+        </div>
+        <div id="payment-failure" class="payment-result">
+          <i class="fas fa-times-circle failure-icon"></i>
+          <h2>付款失敗</h2>
+          <p>很抱歉，處理您的付款時發生錯誤。</p>
+          <p id="failure-reason"></p>
+          <button id="retry-payment" class="btn-retry-payment">重試付款</button>
+          <button id="back-to-checkout" class="btn-back-to-checkout">
+            返回結帳頁面
+          </button>
+        </div>
+      </div>
+    </div>
 
+    <footer class="site-footer">
+      <div class="container">
+        <div class="footer-content">
+          <div class="footer-logo">
+            <img src="images/logo-white.svg" alt="露途 Logo" />
+            <p>探索自然，體驗野趣</p>
+          </div>
+          <div class="footer-links">
+            <div class="footer-column">
+              <h3>關於我們</h3>
+              <ul>
+                <li><a href="#">公司簡介</a></li>
+                <li><a href="#">服務條款</a></li>
+                <li><a href="#">隱私政策</a></li>
+                <li><a href="#">加入我們</a></li>
+              </ul>
+            </div>
+            <div class="footer-column">
+              <h3>客戶服務</h3>
+              <ul>
+                <li><a href="#">常見問題</a></li>
+                <li><a href="#">聯絡我們</a></li>
+                <li><a href="#">退款政策</a></li>
+                <li><a href="#">營地合作</a></li>
+              </ul>
+            </div>
+            <div class="footer-column">
+              <h3>追蹤我們</h3>
+              <div class="social-links">
+                <a href="#"><i class="fab fa-facebook-f"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-youtube"></i></a>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <p>&copy; 2023 露途 All Rights Reserved.</p>
+        </div>
+      </div>
+    </footer>
+
+    <script src="js/camp-data.js"></script>
+    <script src="js/camp_cart.js"></script>
+    <script src="js/checkout.js"></script>
+  </body>
 </html>

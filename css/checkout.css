@@ -232,6 +232,14 @@ textarea {
   border-bottom: 1px solid #e9ecef;
 }
 
+.order-item.bundle-item {
+  background-color: #f0f8f0;
+  padding: 15px;
+  border-radius: 6px;
+  border-bottom: 1px solid #e9ecef;
+  margin-bottom: 15px;
+}
+
 .order-item-image {
   width: 60px;
   height: 60px;

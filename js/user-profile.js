@@ -5,6 +5,8 @@ class UserProfileManager {
     this.campsiteOrders = [];
     this.favoriteCamps = [];
     this.camps = [];
+    this.campsiteTypes = []; // 營地類型資料
+    this.bundleItemData = []; // 加購商品資料
     // WebSocket 相關屬性
     this.stompClient = null;
     this.memId = null;
@@ -91,10 +93,7 @@ class UserProfileManager {
             <div class="form-group">
               <label for="new-password">新密碼</label>
               <input type="password" id="new-password" required>
-              <div class="password-strength-meter">
-                <div class="strength-bar"></div>
-              </div>
-              <p class="password-hint">密碼須包含至少8個字符，包括大小寫字母、數字和特殊符號</p>
+
             </div>
             <div class="form-group">
               <label for="confirm-password">確認新密碼</label>
@@ -139,12 +138,12 @@ class UserProfileManager {
           return;
         }
 
-        // 驗證密碼強度
-        const strength = this.checkPasswordStrength(newPassword);
-        if (strength < 60) {
-          showMessage("新密碼強度不足，請設置更複雜的密碼", "error");
-          return;
-        }
+        // // 驗證密碼強度
+        // const strength = this.checkPasswordStrength(newPassword);
+        // if (strength < 60) {
+        //   showMessage("新密碼強度不足，請設置更複雜的密碼", "error");
+        //   return;
+        // }
 
         try {
           // 使用API更改密碼
@@ -156,15 +155,17 @@ class UserProfileManager {
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                memId: this.currentMember.memId,
-                old_password: currentPassword,
-                new_password: newPassword,
+                oldPassword: currentPassword,
+                newPassword: newPassword,
               }),
               credentials: "include", // 包含Cookie
             }
           );
 
           if (!response.ok) {
+            const errorText = await response.text();
+            console.error("API錯誤狀態碼:", response.status);
+            console.error("API回傳內容:", errorText);
             throw new Error("密碼更改請求失敗");
           }
 
@@ -187,25 +188,25 @@ class UserProfileManager {
       });
 
       // 密碼強度檢測
-      const newPasswordInput = document.getElementById("new-password");
-      const strengthBar = modal.querySelector(".strength-bar");
+      // const newPasswordInput = document.getElementById("new-password");
+      // const strengthBar = modal.querySelector(".strength-bar");
 
-      newPasswordInput.addEventListener("input", () => {
-        const password = newPasswordInput.value;
-        const strength = this.checkPasswordStrength(password);
+      // newPasswordInput.addEventListener("input", () => {
+      //   const password = newPasswordInput.value;
+      //   const strength = this.checkPasswordStrength(password);
 
         // 更新強度條
-        strengthBar.style.width = `${strength}%`;
+      //   strengthBar.style.width = `${strength}%`;
 
-        // 根據強度設置顏色
-        if (strength < 30) {
-          strengthBar.style.backgroundColor = "#ff4d4d"; // 弱
-        } else if (strength < 60) {
-          strengthBar.style.backgroundColor = "#ffa64d"; // 中
-        } else {
-          strengthBar.style.backgroundColor = "#4CAF50"; // 強
-        }
-      });
+      //   // 根據強度設置顏色
+      //   if (strength < 30) {
+      //     strengthBar.style.backgroundColor = "#ff4d4d"; // 弱
+      //   } else if (strength < 60) {
+      //     strengthBar.style.backgroundColor = "#ffa64d"; // 中
+      //   } else {
+      //     strengthBar.style.backgroundColor = "#4CAF50"; // 強
+      //   }
+      // });
     }
 
     // 顯示模態框
@@ -273,6 +274,7 @@ class UserProfileManager {
     this.initTabs();
     this.loadMemberData();
     this.loadFavoriteCamps();
+    this.loadFavoriteProducts(); // 添加收藏商品載入
     this.loadCoupons();
     this.loadCampsiteOrders();
     this.loadPaymentMethods();
@@ -377,6 +379,8 @@ class UserProfileManager {
         this.campsiteOrders.forEach((order) => {
           if (order.orderDetails && order.orderDetails.length > 0) {
             order.orderDetails.forEach((detail) => {
+              console.log(" order.orderDetails:", detail);
+
               this.orderDetails.push({
                 campsiteDetailsId: detail.campsiteDetailsId,
                 campsiteOrderId: order.campsiteOrderId,
@@ -428,6 +432,50 @@ class UserProfileManager {
       } else {
         console.error("獲取營地資料失敗:", campsData.message);
         this.camps = [];
+      }
+
+      // 載入營地類型資料
+      try {
+        const campsiteResponse = await fetch(
+          `${window.api_prefix}/campsite/getAllCampsite`
+        );
+        if (!campsiteResponse.ok) {
+          throw new Error(`載入營地房間資料失敗：${campsiteResponse.status}`);
+        }
+        const allCampsitesJson = await campsiteResponse.json();
+        const allCampsites = allCampsitesJson.data || [];
+        console.log("allCampsites:", allCampsites);
+        this.campsiteTypes = allCampsites;
+      } catch (error) {
+        console.error("載入營地類型資料失敗:", error);
+        this.campsiteTypes = [];
+      }
+
+      // 載入加購商品資料
+      try {
+        // 獲取所有營地的加購商品
+        const allBundleItems = [];
+        for (const camp of this.camps) {
+          try {
+            const bundleResponse = await fetch(
+              `${window.api_prefix}/bundleitem/all`
+            );
+            if (bundleResponse.ok) {
+              const bundleDataJson = await bundleResponse.json();
+              const bundleData = bundleDataJson.data;
+              if (bundleData && Array.isArray(bundleData)) {
+                allBundleItems.push(...bundleData);
+              }
+            }
+          } catch (bundleError) {
+            console.error(`載入營地 ${camp.campId} 加購商品失敗:`, bundleError);
+          }
+        }
+        this.bundleItemData = allBundleItems;
+        console.log("bundleItemData:", this.bundleItemData);
+      } catch (error) {
+        console.error("載入加購商品資料失敗:", error);
+        this.bundleItemData = [];
       }
     } catch (error) {
       console.error("載入數據失敗:", error);
@@ -540,6 +588,81 @@ class UserProfileManager {
     }
   }
 
+  // 根據營地類型ID獲取營地類型名稱
+  getCampsiteTypeName(campsiteTypeId) {
+    if (!campsiteTypeId || !this.campsiteTypes) {
+      return "未知類型";
+    }
+
+    const campsiteType = this.campsiteTypes.find(
+      (type) => type.campsiteTypeId === campsiteTypeId
+    );
+
+    return campsiteType
+      ? campsiteType.campsiteIdName
+      : `類型ID: ${campsiteTypeId}`;
+  }
+
+  // 根據bundleId獲取加購商品詳細信息
+  getBundleItemDetails(bundleId) {
+    if (!bundleId || !this.bundleItemData) {
+      return null;
+    }
+
+    return this.bundleItemData.find((item) => item.bundleId === bundleId);
+  }
+
+  // 生成加購商品詳細HTML
+  generateBundleItemsHTML(campsiteOrderId) {
+    // 獲取該訂單的加購商品
+    const orderDetailsList = this.orderDetails.filter(
+      (detail) => detail.campsiteOrderId === campsiteOrderId
+    );
+
+    const bundleItems = [];
+    orderDetailsList.forEach((detail) => {
+      const bundleDetail = this.bundleDetails.find(
+        (bundle) => bundle.campsiteDetailsId === detail.orderDetailsId
+      );
+      if (bundleDetail && bundleDetail.bundleBuyAmount > 0) {
+        // 獲取加購商品的詳細信息
+        const bundleInfo = this.getBundleItemDetails(bundleDetail.bundleId);
+        bundleItems.push({
+          ...bundleDetail,
+          bundleInfo: bundleInfo,
+        });
+      }
+    });
+
+    if (bundleItems.length === 0) {
+      return '<p class="no-bundle-items">暫無加購商品詳細資料</p>';
+    }
+
+    return bundleItems
+      .map((item) => {
+        const bundleInfo = item.bundleInfo;
+        return `
+            <div class="bundle-item-detail">
+              <div class="bundle-item-info">
+                <h6>${bundleInfo ? bundleInfo.bundleName : "未知商品"}</h6>
+                <div class="bundle-item-specs">
+                  <span class="bundle-price">單價: NT$ ${
+                    bundleInfo ? bundleInfo.price.toLocaleString() : "0"
+                  }</span>
+                  <span class="bundle-quantity">數量: ${
+                    item.bundleBuyNum || 0
+                  }</span>
+                  <span class="bundle-total">小計: NT$ ${(
+                    item.bundleBuyAmount || 0
+                  ).toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
+          `;
+      })
+      .join("");
+  }
+
   // 生成訂單 HTML
   generateOrdersHTML(orders) {
     return orders
@@ -570,8 +693,9 @@ class UserProfileManager {
             <div class="order-info">
               <h4>${camp ? camp.campName : "營地名稱"}</h4>
               <p class="order-id">訂單編號: ${order.campsiteOrderId}</p>
-              <p class="order-date"><i class="fas fa-clock"></i> 下訂日期: ${order.orderDate || "未提供"
-          }</p>
+              <p class="order-date"><i class="fas fa-clock"></i> 下訂日期: ${
+                order.orderDate || "未提供"
+              }</p>
             </div>
             <div class="order-status ${statusClass}">
               ${statusText}
@@ -580,38 +704,43 @@ class UserProfileManager {
           
           <div class="order-details">
             <div class="order-dates">
-              <span><i class="fas fa-calendar-check"></i> 入住: ${order.checkIn || "未提供"
-          }</span>
-              <span><i class="fas fa-calendar-times"></i> 退房: ${order.checkOut || "未提供"
-          }</span>
+              <span><i class="fas fa-calendar-check"></i> 入住: ${
+                order.checkIn || "未提供"
+              }</span>
+              <span><i class="fas fa-calendar-times"></i> 退房: ${
+                order.checkOut || "未提供"
+              }</span>
             </div>
             <div class="payment-method">
               <span><i class="fas fa-credit-card"></i> ${payMethodText}</span>
             </div>
           </div>
           
-          ${orderDetailsList.length > 0
-            ? `
+          ${
+            orderDetailsList.length > 0
+              ? `
             <div class="order-details-section">
               <h5><i class="fas fa-list"></i> 訂單明細</h5>
               <div class="details-list">
                 ${orderDetailsList
-              .map(
-                (detail) => `
+                  .map(
+                    (detail) => `
                   <div class="detail-item">
-                    <span>營地類型ID: ${detail.campsiteTypeId}</span>
+                    <span>營地類型: ${this.getCampsiteTypeName(
+                      detail.campsiteTypeId
+                    )}</span>
                     <span>營地數量: ${detail.campsiteNum}</span>
                     <span>營地金額: NT$ ${(
                     detail.campsiteAmount || 0
                   ).toLocaleString()}</span>
                   </div>
                 `
-              )
-              .join("")}
+                  )
+                  .join("")}
               </div>
             </div>
           `
-            : ""
+              : ""
           }
           
           <div class="amount-breakdown">
@@ -619,58 +748,63 @@ class UserProfileManager {
               <span>營地費用:</span>
               <span>NT$ ${(order.campsiteAmount || 0).toLocaleString()}</span>
             </div>
-            ${(order.bundleAmount || 0) > 0
-            ? `
+            ${
+              (order.bundleAmount || 0) > 0
+                ? `
               <div class="amount-row">
                 <span>加購項目:</span>
                 <span>NT$ ${order.bundleAmount.toLocaleString()}</span>
               </div>
             `
-            : ""
-          }
+                : ""
+            }
             <div class="amount-row">
               <span>小計:</span>
               <span>NT$ ${(order.befAmount || 0).toLocaleString()}</span>
             </div>
-            ${(order.disAmount || 0) > 0
-            ? `
+            ${
+              (order.disAmount || 0) > 0
+                ? `
               <div class="amount-row discount">
                 <span>折扣:</span>
                 <span>-NT$ ${order.disAmount.toLocaleString()}</span>
               </div>
             `
-            : ""
-          }
+                : ""
+            }
             <div class="amount-row total">
               <span>實付金額:</span>
               <span>NT$ ${(order.aftAmount || 0).toLocaleString()}</span>
             </div>
           </div>
           
-          ${bundleItems.length > 0
-            ? `
+          ${
+            (order.bundleAmount || 0) > 0
+              ? `
             <div class="bundle-items">
-              <h5><i class="fas fa-plus-circle"></i> 加購商品</h5>
-              <div class="bundle-list">
-                ${bundleItems
-              .map(
-                (item) => `
-                  <div class="bundle-item">
-                    <span>商品ID: ${item.bundleId}</span>
-                    <span>數量: ${item.bundleBuyNum}</span>
-                    <span>金額: NT$ ${item.bundleBuyAmount.toLocaleString()}</span>
-                  </div>
-                `
-              )
-              .join("")}
+              <div class="bundle-header">
+                <h5><i class="fas fa-plus-circle"></i> 加購商品</h5>
+                <button class="btn-toggle-bundle" data-order-id="${
+                  order.campsiteOrderId
+                }">
+                  <i class="fas fa-chevron-down"></i> 查看詳情
+                </button>
+              </div>
+              <div class="bundle-details" id="bundle-details-${
+                order.campsiteOrderId
+              }" style="display: none;">
+                <div class="bundle-list">
+                  ${this.generateBundleItemsHTML(order.campsiteOrderId)}
+                </div>
               </div>
             </div>
           `
-            : ""
+              : ""
           }
           
-          ${order.commentContent
-            ? `
+          ${
+            order.commentContent
+              ? `
             <div class="order-comment">
               <div class="rating">
                 ${this.generateStars(order.commentSatisfaction)}
@@ -678,7 +812,7 @@ class UserProfileManager {
               <p>${order.commentContent}</p>
             </div>
           `
-            : ""
+              : ""
           }
           
           <div class="order-actions">
@@ -730,6 +864,7 @@ class UserProfileManager {
     // 只在初始化時綁定一次事件，避免重複綁定
     if (!this.cancelOrderEventsBound) {
       this.bindCancelOrderButtons();
+      this.bindBundleToggleButtons();
       this.cancelOrderEventsBound = true;
     }
 
@@ -775,6 +910,39 @@ class UserProfileManager {
 
     // 標記已綁定事件
     ordersList.setAttribute("data-events-bound", "true");
+  }
+
+  // 綁定加購商品展開按鈕事件
+  bindBundleToggleButtons() {
+    const ordersList = document.getElementById("campsite-orders-list");
+    if (!ordersList) return;
+
+    // 使用事件委託處理加購商品展開按鈕
+    ordersList.addEventListener("click", (e) => {
+      if (e.target.closest(".btn-toggle-bundle")) {
+        e.preventDefault();
+        const button = e.target.closest(".btn-toggle-bundle");
+        const orderId = button.getAttribute("data-order-id");
+        const bundleDetails = document.getElementById(
+          `bundle-details-${orderId}`
+        );
+        const icon = button.querySelector("i");
+
+        if (bundleDetails) {
+          if (bundleDetails.style.display === "none") {
+            // 展開
+            bundleDetails.style.display = "block";
+            icon.className = "fas fa-chevron-up";
+            button.innerHTML = '<i class="fas fa-chevron-up"></i> 收起詳情';
+          } else {
+            // 收起
+            bundleDetails.style.display = "none";
+            icon.className = "fas fa-chevron-down";
+            button.innerHTML = '<i class="fas fa-chevron-down"></i> 查看詳情';
+          }
+        }
+      }
+    });
   }
 
   // 取消訂單
@@ -1022,48 +1190,52 @@ class UserProfileManager {
       return;
     }
 
-    try {
-      // 使用API更新會員資料
-      const response = await fetch(`${window.api_prefix}/api/member/update`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(memData),
-        // credentials: "include", // 包含Cookie
-      });
 
-      if (!response.ok) {
-        throw new Error("更新請求失敗");
+  const formData = new FormData();
+  formData.append("memName", memData.memName);
+  formData.append("memPwd", memData.memPwd);
+  formData.append("memMobile", memData.memMobile);
+  formData.append("memAddr", memData.memAddr);
+
+  const fileInput = document.getElementById("profile-picture");
+  if (fileInput && fileInput.files.length > 0) {
+    formData.append("memPic", fileInput.files[0]);
+  }
+
+  try {
+    const response = await fetch(`${window.api_prefix}/api/member/update`, {
+      method: "PUT",
+      body: formData,
+      credentials: "include", // ✅ 保留 session cookie
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("API錯誤狀態碼:", response.status);
+      console.error("API回傳內容:", errorText);
+      throw new Error("密碼更改請求失敗");
+    }
+
+    const data = await response.json();
+
+    if (data.success || data.memId) {
+      // ✅ 更新成功後更新 localStorage / sessionStorage
+      this.currentMember = { ...this.currentMember, ...memData };
+
+      if (localStorage.getItem("currentMember")) {
+        localStorage.setItem("currentMember", JSON.stringify(this.currentMember));
       }
-
-      const data = await response.json();
-
-      if (data.success) {
-        // 更新成功，更新本地儲存的會員資料
-        this.currentMember = { ...this.currentMember, ...memData };
-
-        // 更新localStorage和sessionStorage中的會員資訊
-        if (localStorage.getItem("currentMember")) {
-          localStorage.setItem(
-            "currentMember",
-            JSON.stringify(this.currentMember)
-          );
-        }
-        if (sessionStorage.getItem("currentMember")) {
-          sessionStorage.setItem(
-            "currentMember",
-            JSON.stringify(this.currentMember)
-          );
-        }
+      if (sessionStorage.getItem("currentMember")) {
+        sessionStorage.setItem("currentMember", JSON.stringify(this.currentMember));
+      }
 
         showMessage("會員資料更新成功", "success");
       } else {
         showMessage(data.message || "更新失敗，請檢查資料是否正確", "error");
       }
     } catch (error) {
-      console.error("更新失敗：", error);
-      showMessage("更新失敗，請稍後再試", "error");
+      console.error("密碼更改錯誤：", error.message);
+      showMessage("密碼更改失敗，請稍後再試", "error");
     }
   }
 
@@ -1126,17 +1298,20 @@ class UserProfileManager {
           (camp) => `
         <div class="favorite-camp-item" data-camp-id="${camp.campId}">
           <div class="camp-image">
-            <img src="${window.api_prefix}/api/camps/${camp.campId}/1" alt="${camp.campName || ""
-            }" />
-            <button class="btn-remove-favorite" data-camp-id="${camp.campId
+            <img src="${window.api_prefix}/api/camps/${camp.campId}/1" alt="${
+            camp.campName || ""
+          }" />
+            <button class="btn-remove-favorite" data-camp-id="${
+              camp.campId
             }"><i class="fas fa-heart"></i></button>
           </div>
           <div class="camp-info">
             <h4>${camp.campName || ""}</h4>
             <p class="camp-description">${camp.campContent || ""}</p>
             <div class="camp-actions">
-              <a href="campsite-detail.html?id=${camp.campId
-            }" class="btn-view">查看詳情</a>
+              <a href="campsite-detail.html?id=${
+                camp.campId
+              }" class="btn-view">查看詳情</a>
             </div>
           </div>
         </div>
@@ -1171,7 +1346,6 @@ class UserProfileManager {
                 }),
               }
             );
-
 
             const result = await res.json();
 
@@ -1240,10 +1414,8 @@ class UserProfileManager {
           statusText = "已過期";
         }
 
-
         const typeText =
           coupon.discountCodeType === 0 ? "營地折價券" : "商城折價券";
-
 
         return `
           <div class="coupon-card ${statusClass}">
@@ -1254,27 +1426,33 @@ class UserProfileManager {
             <div class="coupon-content">
               <div class="coupon-title">活動名稱:${coupon.discountCode}</div>
 
-              <div class="coupon-description">單筆滿 NT$${coupon.minOrderAmount
-          } 可使用</div>
+              <div class="coupon-description">單筆滿 NT$${
+                coupon.minOrderAmount
+              } 可使用</div>
+
               <div class="coupon-valid">使用期限：${coupon.startDate.substring(
             0,
             10
           )} ~ ${coupon.endDate.substring(0, 10)}</div>
             </div>
             <div class="coupon-footer">
-              <div class="coupon-code">請使用優惠碼：${coupon.discountCodeId
-          }</div>
-              ${!isExpired && !isUsed
-            ? `<button class="btn-copy-code" data-code="${coupon.discountCodeId}">複製代碼</button>`
-            : ""
-          }
-              ${isUsed
-            ? `<div class="coupon-used-date">使用日期：${coupon.usedDate.substring(
-              0,
-              10
-            )}</div>`
-            : ""
-          }
+
+              <div class="coupon-code">請使用優惠碼：${
+                coupon.discountCodeId
+              }</div>
+              ${
+                !isExpired && !isUsed
+                  ? `<button class="btn-copy-code" data-code="${coupon.discountCodeId}">複製代碼</button>`
+                  : ""
+              }
+              ${
+                isUsed
+                  ? `<div class="coupon-used-date">使用日期：${coupon.usedDate.substring(
+                      0,
+                      10
+                    )}</div>`
+                  : ""
+              }
 
             </div>
           </div>`;
@@ -1411,7 +1589,6 @@ class UserProfileManager {
   setupCouponFilters() {
     const filterTabs = document.querySelectorAll(".filter-tab");
 
-
     filterTabs.forEach((tab) => {
       tab.addEventListener("click", () => {
         const status = tab.getAttribute("data-status");
@@ -1419,7 +1596,6 @@ class UserProfileManager {
         // 切換 active 樣式
         filterTabs.forEach((t) => t.classList.remove("active"));
         tab.classList.add("active");
-
 
         // ✅ 每次點擊重新取得卡片（動態渲染的才抓得到）
         const couponCards = document.querySelectorAll(".coupon-card");
@@ -1449,6 +1625,204 @@ class UserProfileManager {
         });
       });
     });
+  }
+
+  // 載入收藏商品
+  async loadFavoriteProducts() {
+    console.log("loadFavoriteProducts 方法開始執行");
+    const favoritesGrid = document.getElementById("favorite-products-grid");
+    console.log("favoritesGrid 元素:", favoritesGrid);
+    if (!favoritesGrid) {
+        console.log("找不到 favorite-products-grid 元素，方法提前返回");
+        return;
+    }
+
+    // 取得會員ID
+    let memId = null;
+    const memberInfo =
+        localStorage.getItem("currentMember") ||
+        sessionStorage.getItem("currentMember");
+
+    console.log("memberInfo:", memberInfo);
+
+    if (memberInfo) {
+        try {
+            const memberObj = JSON.parse(memberInfo);
+            memId = memberObj.memId || memberObj.mem_id || memberObj.id;
+        } catch (e) {
+            memId = null;
+        }
+    }
+
+    console.log("memId", memId);
+
+    if (!memId) {
+        favoritesGrid.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-exclamation-circle"></i>
+                <h3>請先登入</h3>
+                <p>登入後即可查看您收藏的商品</p>
+                <a href="login.html" class="btn-primary">前往登入</a>
+            </div>
+        `;
+        return;
+    }
+
+    // 顯示載入中狀態
+    favoritesGrid.innerHTML = `
+        <div class="empty-state">
+            <i class="fas fa-spinner fa-spin"></i>
+            <h3>載入中...</h3>
+            <p>正在載入您的收藏商品</p>
+        </div>
+    `;
+
+    try {
+        // 使用新的 API 端點獲取收藏商品
+        const response = await fetch(`${window.api_prefix}/api/prodfavorites/member/${memId}`);
+        const data = await response.json();
+
+        if (data.status === "success" && Array.isArray(data.data) && data.data.length > 0) {
+            // 渲染收藏商品
+            const favoriteProducts = data.data;
+            let html = '';
+
+            favoriteProducts.forEach(product => {
+                // 計算折扣價格
+                const hasDiscount = product.prodDiscount !== null && product.prodDiscount < 1;
+                const firstSpec = product.prodSpecList?.[0];
+                const originalPrice = firstSpec ? firstSpec.prodSpecPrice : 0;
+                const discountedPrice = hasDiscount ? Math.round(originalPrice * product.prodDiscount) : originalPrice;
+                
+                // 獲取商品圖片
+                const productImage = product.prodPicList && product.prodPicList.length > 0
+                    ? `${window.api_prefix}/api/prodpics/${product.prodPicList[0].prodPicId}`
+                    : 'images/default-product.jpg';
+                
+                // 獲取所有商品規格
+                let specsHTML = '';
+                if (product.prodSpecList && product.prodSpecList.length > 0) {
+                    specsHTML = '<div class="prod-specs"><i class="fas fa-tag"></i> 規格：';
+                    product.prodSpecList.forEach((spec, index) => {
+                        const price = hasDiscount ? Math.round(spec.prodSpecPrice * product.prodDiscount) : spec.prodSpecPrice;
+                        specsHTML += `<span>${spec.prodSpecName} (NT$ ${price})</span>`;
+                        if (index < product.prodSpecList.length - 1) {
+                            specsHTML += ', ';
+                        }
+                    });
+                    specsHTML += '</div>';
+                } else {
+                    specsHTML = '<div class="prod-specs"><i class="fas fa-tag"></i> 規格：無規格</div>';
+                }
+                
+                // 獲取所有商品顏色
+                let colorsHTML = '';
+                if (product.prodColorList && product.prodColorList.length > 0) {
+                    colorsHTML = '<div class="prod-colors"><i class="fas fa-palette"></i> 顏色：';
+                    product.prodColorList.forEach((color, index) => {
+                        colorsHTML += `<span>${color.colorName}</span>`;
+                        if (index < product.prodColorList.length - 1) {
+                            colorsHTML += ', ';
+                        }
+                    });
+                    colorsHTML += '</div>';
+                } else {
+                    colorsHTML = '<div class="prod-colors"><i class="fas fa-palette"></i> 顏色：無顏色</div>';
+                }
+
+                html += `
+                    <div class="favorite-item favorite-camp-item" data-prod-id="${product.prodId}">
+                        <div class="camp-image">
+                            <img src="${productImage}" alt="${product.prodName}" onerror="this.onerror=null; this.src='images/default-product.jpg';" />
+                            <button class="btn-remove-favorite" data-id="${product.prodId}">
+                                <i class="fas fa-heart"></i>
+                            </button>
+                        </div>
+                        <div class="camp-info">
+                            <h4>${product.prodName}</h4>
+                            <div class="camp-description">
+                                ${specsHTML}
+                                ${colorsHTML}
+                            </div>
+                            <div class="favorite-price">
+                                ${hasDiscount ? `<span class="original-price">NT$ ${originalPrice}</span>` : ''}
+                                <span class="current-price">NT$ ${discountedPrice}</span>
+                            </div>
+                            <div class="camp-actions">
+                                <a href="product-detail.html?id=${product.prodId}" class="btn-view">查看商品</a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            favoritesGrid.innerHTML = html;
+
+            // 綁定移除收藏按鈕事件
+            document.querySelectorAll('#favorite-products-grid .btn-remove-favorite').forEach(btn => {
+                btn.addEventListener('click', async function() {
+                    const prodId = this.dataset.id;
+                    try {
+                        const response = await fetch(`${window.api_prefix}/api/prodfavorites/${memId}/${prodId}`, {
+                            method: 'DELETE'
+                        });
+                        const data = await response.json();
+                        
+                        if (data.status === 'success') {
+                            // 移除成功，添加動畫效果
+                            showMessage('已從收藏中移除', 'success');
+                            const card = this.closest('.favorite-item');
+                            
+                            // 加上動畫 class
+                            card.classList.add('removing');
+                            
+                            // 動畫結束後再移除 DOM
+                            setTimeout(() => card.remove(), 300);
+                            
+                            // 如果移除後沒有收藏商品，顯示空狀態
+                            setTimeout(() => {
+                                if (document.querySelectorAll('#favorite-products-grid .favorite-item').length === 0) {
+                                    favoritesGrid.innerHTML = `
+                                        <div class="empty-state">
+                                            <i class="fas fa-heart"></i>
+                                            <h3>尚無收藏商品</h3>
+                                            <p>您還沒有收藏任何商品</p>
+                                            <a href="shop.html" class="btn-primary">前往商城</a>
+                                        </div>
+                                    `;
+                                }
+                            }, 350);
+                        } else {
+                            showMessage('移除收藏失敗，請稍後再試', 'error');
+                        }
+                    } catch (error) {
+                        console.error('移除收藏錯誤:', error);
+                        showMessage('移除收藏失敗，請稍後再試', 'error');
+                    }
+                });
+            });
+        } else {
+            // 沒有收藏商品，顯示空狀態
+            favoritesGrid.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-heart"></i>
+                    <h3>尚無收藏商品</h3>
+                    <p>您還沒有收藏任何商品</p>
+                    <a href="shop.html" class="btn-primary">前往商城</a>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('載入收藏商品錯誤:', error);
+        favoritesGrid.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>載入失敗</h3>
+                <p>無法載入收藏商品，請稍後再試</p>
+                <button class="btn-primary" onclick="userProfileManager.loadFavoriteProducts()">重新載入</button>
+            </div>
+        `;
+    }
   }
 
   getOrderStatusText(status) {
@@ -1498,7 +1872,7 @@ class UserProfileManager {
   // WebSocket 連接方法
   connect() {
     // 每次連接時都重新獲取最新的ID值
-    this.memId = document.getElementById("memId").value.trim();
+    this.memId = this.currentMember.memId;
     this.ownerId = document.getElementById("ownerId").value.trim();
 
     console.log(
@@ -1736,7 +2110,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // UserProfileManager實例已在文件末尾創建
 
   // 頭像上傳功能
-  const avatarInput = document.getElementById("avatar-input");
+  const avatarInput = document.getElementById("profile-picture");
   const avatarPreview = document.querySelector(".avatar-preview img");
   const uploadBtn = document.querySelector(".btn-upload");
   const uploadProgress = document.createElement("div");
@@ -1789,7 +2163,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  if (avatarInput && uploadBtn) {
+  if (avatarInput) {
     // 添加懸停效果
     uploadBtn.addEventListener("mouseover", function () {
       if (avatarPreview) {
@@ -1955,26 +2329,38 @@ document.addEventListener("DOMContentLoaded", () => {
 // 登出按鈕事件監聽
 const logoutBtn = document.getElementById("logoutBtn");
 if (logoutBtn) {
-  logoutBtn.addEventListener("click", function (e) {
+  logoutBtn.addEventListener("click", async function (e) {
     e.preventDefault();
 
     // 顯示確認對話框
     if (confirm("確定要登出嗎？")) {
-      // 清除本地儲存的會員資料
-      // 清除所有相關的儲存資料
-      localStorage.removeItem("currentMember");
-      sessionStorage.removeItem("currentMember");
-      // 也清除可能的其他相關資料
-      localStorage.removeItem("memberRememberMe");
-      sessionStorage.removeItem("memberRememberMe");
+      try {
+        const response = await fetch(`${window.api_prefix}/api/member/logout`, {
+          method: "POST",
+          credentials: "include", // 包含Cookie，讓後端 session 正確失效
+        });
+        if (!response.ok) {
+          throw new Error(`登出失敗：${response.status}`);
+        }
+        const result = await response.text();
+        // 可根據後端回傳格式調整
+        alert(result || "登出成功");
+        // 清除 localStorage/sessionStorage
+        localStorage.removeItem("currentMember");
+        sessionStorage.removeItem("currentMember");
+        localStorage.removeItem("memberRememberMe");
+        sessionStorage.removeItem("memberRememberMe");
 
-      // 顯示登出成功訊息
-      showMessage("已成功登出", "success");
+        // 顯示登出成功訊息
+        showMessage("已成功登出", "success");
 
-      // 延遲跳轉到首頁
-      setTimeout(() => {
-        window.location.href = "index.html";
-      }, 1500);
+        // 跳轉到登入頁
+        setTimeout(() => {
+          window.location.href = "index.html";
+        }, 500);
+      } catch (error) {
+        alert(`登出失敗：${error.message}`);
+      }
     }
   });
 }
@@ -1985,9 +2371,10 @@ function showMessage(message, type = "info") {
   const messageDiv = document.createElement("div");
   messageDiv.className = `message message-${type}`;
   messageDiv.innerHTML = `
-    <i class="fas ${type === "success"
-      ? "fa-check-circle"
-      : type === "error"
+    <i class="fas ${
+      type === "success"
+        ? "fa-check-circle"
+        : type === "error"
         ? "fa-exclamation-circle"
         : "fa-info-circle"
     }"></i>
@@ -1999,11 +2386,14 @@ function showMessage(message, type = "info") {
     position: fixed;
     top: 20px;
     right: 20px;
-    background: ${type === "success" ? "#d4edda" : type === "error" ? "#f8d7da" : "#d1ecf1"
+    background: ${
+      type === "success" ? "#d4edda" : type === "error" ? "#f8d7da" : "#d1ecf1"
     };
-    color: ${type === "success" ? "#155724" : type === "error" ? "#721c24" : "#0c5460"
+    color: ${
+      type === "success" ? "#155724" : type === "error" ? "#721c24" : "#0c5460"
     };
-    border: 1px solid ${type === "success" ? "#c3e6cb" : type === "error" ? "#f5c6cb" : "#bee5eb"
+    border: 1px solid ${
+      type === "success" ? "#c3e6cb" : type === "error" ? "#f5c6cb" : "#bee5eb"
     };
     border-radius: 8px;
     padding: 12px 16px;
@@ -2083,11 +2473,13 @@ function loadShopOrders() {
       data.data.forEach((order) => {
         html += `<tr>
           <td>${order.shopOrderId}</td>
-          <td>${order.shopOrderDate ? order.shopOrderDate.split("T")[0] : ""
+          <td>${
+            order.shopOrderDate ? order.shopOrderDate.split("T")[0] : ""
           }</td>
           <td>NT$ ${order.afterDiscountAmount}</td>
           <td>${order.shopOrderStatusStr || ""}</td>
-          <td><button class="btn-view" onclick="viewShopOrderDetail(${order.shopOrderId
+          <td><button class="btn-view" onclick="viewShopOrderDetail(${
+            order.shopOrderId
           })">查看詳情</button></td>
         </tr>`;
       });
@@ -2165,20 +2557,23 @@ function viewShopOrderDetail(orderId) {
                 <td>${commentContent}</td>
 
                 <td>
-                  ${canComment
-                ? `<button class="btn-comment"
+                  ${
+                    canComment
+                      ? `<button class="btn-comment"
                         data-order-id="${order.shopOrderId}"
                         data-prod-id="${detail.prodId}"
-                        data-prod-color-id="${detail.prodColorId != null ? detail.prodColorId : ""
-                }"
-                        data-prod-spec-id="${detail.prodSpecId != null ? detail.prodSpecId : ""
-                }"
+                        data-prod-color-id="${
+                          detail.prodColorId != null ? detail.prodColorId : ""
+                        }"
+                        data-prod-spec-id="${
+                          detail.prodSpecId != null ? detail.prodSpecId : ""
+                        }"
                         data-comment-satis="${detail.commentSatis || ""}"
                         data-comment-content="${detail.commentContent || ""}">
                         評分/評論
                       </button>`
-                : `<span class="text-muted"> </span>`
-              }
+                      : `<span class="text-muted"> </span>`
+                  }
                 </td>
 
               </tr>
@@ -2193,8 +2588,9 @@ function viewShopOrderDetail(orderId) {
                 <div class="order-info-section">
                   <h4>基本資訊</h4>
                   <div class="info-grid">
-                    <div class="info-item"><span class="info-label">訂單編號:</span><span class="info-value">${order.shopOrderId
-            }</span></div>
+                    <div class="info-item"><span class="info-label">訂單編號:</span><span class="info-value">${
+                      order.shopOrderId
+                    }</span></div>
                     <div class="info-item"><span class="info-label">訂單日期:</span><span class="info-value">${orderDate}</span></div>
                     <div class="info-item"><span class="info-label">訂單狀態:</span><span class="info-value status-badge">${statusText}</span></div>
                     <div class="info-item"><span class="info-label">付款方式:</span><span class="info-value">${paymentMethod}</span></div>
@@ -2206,20 +2602,23 @@ function viewShopOrderDetail(orderId) {
               : ""
             }</span></div>
                       <div class="info-item"><span class="info-label">訂單備註:</span><span class="info-value">${orderNoteText}</span></div>
-
                   </div>
                 </div>
                 <div class="order-info-section">
                   <h4>收件人資訊</h4>
                   <div class="info-grid">
-                    <div class="info-item"><span class="info-label">姓名:</span><span class="info-value">${order.orderName || ""
-            }</span></div>
-                    <div class="info-item"><span class="info-label">電話:</span><span class="info-value">${order.orderPhone || ""
-            }</span></div>
-                    <div class="info-item"><span class="info-label">Email:</span><span class="info-value">${order.orderEmail || ""
-            }</span></div>
-                    <div class="info-item"><span class="info-label">收件地址:</span><span class="info-value">${order.orderShippingAddress || ""
-            }</span></div>
+                    <div class="info-item"><span class="info-label">姓名:</span><span class="info-value">${
+                      order.orderName || ""
+                    }</span></div>
+                    <div class="info-item"><span class="info-label">電話:</span><span class="info-value">${
+                      order.orderPhone || ""
+                    }</span></div>
+                    <div class="info-item"><span class="info-label">Email:</span><span class="info-value">${
+                      order.orderEmail || ""
+                    }</span></div>
+                    <div class="info-item"><span class="info-label">收件地址:</span><span class="info-value">${
+                      order.orderShippingAddress || ""
+                    }</span></div>
                   </div>
                 </div>
               </div>
@@ -2247,23 +2646,29 @@ function viewShopOrderDetail(orderId) {
                 </div>
               </div>
               <div class="order-actions" style="margin: 20px 0 0 0;">
-                <button id="btn-cancel-order" data-order-id="${order.shopOrderId
-            }" style="display:none; margin-right: 12px;">申請取消訂單</button>
-                <button id="btn-return-order" data-order-id="${order.shopOrderId
-            }" style="display:none;">申請退貨</button>
+                <button id="btn-cancel-order" data-order-id="${
+                  order.shopOrderId
+                }" style="display:none; margin-right: 12px;">申請取消訂單</button>
+                <button id="btn-return-order" data-order-id="${
+                  order.shopOrderId
+                }" style="display:none;">申請退貨</button>
                 <div id="order-action-error" style="color:red;margin-top:8px;"></div>
               </div>
               <div class="order-info-section">
                 <h4>金額明細</h4>
                 <div class="amount-breakdown">
-                  <div class="amount-item"><span class="amount-label">商品總額:</span><span class="amount-value">NT$ ${order.beforeDiscountAmount
-            }</span></div>
-                  <div class="amount-item"><span class="amount-label">運費:</span><span class="amount-value">NT$ ${order.shopOrderShipFee
-            }</span></div>
-                  <div class="amount-item discount"><span class="amount-label">折扣金額:</span><span class="amount-value">- NT$ ${order.discountAmount == null ? 0 : order.discountAmount
-            }</span></div>
-                  <div class="amount-item total"><span class="amount-label">訂單總額:</span><span class="amount-value">NT$ ${order.afterDiscountAmount
-            }</span></div>
+                  <div class="amount-item"><span class="amount-label">商品總額:</span><span class="amount-value">NT$ ${
+                    order.beforeDiscountAmount
+                  }</span></div>
+                  <div class="amount-item"><span class="amount-label">運費:</span><span class="amount-value">NT$ ${
+                    order.shopOrderShipFee
+                  }</span></div>
+                  <div class="amount-item discount"><span class="amount-label">折扣金額:</span><span class="amount-value">- NT$ ${
+                    order.discountAmount == null ? 0 : order.discountAmount
+                  }</span></div>
+                  <div class="amount-item total"><span class="amount-label">訂單總額:</span><span class="amount-value">NT$ ${
+                    order.afterDiscountAmount
+                  }</span></div>
                 </div>
               </div>
               <div class="modal-actions">
@@ -2276,7 +2681,11 @@ function viewShopOrderDetail(orderId) {
           const btnReturn = document.getElementById("btn-return-order");
           if (btnCancel) btnCancel.style.display = "none";
           if (btnReturn) btnReturn.style.display = "none";
-          if (order.shopOrderStatus === 0 || order.shopOrderStatus === 1 || order.shopOrderStatus === 7) {
+          if (
+            order.shopOrderStatus === 0 ||
+            order.shopOrderStatus === 1 ||
+            order.shopOrderStatus === 7
+          ) {
             btnCancel.style.display = "";
           }
 
@@ -2481,6 +2890,7 @@ document.addEventListener("click", function (e) {
     closeShopOrderDetailModal();
   }
 });
+
 
 
 // === 收藏文章管理器（從 articles-favorites.html 移植，並整合到 user-profile.js） ===
@@ -3282,19 +3692,4 @@ window.addEventListener("beforeunload", () => {
   cleanupPerformanceMarks();
   domCache.clear();
 });
-
-// ===== 文章收藏相關JavaScript =====
-// 文章收藏的UI控制邏輯
-// function initArticleFavoritesUI() {
-//   ...
-// }
-// ...
-// // 在 DOMContentLoaded 中初始化文章收藏UI
-// document.addEventListener('DOMContentLoaded', function () {
-//   // 檢查是否在用戶資料頁面且有文章收藏區段
-//   if (document.getElementById('article-favorites')) {
-//     initArticleFavoritesUI();
-//   }
-// });
-// ... existing code ...
 

@@ -84,21 +84,25 @@
           </div>
         </div>
 
-        <div class="profile-content">
-          <!-- 基本資料 -->
-          <div class="profile-section active" id="profile-basic">
-            <h2>基本資料</h2>
-            <form class="profile-form">
-              <div class="avatar-upload">
-                <div class="avatar-preview">
-                  <img src="images/user-3.jpg" alt="使用者頭像" />
-                </div>
-                <div class="avatar-edit">
-                  <label for="avatar-input" class="btn-upload">更換頭像</label>
-                  <input type="file" id="avatar-input" accept="image/*" />
-                  <p class="upload-hint">
-                    建議使用 1:1 比例的圖片，檔案大小不超過 2MB
-                  </p>
+
+          <div class="profile-content">
+            <!-- 基本資料 -->
+            <div class="profile-section active" id="profile-basic">
+              <h2>基本資料</h2>
+              <form class="profile-form">
+                <div class="avatar-upload">
+                  <div class="avatar-preview">
+                    <img id="preview-image" src="images/user-3.jpg" alt="使用者頭像" />
+                  </div>
+                  <div class="avatar-edit">
+                    <!-- <label for="avatar-input" class="btn-upload"
+                      >更換頭像</label
+                    > -->
+                    <input type="file" id="profile-picture" accept="image/*" />
+                    <p class="upload-hint">
+                      建議使用 1:1 比例的圖片，檔案大小不超過 2MB
+                    </p>
+                  </div>
                 </div>
               </div>
 
@@ -120,12 +124,23 @@
                 </div>
               </div>
 
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="profile-password">密碼</label>
-                  <div class="password-field">
-                    <input type="password" id="profile-password" value="********" disabled />
-                    <button type="button" class="btn-change-password">更改密碼</button>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="profile-birthday">生日</label>
+                    <input id="profile-birthday" value="" readonly />
+                    <p class="form-hint">生日資料無法修改</p>
+                  </div>
+                  <div class="form-group">
+                    <label for="profile-gender">性別</label>
+                    <select id="profile-gender" disabled>
+                      <option value="">請選擇</option>
+                      <option value="1">男性</option>
+                      <option value="2">女性</option>
+                      <option value="0">其他</option>
+                    </select>
+                    <p class="form-hint">性別資料無法修改</p>
+
                   </div>
                 </div>
                 <div class="form-group">
@@ -439,22 +454,19 @@
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- 隱藏的會員ID和營地主ID輸入框 -->
-  <input type="hidden" id="memId" value="" />
-  <input type="hidden" id="ownerId" value="" />
-  <!-- WebSocket相關庫 -->
-  <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
-
-  <script src="js/camp-data.js"></script>
-  <script src="js/user-profile.js"></script>
-  <script src="js/chat-management.js"></script>
-  <link rel="stylesheet" href="css/chat.css" />
-
-
-
-</body>
-
+    
+    <!-- 隱藏的會員ID和營地主ID輸入框 -->
+    <input type="hidden" id="memId" value="" />
+    <input type="hidden" id="ownerId" value="" />
+    <!-- WebSocket相關庫 -->
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    
+    <script src="js/camp-data.js"></script>
+    <script src="js/user-profile.js"></script>
+    <script src="js/chat-management.js"></script>
+    <link rel="stylesheet" href="css/chat.css" />
+  </body>
 </html>
+

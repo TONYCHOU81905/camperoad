@@ -23,11 +23,11 @@ document.addEventListener("DOMContentLoaded", function () {
       console.log("地區初始化完成，開始解析URL參數");
       // 解析URL參數並填入表單
       parseAndFillSearchParams();
-
+      
       // 初始化日期選擇器聯動
       initDatePickerInteraction();
     })
-    .catch(error => {
+    .catch((error) => {
       console.error("地區初始化失敗:", error);
       // 即使地區初始化失敗，仍然初始化日期選擇器聯動
       initDatePickerInteraction();
@@ -137,31 +137,29 @@ function initMobileMenu() {
 }
 
 // 地區選單改變時觸發
-function initLocationChangeListener() {
+document.addEventListener("DOMContentLoaded", function () {
   const locationSelect = document.getElementById("location");
-  if (locationSelect && taiwanDistrictData) {
+  if (locationSelect) {
     locationSelect.addEventListener("change", function () {
       const selectedRegionValue = this.value;
-      if (selectedRegionValue && taiwanDistrictData[selectedRegionValue]) {
-        const selectedRegion = taiwanDistrictData[selectedRegionValue].DistName;
-        console.log("selected region value: " + selectedRegionValue);
-        console.log("selected region: " + selectedRegion);
+      const selectedRegion = taiwanDistrictData[selectedRegionValue].DistName;
+      console.log("selected region value: " + selectedRegionValue);
+      console.log("selected region: " + selectedRegion);
 
-        // 根據選擇的地區更新縣市選項
-        updateCountyOptions(selectedRegionValue);
+      // 根據選擇的地區更新縣市選項
+      updateCountyOptions(selectedRegionValue);
 
-        // 清空鄉鎮市區選擇
-        const districtSelect = document.getElementById("district");
-        if (districtSelect) {
-          districtSelect.innerHTML = '<option value="">請先選擇縣市</option>';
-        }
-
-        // 根據選擇的地區篩選並顯示營地
-        filterCampsByRegion(selectedRegion);
+      // 清空鄉鎮市區選擇
+      const districtSelect = document.getElementById("district");
+      if (districtSelect) {
+        districtSelect.innerHTML = '<option value="">請先選擇縣市</option>';
       }
+
+      // 根據選擇的地區篩選並顯示營地
+      filterCampsByRegion(selectedRegion);
     });
   }
-}
+});
 
 const check_in_el = document.getElementById("check-in");
 const check_out_el = document.getElementById("check-out");
@@ -192,15 +190,18 @@ function parseAndFillSearchParams() {
 
   // 填入地區選擇
   const location = urlParams.get("location");
-  if (location && taiwanDistrictData && Array.isArray(taiwanDistrictData) && taiwanDistrictData.length > 0) {
+  if (location && taiwanDistrictData && taiwanDistrictData.length > 0) {
     const locationSelect = document.getElementById("location");
     if (locationSelect) {
       // 確保location是有效的索引
-      const locationIndex = parseInt(location);
-      if (locationIndex >= 0 && locationIndex < taiwanDistrictData.length) {
-        console.log("設置地區選擇: " + taiwanDistrictData[locationIndex].DistName);
 
-        locationSelect.value = locationIndex;
+
+      if (location >= 0 && location < taiwanDistrictData.length) {
+        console.log("設置地區選擇: " + taiwanDistrictData[location].DistName);
+
+        locationSelect.value = location;
+
+
         // 觸發change事件以載入縣市選項
         locationSelect.dispatchEvent(new Event("change"));
       }
@@ -367,13 +368,17 @@ function initArea() {
         // 初始化時載入所有縣市
         updateCountyOptions();
 
+
+
         // 初始化地區選單改變監聽器
         initLocationChangeListener();
+
+
 
         // 初始化完成，解析Promise
         resolve();
       })
-      .catch(error => {
+      .catch((error) => {
         console.error("初始化地區資料失敗:", error);
         reject(error);
       });
@@ -383,45 +388,38 @@ function initArea() {
 // 動態生成地區選項
 function populateLocationOptions(distData) {
   const locationSelect = document.getElementById("location");
-  if (!locationSelect) return;
 
   // 清除現有選項（保留預設選項）
   const defaultOption = locationSelect.querySelector('option[value=""]');
   locationSelect.innerHTML = "";
+
+
   if (defaultOption) {
     locationSelect.appendChild(defaultOption);
   }
 
+
+
   // 添加地區選項
-  if (distData && Array.isArray(distData)) {
-    for (let i = 0; i < distData.length; i++) {
-      const option = document.createElement("option");
-      option.value = i;
-      option.textContent = distData[i].DistName;
-      locationSelect.appendChild(option);
-    }
+  for (let i = 0; i < distData.length; i++) {
+    const option = document.createElement("option");
+    option.value = i;
+    option.textContent = distData[i].DistName;
+    locationSelect.appendChild(option);
   }
-  // distData.forEach(region => {
-  //   const option = document.createElement("option");
-  //   option.value = region.;
-  //   option.textContent = region.DistName;
-  //   locationSelect.appendChild(option);
-  // });
 }
 
 // 更新縣市選項
 function updateCountyOptions(selectedRegionValue = null) {
   const countySelect = document.getElementById("county");
-  if (!countySelect) return;
-
   countySelect.innerHTML = '<option value="">選擇縣市</option>';
 
   let countiestoShow = [];
 
-  if (selectedRegionValue && taiwanDistrictData && taiwanDistrictData[selectedRegionValue]) {
+  if (selectedRegionValue && taiwanDistrictData[selectedRegionValue]) {
     // 如果選擇了地區，只顯示該地區的縣市
     countiestoShow = taiwanDistrictData[selectedRegionValue].County;
-  } else if (taiwanDistricts) {
+  } else {
     // 如果沒有選擇地區，顯示所有縣市
     countiestoShow = Object.values(taiwanDistricts).map(
       (county) => county.CityName
@@ -429,16 +427,14 @@ function updateCountyOptions(selectedRegionValue = null) {
   }
 
   // 根據taiwanDistricts的順序來排序縣市
-  if (taiwanDistricts) {
-    Object.values(taiwanDistricts).forEach((county_info) => {
-      if (countiestoShow.includes(county_info.CityName)) {
-        const option = document.createElement("option");
-        option.value = county_info.CityName;
-        option.textContent = county_info.CityName;
-        countySelect.appendChild(option);
-      }
-    });
-  }
+  Object.values(taiwanDistricts).forEach((county_info) => {
+    if (countiestoShow.includes(county_info.CityName)) {
+      const option = document.createElement("option");
+      option.value = county_info.CityName;
+      option.textContent = county_info.CityName;
+      countySelect.appendChild(option);
+    }
+  });
 }
 
 // 根據地區篩選營地
@@ -471,13 +467,19 @@ async function filterCampsByRegion(regionName) {
 }
 
 // 縣市選單改變時觸發
-if (document.getElementById("county")) {
-  document.getElementById("county").addEventListener("change", function () {
+
+const countySelectEl = document.getElementById("county");
+if (countySelectEl) {
+  countySelectEl.addEventListener("change", function () {
+
     console.log("county: " + this.value);
 
     const county = this.value;
     console.log(taiwanDistricts[county]);
     const districtSelect = document.getElementById("district");
+
+    if (!districtSelect) return;
+
     districtSelect.innerHTML = '<option value="">請選擇鄉鎮市區</option>';
 
     if (county != "") {
