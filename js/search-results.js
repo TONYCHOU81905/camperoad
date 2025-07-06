@@ -176,9 +176,22 @@ async function getAvailableCampsFromAPI(
     }
 
     const apiResult = await response.json();
-    console.log("API回應:", apiResult);
+    console.log("API回應1:", apiResult);
 
+    // 更新全域變數
+    if (!window.availableRoomData) {
+      window.availableRoomData = null;
+    }
     if (apiResult.status === "success" && apiResult.data) {
+      window.availableRoomData = {
+        timestamp: new Date().getTime(),
+        data: apiResult.data,
+        requestParams: { guests, checkIn, checkOut },
+      };
+      console.log(
+        "已更新全域變數 availableRoomData:",
+        window.availableRoomData
+      );
       // 從API回應中提取有可用房型的營地ID
       const availableCampIds = [
         ...new Set(apiResult.data.map((item) => item.campId)),

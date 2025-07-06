@@ -178,6 +178,18 @@ async function handleLogin(e) {
         // 發生錯誤時保留 sessionCart，不刪除
       }
 
+      try {
+        const returnUrl = localStorage.getItem("returnUrl");
+        if (returnUrl) {
+          window.location.href = returnUrl;
+          localStorage.removeItem("returnUrl");
+        } else {
+          console.log("找不到returnUrl");
+        }
+      } catch (error) {
+        console.error("營地登入後導轉發生意外:", err);
+      }
+
       setTimeout(() => {
         window.location.href = "index.html";
       }, 1500);
@@ -262,7 +274,10 @@ async function handleRegister(e) {
 
     if (!response.ok) {
       // 記錄錯誤但不拋出，繼續執行
-      console.warn("註冊 API 回傳錯誤狀態，但忽略此錯誤繼續流程:", response.status);
+      console.warn(
+        "註冊 API 回傳錯誤狀態，但忽略此錯誤繼續流程:",
+        response.status
+      );
     }
 
     // 不論回傳狀態，皆嘗試顯示成功訊息並切換頁面
@@ -275,7 +290,6 @@ async function handleRegister(e) {
     setTimeout(() => {
       document.querySelector('[data-tab="login"]').click();
     }, 3000);
-
   } catch (error) {
     // 真正網路或程式錯誤時才顯示錯誤
     console.error("註冊失敗：", error);

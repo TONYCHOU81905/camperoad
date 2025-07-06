@@ -164,32 +164,7 @@ class CheckoutManager {
       });
     });
 
-    // 信用卡表單格式化
-    const cardNumberInput = document.getElementById("card-number");
-    if (cardNumberInput) {
-      cardNumberInput.addEventListener("input", (e) => {
-        let value = e.target.value.replace(/\D/g, "");
-        let formattedValue = "";
-        for (let i = 0; i < value.length; i++) {
-          if (i > 0 && i % 4 === 0) {
-            formattedValue += " ";
-          }
-          formattedValue += value[i];
-        }
-        e.target.value = formattedValue;
-      });
-    }
 
-    const cardExpiryInput = document.getElementById("card-expiry");
-    if (cardExpiryInput) {
-      cardExpiryInput.addEventListener("input", (e) => {
-        let value = e.target.value.replace(/\D/g, "");
-        if (value.length > 2) {
-          value = value.substring(0, 2) + "/" + value.substring(2, 4);
-        }
-        e.target.value = value;
-      });
-    }
 
     // 提交付款按鈕
     const submitPaymentBtn = document.getElementById("submit-payment");
@@ -345,10 +320,8 @@ class CheckoutManager {
     // 收集訂單資訊
     const orderData = this.collectOrderData();
 
-    // 根據付款方式處理
-    if (this.selectedPaymentMethod === "credit-card") {
-      this.processCreditCardPayment(orderData);
-    } else if (this.selectedPaymentMethod === "line-pay") {
+    // 只處理 LINE Pay 付款
+    if (this.selectedPaymentMethod === "line-pay") {
       this.processServerPayment(orderData);
     }
   }
@@ -372,44 +345,11 @@ class CheckoutManager {
       items: allItems,
       totalPrice: totalPrice,
       paymentMethod: this.selectedPaymentMethod,
-      paymentDetails:
-        this.selectedPaymentMethod === "credit-card"
-          ? {
-              cardNumber: document
-                .getElementById("card-number")
-                .value.trim()
-                .replace(/\s/g, ""),
-              cardExpiry: document.getElementById("card-expiry").value.trim(),
-              cardCvc: document.getElementById("card-cvc").value.trim(),
-              cardName: document.getElementById("card-name").value.trim(),
-            }
-          : {},
+      paymentDetails: {},
     };
   }
 
-  // 處理信用卡付款 (模擬綠界API)
-  processCreditCardPayment(orderData) {
-    console.log("處理信用卡付款", orderData);
 
-    // 模擬API請求
-    setTimeout(() => {
-      // 模擬80%成功率
-      const isSuccess = Math.random() < 0.8;
-
-      if (isSuccess) {
-        this.handlePaymentSuccess({
-          orderId: this.generateOrderId(),
-          transactionId: this.generateTransactionId(),
-          paymentMethod: "credit-card",
-        });
-      } else {
-        this.handlePaymentFailure({
-          errorCode: "PAYMENT_FAILED",
-          errorMessage: "信用卡交易失敗，請確認卡片資訊或聯絡發卡銀行。",
-        });
-      }
-    }, 2000); // 模擬2秒的API延遲
-  }
 
   // 處理伺服器付款
   async processServerPayment(orderData) {
