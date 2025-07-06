@@ -911,31 +911,35 @@
       }
 
       // 取代房型區塊內容
-      function renderAvailableRoomTypes(camps, guests) {
-        const roomTypesSection = document.querySelector(".room-types-section");
+      async function renderAvailableRoomTypes(camps, guests) {
+        // const roomTypesSection = document.querySelector(".room-types-section");
+        const roomTypesSection = getOrCreateRoomTypesSection(); // ✅ 確保存在
+        if (!roomTypesSection) return;
         const container = roomTypesSection?.querySelector(
           ".room-types-container"
         );
-
-        console.log("roomTypesSection", roomTypesSection);
+        roomTypesSection.innerHTML = ""; // 清空內容
+        console.log("camps", camps);
         console.log("container", container);
 
-        if (!roomTypesSection || !container) {
-          console.warn(
-            "找不到 room-types-section 或 container，請確認 HTML 結構正確"
-          );
-          return;
-        }
-
+        // if (!roomTypesSection || !container) {
+        //   console.warn(
+        //     "找不到 room-types-section 或 container，請確認 HTML 結構正確"
+        //   );
+        //   return;
+        // }
+        console.log("找不到");
         // 修改標題
         const sectionTitle = roomTypesSection.querySelector("h3");
         if (sectionTitle) {
           sectionTitle.textContent = `適合 ${guests} 人的房型選擇`;
         }
+        console.log("修改標題");
 
         // 如果沒房型資料
         if (!camps || camps.length === 0) {
-          container.innerHTML = `
+          console.log("沒房型資料");
+          roomTypesSection.innerHTML = `
             <div class="no-rooms-message">
               <i class="fas fa-exclamation-circle"></i>
               <p>查無可用房型，請更換條件再試。</p>
@@ -943,35 +947,56 @@
           return;
         }
 
-        console.log("campsite-detail.html", camps);
+        console.log("渲染房型卡片", camps);
 
-        // 渲染房型卡片
-        container.innerHTML = camps
-          .map(
-            (camp) => `
-          <div class="room-type-card">
-            <div class="room-type-photos">
-              <div class="main-photo">
-                <img src="/images/camps/camp-placeholder.jpg" alt="${camp.campsiteTypeName}">
-              </div>
+        // 創建房型卡片容器
+        roomTypesSection.innerHTML = `
+          <h3>適合 ${guests} 人的房型選擇</h3>
+          <div class="room-types-container" id="room-types-container"></div>
+        `;
+        
+        const roomTypesContainer = document.getElementById("room-types-container");
+        
+        // 為每個房型創建卡片並獲取圖片
+        for (const camp of camps) {
+          const roomCard = document.createElement("div");
+          roomCard.className = "room-type-card";
+          
+          // 獲取房型照片（使用 API 格式）
+          const urlParams = new URLSearchParams(window.location.search);
+          const campId = urlParams.get("id");
+          const photos = await getCampsiteTypePhotos(camp.campsiteTypeId, campId);
+          
+          const roomImages = document.createElement("div");
+          roomImages.className = "room-type-images";
+          
+          let imageSrc;
+          if (photos.length > 0) {
+            imageSrc = photos[0];
+          } else {
+            imageSrc = "images/camp-1.jpg";
+          }
+          
+          roomCard.innerHTML = `
+            <div class="room-type-images">
+              <img src="${imageSrc}" alt="${camp.campsiteName}" />
             </div>
             <div class="room-type-info">
-              <h3 class="room-type-name">${camp.campsiteTypeName}</h3>
-              <div class="room-type-details">
-                <p><i class="fas fa-users"></i> 適合 ${camp.people} 人</p>
-                <p><i class="fas fa-tent"></i> 剩餘 ${camp.remaining} 帳</p>
-                <p class="room-type-price"><i class="fas fa-dollar-sign"></i> NT$ ${camp.price} / 晚</p>
-              </div>
+              <h4>${camp.campsiteName}</h4>
+              <p><i class="fas fa-users"></i> 適合 ${camp.campsitePeople} 人</p>
+              <p><i class="fas fa-tent"></i> 剩餘 ${camp.remaining} 帳</p>
+              <p class="room-type-price"><i class="fas fa-dollar-sign"></i> NT$ ${camp.campsitePrice} / 晚</p>
               <button class="btn-add-to-cart" data-type-id="${camp.campsiteTypeId}">
                 <i class="fas fa-cart-plus"></i> 加入購物車
               </button>
             </div>
-          </div>`
-          )
-          .join("");
+          `;
+          
+          roomTypesContainer.appendChild(roomCard);
+        }
 
         // 綁定購物車按鈕事件
-        container.querySelectorAll(".btn-add-to-cart").forEach((btn) => {
+        roomTypesContainer.querySelectorAll(".btn-add-to-cart").forEach((btn) => {
           btn.addEventListener("click", function () {
             const typeId = this.getAttribute("data-type-id");
             if (typeof addToCart === "function") addToCart(typeId);
