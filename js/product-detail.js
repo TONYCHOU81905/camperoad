@@ -876,6 +876,7 @@ function showWishlistMessage(messageText = '已添加到收藏') {
       let rentDays = 0;
       if (!isPurchase) {
         rentDays = parseInt(document.getElementById('rent-days').value) || 1;
+
       }
       
       // 準備要發送的數據（符合後端 CartDTO_req 格式）
