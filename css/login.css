@@ -347,19 +347,19 @@
 }
 
 /* 註冊表單特定樣式 */
-.password-strength {
+/* .password-strength {
   margin-top: 8px;
-}
+} */
 
-.strength-bar {
+/* .strength-bar {
   height: 4px;
   background-color: #eee;
   border-radius: 2px;
   margin-bottom: 5px;
   overflow: hidden;
-}
+} */
 
-.strength-fill {
+/* .strength-fill {
   height: 100%;
   width: 0;
   transition: all 0.3s ease;
@@ -368,7 +368,7 @@
 .strength-text {
   font-size: 0.8rem;
   color: #888;
-}
+} */
 
 .terms-agree {
   font-size: 0.9rem;
