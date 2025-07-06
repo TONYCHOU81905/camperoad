@@ -1,6 +1,56 @@
 // 使用全域購物車管理器
 // 移除重複的ShopCartManager類別定義
 
+// Session Cart 管理工具（如果不存在則創建）
+if (typeof sessionCartManager === 'undefined') {
+  const sessionCartManager = {
+    getCart: function() {
+      const cart = sessionStorage.getItem('sessionCart');
+      return cart ? JSON.parse(cart) : [];
+    },
+    saveCart: function(cart) {
+      sessionStorage.setItem('sessionCart', JSON.stringify(cart));
+    },
+    addToCart: function(item) {
+      const cart = this.getCart();
+      const exist = cart.find(c =>
+        c.prodId === item.prodId &&
+        c.prodColorId === item.prodColorId &&
+        c.prodSpecId === item.prodSpecId
+      );
+      if (exist) {
+        exist.cartProdQty += item.cartProdQty;
+      } else {
+        cart.push(item);
+      }
+      this.saveCart(cart);
+    },
+    updateItem: function(prodId, prodColorId, prodSpecId, qty) {
+      let cart = this.getCart();
+      const existIndex = cart.findIndex(c => c.prodId === prodId);
+      if (existIndex !== -1) {
+        cart[existIndex].prodColorId = prodColorId;
+        cart[existIndex].prodSpecId = prodSpecId;
+        cart[existIndex].cartProdQty = qty;
+        this.saveCart(cart);
+      }
+    },
+    removeItem: function(prodId, prodColorId, prodSpecId) {
+      let cart = this.getCart();
+      cart = cart.filter(c =>
+        !(c.prodId === prodId && c.prodColorId === prodColorId && c.prodSpecId === prodSpecId)
+      );
+      this.saveCart(cart);
+    },
+    clearCart: function() {
+      sessionStorage.removeItem('sessionCart');
+    }
+  };
+  
+  // 將 sessionCartManager 設為全域變數
+  window.sessionCartManager = sessionCartManager;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   // 獲取加入購物車按鈕
   const addToCartBtn = document.querySelector('.btn-add-cart');
@@ -23,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // 綁定加入收藏按鈕點擊事件
   if (addWishlistBtn) {
     addWishlistBtn.addEventListener('click', function() {
-      addToWishlist(productId);
+      toggleWishlist(productId);
     });
   }
   
@@ -36,6 +86,9 @@ function initProductDetail() {
   
   // 載入商品詳情
   loadProductDetail(productId);
+  
+  // 檢查收藏狀態
+  checkFavoriteStatus(productId);
   
   // 綁定顏色選擇事件
   bindColorOptions();
@@ -592,30 +645,6 @@ function initProductDetail() {
       });
     }
     
-    // 租借天數選擇器（如果有）
-    const rentDaysInput = document.getElementById('rent-days');
-    if (rentDaysInput) {
-      const rentDaysMinusBtn = rentDaysInput.parentNode.querySelector('.minus');
-      const rentDaysPlusBtn = rentDaysInput.parentNode.querySelector('.plus');
-      
-      if (rentDaysMinusBtn) {
-        rentDaysMinusBtn.addEventListener('click', function() {
-          const currentValue = parseInt(rentDaysInput.value);
-          if (currentValue > parseInt(rentDaysInput.min)) {
-            rentDaysInput.value = currentValue - 1;
-          }
-        });
-      }
-      
-      if (rentDaysPlusBtn) {
-        rentDaysPlusBtn.addEventListener('click', function() {
-          const currentValue = parseInt(rentDaysInput.value);
-          if (currentValue < parseInt(rentDaysInput.max)) {
-            rentDaysInput.value = currentValue + 1;
-          }
-        });
-      }
-    }
   }
   
   // 綁定購買方式選擇事件
@@ -686,68 +715,89 @@ function initProductDetail() {
     });
   }
   
-  // 加入收藏函數
-  function addToWishlist(prodId) {
-    // 檢查用戶是否登入
-    const isLoggedIn = globalCartManager.getMemberId() > 0;
-    
-    if (!isLoggedIn) {
-      alert('請先登入會員');
-      window.location.href = 'login.html?redirect=' + encodeURIComponent(window.location.href);
-      return;
-    }
-    
-    // 準備要發送的數據
-    const wishlistData = {
-      memId: globalCartManager.getMemberId(),
-      prodId: parseInt(prodId)
-    };
-    
-    console.log('加入收藏數據:', wishlistData);
-    
-    // 使用fetch API發送請求
-    fetch(`${window.api_prefix}/api/addWishlist`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(wishlistData)
-    })
+  // 切換收藏狀態
+function toggleWishlist(prodId) {
+  const memId = getCurrentMemberId();
+  
+  if (!memId) {
+    alert('請先登入會員');
+    window.location.href = 'login.html?redirect=' + encodeURIComponent(window.location.href);
+    return;
+  }
+  
+  const addWishlistBtn = document.querySelector('.btn-add-wishlist');
+  const isFavorite = addWishlistBtn && addWishlistBtn.dataset.isFavorite === 'true';
+  
+  if (isFavorite) {
+    // 取消收藏
+    removeFromWishlist(prodId, memId);
+  } else {
+    // 加入收藏
+    addToWishlist(prodId, memId);
+  }
+}
+
+// 加入收藏函數
+function addToWishlist(prodId, memId) {
+  fetch(`${window.api_prefix}/api/prodfavorites/${memId}/${prodId}`, {
+    method: 'POST'
+  })
     .then(response => {
-      if (!response.ok) {
-        throw new Error('網路回應不正常');
-      }
+      if (!response.ok) throw new Error('網路回應不正常');
       return response.json();
     })
     .then(data => {
       console.log('加入收藏成功:', data);
-      
-      // 更新收藏按鈕狀態
       const addWishlistBtn = document.querySelector('.btn-add-wishlist');
       if (addWishlistBtn) {
         addWishlistBtn.innerHTML = '<i class="fas fa-heart"></i>';
         addWishlistBtn.classList.add('active');
+        addWishlistBtn.dataset.isFavorite = 'true';
       }
-      
-      // 顯示成功訊息
-      showWishlistMessage();
+      showWishlistMessage('已添加到收藏');
     })
     .catch(error => {
       console.error('加入收藏失敗:', error);
       alert('加入收藏失敗，請稍後再試');
     });
-  }
+}
+
+// 取消收藏函數
+function removeFromWishlist(prodId, memId) {
+  fetch(`${window.api_prefix}/api/prodfavorites/${memId}/${prodId}`, {
+    method: 'DELETE'
+  })
+    .then(response => {
+      if (!response.ok) throw new Error('網路回應不正常');
+      return response.json();
+    })
+    .then(data => {
+      console.log('取消收藏成功:', data);
+      const addWishlistBtn = document.querySelector('.btn-add-wishlist');
+      if (addWishlistBtn) {
+        addWishlistBtn.innerHTML = '<i class="far fa-heart"></i>';
+        addWishlistBtn.classList.remove('active');
+        addWishlistBtn.dataset.isFavorite = 'false';
+      }
+      showWishlistMessage('已取消收藏');
+    })
+    .catch(error => {
+      console.error('取消收藏失敗:', error);
+      alert('取消收藏失敗，請稍後再試');
+    });
+}
+   
   
   // 顯示加入收藏成功訊息
-  function showWishlistMessage() {
-    // 創建提示消息
-    const message = document.createElement('div');
-    message.className = 'wishlist-message';
-    message.innerHTML = `
-      <i class="fas fa-heart"></i>
-      <span>已添加到收藏</span>
-      <a href="user-profile.html?tab=wishlist" class="view-wishlist-btn">查看收藏</a>
-    `;
+function showWishlistMessage(messageText = '已添加到收藏') {
+  // 創建提示消息
+  const message = document.createElement('div');
+  message.className = 'wishlist-message';
+  message.innerHTML = `
+    <i class="fas fa-heart"></i>
+    <span>${messageText}</span>
+    <a href="user-profile.html?tab=wishlist" class="view-wishlist-btn">查看收藏</a>
+  `;
   
     // 添加樣式
     message.style.cssText = `
@@ -806,60 +856,76 @@ function initProductDetail() {
   }
   
   // 加入購物車函數
-  function addToCart(buyNow = false) {
-    // 獲取商品資訊
-    const quantity = document.getElementById('quantity').value;
-    
-    // 找出選中的顏色ID
-    const selectedColorOption = document.querySelector('.color-option.active');
-    const prodColorId = selectedColorOption ? parseInt(selectedColorOption.dataset.colorId) : 1; // 預設為1
-    
-    // 找出選中的規格ID
-    const selectedSpecSelect = document.querySelector('.prod-spec-select');
-    const prodSpecId = selectedSpecSelect ? parseInt(selectedSpecSelect.value) : 1; // 現在value是規格ID
-    
-    // 檢查購買方式
-    const isPurchase = !document.querySelector('.purchase-option[data-type="rent"].active');
-    
-    // 如果是租借，獲取租借天數
-    let rentDays = 0;
-    if (!isPurchase) {
-      rentDays = parseInt(document.getElementById('rent-days').value) || 1;
-    }
-    
-    // 準備要發送的數據（符合後端 CartDTO_req 格式）
-    const cartData = {
-      memId: globalCartManager.getMemberId(),  // 使用全域購物車管理器取得會員ID
-      prodId: parseInt(productId),
-      prodColorId: prodColorId,
-      prodSpecId: prodSpecId,
-      cartProdQty: parseInt(quantity),
-      isRent: !isPurchase,
-      rentDays: rentDays
-    };
-    
-    console.log('加入購物車數據:', cartData);
-    
-    // 使用fetch API發送請求
-    fetch(`${window.api_prefix}/api/addCart`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(cartData)
-    })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('網路回應不正常');
-      }
-      return response.json();
-    })
-    .then(data => {
-      console.log('加入購物車成功:', data);
+  async function addToCart(buyNow = false) {
+    try {
+      // 獲取商品資訊
+      const quantity = document.getElementById('quantity').value;
       
-      // 更新購物車數量顯示
-      if (data.status === 'success') {
-        globalCartManager.updateCartCount(); // 重新取得購物車數量
+      // 找出選中的顏色ID
+      const selectedColorOption = document.querySelector('.color-option.active');
+      const prodColorId = selectedColorOption ? parseInt(selectedColorOption.dataset.colorId) : 1; // 預設為1
+      
+      // 找出選中的規格ID
+      const selectedSpecSelect = document.querySelector('.prod-spec-select');
+      const prodSpecId = selectedSpecSelect ? parseInt(selectedSpecSelect.value) : 1; // 現在value是規格ID
+      
+      // 檢查購買方式
+      const isPurchase = !document.querySelector('.purchase-option[data-type="rent"].active');
+      
+      // 如果是租借，獲取租借天數
+      let rentDays = 0;
+      if (!isPurchase) {
+        rentDays = parseInt(document.getElementById('rent-days').value) || 1;
+
+      }
+      
+      // 準備要發送的數據（符合後端 CartDTO_req 格式）
+      const cartData = {
+        prodId: parseInt(productId),
+        prodColorId: prodColorId,
+        prodSpecId: prodSpecId,
+        cartProdQty: parseInt(quantity),
+        isRent: !isPurchase,
+        rentDays: rentDays
+      };
+      
+      console.log('加入購物車數據:', cartData);
+      
+      // 檢查用戶是否登入
+      const memberInfo = sessionStorage.getItem('currentMember');
+      const member = memberInfo ? JSON.parse(memberInfo) : null;
+      const memId = member ? member.memId : null;
+      
+      if (memId) {
+        // 已登入用戶，使用 API
+        cartData.memId = memId;
+        
+        const response = await fetch(`${window.api_prefix}/api/addCart`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(cartData)
+        });
+        
+        if (!response.ok) {
+          throw new Error('網路回應不正常');
+        }
+        
+        const data = await response.json();
+        console.log('加入購物車成功:', data);
+        
+        if (data.status === 'success') {
+          // 更新購物車數量顯示
+          if (typeof globalCartManager !== 'undefined' && globalCartManager.updateCartCount) {
+            globalCartManager.updateCartCount();
+          }
+        } else {
+          throw new Error(data.message || '加入購物車失敗');
+        }
+      } else {
+        // 未登入用戶，使用 sessionStorage
+        sessionCartManager.addToCart(cartData);
       }
       
       // 顯示成功訊息
@@ -869,11 +935,11 @@ function initProductDetail() {
       if (buyNow) {
         window.location.href = 'shop_cart.html';
       }
-    })
-    .catch(error => {
+      
+    } catch (error) {
       console.error('加入購物車失敗:', error);
       alert('加入購物車失敗，請稍後再試');
-    });
+    }
   }
   
   // 顯示加入購物車成功訊息
@@ -1164,47 +1230,98 @@ function bindRelatedProductEvents() {
 }
 
 // 添加商品到購物車
-function addProductToCart(productData) {
-  // 準備要發送的數據（符合後端 CartDTO_req 格式）
-  const cartData = {
-    memId: globalCartManager.getMemberId(),
-    prodId: parseInt(productData.productId),
-    prodColorId: parseInt(productData.colorId) || 1,
-    prodSpecId: parseInt(productData.specId) || 1,
-    cartProdQty: parseInt(productData.quantity) || 1,
-    isRent: false,
-    rentDays: 0
-  };
-  
-  console.log('加入購物車數據:', cartData);
-  
-  // 使用fetch API發送請求
-  fetch(`${window.api_prefix}/api/addCart`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(cartData)
-  })
-  .then(response => {
-    if (!response.ok) {
-      throw new Error('網路回應不正常');
-    }
-    return response.json();
-  })
-  .then(data => {
-    console.log('加入購物車成功:', data);
+async function addProductToCart(productData) {
+  try {
+    // 準備要發送的數據（符合後端 CartDTO_req 格式）
+    const cartData = {
+      prodId: parseInt(productData.productId),
+      prodColorId: parseInt(productData.colorId) || 1,
+      prodSpecId: parseInt(productData.specId) || 1,
+      cartProdQty: parseInt(productData.quantity) || 1,
+      isRent: false,
+      rentDays: 0
+    };
     
-    // 更新購物車數量顯示
-    if (data.status === 'success') {
-      globalCartManager.updateCartCount(); // 重新取得購物車數量
+    console.log('加入購物車數據:', cartData);
+    
+    // 檢查用戶是否登入
+    const memberInfo = sessionStorage.getItem('currentMember');
+    const member = memberInfo ? JSON.parse(memberInfo) : null;
+    const memId = member ? member.memId : null;
+    
+    if (memId) {
+      // 已登入用戶，使用 API
+      cartData.memId = memId;
+      
+      const response = await fetch(`${window.api_prefix}/api/addCart`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(cartData)
+      });
+      
+      if (!response.ok) {
+        throw new Error('網路回應不正常');
+      }
+      
+      const data = await response.json();
+      console.log('加入購物車成功:', data);
+      
+      if (data.status === 'success') {
+        // 更新購物車數量顯示
+        if (typeof globalCartManager !== 'undefined' && globalCartManager.updateCartCount) {
+          globalCartManager.updateCartCount();
+        }
+      } else {
+        throw new Error(data.message || '加入購物車失敗');
+      }
+    } else {
+      // 未登入用戶，使用 sessionStorage
+      sessionCartManager.addToCart(cartData);
     }
     
     // 顯示成功訊息
     showAddToCartMessage();
-  })
-  .catch(error => {
+    
+  } catch (error) {
     console.error('加入購物車失敗:', error);
-    alert('加入購物車失敗，請稍後再試');
-  });
+    // alert('加入購物車失敗，請稍後再試');
+  }
+}
+
+// 獲取當前登入會員的 ID
+function getCurrentMemberId() {
+  const memberData = localStorage.getItem('currentMember') || sessionStorage.getItem('currentMember');
+  if (memberData) {
+    try {
+      return JSON.parse(memberData).memId;
+    } catch (e) {
+      console.error('解析會員資料失敗', e);
+    }
+  }
+  return null;
+}
+
+// 檢查收藏狀態
+function checkFavoriteStatus(prodId) {
+  const memId = getCurrentMemberId();
+  if (!memId) return; // 未登入不檢查
+  
+  fetch(`${window.api_prefix}/api/prodfavorites/isFavoriteOrNot/${memId}/${prodId}`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'success' && data.data) {
+        // 如果已收藏，更新按鈕狀態
+        const addWishlistBtn = document.querySelector('.btn-add-wishlist');
+        if (addWishlistBtn) {
+          addWishlistBtn.innerHTML = '<i class="fas fa-heart"></i>';
+          addWishlistBtn.classList.add('active');
+          addWishlistBtn.dataset.isFavorite = 'true';
+        }
+      }
+    })
+    .catch(error => {
+      console.error('檢查收藏狀態失敗:', error);
+    });
 }

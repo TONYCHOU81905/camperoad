@@ -1777,10 +1777,12 @@ h4 {
 }
 
 /* 表格樣式微調 */
-.data-table td, .data-table th {
+.data-table td,
+.data-table th {
   padding: 10px;
   text-align: center;
   vertical-align: middle;
+
 }
 
 
@@ -1823,4 +1825,5 @@ h4 {
 
 .btn-edit-discount:hover {
   background-color: #678e6f;
+
 }
