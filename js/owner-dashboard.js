@@ -2741,7 +2741,7 @@ class OwnerDashboard {
       const formData = new FormData(form);
 
       const campsiteName = formData.get("campsite_name");
-      const campsitePeople = formData.get("campsite_people");
+      const campsitePeople = formData.get("campsitePeople");
       const campsiteNum = formData.get("campsiteNum");
       const campsitePrice = formData.get("campsite_price");
       const imgFiles = [

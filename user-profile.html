@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -36,6 +37,7 @@
         <a href="camp_cart.html" class="btn-cart"><i class="fas fa-shopping-cart"></i>
         </a>
         <a href="login.html" class="btn-login">登入 / 註冊</a>
+
       </div>
       <button class="mobile-menu-toggle">
         <span></span>
@@ -44,6 +46,7 @@
       </button>
     </div>
   </header>
+
 
   <div class="dashboard-container">
     <main class="dashboard-content">
@@ -117,6 +120,7 @@
                   <label for="profile-name">姓名</label>
                   <input type="text" id="profile-name" value="" />
                 </div>
+
                 <div class="form-group">
                   <label for="profile-email">電子郵件</label>
                   <input type="email" id="profile-email" value="" disabled />
@@ -154,13 +158,24 @@
                   <label for="profile-birthday">生日</label>
                   <input type="date" id="profile-birthday" value="" />
                 </div>
-                <div class="form-group">
-                  <label for="profile-gender">性別</label>
-                  <select id="profile-gender" disabled>
-                    <option value="">請選擇</option>
-                    <option value="1">男性</option>
-                    <option value="2">女性</option>
-                    <option value="0">其他</option>
+
+              </form>
+            </div>
+
+            <!-- 營地訂單管理 -->
+            <div class="profile-section" id="campsite-orders">
+              <h2>營地訂單管理</h2>
+              <div class="orders-container">
+                <div class="orders-filter">
+                  <select id="order-status-filter">
+                    <option value="">所有狀態</option>
+                    <option value="0">露營者未付款</option>
+                    <option value="1">營地主未確認</option>
+                    <option value="2">營地主已確認</option>
+                    <option value="3">露營者自行取消</option>
+                    <option value="4">訂單結案</option>
+                    <option value="5">營地主自行取消</option>
+
                   </select>
                   <p class="form-hint">性別資料無法修改</p>
                 </div>
@@ -206,6 +221,7 @@
             </div>
           </div>
 
+
           <!-- 營地收藏 -->
           <div class="profile-section" id="favorite-camps">
             <h2>營地收藏</h2>
@@ -216,6 +232,7 @@
                   <h3>載入中...</h3>
                   <p>正在載入您的收藏營地</p>
                 </div>
+
               </div>
             </div>
           </div>
@@ -412,6 +429,7 @@
             </div>
           </div>
 
+
           <!-- 聊天管理 -->
           <div class="profile-section" id="chat-management">
             <h2>聊天管理</h2>
@@ -424,6 +442,7 @@
                 </div>
               </div>
             </div>
+
           </div>
         </div>
       </div>
@@ -455,14 +474,14 @@
       </div>
     </div>
 
-    
+
     <!-- 隱藏的會員ID和營地主ID輸入框 -->
     <input type="hidden" id="memId" value="" />
     <input type="hidden" id="ownerId" value="" />
     <!-- WebSocket相關庫 -->
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
-    
+
     <script src="js/camp-data.js"></script>
     <script src="js/user-profile.js"></script>
     <script src="js/chat-management.js"></script>
