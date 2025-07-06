@@ -1022,13 +1022,8 @@
           });
       }
 
-      // 綁定 btn-book 點擊事件
-      document.addEventListener("DOMContentLoaded", function () {
-        const btnBook = document.getElementById("btn-book");
-        if (btnBook) {
-          btnBook.addEventListener("click", searchAvailableCamps);
-        }
-      });
+      // 注意：btn-book 的事件監聽器已在 campsite-detail.js 的 initBookingButton() 中綁定
+      // 避免重複綁定導致 API 被調用兩次
     </script>
     <!-- WebSocket相關庫 -->
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
