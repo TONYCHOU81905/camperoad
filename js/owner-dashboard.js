@@ -1955,7 +1955,7 @@ class OwnerDashboard {
     let filteredOrders = this.orderData;
     if (statusFilter && statusFilter.value) {
       filteredOrders = this.orderData.filter(
-        (order) => order.campsiteOrderStatus === statusFilter.value
+        (order) => order.campsiteOrderStatus === parseInt(statusFilter.value)
       );
     }
 
@@ -2034,13 +2034,19 @@ class OwnerDashboard {
         <td>NT$ ${order.aftAmount.toLocaleString()}</td>
         <td>
           <span class="badge bg-${
-            order.campsiteOrderStatus === "1"
+            order.campsiteOrderStatus === 0
+              ? "secondary"
+              : order.campsiteOrderStatus === 1
               ? "warning"
-              : order.campsiteOrderStatus === "2"
+              : order.campsiteOrderStatus === 2
               ? "info"
-              : order.campsiteOrderStatus === "3"
+              : order.campsiteOrderStatus === 3
+              ? "danger"
+              : order.campsiteOrderStatus === 4
               ? "success"
-              : "danger"
+              : order.campsiteOrderStatus === 5
+              ? "dark"
+              : "secondary"
           }">
             ${this.getOrderStatusText(order.campsiteOrderStatus)}
           </span>
@@ -2657,8 +2663,6 @@ class OwnerDashboard {
       //create
       // "http://localhost:8081/CJA101G02/api/camps/createonecamp?withOrders=false",
 
-      //update
-      // "http://localhost:8081/CJA101G02/api/camps/updateonecamp",
       `${window.api_prefix}/api/camps/updateonecamp`,
       {
         method: "POST",
@@ -3426,14 +3430,45 @@ class OwnerDashboard {
   // 訂單操作
   async cancelOrder(orderId) {
     if (confirm("確定要取消此訂單嗎？")) {
+      console.log("取消訂單：", orderId);
+
       const order = this.orderData.find((o) => o.campsiteOrderId === orderId);
-      if (order && order.campsiteOrderStatus === 1) {
-        order.campsiteOrderStatus = 4;
-        console.log("取消訂單：", orderId);
-        this.showMessage("訂單已取消", "success");
-        await this.renderOrders();
+      if (order && order.campsiteOrderStatus < 3) {
+        // 建立 FormData 物件
+        const formData = new FormData();
+        formData.append("orderId", orderId);
+        formData.append("status", 5);
+        try {
+          // 調用 API 更新訂單狀態為 5（營地主自行取消）
+          const response = await fetch(
+            `${window.api_prefix}/api/campsite/order/update`,
+            {
+              method: "POST",
+              body: formData,
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error(`API 請求失敗: ${response.status}`);
+          }
+
+          const result = await response.json();
+
+          if (result.success || result.status === "success") {
+            // 更新本地資料
+            order.campsiteOrderStatus = 5;
+            console.log("取消訂單：", orderId);
+            this.showMessage("訂單已取消", "success");
+            await this.renderOrders();
+          } else {
+            throw new Error(result.message || "更新訂單狀態失敗");
+          }
+        } catch (error) {
+          console.error("取消訂單失敗：", error);
+          this.showMessage(`取消訂單失敗：${error.message}`, "error");
+        }
       } else {
-        this.showMessage("只有待付款的訂單才能取消", "error");
+        this.showMessage("只有營地主未確認的訂單才能取消", "error");
       }
     }
   }
@@ -4977,3 +5012,185 @@ function initRoomTypeImagePreview(roomType) {
 const removeAllBackdrops = () => {
   document.querySelectorAll(".modal-backdrop").forEach((bd) => bd.remove());
 };
+
+// 新增營地相關功能
+function openAddCampModal() {
+  const modal = new bootstrap.Modal(document.getElementById('addCampModal'));
+  modal.show();
+}
+
+// 新增營地圖片上傳處理
+function uploadAddCampImage(imageIndex, event) {
+  event.stopPropagation();
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*';
+  input.onchange = function(e) {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        const container = document.getElementById(`addCampImage${imageIndex}Container`);
+        container.innerHTML = `
+          <img src="${ev.target.result}" class="img-fluid" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;" onclick="uploadAddCampImage(${imageIndex}, event)">
+          <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1" onclick="deleteAddCampImage(${imageIndex})">
+            <i class="fas fa-times"></i>
+          </button>
+        `;
+        // 儲存圖片檔案到全域變數
+        if (!window.addCampImages) {
+          window.addCampImages = {};
+        }
+        window.addCampImages[imageIndex] = file;
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  input.click();
+}
+
+// 刪除新增營地圖片
+function deleteAddCampImage(imageIndex) {
+  const container = document.getElementById(`addCampImage${imageIndex}Container`);
+  container.innerHTML = `
+    <div class="image-placeholder d-flex flex-column align-items-center justify-content-center" onclick="uploadAddCampImage(${imageIndex}, event)" style="height: 150px; border: 2px dashed #ddd; border-radius: 8px; cursor: pointer;">
+      <i class="fas fa-plus mb-2"></i>
+      <span>上傳圖片</span>
+    </div>
+  `;
+  // 移除儲存的圖片檔案
+  if (window.addCampImages && window.addCampImages[imageIndex]) {
+    delete window.addCampImages[imageIndex];
+  }
+}
+
+// 處理新增營地表單提交
+async function handleAddCampSubmit(e) {
+  e.preventDefault();
+  const formData = new FormData(e.target);
+
+  // 顯示載入中訊息
+  const messageId = "adding-camp-info";
+  ownerDashboard.showMessage("正在新增營地資料...", "info", false, messageId);
+
+  // 從表單獲取基本資料
+  const campName = formData.get("add_camp_name");
+  const campLocation = formData.get("add_camp_location");
+  const campReleaseStatus = formData.get("add_camp_status") || "1";
+  const campContent = formData.get("add_camp_description");
+
+  // 解析地址為城市、區域和詳細地址
+  let campCity = "";
+  let campDist = "";
+  let campAddr = "";
+
+  if (campLocation) {
+    if (campLocation.length >= 3) {
+      campCity = campLocation.substring(0, 3);
+      if (campLocation.length >= 6) {
+        campDist = campLocation.substring(3, 6);
+        campAddr = campLocation.substring(6);
+      } else {
+        campAddr = campLocation.substring(3);
+      }
+    } else {
+      campAddr = campLocation;
+    }
+  }
+
+  // 獲取營地註冊日期
+  const today = new Date();
+  const campRegDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
+  // 獲取營地主ID
+  const ownerId = ownerDashboard.currentOwner.ownerId;
+
+  // 創建FormData對象用於API請求
+  const apiFormData = new FormData();
+  apiFormData.append("ownerId", ownerId);
+  apiFormData.append("campName", campName);
+  apiFormData.append("campContent", campContent);
+  apiFormData.append("campCity", campCity);
+  apiFormData.append("campDist", campDist);
+  apiFormData.append("campAddr", campAddr);
+  apiFormData.append("campReleaseStatus", campReleaseStatus);
+  apiFormData.append("campCommentNumberCount", 0);
+  apiFormData.append("campCommentSumScore", 0);
+  apiFormData.append("campRegDate", campRegDate);
+
+  // 處理營地圖片
+  try {
+    for (let i = 1; i <= 4; i++) {
+      if (window.addCampImages && window.addCampImages[i]) {
+        const filename = `campPic${i}.jpg`;
+        apiFormData.append(`campPic${i}`, window.addCampImages[i], filename);
+        console.log(`添加圖片到FormData: campPic${i} (${filename})`);
+      } else {
+        apiFormData.append(`campPic${i}`, null);
+        console.log(`添加圖片到FormData: campPic${i} = null (無圖片)`);
+      }
+    }
+  } catch (error) {
+    console.error("圖片處理失敗:", error);
+    ownerDashboard.showMessage("圖片處理失敗，請稍後再試", "error");
+    return;
+  }
+
+  // 發送API請求
+  fetch(`${window.api_prefix}/api/camps/createonecamp`, {
+    method: "POST",
+    body: apiFormData,
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      // 移除新增中的提示語
+      const addingMessage = document.getElementById("adding-camp-info");
+      if (addingMessage) {
+        addingMessage.remove();
+      }
+
+      if (data && data.status === "success") {
+        // 新增成功
+        console.log("營地資料新增成功：", data);
+        ownerDashboard.showMessage("營地資料新增成功！", "success");
+
+        // 關閉模態框
+        const modal = bootstrap.Modal.getInstance(document.getElementById('addCampModal'));
+        if (modal) {
+          modal.hide();
+        }
+
+        // 清空表單
+        document.getElementById('addCampForm').reset();
+        
+        // 清空圖片
+        for (let i = 1; i <= 4; i++) {
+          deleteAddCampImage(i);
+        }
+        window.addCampImages = {};
+
+        // 重新載入營地選項
+        ownerDashboard.loadOwnerCamps();
+      } else {
+        // 新增失敗
+        console.error("營地資料新增失敗：", data);
+        ownerDashboard.showMessage(
+          `營地資料新增失敗：${data.message || "未知錯誤"}`,
+          "error"
+        );
+      }
+    })
+    .catch((error) => {
+      // 移除新增中的提示語
+      const addingMessage = document.getElementById("adding-camp-info");
+      if (addingMessage) {
+        addingMessage.remove();
+      }
+
+      console.error("API請求錯誤：", error);
+      ownerDashboard.showMessage(
+        `API請求錯誤：${error.message || "未知錯誤"}`,
+        "error"
+      );
+    });
+}

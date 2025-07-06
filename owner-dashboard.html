@@ -28,7 +28,9 @@
       </div>
       <div class="user-actions">
         <select id="ownerProfileSelect" class="form-select" style="width:auto;display:inline-block;min-width:180px;"></select>
-
+        <button type="button" class="btn btn-camping ms-2" data-bs-toggle="modal" data-bs-target="#addCampModal">
+          <i class="fas fa-plus"></i> 新增營地
+        </button>
       </div>
     </header>
 
@@ -505,10 +507,12 @@
               <div class="order-filters">
                 <select id="orderStatusFilter">
                   <option value="">所有訂單</option>
-                  <option value="1">待付款</option>
-                  <option value="2">已付款</option>
-                  <option value="3">已完成</option>
-                  <option value="4">已取消</option>
+                  <option value="0">露營者未付款</option>
+                  <option value="1">營地主未確認</option>
+                  <option value="2">營地主已確認</option>
+                  <option value="3">露營者自行取消</option>
+                  <option value="4">訂單結案</option>
+                  <option value="5">營地主自行取消</option>
                 </select>
               </div>
             </div>
@@ -675,6 +679,96 @@
   <!-- 隱藏的營地主ID和會員ID輸入框 -->
   <input type="hidden" id="ownerId" value="" />
   <input type="hidden" id="memId" value="" />
+
+  <!-- 新增營地模態框 -->
+  <div class="modal fade" id="addCampModal" tabindex="-1" aria-labelledby="addCampModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addCampModalLabel">新增營地</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="addCampForm" onsubmit="handleAddCampSubmit(event)">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="new-camp-name">營地名稱</label>
+                <input type="text" id="new-camp-name" name="camp_name" required />
+              </div>
+              <div class="form-group">
+                <label for="new-camp-location">營地位置</label>
+                <input type="text" id="new-camp-location" name="camp_location" required />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="new-camp-status">營地狀態</label>
+                <select id="new-camp-status" name="camp_status">
+                  <option value="1">營業中</option>
+                  <option value="0">暫停營業</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="new-camp-description">營地描述</label>
+              <textarea id="new-camp-description" name="camp_description" rows="4"></textarea>
+            </div>
+            <div class="form-group">
+              <label>營地照片</label>
+              <div class="camp-images-container">
+                <div class="image-upload-grid">
+                  <div class="image-upload-item">
+                    <label>照片1</label>
+                    <div class="image-cell" id="addCampImage1Container">
+                      <div class="image-placeholder d-flex flex-column align-items-center justify-content-center" onclick="uploadAddCampImage(1, event)" style="height: 150px; border: 2px dashed #ddd; border-radius: 8px; cursor: pointer;">
+                        <i class="fas fa-plus mb-2"></i>
+                        <span>上傳圖片</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="image-upload-item">
+                    <label>照片2</label>
+                    <div class="image-cell" id="addCampImage2Container">
+                      <div class="image-placeholder d-flex flex-column align-items-center justify-content-center" onclick="uploadAddCampImage(2, event)" style="height: 150px; border: 2px dashed #ddd; border-radius: 8px; cursor: pointer;">
+                        <i class="fas fa-plus mb-2"></i>
+                        <span>上傳圖片</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="image-upload-item">
+                    <label>照片3</label>
+                    <div class="image-cell" id="addCampImage3Container">
+                      <div class="image-placeholder d-flex flex-column align-items-center justify-content-center" onclick="uploadAddCampImage(3, event)" style="height: 150px; border: 2px dashed #ddd; border-radius: 8px; cursor: pointer;">
+                        <i class="fas fa-plus mb-2"></i>
+                        <span>上傳圖片</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="image-upload-item">
+                    <label>照片4</label>
+                    <div class="image-cell" id="addCampImage4Container">
+                      <div class="image-placeholder d-flex flex-column align-items-center justify-content-center" onclick="uploadAddCampImage(4, event)" style="height: 150px; border: 2px dashed #ddd; border-radius: 8px; cursor: pointer;">
+                        <i class="fas fa-plus mb-2"></i>
+                        <span>上傳圖片</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                <i class="fas fa-times"></i> 取消
+              </button>
+              <button type="submit" class="btn btn-camping">
+                <i class="fas fa-plus"></i> 新增營地
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- 新增/編輯加購商品模態框 -->
   <div class="modal fade" id="addBundleItemModal" tabindex="-1" aria-labelledby="bundleModalTitle" aria-hidden="true">
