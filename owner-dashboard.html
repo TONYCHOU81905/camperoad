@@ -75,9 +75,10 @@
                   <img src="images/default-avatar.png" alt="營地主頭像" id="avatar-preview" />
                 </div>
                 <div class="avatar-edit">
-                  <label for="avatar-input" class="btn-upload btn btn-camping">更換頭像</label>
-                  <input type="file" id="avatar-input" accept="image/*" />
-                  <p class="upload-hint">建議使用 1:1 比例的圖片，檔案大小不超過 2MB</p>
+                  <input type="file" id="profile-picture" name="ownerPic" accept="image/*" />
+                  <p class="upload-hint">
+                    建議使用 1:1 比例的圖片，檔案大小不超過 2MB
+                  </p>
                 </div>
               </div>
 
@@ -90,37 +91,37 @@
               <div class="form-row">
                 <div class="form-group">
                   <label for="storeName">店家名稱</label>
-                  <input type="text" id="storeName" name="storeName" value="" readonly />
+                  <input type="text" id="ownerName" name="ownerName" value="" readonly />
                 </div>
                 <div class="form-group">
                   <label for="taxId">統一編號</label>
-                  <input type="text" id="taxId" name="taxId" value="" readonly />
+                  <input type="text" id="ownerGui" name="ownerGui" value="" readonly />
                 </div>
               </div>
               <div class="form-row">
                 <div class="form-group">
                   <label for="ownerName">負責人</label>
-                  <input type="text" id="ownerName" name="ownerName" value="" />
+                  <input type="text" id="ownerRep" name="ownerRep" value="" />
                 </div>
                 <div class="form-group">
                   <label for="ownerPhone">負責人電話</label>
-                  <input type="text" id="ownerPhone" name="ownerPhone" value="" />
+                  <input type="text" id="ownerTel" name="ownerTel" value="" />
                 </div>
               </div>
               <div class="form-row">
                 <div class="form-group">
                   <label for="contactName">聯絡人</label>
-                  <input type="text" id="contactName" name="contactName" value="" />
+                  <input type="text" id="ownerPoc" name="ownerPoc" value="" />
                 </div>
                 <div class="form-group">
                   <label for="contactPhone">聯絡人電話</label>
-                  <input type="text" id="contactPhone" name="contactPhone" value="" />
+                  <input type="text" id="ownerConPhone" name="ownerConPhone" value="" />
                 </div>
               </div>
               <div class="form-row">
                 <div class="form-group">
                   <label for="address">登記地址</label>
-                  <input type="text" id="address" name="address" value="" readonly />
+                  <input type="text" id="ownerAddr" name="ownerAddr" value="" readonly />
                 </div>
               </div>
               <div class="form-row">
@@ -133,7 +134,7 @@
                 <div class="form-group">
                   <label for="password">密碼</label>
                   <div class="password-field">
-                    <input type="password" id="password" value="********" readonly />
+                    <input type="password" id="ownerPwd" value="********" readonly />
                     <button type="button" class="btn btn-warning btn-change-password">更改密碼</button>
                   </div>
                 </div>
@@ -843,10 +844,15 @@
   </footer>
 
   <!-- WebSocket相關庫 -->
+  <script>
+    window.api_prefix = "http://localhost:8081/CJA101G02";
+    console.log("API prefix set:", window.api_prefix);
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
   
   <!-- JavaScript -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="js/main.js"></script>
   <script src="js/camp-data.js"></script>

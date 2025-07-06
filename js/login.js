@@ -34,44 +34,44 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // 密碼強度檢測
-  const passwordInput = document.getElementById("camper-register-password");
-  const strengthBar = document.querySelector(".strength-fill");
-  const strengthText = document.querySelector(".strength-text");
+  // const passwordInput = document.getElementById("camper-register-password");
+  // const strengthBar = document.querySelector(".strength-fill");
+  // const strengthText = document.querySelector(".strength-text");
 
-  if (passwordInput) {
-    passwordInput.addEventListener("input", function () {
-      const password = this.value;
-      let strength = 0;
-      let status = "";
+  // if (passwordInput) {
+  //   passwordInput.addEventListener("input", function () {
+  //     const password = this.value;
+  //     let strength = 0;
+  //     let status = "";
 
-      if (password.length >= 6) strength += 20;
-      if (password.length >= 10) strength += 20;
-      if (/[A-Z]/.test(password)) strength += 20;
-      if (/[0-9]/.test(password)) strength += 20;
-      if (/[^A-Za-z0-9]/.test(password)) strength += 20;
+  //     if (password.length >= 6) strength += 20;
+  //     if (password.length >= 10) strength += 20;
+  //     if (/[A-Z]/.test(password)) strength += 20;
+  //     if (/[0-9]/.test(password)) strength += 20;
+  //     if (/[^A-Za-z0-9]/.test(password)) strength += 20;
 
-      strengthBar.style.width = strength + "%";
+  //     strengthBar.style.width = strength + "%";
 
-      if (strength <= 20) {
-        strengthBar.style.backgroundColor = "#E76F51";
-        status = "非常弱";
-      } else if (strength <= 40) {
-        strengthBar.style.backgroundColor = "#E76F51";
-        status = "弱";
-      } else if (strength <= 60) {
-        strengthBar.style.backgroundColor = "#F4A261";
-        status = "中等";
-      } else if (strength <= 80) {
-        strengthBar.style.backgroundColor = "#A68A64";
-        status = "強";
-      } else {
-        strengthBar.style.backgroundColor = "#3A5A40";
-        status = "非常強";
-      }
+  //     if (strength <= 20) {
+  //       strengthBar.style.backgroundColor = "#E76F51";
+  //       status = "非常弱";
+  //     } else if (strength <= 40) {
+  //       strengthBar.style.backgroundColor = "#E76F51";
+  //       status = "弱";
+  //     } else if (strength <= 60) {
+  //       strengthBar.style.backgroundColor = "#F4A261";
+  //       status = "中等";
+  //     } else if (strength <= 80) {
+  //       strengthBar.style.backgroundColor = "#A68A64";
+  //       status = "強";
+  //     } else {
+  //       strengthBar.style.backgroundColor = "#3A5A40";
+  //       status = "非常強";
+  //     }
 
-      strengthText.textContent = "密碼強度: " + status;
-    });
-  }
+  //     strengthText.textContent = "密碼強度: " + status;
+  //   });
+  // }
 });
 
 // 處理登入
@@ -289,17 +289,17 @@ async function handleOwnerRegister(e) {
 
   const formData = new FormData(e.target);
   const ownerData = {
-    owner_acc: formData.get("owner_acc"),
-    owner_pwd: formData.get("owner_pwd"),
-    owner_name: formData.get("owner_name"),
-    owner_gui: formData.get("owner_gui"),
-    owner_rep: formData.get("owner_rep"),
-    owner_tel: formData.get("owner_tel"),
-    owner_poc: formData.get("owner_poc"),
-    owner_con_phone: formData.get("owner_con_phone"),
-    owner_addr: formData.get("owner_addr"),
-    owner_email: formData.get("owner_email"),
-    bank_account: formData.get("bank_account"),
+    ownerAcc: formData.get("ownerAcc"),
+    ownerPwd: formData.get("ownerPwd"),
+    ownerName: formData.get("ownerName"),
+    ownerGui: formData.get("ownerGui"),
+    ownerRep: formData.get("ownerRep"),
+    ownerTel: formData.get("ownerTel"),
+    ownerPoc: formData.get("ownerPoc"),
+    ownerConPhone: formData.get("ownerConPhone"),
+    ownerAddr: formData.get("ownerAddr"),
+    ownerEmail: formData.get("ownerEmail"),
+    bankAccount: formData.get("bankAccount"),
   };
 
   // 驗證必填欄位
@@ -311,7 +311,7 @@ async function handleOwnerRegister(e) {
   }
 
   // 驗證統一編號格式（8位數字）
-  if (!/^\d{8}$/.test(ownerData.owner_gui)) {
+  if (!/^\d{8}$/.test(ownerData.ownerGui)) {
     showMessage("統一編號必須為8位數字", "error");
     return;
   }
@@ -319,8 +319,8 @@ async function handleOwnerRegister(e) {
   // 驗證Email格式
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (
-    !emailRegex.test(ownerData.owner_acc) ||
-    !emailRegex.test(ownerData.owner_email)
+    !emailRegex.test(ownerData.ownerAcc) ||
+    !emailRegex.test(ownerData.ownerEmail)
   ) {
     showMessage("請輸入正確的Email格式", "error");
     return;

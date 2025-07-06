@@ -1,4 +1,6 @@
+window.api_prefix = "http://localhost:8081/CJA101G02";
 // 營地主後台管理系統
+
 class OwnerDashboard {
   constructor() {
     this.currentOwner = null;
@@ -14,6 +16,18 @@ class OwnerDashboard {
   }
 
   async init() {
+  // 先綁定圖片預覽事件
+  const avatarInput = document.getElementById("profile-picture");
+  if (avatarInput) {
+    avatarInput.addEventListener("change", (e) => this.handleImagePreview(e));
+  }
+
+  // 綁定表單提交事件
+  const form = document.getElementById("ownerInfoForm");
+  if (form) {
+    form.addEventListener("submit", (e) => this.handleCompleteInfoSubmit(e));
+  }
+
     try {
       // 檢查登入狀態
       this.checkLoginStatus();
@@ -192,15 +206,15 @@ class OwnerDashboard {
             }
           }
           // 載入會員資料
-          if (!this.memberData) {
-            const memberResponse = await fetch(
-              `${window.api_prefix}/member/getallmembers`
-            );
-            if (!memberResponse.ok) {
-              throw new Error(`載入會員資料失敗：${memberResponse.status}`);
-            }
-            this.memberData = await memberResponse.json();
-          }
+          // if (!this.memberData) {
+          //   const memberResponse = await fetch(
+          //     `${window.api_prefix}/member/getallmembers`
+          //   );
+          //   if (!memberResponse.ok) {
+          //     throw new Error(`載入會員資料失敗：${memberResponse.status}`);
+          //   }
+          //   this.memberData = await memberResponse.json();
+          // }
           // 載入房型資料
           if (!this.campsiteTypeData || this.campsiteTypeData.length === 0) {
             const campsiteTypeResponse = await fetch(
@@ -223,8 +237,8 @@ class OwnerDashboard {
         };
       }
     } catch (error) {
-      console.error("更新營地主資訊失敗：", error);
-      this.showMessage(`更新營地主資訊失敗：${error.message}`, "error");
+      // console.error("更新營地主資訊失敗：", error);
+      // this.showMessage(`更新營地主資訊失敗：${error.message}`, "error");
     }
   }
 
@@ -242,7 +256,7 @@ class OwnerDashboard {
       //     method: "POST",
       //     credentials: "include", // 包含Cookie
       //     headers: {
-      //       "Content-Type": "application/json", // ⭐⭐ 必須明確指定
+      //       "Content-Type": "application/json",
       //     },
       //     body: JSON.stringify({
       //       oldPassword: "pwd123",
@@ -252,10 +266,10 @@ class OwnerDashboard {
       // );
       // console.log("responseChange:" + responseChange);
 
-      const responseOwner = await fetch(`${window.api_prefix}/api/owner/me`, {
-        method: "GET",
-        credentials: "include", // 包含Cookie
-      });
+      // const responseOwner = await fetch(`${window.api_prefix}/api/owner/me`, {
+      //   method: "GET",
+      //   credentials: "include", // 包含Cookie
+      // });
 
       console.log("responseOwner:" + responseOwner);
 
@@ -381,8 +395,8 @@ class OwnerDashboard {
       // 移除折價券資料載入
       // console.log("所有資料載入完成");
     } catch (error) {
-      console.error("載入資料失敗：", error);
-      this.showMessage(`載入資料失敗：${error.message}`, "error");
+      // console.error("載入資料失敗：", error);
+      // this.showMessage(`載入資料失敗：${error.message}`, "error");
     }
   }
 
@@ -512,386 +526,363 @@ class OwnerDashboard {
     });
   }
 
-  // 清除圖片存在性緩存
-  clearImageCache(url = null) {
-    if (url) {
-      // 清除特定URL的緩存
-      delete this.imageExistsCache[url];
-    } else {
-      // 清除所有緩存
-      this.imageExistsCache = {};
-    }
-  }
+  
 
-  // 加載營地主基本資料
+
+  //初始化營地主資料
   async loadOwnerData() {
     try {
-      // 這裡使用currentOwner的資料，實際應用中應該從API獲取更詳細的資料
-      // 模擬API調用，實際應用中應替換為真實API
-      // const response = await fetch(`${window.api_prefix}/api/owner/profile`, {
-      //   method: "GET",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      //   credentials: "include",
-      // });
-
-      // if (!response.ok) {
-      //   throw new Error(`HTTP error! status: ${response.status}`);
-      // }
-
-      // const data = await response.json();
-      // this.ownerData = data;
-
-      // 暫時使用currentOwner的資料
-      this.ownerData = {
-        ...this.currentOwner,
-        ownerName: "王大明",
-        ownerPhone: "0912345678",
-        contactName: "李小華",
-        contactPhone: "0987654321",
-        address: "台北市信義區信義路五段7號",
-        email: "owner@example.com",
-        bankAccount: "012345678901234",
-        ownerIntro: "我們是一家專業的露營場地，提供最優質的露營體驗。",
-      };
-
-      // 初始化表單
-      this.initOwnerInfoForm();
-
-      return this.ownerData;
-    } catch (error) {
-      console.error("載入營地主資料時發生錯誤:", error);
-      return null;
-    }
-  }
-
-  // 初始化營地主基本資料表單
-  initOwnerInfoForm() {
-    if (!this.ownerData) return;
-
-    // 設置頭像
-    const avatarPreview = document.getElementById("avatar-preview");
-    if (avatarPreview) {
-      if (this.ownerData.avatar) {
-        avatarPreview.src = `${window.api_prefix}/api/owner/avatar/${this.ownerData.ownerId}`;
-      } else {
-        avatarPreview.src = "../images/default-avatar.png";
-      }
-    }
-
-    // 填充表單數據
-    const ownerId = document.getElementById("ownerId");
-    if (ownerId) ownerId.value = this.ownerData.ownerId || "";
-
-    const storeName = document.getElementById("storeName");
-    if (storeName) storeName.value = this.ownerData.ownerName || "";
-
-    const taxId = document.getElementById("taxId");
-    if (taxId) taxId.value = this.ownerData.ownerGui || "";
-
-    const ownerName = document.getElementById("ownerName");
-    if (ownerName) ownerName.value = this.ownerData.ownerRep || "";
-
-    const ownerPhone = document.getElementById("ownerPhone");
-    if (ownerPhone) ownerPhone.value = this.ownerData.ownerPhone || "";
-
-    const contactName = document.getElementById("contactName");
-    if (contactName) contactName.value = this.ownerData.contactName || "";
-
-    const contactPhone = document.getElementById("contactPhone");
-    if (contactPhone) contactPhone.value = this.ownerData.contactPhone || "";
-
-    const address = document.getElementById("address");
-    if (address) address.value = this.ownerData.address || "";
-
-    const email = document.getElementById("email");
-    if (email) email.value = this.ownerData.email || "";
-
-    const bankAccount = document.getElementById("bankAccount");
-    if (bankAccount) bankAccount.value = this.ownerData.bankAccount || "";
-
-    const ownerIntro = document.getElementById("ownerIntro");
-    if (ownerIntro) ownerIntro.value = this.ownerData.ownerIntro || "";
-  }
-
-  // 處理營地主基本資料表單提交
-  async handleOwnerInfoSubmit(e) {
-    e.preventDefault();
-
-    try {
-      const formData = new FormData(e.target);
-      const ownerData = {
-        ownerId: formData.get("ownerId"),
-        ownerName: formData.get("ownerName"),
-        ownerPhone: formData.get("ownerPhone"),
-        contactName: formData.get("contactName"),
-        contactPhone: formData.get("contactPhone"),
-        bankAccount: formData.get("bankAccount"),
-        ownerIntro: formData.get("ownerIntro"),
-      };
-
-      // 模擬API調用，實際應用中應替換為真實API
-      // const response = await fetch(`${window.api_prefix}/api/owner/update-profile`, {
-      //   method: "POST",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      //   body: JSON.stringify(ownerData),
-      //   credentials: "include",
-      // });
-
-      // if (!response.ok) {
-      //   throw new Error(`HTTP error! status: ${response.status}`);
-      // }
-
-      // const result = await response.json();
-
-      // 模擬成功響應
-      const result = { status: "success" };
-
-      if (result.status === "success") {
-        // 更新本地數據
-        this.ownerData = { ...this.ownerData, ...ownerData };
-
-        // 顯示成功訊息
-        Swal.fire({
-          icon: "success",
-          title: "成功",
-          text: "營地主資料已更新",
-          confirmButtonColor: "#3085d6",
-        });
-      } else {
-        throw new Error(result.message || "更新失敗");
-      }
-    } catch (error) {
-      console.error("更新營地主資料時發生錯誤:", error);
-
-      Swal.fire({
-        icon: "error",
-        title: "錯誤",
-        text: `更新營地主資料失敗: ${error.message}`,
-        confirmButtonColor: "#3085d6",
+      console.log("開始載入營地主資料...");
+      
+      const response = await fetch(`${window.api_prefix}/api/owner/profile`, {
+        method: "GET",
+        credentials: "include", // 包含Cookie
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
+  
+      console.log("營地主資料 API 回應:", response);
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `載入營地主資料失敗：${response.status}`);
+      }
+  
+      const data = await response.json();
+      console.log("營地主資料:", data);
+      
+      // 儲存營地主資料
+      this.ownerData = data;
+      
+      return data;
+    } catch (error) {
+      console.error("載入營地主資料失敗：", error);
+      throw error;
     }
   }
 
-  // 處理頭像更換
-  async handleAvatarChange(e) {
-    const file = e.target.files[0];
-    if (!file) return;
 
-    // 檢查檔案類型
-    if (!file.type.match("image.*")) {
-      Swal.fire({
-        icon: "error",
-        title: "錯誤",
-        text: "請選擇圖片檔案",
-        confirmButtonColor: "#3085d6",
-      });
+// 修正後的 initOwnerInfoForm 方法
+async initOwnerInfoForm() {
+  try {
+    // 檢查是否已有營地主資料，如果沒有就載入
+    if (!this.ownerData) {
+      await this.loadOwnerData();
+    }
+    
+    const data = this.ownerData;
+    if (!data) {
+      console.warn("沒有營地主資料");
       return;
     }
 
-    // 檢查檔案大小 (限制為 2MB)
-    if (file.size > 2 * 1024 * 1024) {
+    // 將資料填入對應的欄位
+    const fieldMappings = {
+      "ownerId": data.ownerId,
+      "ownerName": data.ownerName,
+      "ownerGui": data.ownerGui,
+      "ownerRep": data.ownerRep,
+      "ownerTel": data.ownerTel,
+      "ownerPoc": data.ownerPoc,
+      "ownerConPhone": data.ownerConPhone,
+      "ownerAddr": data.ownerAddr,
+      "email": data.ownerEmail,
+      "bankAccount": data.bankAccount,
+      "ownerIntro": data.ownerIntro || ""
+    };
+
+    // 批量設置欄位值
+    Object.entries(fieldMappings).forEach(([fieldId, value]) => {
+      const element = document.getElementById(fieldId);
+      if (element) {
+        element.value = value || "";
+      }
+    });
+
+    // ✅ 加上這段設定頭像
+  const avatarPreview = document.getElementById("avatar-preview");
+  if (avatarPreview && data.ownerId) {
+    avatarPreview.src = `${window.api_prefix}/api/owner/avatar/${data.ownerId}?t=${Date.now()}`;
+  }
+
+    console.log("營地主基本資料表單初始化完成");
+  } catch (error) {
+    console.error("初始化營地主基本資料表單時發生錯誤:", error);
+    
+    // 檢查是否有 Swal，如果沒有就用 alert
+    if (typeof Swal !== 'undefined') {
       Swal.fire({
         icon: "error",
         title: "錯誤",
-        text: "圖片大小不能超過 2MB",
+        text: `初始化營地主基本資料表單失敗: ${error.message}`,
         confirmButtonColor: "#3085d6",
       });
-      return;
+    } else {
+      alert(`初始化營地主基本資料表單失敗: ${error.message}`);
+    }
+  }
+}
+
+
+
+// 完整的基本資料更新（包含頭像）- 已優化版本
+async handleCompleteInfoSubmit(e) {
+  e.preventDefault();
+
+  try {
+    const formData = new FormData();
+    // formData.append("ownerId", this.ownerData.ownerId);
+    // formData.append("ownerName", document.getElementById("ownerName").value);
+    formData.append("ownerRep", document.getElementById("ownerRep").value);
+    formData.append("ownerTel", document.getElementById("ownerTel").value);
+    formData.append("ownerPoc", document.getElementById("ownerPoc").value);
+    formData.append("ownerConPhone", document.getElementById("ownerConPhone").value);
+    formData.append("bankAccount", document.getElementById("bankAccount").value);
+    formData.append("ownerIntro", document.getElementById("ownerIntro").value);
+
+    // 取得頭像 input
+    const avatarInput = document.getElementById("profile-picture");
+    if (avatarInput && avatarInput.files && avatarInput.files[0]) {
+      const file = avatarInput.files[0];
+      
+      // 再次檢查檔案（防止繞過前端驗證）
+      if (!file.type.match("image.*")) {
+        throw new Error("請選擇圖片檔案");
+      }
+      
+      if (file.size > 2 * 1024 * 1024) {
+        throw new Error("圖片大小不能超過 2MB");
+      }
+      
+      formData.append("ownerPic", file);
     }
 
-    try {
-      // 顯示預覽
-      const reader = new FileReader();
-      reader.onload = (event) => {
+    // 調用更新API
+    const response = await fetch(`${window.api_prefix}/api/owner/update`, {
+      method: "PUT",
+      body: formData,
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+
+    if (result.status === "success") {
+      // 更新本地數據
+      this.ownerData = { ...this.ownerData, ...result.data };
+
+      // 如果有新的頭像，更新預覽
+       // 如果有新的頭像，更新預覽
+      if (result.data && result.data.ownerPic) { // **這裡改成用 result.data**
         const avatarPreview = document.getElementById("avatar-preview");
-        if (avatarPreview) {
-          avatarPreview.src = event.target.result;
+        if (avatarPreview && result.data.ownerId) { // **這裡 data 改成 result.data**
+          avatarPreview.src = `${window.api_prefix}/api/owner/avatar/${result.data.ownerId}?t=${Date.now()}`;
+          // 加上 ?t=... 時間戳避免瀏覽器快取
         }
-      };
-      reader.readAsDataURL(file);
-
-      // 模擬上傳頭像
-      // const formData = new FormData();
-      // formData.append("avatar", file);
-
-      // const response = await fetch(`${window.api_prefix}/api/owner/upload-avatar`, {
-      //   method: "POST",
-      //   body: formData,
-      //   credentials: "include",
-      // });
-
-      // if (!response.ok) {
-      //   throw new Error(`HTTP error! status: ${response.status}`);
-      // }
-
-      // const result = await response.json();
-
-      // 模擬成功響應
-      const result = { status: "success" };
-
-      if (result.status === "success") {
-        Swal.fire({
-          icon: "success",
-          title: "成功",
-          text: "頭像已更新",
-          confirmButtonColor: "#3085d6",
-        });
-      } else {
-        throw new Error(result.message || "上傳失敗");
       }
-    } catch (error) {
-      console.error("上傳頭像時發生錯誤:", error);
 
+      // 顯示成功訊息
       Swal.fire({
-        icon: "error",
-        title: "錯誤",
-        text: `上傳頭像失敗: ${error.message}`,
+        icon: "success",
+        title: "成功",
+        text: "營地主資料已更新",
         confirmButtonColor: "#3085d6",
       });
+    } else {
+      throw new Error(result.message || "更新失敗");
     }
-  }
+  } catch (error) {
+    console.error("更新營地主資料時發生錯誤:", error);
 
-  // 顯示更改密碼模態框
-  showChangePasswordModal() {
-    // 創建模態框 HTML
-    const modalHtml = `
-      <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title" id="changePasswordModalLabel">更改密碼</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-              <form id="changePasswordForm">
-                <div class="mb-3">
-                  <label for="currentPassword" class="form-label">目前密碼</label>
-                  <input type="password" class="form-control" id="currentPassword" name="currentPassword" required>
-                </div>
-                <div class="mb-3">
-                  <label for="newPassword" class="form-label">新密碼</label>
-                  <input type="password" class="form-control" id="newPassword" name="newPassword" required>
-                </div>
-                <div class="mb-3">
-                  <label for="confirmPassword" class="form-label">確認新密碼</label>
-                  <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
-                </div>
-              </form>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-              <button type="button" class="btn btn-primary" id="submitChangePassword">確認更改</button>
-            </div>
+    Swal.fire({
+      icon: "error",
+      title: "錯誤",
+      text: `更新營地主資料失敗: ${error.message}`,
+      confirmButtonColor: "#3085d6",
+    });
+  }
+}
+//預覽圖片
+handleImagePreview(e) {
+  const input = e.target;
+  const preview = document.getElementById("avatar-preview");
+
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = function (event) {
+      preview.src = event.target.result;
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+// 初始化函數 - 請在頁面載入完成後調用
+initImagePreview() {
+  // 確保在DOM載入完成後執行
+  const initPreview = () => {
+    // 使用 setTimeout 確保DOM完全渲染
+    setTimeout(() => {
+      this.handleImagePreview();
+    }, 100);
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initPreview);
+  } else if (document.readyState === "interactive") {
+    // DOM已載入但資源可能還在載入
+    setTimeout(initPreview, 100);
+  } else {
+    // 完全載入完成
+    initPreview();
+  }
+}
+
+
+
+// 顯示更改密碼模態框
+showChangePasswordModal() {
+  // 創建模態框 HTML
+  const modalHtml = `
+    <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="changePasswordModalLabel">更改密碼</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="changePasswordForm">
+              <div class="mb-3">
+                <label for="currentPassword" class="form-label">目前密碼</label>
+                <input type="password" class="form-control" id="currentPassword" name="currentPassword" required>
+              </div>
+              <div class="mb-3">
+                <label for="newPassword" class="form-label">新密碼</label>
+                <input type="password" class="form-control" id="newPassword" name="newPassword" required>
+              </div>
+              <div class="mb-3">
+                <label for="confirmPassword" class="form-label">確認新密碼</label>
+                <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+            <button type="button" class="btn btn-primary" id="submitChangePassword">確認更改</button>
           </div>
         </div>
       </div>
-    `;
+    </div>
+  `;
 
-    // 檢查是否已存在模態框
-    let modalElement = document.getElementById("changePasswordModal");
-    if (!modalElement) {
-      // 添加模態框到頁面
-      const modalContainer = document.createElement("div");
-      modalContainer.innerHTML = modalHtml;
-      document.body.appendChild(modalContainer.firstElementChild);
-      modalElement = document.getElementById("changePasswordModal");
-    }
-
-    // 初始化模態框
-    const modal = new bootstrap.Modal(modalElement);
-
-    // 綁定提交事件
-    const submitBtn = document.getElementById("submitChangePassword");
-    if (submitBtn) {
-      submitBtn.addEventListener("click", () => this.handleChangePassword());
-    }
-
-    // 顯示模態框
-    modal.show();
+  // 檢查是否已存在模態框
+  let modalElement = document.getElementById("changePasswordModal");
+  if (!modalElement) {
+    // 添加模態框到頁面
+    const modalContainer = document.createElement("div");
+    modalContainer.innerHTML = modalHtml;
+    document.body.appendChild(modalContainer.firstElementChild);
+    modalElement = document.getElementById("changePasswordModal");
   }
 
-  // 處理更改密碼
-  async handleChangePassword() {
-    const currentPassword = document.getElementById("currentPassword").value;
-    const newPassword = document.getElementById("newPassword").value;
-    const confirmPassword = document.getElementById("confirmPassword").value;
+  // 初始化模態框
+  const modal = new bootstrap.Modal(modalElement);
 
-    // 驗證密碼
-    if (!currentPassword || !newPassword || !confirmPassword) {
-      Swal.fire({
-        icon: "error",
-        title: "錯誤",
-        text: "請填寫所有密碼欄位",
-        confirmButtonColor: "#3085d6",
-      });
-      return;
-    }
+  // 綁定提交事件
+  const form = document.getElementById("changePasswordForm");
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();  // 阻止表單預設送出（頁面刷新）
+    this.handleChangePassword();
+  });
 
-    if (newPassword !== confirmPassword) {
-      Swal.fire({
-        icon: "error",
-        title: "錯誤",
-        text: "新密碼與確認密碼不符",
-        confirmButtonColor: "#3085d6",
-      });
-      return;
-    }
+  // 顯示模態框
+  modal.show();
+}
 
-    try {
-      // 模擬API調用，實際應用中應替換為真實API
-      // const response = await fetch(`${window.api_prefix}/api/owner/change-password`, {
-      //   method: "POST",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      //   body: JSON.stringify({
-      //     currentPassword,
-      //     newPassword
-      //   }),
-      //   credentials: "include",
-      // });
+// 處理更改密碼
+async handleChangePassword() {
+  const currentPassword = document.getElementById("currentPassword").value;
+  const newPassword = document.getElementById("newPassword").value;
+  const confirmPassword = document.getElementById("confirmPassword").value;
 
-      // if (!response.ok) {
-      //   throw new Error(`HTTP error! status: ${response.status}`);
-      // }
-
-      // const result = await response.json();
-
-      // 模擬成功響應
-      const result = { status: "success" };
-
-      if (result.status === "success") {
-        // 關閉模態框
-        const modalElement = document.getElementById("changePasswordModal");
-        const modal = bootstrap.Modal.getInstance(modalElement);
-        modal.hide();
-
-        // 顯示成功訊息
-        Swal.fire({
-          icon: "success",
-          title: "成功",
-          text: "密碼已更改",
-          confirmButtonColor: "#3085d6",
-        });
-      } else {
-        throw new Error(result.message || "更改密碼失敗");
-      }
-    } catch (error) {
-      console.error("更改密碼時發生錯誤:", error);
-
-      Swal.fire({
-        icon: "error",
-        title: "錯誤",
-        text: `更改密碼失敗: ${error.message}`,
-        confirmButtonColor: "#3085d6",
-      });
-    }
+  // 驗證密碼
+  if (!currentPassword || !newPassword || !confirmPassword) {
+    Swal.fire({
+      icon: "error",
+      title: "錯誤",
+      text: "請填寫所有密碼欄位",
+      confirmButtonColor: "#3085d6",
+    });
+    return;
   }
 
+  if (newPassword !== confirmPassword) {
+    Swal.fire({
+      icon: "error",
+      title: "錯誤",
+      text: "新密碼與確認密碼不符",
+      confirmButtonColor: "#3085d6",
+    });
+    return;
+  }
+
+  try {
+    // 調用更改密碼API
+    const response = await fetch(`${window.api_prefix}/api/owner/changePassword`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        oldPassword: currentPassword,
+        newPassword: newPassword,
+      }),
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+
+    if (result.status === "success") {
+      // 關閉模態框
+      const modalElement = document.getElementById("changePasswordModal");
+      const modal = bootstrap.Modal.getInstance(modalElement);
+      modal.hide();
+
+      // 清空表單
+      document.getElementById("changePasswordForm").reset();
+
+      // 顯示成功訊息
+      Swal.fire({
+        icon: "success",
+        title: "成功",
+        text: "密碼已更改",
+        confirmButtonColor: "#3085d6",
+      });
+    } else {
+      throw new Error(result.message || "更改密碼失敗");
+    }
+  } catch (error) {
+    console.error("更改密碼時發生錯誤:", error);
+
+    Swal.fire({
+      icon: "error",
+      title: "錯誤",
+      text: `更改密碼失敗: ${error.message}`,
+      confirmButtonColor: "#3085d6",
+    });
+  }
+}
+
+
+  //營地功能
   async renderCampImages() {
     try {
       if (!this.campData || !this.campData.campId) {
@@ -993,7 +984,7 @@ class OwnerDashboard {
     const ownerInfoForm = document.getElementById("ownerInfoForm");
     if (ownerInfoForm) {
       ownerInfoForm.addEventListener("submit", (e) =>
-        this.handleOwnerInfoSubmit(e)
+        this.handleCompleteInfoSubmit(e)
       );
     }
 

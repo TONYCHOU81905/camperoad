@@ -307,7 +307,7 @@
                     <div class="strength-bar">
                       <div class="strength-fill" style="width: 0%"></div>
                     </div>
-                    <span class="strength-text">密碼強度: 尚未輸入</span>
+                    <!-- <span class="strength-text">密碼強度: 尚未輸入</span> -->
                   </div>
                 </div>
                 <div class="form-group">
@@ -461,7 +461,7 @@
                     <input
                       type="text"
                       id="owner-register-account"
-                      name="owner_acc"
+                      name="ownerAcc"
                       required
                       placeholder="帳號日後不可更改，信箱即為會員帳號"
                     />
@@ -474,7 +474,7 @@
                     <input
                       type="password"
                       id="owner-register-password"
-                      name="owner_pwd"
+                      name="ownerPwd"
                       required
                       placeholder="請設定6-20位密碼"
                       autocomplete="new-password"
@@ -487,7 +487,7 @@
                     <div class="strength-bar">
                       <div class="strength-fill" style="width: 0%"></div>
                     </div>
-                    <span class="strength-text">密碼強度: 尚未輸入</span>
+                    <!-- <span class="strength-text">密碼強度: 尚未輸入</span> -->
                   </div>
                 </div>
                 <div class="form-group">
@@ -514,7 +514,7 @@
                     <input
                       type="text"
                       id="owner-register-company"
-                      name="campsite_name"
+                      name="ownerName"
                       required
                       placeholder="日後不可更改"
                     />
@@ -527,7 +527,7 @@
                     <input
                       type="text"
                       id="owner-register-license"
-                      name="business_license"
+                      name="ownerGui"
                       required
                       placeholder="8碼，日後不可更改"
                     />
@@ -540,7 +540,7 @@
                     <input
                       type="text"
                       id="owner-register-manager"
-                      name="owner_manager"
+                      name="ownerRep"
                       required
                       placeholder="請輸入負責人姓名"
                     />
@@ -553,7 +553,7 @@
                     <input
                       type="tel"
                       id="owner-register-manager-phone"
-                      name="owner_manager_phone"
+                      name="ownerTel"
                       required
                       placeholder="請輸入負責人電話"
                     />
@@ -566,7 +566,7 @@
                     <input
                       type="text"
                       id="owner-register-contact"
-                      name="owner_contact"
+                      name="ownerPoc"
                       required
                       placeholder="請輸入聯絡人姓名"
                     />
@@ -579,7 +579,7 @@
                     <input
                       type="tel"
                       id="owner-register-contact-phone"
-                      name="owner_contact_phone"
+                      name="ownerConPhone"
                       required
                       placeholder="請輸入聯絡人電話"
                     />
@@ -592,7 +592,7 @@
                     <input
                       type="text"
                       id="owner-register-address"
-                      name="campsite_address"
+                      name="ownerAddr"
                       required
                       placeholder="日後不可更改"
                     />
@@ -605,7 +605,7 @@
                     <input
                       type="email"
                       id="owner-register-email"
-                      name="owner_email"
+                      name="ownerEmail"
                       required
                       placeholder="請輸入與會員帳號相同"
                       autocomplete="email"
@@ -619,7 +619,7 @@
                     <input
                       type="text"
                       id="owner-register-bank-account"
-                      name="owner_bank_account"
+                      name="bankAccount"
                       required
                       placeholder="請輸入匯款帳號"
                     />
@@ -751,44 +751,45 @@
         });
 
         // 密碼強度檢測
-        const passwordInput = document.getElementById("register-password");
-        const strengthBar = document.querySelector(".strength-fill");
-        const strengthText = document.querySelector(".strength-text");
+        
+        // const passwordInput = document.getElementById("register-password");
+        // const strengthBar = document.querySelector(".strength-fill");
+        // const strengthText = document.querySelector(".strength-text");
 
-        if (passwordInput) {
-          passwordInput.addEventListener("input", function () {
-            const password = this.value;
-            let strength = 0;
-            let status = "";
+        // if (passwordInput) {
+        //   passwordInput.addEventListener("input", function () {
+        //     const password = this.value;
+        //     let strength = 0;
+        //     let status = "";
 
-            if (password.length >= 6) strength += 20;
-            if (password.length >= 10) strength += 20;
-            if (/[A-Z]/.test(password)) strength += 20;
-            if (/[0-9]/.test(password)) strength += 20;
-            if (/[^A-Za-z0-9]/.test(password)) strength += 20;
+        //     if (password.length >= 6) strength += 20;
+        //     if (password.length >= 10) strength += 20;
+        //     if (/[A-Z]/.test(password)) strength += 20;
+        //     if (/[0-9]/.test(password)) strength += 20;
+        //     if (/[^A-Za-z0-9]/.test(password)) strength += 20;
 
-            strengthBar.style.width = strength + "%";
+        //     strengthBar.style.width = strength + "%";
 
-            if (strength <= 20) {
-              strengthBar.style.backgroundColor = "#E76F51";
-              status = "非常弱";
-            } else if (strength <= 40) {
-              strengthBar.style.backgroundColor = "#E76F51";
-              status = "弱";
-            } else if (strength <= 60) {
-              strengthBar.style.backgroundColor = "#F4A261";
-              status = "中等";
-            } else if (strength <= 80) {
-              strengthBar.style.backgroundColor = "#A68A64";
-              status = "強";
-            } else {
-              strengthBar.style.backgroundColor = "#3A5A40";
-              status = "非常強";
-            }
+        //     if (strength <= 20) {
+        //       strengthBar.style.backgroundColor = "#E76F51";
+        //       status = "非常弱";
+        //     } else if (strength <= 40) {
+        //       strengthBar.style.backgroundColor = "#E76F51";
+        //       status = "弱";
+        //     } else if (strength <= 60) {
+        //       strengthBar.style.backgroundColor = "#F4A261";
+        //       status = "中等";
+        //     } else if (strength <= 80) {
+        //       strengthBar.style.backgroundColor = "#A68A64";
+        //       status = "強";
+        //     } else {
+        //       strengthBar.style.backgroundColor = "#3A5A40";
+        //       status = "非常強";
+        //     }
 
-            strengthText.textContent = "密碼強度: " + status;
-          });
-        }
+        //     strengthText.textContent = "密碼強度: " + status;
+        //   });
+        // }
       });
     </script>
   </body>
