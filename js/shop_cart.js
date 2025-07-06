@@ -502,20 +502,6 @@ function updateCartSummary(summary) {
   }
 }
 
-// 更新購物車計數
-// function updateCartCount(count) {
-//   // 使用全域購物車管理器
-//   if (window.globalCartManager) {
-//     window.globalCartManager.updateCartCount(count);
-//   } else {
-//     // 備用方案
-//     const cartCountElements = document.querySelectorAll('.cart-count');
-//     cartCountElements.forEach(element => {
-//       element.textContent = count;
-//       element.style.display = count > 0 ? 'inline' : 'none';
-//     });
-//   }
-// }
 
 // 檢查購物車是否為空
 function checkEmptyCart(itemCount) {
@@ -607,7 +593,8 @@ function recalculateCartSummary() {
 }
 
 // console.log('送出新增/修改購物車API', {memId, payload });
-fetch('/api/addCart', {
+// 新增購物車內容
+fetch(`${window.api_prefix}/api/addCart`, {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify(payload)

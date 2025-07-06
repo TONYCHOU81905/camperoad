@@ -1,3 +1,13 @@
+window.api_prefix = "http://localhost:8081/CJA101G02";
+
+//阻擋main.js
+window.addEventListener("error", function (event) {
+  if (event.message && event.message.includes("Cannot read properties of null")) {
+    console.warn("忽略來自其他 JS 的 null 錯誤：", event.message);
+    event.preventDefault(); // 阻止錯誤訊息顯示
+  }
+});
+
 // 密碼重設相關功能
 document.addEventListener("DOMContentLoaded", function () {
   // 忘記密碼表單處理
@@ -74,29 +84,16 @@ async function handleForgotPassword(e) {
       credentials: "include" // 包含Cookie
     });
 
-    if (!response.ok) {
-      throw new Error("發送重設密碼請求失敗");
-    }
-
     const data = await response.json();
 
     if (data.success) {
-      // 顯示成功訊息
-      showMessage("重設密碼連結已發送到您的電子郵件，請查收", "success");
-      
-      // 如果API返回了令牌，可以存儲它（實際應用中可能不需要，因為令牌通常會包含在郵件連結中）
-      if (data.token) {
-        sessionStorage.setItem("resetToken", data.token);
-        sessionStorage.setItem("resetEmail", email);
-      }
+      showMessage(data.message || "密碼重設連結已發送，請查收信箱", "success");
     } else {
-      // 顯示API返回的錯誤訊息
-      showMessage(data.message || "發送重設密碼郵件失敗，請稍後再試", "error");
+      showMessage(data.message || "信箱未註冊", "error");
     }
-
   } catch (error) {
-    console.error("處理忘記密碼請求時出錯：", error);
-    showMessage("處理請求時出錯，請稍後再試", "error");
+    console.error("發送忘記密碼時出錯：", error);
+    showMessage("伺服器錯誤，請稍後再試", "error");
   }
 }
 
@@ -109,10 +106,10 @@ async function handleResetPassword(e) {
   // 從URL獲取令牌和電子郵件
   const urlParams = new URLSearchParams(window.location.search);
   const token = urlParams.get("token");
-  const email = urlParams.get("email");
+  // const email = urlParams.get("email");
 
   
-  if (!token || !email) {
+  if (!token) {
 
     showMessage("無效的密碼重設連結，請重新申請", "error");
     return;
@@ -123,10 +120,10 @@ async function handleResetPassword(e) {
     return;
   }
 
-  if (newPassword.length < 8) {
-    showMessage("密碼長度必須至少為8個字符", "error");
-    return;
-  }
+  // if (newPassword.length < 8) {
+  //   showMessage("密碼長度必須至少為8個字符", "error");
+  //   return;
+  // }
 
   if (newPassword !== confirmPassword) {
     showMessage("兩次輸入的密碼不一致", "error");
@@ -134,38 +131,37 @@ async function handleResetPassword(e) {
   }
 
   // 檢查密碼強度
-  const strengthBar = document.querySelector(".password-strength-bar");
-  const strengthPercentage = parseInt(strengthBar.style.width) || 0;
-  if (strengthPercentage < 50) {
-    showMessage("密碼強度不足，請設置更複雜的密碼", "error");
-    return;
-  }
+  // const strengthBar = document.querySelector(".password-strength-bar");
+  // const strengthPercentage = parseInt(strengthBar.style.width) || 0;
+  // if (strengthPercentage < 50) {
+  //   showMessage("密碼強度不足，請設置更複雜的密碼", "error");
+  //   return;
+  // }
 
   try {
     // 使用API重設密碼
-    const response = await fetch(`${window.api_prefix}/api/member/changePassword`, {
+    const response = await fetch(`${window.api_prefix}/api/auth/reset-password`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
         token: token,
-        email: email,
-        new_password: newPassword
+        newPassword: newPassword
       }),
       credentials: "include" // 包含Cookie
     });
 
-    if (!response.ok) {
-      throw new Error("密碼重設請求失敗");
-    }
+    // if (!response.ok) {
+    //   throw new Error("密碼重設請求失敗");
+    // }
 
     const data = await response.json();
 
     if (data.success) {
       // 清除重設令牌
-      sessionStorage.removeItem("resetToken");
-      sessionStorage.removeItem("resetEmail");
+      // sessionStorage.removeItem("resetToken");
+      // sessionStorage.removeItem("resetEmail");
 
       // 顯示成功訊息
       showMessage("密碼重設成功，即將跳轉到登入頁面", "success");

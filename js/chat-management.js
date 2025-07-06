@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", function () {
  */
 window.initChatManagement = function () {
   console.log("=== 開始初始化聊天管理 ===");
-  
+
   // 檢查是否在營地主後台
   const isOwnerDashboard = window.location.pathname.includes("owner-dashboard");
   console.log("是否為營地主後台:", isOwnerDashboard);
@@ -35,11 +35,14 @@ window.initChatManagement = function () {
 
   if (isOwnerDashboard) {
     console.log("營地主模式初始化");
-    console.log("ownerDashboard實例:", typeof ownerDashboard !== "undefined" ? "存在" : "不存在");
-    
+    console.log(
+      "ownerDashboard實例:",
+      typeof ownerDashboard !== "undefined" ? "存在" : "不存在"
+    );
+
     // 營地主模式：從ownerDashboard實例獲取營地主ID
     if (typeof ownerDashboard !== "undefined" && ownerDashboard.currentOwner) {
-      const ownerId = ownerDashboard.currentOwner.owner_id;
+      const ownerId = ownerDashboard.currentOwner.ownerId;
       console.log("獲取到營地主ID:" + ownerId);
 
       // 設置隱藏的營地主ID輸入框
@@ -55,19 +58,21 @@ window.initChatManagement = function () {
       const memIdInput = document.getElementById("memId");
       if (memIdInput) {
         let memId = null;
-        
+
         // 優先從營地主資料中獲取會員ID
-        if (ownerDashboard.currentOwner.mem_id) {
-          memId = ownerDashboard.currentOwner.mem_id;
+        if (ownerDashboard.currentOwner.memId) {
+          memId = ownerDashboard.currentOwner.memId;
           console.log("從營地主資料獲取會員ID:" + memId);
         } else {
           // 如果營地主資料中沒有會員ID，嘗試從localStorage獲取
-          const memberData = localStorage.getItem("currentMember") || sessionStorage.getItem("currentMember");
+          const memberData =
+            localStorage.getItem("currentMember") ||
+            sessionStorage.getItem("currentMember");
           if (memberData) {
             try {
               const member = JSON.parse(memberData);
-              if (member && member.mem_id) {
-                memId = member.mem_id;
+              if (member && member.memId) {
+                memId = member.memId;
                 console.log("從會員資料獲取會員ID:" + memId);
               }
             } catch (error) {
@@ -75,7 +80,7 @@ window.initChatManagement = function () {
             }
           }
         }
-        
+
         if (memId) {
           memIdInput.value = memId;
           console.log("已設置隱藏輸入框的會員ID:" + memId);
@@ -89,18 +94,24 @@ window.initChatManagement = function () {
       // 從API獲取聊天記錄（營地主版本）
       console.log("準備獲取營地主聊天列表");
       fetchOwnerChatList(ownerId);
-      
+
       // 初始化WebSocket連接
       console.log("初始化營地主WebSocket連接");
       initSimpleWebSocketConnection();
-      
+
       // 初始化聊天窗口事件監聽器
       initChatEventListeners();
     } else {
       console.error("無法獲取營地主資訊");
-      console.log("ownerDashboard:", typeof ownerDashboard !== "undefined" ? ownerDashboard : "undefined");
+      console.log(
+        "ownerDashboard:",
+        typeof ownerDashboard !== "undefined" ? ownerDashboard : "undefined"
+      );
       if (typeof ownerDashboard !== "undefined") {
-        console.log("ownerDashboard.currentOwner:", ownerDashboard.currentOwner);
+        console.log(
+          "ownerDashboard.currentOwner:",
+          ownerDashboard.currentOwner
+        );
       }
       showEmptyState("無法獲取營地主資訊", "請重新登入營地主後台");
       return;
@@ -117,7 +128,7 @@ window.initChatManagement = function () {
     }
 
     const member = JSON.parse(memberData);
-    const memId = member.mem_id;
+    const memId = member.memId;
 
     // 設置隱藏的會員ID輸入框
     document.getElementById("memId").value = memId;
@@ -139,14 +150,20 @@ async function loadCampData() {
 
   try {
     console.log("開始加載營地數據");
-    const response = await fetch("data/camp.json");
-    if (!response.ok) {
-      throw new Error("無法加載營地數據");
+    const campsResponse = await fetch(`${window.api_prefix}/api/getallcamps`);
+    // 載入營地資料
+    const campsData = await campsResponse.json();
+    console.log("獲取營地資料:", campsData);
+
+    if (campsData.status.trim() == "success") {
+      this.camps = campsData.data;
+    } else {
+      console.error("獲取營地資料失敗:", campsData.message);
+      this.camps = [];
     }
 
-    const data = await response.json();
-    window.campData = data;
-    console.log("營地數據加載成功，共", data.length, "個營地");
+    window.campData = this.camps;
+    console.log("營地數據加載成功，共", window.campData.length, "個營地");
   } catch (error) {
     console.error("加載營地數據失敗:", error);
     window.campData = [];
@@ -166,18 +183,15 @@ async function fetchChatList(memId) {
 
     try {
       // 嘗試從API獲取數據
-      const response = await fetch(
-        `${window.api_prefix}/api/cto/getonecto`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-          body: new URLSearchParams({
-            userId: parseInt(memId),
-          }),
-        }
-      );
+      const response = await fetch(`${window.api_prefix}/api/cto/getonecto`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          userId: parseInt(memId),
+        }),
+      });
 
       if (!response.ok) {
         throw new Error(
@@ -249,18 +263,17 @@ async function fetchOwnerChatList(ownerId) {
 
     try {
       // 嘗試從API獲取數據
-      const response = await fetch(
-        `${window.api_prefix}/api/cto/getonecto`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-          body: new URLSearchParams({
-            userId: parseInt(ownerId),
-          }),
-        }
-      );
+      console.log("getonecto1:", ownerId);
+
+      const response = await fetch(`${window.api_prefix}/api/cto/getonecto`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          userId: parseInt(ownerId),
+        }),
+      });
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -349,8 +362,9 @@ function displayChatList(data, memId) {
   // 創建聊天項目
   data.secondList.forEach((ownerId, index) => {
     // 查找營地資料
-    const camp = campData.find((c) => c.owner_id == ownerId);
-    const campName = camp ? camp.camp_name : `營地 ${ownerId}`;
+    const camp = campData.find((c) => c.ownerId == ownerId);
+
+    const campName = camp ? camp.campName : `營地 ${ownerId}`;
     const chatId = data.chatIdList[index];
 
     // 創建聊天項目
@@ -400,11 +414,11 @@ function displayOwnerChatList(data, ownerId) {
 
   // 創建聊天項目
   data.secondList.forEach((member, index) => {
-    const memId = member.mem_id;
-    const memName = member.mem_name || `會員 ${memId}`;
-    const latestMessage = member.latest_message || "點擊開始聊天";
-    const latestTime = member.latest_time || new Date().toISOString();
-    const unreadCount = member.unread_count || 0;
+    const memId = member.memId;
+    const memName = member.memName || `會員 ${memId}`;
+    const latestMessage = member.latestMessage || "點擊開始聊天";
+    const latestTime = member.latestTime || new Date().toISOString();
+    const unreadCount = member.unreadCount || 0;
 
     // 創建聊天項目
     const chatItem = document.createElement("div");
@@ -971,7 +985,7 @@ function formatTime(time) {
  */
 function initChatEventListeners() {
   console.log("初始化聊天窗口事件監聽器");
-  
+
   // 發送訊息按鈕事件
   const sendButton = document.getElementById("btn-send-message");
   if (sendButton) {
@@ -980,11 +994,11 @@ function initChatEventListeners() {
   } else {
     console.error("找不到發送按鈕");
   }
-  
+
   // 輸入框回車事件
   const messageInput = document.getElementById("chat-message-input");
   if (messageInput) {
-    messageInput.addEventListener("keypress", function(e) {
+    messageInput.addEventListener("keypress", function (e) {
       if (e.key === "Enter") {
         sendMessage();
       }
@@ -993,11 +1007,11 @@ function initChatEventListeners() {
   } else {
     console.error("找不到訊息輸入框");
   }
-  
+
   // 關閉聊天窗口事件
   const closeButton = document.getElementById("btn-close-chat");
   if (closeButton) {
-    closeButton.addEventListener("click", function() {
+    closeButton.addEventListener("click", function () {
       const chatWidget = document.querySelector(".chat-widget");
       if (chatWidget) {
         chatWidget.style.display = "none";

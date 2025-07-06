@@ -278,13 +278,14 @@ h4 {
   display: flex;
   align-items: center;
   justify-content: center;
-  text-decoration: none;
 }
 
+/* 滑鼠移上去觸發閃爍動畫一次 */
 .btn-login:hover {
   background-color: transparent; /* 移除懸停時的背景色 */
   color: #2d4731; /* 保持懸停時的顏色變化 */
 }
+
 
 .btn-login.logged-in {
   background-color: #f8f9fa;
@@ -1729,7 +1730,7 @@ h4 {
 .main-nav .dropdown-item {
   display: block;
   padding: 10px 20px;
-  font-size: 14px;
+  font-size: 16px;
   color: #3a5a40;
   transition: background-color 0.3s ease;
 }
@@ -1776,10 +1777,12 @@ h4 {
 }
 
 /* 表格樣式微調 */
-.data-table td, .data-table th {
+.data-table td,
+.data-table th {
   padding: 10px;
   text-align: center;
   vertical-align: middle;
+
 }
 
 
@@ -1822,4 +1825,5 @@ h4 {
 
 .btn-edit-discount:hover {
   background-color: #678e6f;
+
 }

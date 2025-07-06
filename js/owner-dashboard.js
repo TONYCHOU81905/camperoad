@@ -234,6 +234,39 @@ class OwnerDashboard {
         console.error("無法載入資料：缺少營地主資料");
         return;
       }
+
+      //修改密碼測試
+      // const responseChange = await fetch(
+      //   `${window.api_prefix}/api/owner/changePassword`,
+      //   {
+      //     method: "POST",
+      //     credentials: "include", // 包含Cookie
+      //     headers: {
+      //       "Content-Type": "application/json", // ⭐⭐ 必須明確指定
+      //     },
+      //     body: JSON.stringify({
+      //       oldPassword: "pwd123",
+      //       newPassword: "pwd001",
+      //     }),
+      //   }
+      // );
+      // console.log("responseChange:" + responseChange);
+
+      const responseOwner = await fetch(`${window.api_prefix}/api/owner/me`, {
+        method: "GET",
+        credentials: "include", // 包含Cookie
+      });
+
+      console.log("responseOwner:" + responseOwner);
+
+      if (!responseOwner.ok) {
+        const errorData = await responseOwner.json();
+        throw new Error(errorData.message || "登入請求失敗");
+      }
+
+      const data = await responseOwner.json();
+      console.log("data:" + data);
+
       // 獲取營地主基本資料
       await this.loadOwnerData();
       // 載入營地資料，只載入當前營地主的營地
@@ -552,13 +585,13 @@ class OwnerDashboard {
     if (ownerId) ownerId.value = this.ownerData.ownerId || "";
 
     const storeName = document.getElementById("storeName");
-    if (storeName) storeName.value = this.ownerData.storeName || "";
+    if (storeName) storeName.value = this.ownerData.ownerName || "";
 
     const taxId = document.getElementById("taxId");
-    if (taxId) taxId.value = this.ownerData.taxId || "";
+    if (taxId) taxId.value = this.ownerData.ownerGui || "";
 
     const ownerName = document.getElementById("ownerName");
-    if (ownerName) ownerName.value = this.ownerData.ownerName || "";
+    if (ownerName) ownerName.value = this.ownerData.ownerRep || "";
 
     const ownerPhone = document.getElementById("ownerPhone");
     if (ownerPhone) ownerPhone.value = this.ownerData.ownerPhone || "";
@@ -1681,6 +1714,7 @@ class OwnerDashboard {
     ) {
       try {
         const apiUrl = `${window.api_prefix}/campsitetype/${campId}/getCampsiteTypes`;
+        console.log(`1684: ${apiUrl}`);
 
         const response = await fetch(apiUrl);
         console.log("this.campsiteTypeData_start:", response);
@@ -1934,11 +1968,10 @@ class OwnerDashboard {
     const htmlPromises = filteredOrders.map(async (order) => {
       // 使用 API 獲取該訂單的詳細資料
       let orderDetails = [];
-
+      const apiUrl1 = `${window.api_prefix}/api/campsite/order/getone/${order.campsiteOrderId}`;
+      console.log(`1939: ${apiUrl1}`);
       try {
-        const response = await fetch(
-          `${window.api_prefix}/api/campsite/order/getone/${order.campsiteOrderId}`
-        );
+        const response = await fetch(apiUrl1);
 
         if (response.ok) {
           const result = await response.json();
@@ -2476,19 +2509,32 @@ class OwnerDashboard {
     }
   }
 
-  // 事件處理函數
-  handleLogout() {
+  // 新增：登出 API 呼叫
+  async handleLogout() {
     if (confirm("確定要登出嗎？")) {
-      // 清除所有相關的儲存資料
-      localStorage.removeItem("currentOwner");
-      sessionStorage.removeItem("currentOwner");
-      // 也清除可能的其他相關資料
-      localStorage.removeItem("ownerRememberMe");
-      sessionStorage.removeItem("ownerRememberMe");
-      this.showMessage("已成功登出", "success");
-      setTimeout(() => {
-        window.location.href = "index.html";
-      }, 1500);
+      try {
+        const response = await fetch(`${window.api_prefix}/api/owner/logout`, {
+          method: "POST",
+          credentials: "include", // 包含Cookie，讓後端 session 正確失效
+        });
+        if (!response.ok) {
+          throw new Error(`登出失敗：${response.status}`);
+        }
+        const result = await response.text();
+        // 可根據後端回傳格式調整
+        alert(result || "登出成功");
+        // 清除 localStorage/sessionStorage
+        localStorage.removeItem("currentOwner");
+        sessionStorage.removeItem("currentOwner");
+        localStorage.removeItem("ownerRememberMe");
+        sessionStorage.removeItem("ownerRememberMe");
+        // 跳轉到登入頁
+        setTimeout(() => {
+          window.location.href = "index.html";
+        }, 500);
+      } catch (error) {
+        alert(`登出失敗：${error.message}`);
+      }
     }
   }
 
@@ -2695,7 +2741,7 @@ class OwnerDashboard {
       const formData = new FormData(form);
 
       const campsiteName = formData.get("campsite_name");
-      const campsitePeople = formData.get("campsite_people");
+      const campsitePeople = formData.get("campsitePeople");
       const campsiteNum = formData.get("campsiteNum");
       const campsitePrice = formData.get("campsite_price");
       const imgFiles = [
@@ -3495,19 +3541,19 @@ class OwnerDashboard {
   }
 
   // 處理登出
-  handleLogout() {
-    if (confirm("確定要登出嗎？")) {
-      // 清除所有相關的儲存資料
-      localStorage.removeItem("currentOwner");
-      sessionStorage.removeItem("currentOwner");
-      // 也清除可能的其他相關資料
-      localStorage.removeItem("ownerRememberMe");
-      sessionStorage.removeItem("ownerRememberMe");
+  // handleLogout() {
+  //   if (confirm("確定要登出嗎？")) {
+  //     // 清除所有相關的儲存資料
+  //     localStorage.removeItem("currentOwner");
+  //     sessionStorage.removeItem("currentOwner");
+  //     // 也清除可能的其他相關資料
+  //     localStorage.removeItem("ownerRememberMe");
+  //     sessionStorage.removeItem("ownerRememberMe");
 
-      // 跳轉到登入頁面
-      window.location.href = "login.html";
-    }
-  }
+  //     // 跳轉到登入頁面
+  //     window.location.href = "login.html";
+  //   }
+  // }
 
   // 房型操作
   getRoomNumbers(campsiteTypeId) {

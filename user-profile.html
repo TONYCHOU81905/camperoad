@@ -39,7 +39,7 @@
           <a href="#" class="btn-search"><i class="fas fa-search"></i></a>
           <a href="camp_cart.html" class="btn-cart"
             ><i class="fas fa-shopping-cart"></i>
-            </a>
+          </a>
           <a href="login.html" class="btn-login">登入 / 註冊</a>
         </div>
         <button class="mobile-menu-toggle">
@@ -96,7 +96,18 @@
               <a href="#payment" class="profile-menu-item" data-tab="payment">
                 <i class="fas fa-credit-card"></i> 付款方式
               </a>
-              <a href="#chat-management" class="profile-menu-item" data-tab="chat-management">
+              <a
+                href="#article-favorites"
+                class="profile-menu-item"
+                data-tab="article-favorites"
+              >
+                <i class="fas fa-bookmark"></i> 文章收藏
+              </a>
+              <a
+                href="#chat-management"
+                class="profile-menu-item"
+                data-tab="chat-management"
+              >
                 <i class="fas fa-comments"></i> 聊天管理
               </a>
               <div class="menu-divider"></div>
@@ -113,13 +124,17 @@
               <form class="profile-form">
                 <div class="avatar-upload">
                   <div class="avatar-preview">
-                    <img src="images/user-3.jpg" alt="使用者頭像" />
+                    <img
+                      id="preview-image"
+                      src="images/user-3.jpg"
+                      alt="使用者頭像"
+                    />
                   </div>
                   <div class="avatar-edit">
-                    <label for="avatar-input" class="btn-upload"
+                    <!-- <label for="avatar-input" class="btn-upload"
                       >更換頭像</label
-                    >
-                    <input type="file" id="avatar-input" accept="image/*" />
+                    > -->
+                    <input type="file" id="profile-picture" accept="image/*" />
                     <p class="upload-hint">
                       建議使用 1:1 比例的圖片，檔案大小不超過 2MB
                     </p>
@@ -148,8 +163,15 @@
                   <div class="form-group">
                     <label for="profile-password">密碼</label>
                     <div class="password-field">
-                      <input type="password" id="profile-password" value="********" disabled />
-                      <button type="button" class="btn-change-password">更改密碼</button>
+                      <input
+                        type="password"
+                        id="profile-password"
+                        value="********"
+                        disabled
+                      />
+                      <button type="button" class="btn-change-password">
+                        更改密碼
+                      </button>
                     </div>
                   </div>
                   <div class="form-group">
@@ -161,7 +183,8 @@
                 <div class="form-row">
                   <div class="form-group">
                     <label for="profile-birthday">生日</label>
-                    <input type="date" id="profile-birthday" value="" />
+                    <input id="profile-birthday" value="" readonly />
+                    <p class="form-hint">生日資料無法修改</p>
                   </div>
                   <div class="form-group">
                     <label for="profile-gender">性別</label>
@@ -251,9 +274,15 @@
             </div>
 
             <!-- 商城訂單詳情 Modal -->
-            <div id="shop-order-detail-modal" class="modal" style="display:none;">
+            <div
+              id="shop-order-detail-modal"
+              class="modal"
+              style="display: none"
+            >
               <div class="modal-content">
-                <span class="close-btn" onclick="closeShopOrderDetailModal()">&times;</span>
+                <span class="close-btn" onclick="closeShopOrderDetailModal()"
+                  >&times;</span
+                >
                 <div id="shop-order-detail-content"></div>
               </div>
             </div>
@@ -374,6 +403,100 @@
               </div>
             </div>
 
+            <!-- 文章收藏 -->
+            <div class="profile-section" id="article-favorites">
+              <div
+                id="delete-selected-bar"
+                style="
+                  display: none;
+                  justify-content: flex-end;
+                  align-items: center;
+                  gap: 12px;
+                  margin-bottom: 8px;
+                "
+              >
+                <button
+                  id="delete-selected-btn"
+                  type="button"
+                  style="
+                    padding: 6px 18px;
+                    border-radius: 5px;
+                    background: #dc3545;
+                    color: #fff;
+                    font-size: 1rem;
+                    font-weight: 500;
+                    border: none;
+                    cursor: pointer;
+                  "
+                >
+                  刪除勾選收藏
+                </button>
+              </div>
+              <div
+                class="favorites-search-box"
+                style="margin-bottom: 24px; margin-top: 0"
+              >
+                <form id="search-form">
+                  <input
+                    type="text"
+                    placeholder="搜尋文章標題、內容、作者或關鍵字..."
+                    name="search"
+                    id="search-input"
+                    autocomplete="off"
+                  />
+                  <button type="submit" class="btn-search-submit" title="搜尋">
+                    <i class="fas fa-search"></i>
+                  </button>
+                </form>
+              </div>
+              <div class="favorites-filter">
+                <div
+                  class="filter-options"
+                  style="display: flex; gap: 12px; align-items: center"
+                >
+                  <select name="sort" id="sort-favorites">
+                    <option value="latest">最新收藏</option>
+                    <option value="oldest">最早收藏</option>
+                    <option value="most-commented">最多留言</option>
+                    <option value="most-viewed">最多觀看</option>
+                  </select>
+                  <select
+                    id="category-filter"
+                    style="min-width: 180px"
+                  ></select>
+                </div>
+                <div class="favorites-count">
+                  共 <span id="favorites-count">0</span> 篇收藏
+                </div>
+              </div>
+              <div class="article-table-container">
+                <div class="article-table-header">
+                  <div class="header-item">
+                    <input
+                      type="checkbox"
+                      id="select-all-checkbox"
+                      title="全選/取消全選"
+                    />
+                  </div>
+                  <div class="header-item">圖片</div>
+                  <div class="header-item article-title-header">標題</div>
+                  <div class="header-item article-author-header">作者</div>
+                  <div class="header-item article-date-header">收藏時間</div>
+                  <div class="header-item article-stats-header">操作</div>
+                </div>
+                <div class="article-list" id="favorites-container">
+                  <div class="empty-state">
+                    <i class="fas fa-bookmark"></i>
+                    <h3>尚無收藏文章</h3>
+                    <p>您還沒有收藏任何文章，快去發現精彩內容吧！</p>
+                  </div>
+                </div>
+              </div>
+              <div class="pagination">
+                <!-- 分頁將由 JavaScript 動態生成 -->
+              </div>
+            </div>
+
             <!-- 聊天管理 -->
             <div class="profile-section" id="chat-management">
               <h2>聊天管理</h2>
@@ -393,7 +516,7 @@
     </div>
 
     <!-- 懸浮聊天室 -->
-    <div class="chat-widget" style="display: none;">
+    <div class="chat-widget" style="display: none">
       <div class="chat-window" id="chat-window">
         <div class="chat-header">
           <div class="chat-title">
@@ -422,14 +545,14 @@
         </div>
       </div>
     </div>
-    
+
     <!-- 隱藏的會員ID和營地主ID輸入框 -->
     <input type="hidden" id="memId" value="" />
     <input type="hidden" id="ownerId" value="" />
     <!-- WebSocket相關庫 -->
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
-    
+
     <script src="js/camp-data.js"></script>
     <script src="js/user-profile.js"></script>
     <script src="js/chat-management.js"></script>

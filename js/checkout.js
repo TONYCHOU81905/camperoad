@@ -41,15 +41,16 @@ class CheckoutManager {
   loadMemberData() {
     try {
       // 從 localStorage 獲取會員資料
-      const memberData = JSON.parse(localStorage.getItem('memberData'));
-      
+      const memberData = JSON.parse(localStorage.getItem("memberData"));
+
       if (memberData) {
         // 自動填入會員資料到表單
-        const customerNameInput = document.getElementById('customer-name');
-        const customerPhoneInput = document.getElementById('customer-phone');
-        const customerEmailInput = document.getElementById('customer-email');
-        const customerAddressInput = document.getElementById('customer-address');
-        
+        const customerNameInput = document.getElementById("customer-name");
+        const customerPhoneInput = document.getElementById("customer-phone");
+        const customerEmailInput = document.getElementById("customer-email");
+        const customerAddressInput =
+          document.getElementById("customer-address");
+
         if (customerNameInput && memberData.name) {
           customerNameInput.value = memberData.name;
         }
@@ -62,13 +63,13 @@ class CheckoutManager {
         if (customerAddressInput && memberData.address) {
           customerAddressInput.value = memberData.address;
         }
-        
-        console.log('會員資料已自動載入');
+
+        console.log("會員資料已自動載入");
       } else {
-        console.log('未找到會員資料');
+        console.log("未找到會員資料");
       }
     } catch (error) {
-      console.error('載入會員資料時發生錯誤:', error);
+      console.error("載入會員資料時發生錯誤:", error);
     }
   }
 
@@ -89,11 +90,6 @@ class CheckoutManager {
       if (item.isBundle) {
         // 加購商品
         orderItemElement.innerHTML = `
-          <div class="order-item-image">
-            <img src="/images/bundles/bundle-${item.bundleId}.jpg" alt="${
-          item.bundleName
-        }">
-          </div>
           <div class="order-item-details">
             <div class="order-item-title">${item.bundleName}</div>
             <div class="order-item-info">數量: ${item.quantity || 1}</div>
@@ -117,12 +113,6 @@ class CheckoutManager {
         const totalPrice = (campsiteType.campsitePrice + tentPrice) * nights;
 
         orderItemElement.innerHTML = `
-          <div class="order-item-image">
-            <img src="${
-              item.image ||
-              `${window.api_prefix}/campsitetype/${item.campsiteTypeId}/${item.campId}/images/1`
-            }" alt="${campsiteType.name}">
-          </div>
           <div class="order-item-details">
             <div class="order-item-title">${campsiteType.campsiteName}</div>
             <div class="order-item-info">${this.formatDate(
@@ -142,11 +132,6 @@ class CheckoutManager {
       orderItemElement.className = "order-item bundle-item";
 
       orderItemElement.innerHTML = `
-        <div class="order-item-image">
-          <img src="/images/bundles/bundle-${item.bundleId}.jpg" alt="${
-        item.bundleName
-      }">
-        </div>
         <div class="order-item-details">
           <div class="order-item-title">${item.bundleName}</div>
           <div class="order-item-info">數量: ${item.quantity || 1}</div>
@@ -232,6 +217,35 @@ class CheckoutManager {
     if (backToCheckoutBtn) {
       backToCheckoutBtn.addEventListener("click", () => {
         this.hidePaymentResultModal();
+      });
+    }
+
+    // 新增：同會員資訊按鈕
+    const fillMemberBtn = document.getElementById("fill-member-info");
+    if (fillMemberBtn) {
+      fillMemberBtn.addEventListener("click", () => {
+        let memberInfo =
+          localStorage.getItem("currentMember") ||
+          sessionStorage.getItem("currentMember");
+        if (memberInfo) {
+          try {
+            const member = JSON.parse(memberInfo);
+            document.getElementById("customer-name").value =
+              member.memName || "";
+            // 手機號碼格式化
+            let mobile = member.memMobile || "";
+            mobile = mobile.replace(/\D/g, ""); // 移除所有非數字
+            document.getElementById("customer-phone").value = mobile;
+            document.getElementById("customer-email").value =
+              member.memEmail || "";
+            document.getElementById("customer-address").value =
+              member.memAddr || "";
+          } catch (e) {
+            alert("會員資料解析失敗");
+          }
+        } else {
+          alert("找不到會員資料");
+        }
       });
     }
   }
@@ -556,6 +570,17 @@ class CheckoutManager {
             campsiteTypeId: item.campsiteTypeId,
             campsiteNum: 1, // 預設為1，如果需要可以從item中獲取
             campsiteAmount: totalAmount,
+          };
+        }),
+        bundleItemDetails: this.bundleItems.map((item) => {
+          // 計算加購商品總金額
+          const totalAmount = item.bundlePrice * (item.quantity || 1);
+
+          return {
+            campsiteOrderId: orderId, // 使用當前訂單ID
+            bundleBuyAmount: totalAmount,
+            bundleBuyNum: item.quantity || 1,
+            bundleId: item.bundleId,
           };
         }),
       };

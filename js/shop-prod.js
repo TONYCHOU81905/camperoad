@@ -182,7 +182,8 @@ document.addEventListener("DOMContentLoaded", function () {
           container.innerHTML = "";
   
           products.forEach((prod) => {
-            const hasDiscount = prod.prodDiscount !== null && prod.prodDiscount !== undefined;
+            // 確保只有真正有折扣的商品才標記為促銷
+            const hasDiscount = prod.prodDiscount !== null && prod.prodDiscount !== undefined && prod.prodDiscount < 1 && prod.prodDiscount > 0;
             const featuresHtml = generateProductFeatures(prod);
             const colorMap = new Map((prod.colorList || []).map(c => [c.colorId, c.colorName]));
             const specMap = new Map((prod.specList || []).map(s => [s.specId, s.specName]));
@@ -266,7 +267,7 @@ document.addEventListener("DOMContentLoaded", function () {
             <div class="product-card">
               <div class="product-image">
                 ${productImageHtml}
-                <span class="product-tag">${prod.prodTag || '熱銷'}</span>
+                <span class="${hasDiscount ? 'product-tag' : 'product-tag2'}">${hasDiscount ? '促銷' : (prod.prodTag || '熱銷')}</span>
               </div>
               <div class="product-info">
                 <h3><a href="product-detail.html?id=${prod.prodId}">${prod.prodName}</a></h3>
@@ -396,13 +397,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // 加入收藏按鈕點選事件
     document.querySelectorAll(".btn-favorite").forEach((btn) => {
+      const prodId = parseInt(btn.dataset.id);
+      // 檢查收藏狀態
+      checkFavoriteStatus(prodId, btn);
+      
       btn.addEventListener("click", function () {
-        const prodId = this.dataset.id;
-        console.log("加入收藏:", prodId);
+        const prodId = parseInt(this.dataset.id);
+        toggleWishlist(prodId, this);
       });
     });
 
-    // 加入購物車按鈕點選事件
 // 加入購物車按鈕點選事件
 document.querySelectorAll(".btn-add-cart").forEach((btn) => {
   btn.addEventListener("click", function () {
@@ -598,4 +602,202 @@ function updateSectionTitle(category, sort, priceRange) {
     
     // 更新section-title的內容
     sectionTitle.innerHTML = titleText + (filterInfo ? ` - ${filterInfo}` : '');
+}
+
+// 獲取當前登入會員的 ID
+function getCurrentMemberId() {
+  const memberData = localStorage.getItem('currentMember') || sessionStorage.getItem('currentMember');
+  if (memberData) {
+    try {
+      return JSON.parse(memberData).memId;
+    } catch (e) {
+      console.error('解析會員資料失敗', e);
+    }
+  }
+  return null;
+}
+
+// 檢查收藏狀態
+function checkFavoriteStatus(prodId, favoriteBtn) {
+  const memId = getCurrentMemberId();
+  if (!memId) return; // 未登入不檢查
+  
+  fetch(`${window.api_prefix}/api/prodfavorites/isFavoriteOrNot/${memId}/${prodId}`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'success' && data.data) {
+        // 如果已收藏，更新按鈕狀態
+        if (favoriteBtn) {
+          favoriteBtn.innerHTML = '<i class="fas fa-heart"></i> 已收藏';
+          favoriteBtn.classList.add('active');
+          favoriteBtn.dataset.isFavorite = 'true';
+        }
+      }
+    })
+    .catch(error => {
+      console.error('檢查收藏狀態失敗:', error);
+    });
+}
+
+// 加入收藏函數
+function addToWishlist(prodId, favoriteBtn) {
+  const memId = getCurrentMemberId();
+  if (!memId) {
+    alert('請先登入會員');
+    window.location.href = 'login.html?redirect=' + encodeURIComponent(window.location.href);
+    return;
+  }
+
+  fetch(`${window.api_prefix}/api/prodfavorites/${memId}/${prodId}`, {
+    method: 'POST'
+  })
+    .then(response => {
+      if (!response.ok) throw new Error('網路回應不正常');
+      return response.json();
+    })
+    .then(data => {
+      console.log('加入收藏成功:', data);
+      if (favoriteBtn) {
+        favoriteBtn.innerHTML = '<i class="fas fa-heart"></i> 已收藏';
+        favoriteBtn.classList.add('active');
+        favoriteBtn.dataset.isFavorite = 'true';
+      }
+      showWishlistMessage('已添加到收藏');
+    })
+    .catch(error => {
+      console.error('加入收藏失敗:', error);
+      alert('加入收藏失敗，請稍後再試');
+    });
+}
+
+// 取消收藏函數
+function removeFromWishlist(prodId, favoriteBtn) {
+  const memId = getCurrentMemberId();
+  if (!memId) return;
+
+  fetch(`${window.api_prefix}/api/prodfavorites/${memId}/${prodId}`, {
+    method: 'DELETE'
+  })
+    .then(response => {
+      if (!response.ok) throw new Error('網路回應不正常');
+      return response.json();
+    })
+    .then(data => {
+      console.log('取消收藏成功:', data);
+      if (favoriteBtn) {
+        favoriteBtn.innerHTML = '<i class="far fa-heart"></i> 加入收藏';
+        favoriteBtn.classList.remove('active');
+        favoriteBtn.dataset.isFavorite = 'false';
+      }
+      showWishlistMessage('已取消收藏');
+    })
+    .catch(error => {
+      console.error('取消收藏失敗:', error);
+      alert('取消收藏失敗，請稍後再試');
+    });
+}
+
+// 切換收藏狀態
+function toggleWishlist(prodId, favoriteBtn) {
+  const memId = getCurrentMemberId();
+  
+  if (!memId) {
+    alert('請先登入會員');
+    window.location.href = 'login.html?redirect=' + encodeURIComponent(window.location.href);
+    return;
+  }
+  
+  const isFavorite = favoriteBtn && favoriteBtn.dataset.isFavorite === 'true';
+  
+  if (isFavorite) {
+    // 取消收藏
+    removeFromWishlist(prodId, favoriteBtn);
+  } else {
+    // 加入收藏
+    addToWishlist(prodId, favoriteBtn);
+  }
+}
+
+// 顯示收藏訊息
+function showWishlistMessage(messageText = '已添加到收藏') {
+  // 創建提示消息
+  const message = document.createElement('div');
+  message.className = 'wishlist-message';
+  message.innerHTML = `
+    <i class="fas fa-heart"></i>
+    <span>${messageText}</span>
+    <a href="user-profile.html?tab=wishlist" class="view-wishlist-btn">查看收藏</a>
+  `;
+  
+  // 添加樣式
+  message.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: #E76F51;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: 'Noto Sans TC', sans-serif;
+    animation: slideInRight 0.3s ease;
+  `;
+  
+  // 添加查看收藏按鈕樣式
+  const viewWishlistBtn = message.querySelector('.view-wishlist-btn');
+  if (viewWishlistBtn) {
+    viewWishlistBtn.style.cssText = `
+      background-color: white;
+      color: #E76F51;
+      padding: 4px 10px;
+      border-radius: 4px;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background-color 0.2s;
+    `;
+    
+    // 添加懸停效果
+    viewWishlistBtn.addEventListener('mouseover', function() {
+      this.style.backgroundColor = '#f0f0f0';
+    });
+    
+    viewWishlistBtn.addEventListener('mouseout', function() {
+      this.style.backgroundColor = 'white';
+    });
+  }
+
+  // 添加動畫樣式
+  if (!document.querySelector('style[data-wishlist-animation]')) {
+    const style = document.createElement('style');
+    style.setAttribute('data-wishlist-animation', 'true');
+    style.textContent = `
+      @keyframes slideInRight {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+      @keyframes fadeOut {
+        from { opacity: 1; }
+        to { opacity: 0; }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  // 添加到頁面
+  document.body.appendChild(message);
+
+  // 5秒後移除
+  setTimeout(() => {
+    message.style.animation = 'fadeOut 0.3s ease';
+    setTimeout(() => {
+      if (message.parentNode) {
+        message.parentNode.removeChild(message);
+      }
+    }, 300);
+  }, 5000);
 }
