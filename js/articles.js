@@ -759,7 +759,12 @@ class ArticleManager {
                         // 點擊放大
                         img.style.cursor = 'pointer';
                         img.onclick = function () {
-                            window.open(this.src, '_blank');
+                            if (window.replySystem && typeof window.replySystem.showImageLightbox === 'function') {
+                                window.replySystem.showImageLightbox(this.src);
+                            } else {
+                                // 備用：如無燈箱則不做任何事（或可選擇 alert）
+                                // alert('圖片放大功能暫不可用');
+                            }
                         };
 
                         // 添加樣式類別
@@ -916,7 +921,7 @@ class ArticleManager {
                     </div>
                     <div class="article-content-mobile">
                         <div class="article-title-cell">
-                            <a href="articles.html?id=${article.acId}" class="article-title-link">
+                            <a href="articles.html?acId=${article.acId}" class="article-title-link">
                                 ${article.acTitle}
                             </a>
                             <div class="article-preview">
@@ -944,7 +949,7 @@ class ArticleManager {
         try {
             // 從 URL 參數獲取文章 ID
             const urlParams = new URLSearchParams(window.location.search);
-            const articleId = urlParams.get('id');
+            const articleId = urlParams.get('id') || urlParams.get('acId');
 
             if (articleId) {
                 await this.loadSingleArticle(parseInt(articleId));
@@ -1076,7 +1081,7 @@ class ArticleManager {
 
             return `
                 <li>
-                    <a href="articles.html?id=${article.acId}">
+                    <a href="articles.html?acId=${article.acId}">
                         <img src="${imageUrl}" alt="${article.acTitle}" />
                         <div class="popular-guide-info">
                             <h4>${article.acTitle}</h4>

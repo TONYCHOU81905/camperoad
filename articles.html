@@ -1023,6 +1023,8 @@
             setupFavoriteButton() {
                 this.favoriteBtn = document.getElementById('favorite-btn');
                 if (this.favoriteBtn) {
+                    // 從URL獲取文章ID
+                    this.currentArticleId = new URLSearchParams(window.location.search).get('id');
                     this.favoriteBtn.addEventListener('click', (e) => {
                         e.preventDefault();
                         this.handleFavoriteClick();
@@ -1255,23 +1257,15 @@
                 }
 
                 try {
-                    // 獲取所有收藏記錄，然後檢查當前文章是否在其中
-                    const response = await fetch(`${window.api_prefix}/api/favorites`);
-                    // console.log('獲取收藏列表API回應:', response.status); // 已隱藏調試輸出
+                    // 使用更高效的 check API 直接查詢特定文章的收藏狀態
+                    const response = await fetch(`${window.api_prefix}/api/favorites/check?acId=${this.currentArticleId}&memId=${memId}`);
+                    // console.log('檢查收藏狀態API回應:', response.status); // 已隱藏調試輸出
 
                     const result = await response.json();
-                    // console.log('收藏列表結果:', result); // 已隱藏調試輸出
+                    // console.log('收藏狀態檢查結果:', result); // 已隱藏調試輸出
 
-                    if (response.ok && result.status === 'success' && result.data) {
-                        // console.log('收藏列表詳細數據:', result.data); // 已隱藏調試輸出
-
-                        // 檢查當前文章是否在收藏列表中
-                        // 後端返回的資料格式是 acId, memId
-                        const isFavorited = result.data.some(favorite => {
-                            const memMatch = favorite.memId === memId;
-                            const acMatch = favorite.acId === parseInt(this.currentArticleId);
-                            return memMatch && acMatch;
-                        });
+                    if (response.ok && result.status === 'success') {
+                        const isFavorited = result.data; // 直接取得布林值
 
                         if (isFavorited) {
                             this.favoriteBtn.classList.add('favorited');
@@ -1283,10 +1277,44 @@
                             // console.log('文章未收藏'); // 已隱藏調試輸出
                         }
                     } else {
-                        console.error('獲取收藏列表API回應錯誤:', result);
+                        console.error('檢查收藏狀態API回應錯誤:', result);
+                        // 如果 check API 失敗，回退到原本的方式
+                        this.fallbackCheckFavoriteStatus(memId);
                     }
                 } catch (error) {
                     console.error('檢查收藏狀態失敗:', error);
+                    // 如果 check API 失敗，回退到原本的方式
+                    this.fallbackCheckFavoriteStatus(memId);
+                }
+            }
+
+            // 回退方法：使用原本的方式檢查收藏狀態
+            async fallbackCheckFavoriteStatus(memId) {
+                try {
+                    // 獲取所有收藏記錄，然後檢查當前文章是否在其中
+                    const response = await fetch(`${window.api_prefix}/api/favorites`);
+                    const result = await response.json();
+
+                    if (response.ok && result.status === 'success' && result.data) {
+                        // 檢查當前文章是否在收藏列表中
+                        const isFavorited = result.data.some(favorite => {
+                            const memMatch = favorite.memId === memId;
+                            const acMatch = favorite.acId === parseInt(this.currentArticleId);
+                            return memMatch && acMatch;
+                        });
+
+                        if (isFavorited) {
+                            this.favoriteBtn.classList.add('favorited');
+                            this.favoriteBtn.querySelector('span').textContent = '已收藏';
+                        } else {
+                            this.favoriteBtn.classList.remove('favorited');
+                            this.favoriteBtn.querySelector('span').textContent = '收藏';
+                        }
+                    } else {
+                        console.error('回退檢查收藏狀態失敗:', result);
+                    }
+                } catch (error) {
+                    console.error('回退檢查收藏狀態失敗:', error);
                 }
             }
 
@@ -4157,6 +4185,29 @@
         // 添加到全域供手動測試
         window.testUploadStrategy = testUploadStrategy;
         */
+    </script>
+    <script>
+        // 文章內容圖片點擊放大（燈箱）
+        function bindArticleImageLightbox() {
+            const postBody = document.querySelector('.post-body');
+            if (!postBody) return;
+            postBody.querySelectorAll('img').forEach(img => {
+                img.style.cursor = 'zoom-in';
+                img.addEventListener('click', function () {
+                    if (window.replySystem && typeof window.replySystem.showImageLightbox === 'function') {
+                        window.replySystem.showImageLightbox(this.src);
+                    }
+                });
+            });
+        }
+
+        // 若文章內容是動態載入，請在內容載入後再呼叫
+        // 這裡先在 DOMContentLoaded 呼叫一次
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // 若文章內容是 AJAX 載入，請在內容插入後再呼叫
+            setTimeout(bindArticleImageLightbox, 800); // 延遲確保內容已載入
+        });
     </script>
 </body>
 

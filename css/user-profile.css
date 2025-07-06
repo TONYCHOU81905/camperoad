@@ -901,13 +901,16 @@
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
   width: 100%;
   box-sizing: border-box;
+  overflow-x: auto;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .article-table-header {
   display: grid;
-  grid-template-columns: 120px 4fr 1fr 1fr 1fr;
-  gap: 12px;
-  padding: 16px 12px;
+  grid-template-columns: 30px 80px 2.5fr 1fr 1fr 1fr;
+  gap: 10px;
+  padding: 10px 8px;
   background: #f8f9fa;
   border-bottom: 2px solid #e9ecef;
   font-weight: 600;
@@ -931,13 +934,20 @@
 
 .article-item {
   display: grid;
-  grid-template-columns: 120px 4fr 1fr 1fr 1fr;
-  gap: 12px;
-  padding: 16px 12px;
-  border-bottom: 1px solid #e9ecef;
+  grid-template-columns: 30px 80px 2.5fr 1fr 1fr 1fr;
+  gap: 10px;
+  padding: 10px 8px;
+  width: 100%;
+  box-sizing: border-box;
   align-items: center;
-  transition: background 0.2s ease;
-  min-height: 100px;
+}
+
+.article-item>* {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .article-item:hover {
@@ -955,45 +965,74 @@
 }
 
 .article-image {
-  width: 100px;
-  height: 80px;
+  width: 70px;
+  height: 56px;
   object-fit: cover;
   border-radius: 10px;
   box-shadow: 0 3px 12px rgba(0, 0, 0, 0.15);
 }
 
-.article-title-cell {
+.article-title-cell,
+.article-author-cell,
+.article-date-cell,
+.article-stats-cell {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+  word-break: break-all;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.article-title-cell {
+  align-items: flex-start;
+  justify-content: center;
   text-align: left;
-  padding: 5px 0;
+}
+
+.article-title-link,
+.article-preview,
+.article-tag {
+  width: 100%;
 }
 
 .article-title-link {
-  color: #333;
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 1.05rem;
-  line-height: 1.4;
-  transition: color 0.2s ease;
-  margin-bottom: 4px;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  word-break: break-all;
+  display: block;
 }
 
 .article-title-link:hover {
   color: #3A5A40;
 }
 
+.article-title-cell .article-preview {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
 .article-preview {
   color: #666;
   font-size: 0.92rem;
   line-height: 1.5;
-  max-height: 3.6em;
   overflow: hidden;
   text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  white-space: nowrap;
+}
+
+.article-preview img {
+  display: none;
 }
 
 .article-tag {
@@ -1114,4 +1153,134 @@
 
 .btn-search-submit:active {
   transform: scale(0.95);
+}
+
+/* 勾選框相關樣式 */
+.article-checkbox-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.article-checkbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #3A5A40;
+  transition: all 0.2s ease;
+}
+
+.article-checkbox:hover {
+  transform: scale(1.1);
+}
+
+/* 全選勾選框樣式 */
+#select-all-checkbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #3A5A40;
+  transition: all 0.2s ease;
+}
+
+#select-all-checkbox:hover {
+  transform: scale(1.1);
+}
+
+/* 刪除選中工具列樣式 */
+#delete-selected-bar {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+  border-radius: 8px;
+  padding: 12px 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+#delete-selected-btn {
+  background: #fff !important;
+  color: #dc3545 !important;
+  border: 2px solid #fff !important;
+  font-weight: 600 !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+#delete-selected-btn:hover {
+  background: #dc3545 !important;
+  color: #fff !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3) !important;
+}
+
+/* 勾選狀態的視覺反饋 */
+.article-item:has(.article-checkbox:checked) {
+  background-color: rgba(58, 90, 64, 0.05);
+  border-left: 4px solid #3A5A40;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+  .article-table-header {
+    grid-template-columns: 30px 80px 3fr 1fr 1fr 1fr !important;
+    gap: 8px !important;
+    padding: 12px 8px !important;
+    font-size: 0.8rem !important;
+  }
+
+  .article-item {
+    grid-template-columns: 30px 80px 3fr 1fr 1fr 1fr !important;
+    gap: 8px !important;
+    padding: 12px 8px !important;
+    min-height: 80px !important;
+  }
+
+  .article-image {
+    width: 70px !important;
+    height: 60px !important;
+  }
+
+  .article-title-link {
+    font-size: 0.9rem !important;
+    line-height: 1.3 !important;
+  }
+
+  .article-preview {
+    font-size: 0.8rem !important;
+    -webkit-line-clamp: 1 !important;
+  }
+
+  .article-author-cell,
+  .article-date-cell,
+  .article-stats-cell {
+    font-size: 0.75rem !important;
+  }
+
+  .article-checkbox,
+  #select-all-checkbox {
+    width: 16px;
+    height: 16px;
+  }
+
+  #delete-selected-bar {
+    padding: 10px 16px;
+    margin-bottom: 12px;
+  }
+
+  #delete-selected-btn {
+    font-size: 0.9rem !important;
+    padding: 6px 14px !important;
+  }
 }

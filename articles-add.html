@@ -428,120 +428,33 @@
         // 全域變數
         let quill;
         let currentMemberId = null;
-        let temporaryArticleId = null;  // 追蹤暫存文章ID
 
         // 上傳圖片到 article_image API
         async function uploadImageToAPI(file, articleId = null) {
             try {
-                console.log('🖼️ 開始上傳圖片:', {
+                console.log('🖼️ 開始智慧型圖片處理:', {
                     fileName: file.name,
-                    fileSize: file.size,
-                    articleId: articleId,
-                    temporaryArticleId: temporaryArticleId  // 添加這行來追蹤
+                    fileSize: file.size
                 });
 
-                // 使用 FormData 上傳檔案
-                const formData = new FormData();
-                formData.append('file', file);
-                if (articleId) {
-                    formData.append('articleId', articleId);
-                    console.log('使用提供的文章ID上傳:', articleId);
-                } else if (temporaryArticleId) {
-                    formData.append('articleId', temporaryArticleId);
-                    console.log('使用暫存文章ID上傳:', temporaryArticleId);
-                } else {
-                    console.log('沒有可用的文章ID');
-                }
-
-                const response = await fetch(`${window.api_prefix}/api/article-images/upload-direct`, {
-                    method: 'POST',
-                    body: formData
+                // 將檔案轉換為 Base64
+                const base64 = await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.readAsDataURL(file);
                 });
 
-                const result = await response.json();
-                console.log('📤 圖片上傳回應:', result);
+                // 直接返回 Base64 字串
+                return {
+                    success: true,
+                    imageUrl: base64
+                };
 
-                if (response.ok && result.status === 'success') {
-                    const imageId = result.data.acImgId;
-                    console.log('✅ 圖片上傳成功，ID:', imageId);
-                    return {
-                        success: true,
-                        imageId: imageId,
-                        imageUrl: `${window.api_prefix}/api/article-images/${imageId}/image`
-                    };
-                } else {
-                    throw new Error(result.message || '直接圖片上傳失敗');
-                }
             } catch (error) {
-                console.error('❌ 圖片上傳失敗:', error);
-                showMessage('圖片上傳失敗: ' + error.message, 'error');
+                console.error('❌ 圖片處理失敗:', error);
+                showMessage(`圖片處理失敗: ${error.message}`, 'error');
                 return { success: false, error: error.message };
             }
-        }
-
-        // 處理 Base64 圖片轉換為上傳圖片
-        async function handleBase64Images(htmlContent, articleId = null) {
-            if (!htmlContent || !htmlContent.includes('data:image')) {
-                return htmlContent;
-            }
-
-            console.log('🔄 開始處理 Base64 圖片...');
-
-            // 使用正則找出所有 Base64 圖片
-            const base64ImageRegex = /<img[^>]+src="data:image\/([^;]+);base64,([^"]+)"[^>]*>/g;
-            const matches = [...htmlContent.matchAll(base64ImageRegex)];
-
-            if (matches.length === 0) {
-                return htmlContent;
-            }
-
-            console.log(`📸 找到 ${matches.length} 張 Base64 圖片，開始轉換...`);
-            let processedContent = htmlContent;
-
-            for (let i = 0; i < matches.length; i++) {
-                const match = matches[i];
-                const [fullMatch, imageType, base64Data] = match;
-
-                try {
-                    // 將 Base64 轉換為 Blob
-                    const byteCharacters = atob(base64Data);
-                    const byteNumbers = new Array(byteCharacters.length);
-                    for (let j = 0; j < byteCharacters.length; j++) {
-                        byteNumbers[j] = byteCharacters.charCodeAt(j);
-                    }
-                    const byteArray = new Uint8Array(byteNumbers);
-                    const blob = new Blob([byteArray], { type: `image/${imageType}` });
-
-                    // 創建 File 物件
-                    const file = new File([blob], `pasted-image-${i + 1}.${imageType}`, {
-                        type: `image/${imageType}`
-                    });
-
-                    console.log(`📤 上傳第 ${i + 1} 張圖片...`);
-
-                    // 上傳圖片
-                    const uploadResult = await uploadImageToAPI(file, articleId);
-
-                    if (uploadResult.success) {
-                        // 替換 Base64 圖片為 API URL
-                        const newImageTag = `<img src="${uploadResult.imageUrl}" alt="上傳圖片" style="max-width: 100%; height: auto;" />`;
-                        processedContent = processedContent.replace(fullMatch, newImageTag);
-                        console.log(`✅ 第 ${i + 1} 張圖片替換成功`);
-                    } else {
-                        console.warn(`⚠️ 第 ${i + 1} 張圖片上傳失敗，保留佔位符`);
-                        // 可以選擇保留原圖片或替換為佔位符
-                        const placeholder = `<p>[圖片上傳失敗: ${uploadResult.error}]</p>`;
-                        processedContent = processedContent.replace(fullMatch, placeholder);
-                    }
-                } catch (error) {
-                    console.error(`❌ 處理第 ${i + 1} 張圖片時發生錯誤:`, error);
-                    const placeholder = `<p>[圖片處理錯誤: ${error.message}]</p>`;
-                    processedContent = processedContent.replace(fullMatch, placeholder);
-                }
-            }
-
-            console.log('🎉 Base64 圖片處理完成');
-            return processedContent;
         }
 
         // 初始化 Quill 編輯器
@@ -561,17 +474,8 @@
                             ['clean']
                         ],
                         handlers: {
-                            image: async function () {
+                            image: function () {
                                 console.log('🖼️ 觸發圖片上傳...');
-
-                                // 檢查是否有標題和分類
-                                const title = document.getElementById('title').value.trim();
-                                const typeId = document.getElementById('type').value;
-
-                                if (!title || !typeId) {
-                                    showMessage('請先填寫文章標題和選擇分類', 'warning');
-                                    return;
-                                }
 
                                 const input = document.createElement('input');
                                 input.setAttribute('type', 'file');
@@ -584,18 +488,6 @@
                                     if (files.length === 0) return;
 
                                     console.log(`📁 選擇了 ${files.length} 個檔案`);
-
-                                    // 確保有暫存文章ID
-                                    if (!temporaryArticleId) {
-                                        console.log('沒有暫存文章ID，創建新的暫存文章');
-                                        const newArticleId = await createTemporaryArticle();
-                                        if (!newArticleId) {
-                                            showMessage('無法建立暫存文章，請稍後再試', 'error');
-                                            return;
-                                        }
-                                    } else {
-                                        console.log('使用現有暫存文章:', temporaryArticleId);
-                                    }
 
                                     const range = quill.getSelection(true);
                                     let insertIndex = range ? range.index : 0;
@@ -614,8 +506,7 @@
                                         }
 
                                         try {
-                                            // 使用暫存文章ID上傳圖片
-                                            const uploadResult = await uploadImageToAPI(file, temporaryArticleId);
+                                            const uploadResult = await uploadImageToAPI(file, null);
 
                                             if (uploadResult.success) {
                                                 quill.insertEmbed(insertIndex, 'image', uploadResult.imageUrl);
@@ -635,7 +526,6 @@
                                         }
                                     }
 
-                                    // 顯示上傳結果
                                     if (failCount > 0 && successCount === 0) {
                                         showMessage(`❌ 所有圖片上傳失敗`, 'error');
                                     } else if (failCount > 0) {
@@ -644,79 +534,6 @@
                                 };
                             }
                         }
-                    }
-                }
-            });
-
-            // 監聽貼上事件，處理貼上的圖片
-            quill.root.addEventListener('paste', async function (e) {
-                const clipboardData = e.clipboardData;
-                if (!clipboardData) return;
-
-                const items = clipboardData.items;
-                const images = [];
-
-                // 檢查剪貼簿中是否有圖片
-                for (let i = 0; i < items.length; i++) {
-                    if (items[i].type.indexOf('image') !== -1) {
-                        images.push(items[i].getAsFile());
-                    }
-                }
-
-                if (images.length > 0) {
-                    console.log(`📋 貼上了 ${images.length} 張圖片`);
-                    e.preventDefault(); // 阻止預設的貼上行為
-
-                    // 檢查是否有標題和分類
-                    const title = document.getElementById('title').value.trim();
-                    const typeId = document.getElementById('type').value;
-
-                    if (!title || !typeId) {
-                        showMessage('請先填寫文章標題和選擇分類', 'warning');
-                        return;
-                    }
-
-                    // 確保有暫存文章ID
-                    if (!temporaryArticleId) {
-                        console.log('沒有暫存文章ID，創建新的暫存文章');
-                        const newArticleId = await createTemporaryArticle();
-                        if (!newArticleId) {
-                            showMessage('無法建立暫存文章，請稍後再試', 'error');
-                            return;
-                        }
-                    } else {
-                        console.log('使用現有暫存文章:', temporaryArticleId);
-                    }
-
-                    const range = quill.getSelection(true);
-                    let insertIndex = range ? range.index : 0;
-                    let successCount = 0;
-                    let failCount = 0;
-
-                    for (const imageFile of images) {
-                        try {
-                            // 使用暫存文章ID上傳圖片
-                            const uploadResult = await uploadImageToAPI(imageFile, temporaryArticleId);
-
-                            if (uploadResult.success) {
-                                quill.insertEmbed(insertIndex, 'image', uploadResult.imageUrl);
-                                quill.insertText(insertIndex + 1, '\n');
-                                successCount++;
-                                insertIndex += 2;
-                            } else {
-                                failCount++;
-                            }
-                        } catch (error) {
-                            console.error('貼上圖片上傳錯誤:', error);
-                            failCount++;
-                        }
-                    }
-
-                    // 顯示上傳結果
-                    if (failCount > 0 && successCount === 0) {
-                        showMessage('❌ 貼上的圖片處理失敗', 'error');
-                    } else if (failCount > 0) {
-                        showMessage(`⚠️ ${failCount} 張圖片上傳失敗`, 'warning');
                     }
                 }
             });
@@ -869,181 +686,6 @@
             }
         }
 
-        // 檢查內容是否包含圖片
-        function hasImages(content) {
-            return content.includes('<img') || content.includes('data:image');
-        }
-
-        // 清理 HTML 內容，移除不必要的標籤和屬性
-        function cleanHtmlContent(content) {
-            // 創建臨時 DOM 元素來清理內容
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = content;
-
-            // 移除空的段落
-            const emptyParagraphs = tempDiv.querySelectorAll('p:empty, p:only-child:has(br:only-child)');
-            emptyParagraphs.forEach(p => {
-                if (p.innerHTML === '' || p.innerHTML === '<br>') {
-                    p.remove();
-                }
-            });
-
-            // 確保內容不為空
-            if (tempDiv.innerHTML.trim() === '' || tempDiv.innerHTML === '<p><br></p>') {
-                return '<p>請輸入文章內容...</p>';
-            }
-
-            return tempDiv.innerHTML;
-        }
-
-        // 圖片分析功能
-        async function analyzeImages(content) {
-            try {
-                const response = await fetch(`${window.api_prefix}/api/articles/analyze-images`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(content)
-                });
-
-                const result = await response.json();
-                if (response.ok && result.status === 'success') {
-                    return result.data;
-                } else {
-                    console.warn('圖片分析失敗:', result);
-                    return null;
-                }
-            } catch (error) {
-                console.warn('圖片分析錯誤:', error);
-                return null;
-            }
-        }
-
-        // 顯示圖片分析結果
-        function showImageAnalysis(analysis) {
-            if (!analysis || analysis.totalImages === 0) return;
-
-            const strategyCounts = analysis.strategies;
-            let analysisMessage = `檢測到 ${analysis.totalImages} 張圖片 (總大小: ${analysis.totalSizeMB} MB)\n\n`;
-
-            if (strategyCounts.BASE64 > 0) {
-                analysisMessage += `📁 小檔案: ${strategyCounts.BASE64} 張 (直接嵌入)\n`;
-            }
-            if (strategyCounts.DIRECT_UPLOAD > 0) {
-                analysisMessage += `🖼️ 中檔案: ${strategyCounts.DIRECT_UPLOAD} 張 (直接上傳)\n`;
-            }
-            if (strategyCounts.CHUNKED_UPLOAD > 0) {
-                analysisMessage += `📦 大檔案: ${strategyCounts.CHUNKED_UPLOAD} 張 (分塊上傳)\n`;
-            }
-
-            showMessage(analysisMessage, 'warning');
-        }
-
-        // 表單送出事件 - 增強版
-        document.getElementById('add-article-form').addEventListener('submit', async function (e) {
-            e.preventDefault();
-
-            const submitBtn = document.getElementById('submit-btn');
-            const form = document.getElementById('add-article-form');
-
-            // 取得表單資料
-            const title = document.getElementById('title').value.trim();
-            const acTypeId = parseInt(document.getElementById('type').value);
-            const rawContent = quill.root.innerHTML;
-            const content = cleanHtmlContent(rawContent);
-            const memId = parseInt(currentMemberId);
-
-            // 詳細驗證資料
-            if (!title) {
-                showMessage('請輸入文章標題', 'error');
-                return;
-            }
-
-            if (!acTypeId || isNaN(acTypeId)) {
-                showMessage('請選擇文章分類', 'error');
-                return;
-            }
-
-            if (!content || content === '<p>請輸入文章內容...</p>') {
-                showMessage('請輸入文章內容', 'error');
-                return;
-            }
-
-            if (!memId || isNaN(memId)) {
-                showMessage('會員資訊錯誤，請重新登入', 'error');
-                return;
-            }
-
-            try {
-                // 顯示載入狀態
-                submitBtn.textContent = '發布中...';
-                submitBtn.classList.add('loading');
-                form.classList.add('loading');
-
-                // 準備發送的資料
-                const articleData = {
-                    acTitle: title,
-                    acContext: content,
-                    memId: memId,
-                    acTypeId: acTypeId,
-                    acStatus: 0  // 改為正式發布狀態
-                };
-
-                let response;
-                let result;
-
-                // 如果有暫存文章，則更新該文章
-                if (temporaryArticleId) {
-                    response = await fetch(`${window.api_prefix}/api/articles/${temporaryArticleId}`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(articleData)
-                    });
-                } else {
-                    // 如果沒有暫存文章，則新建文章
-                    response = await fetch(`${window.api_prefix}/api/articles`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(articleData)
-                    });
-                }
-
-                result = await response.json();
-
-                if (response.ok && result.status === 'success') {
-                    showMessage('文章發布成功！即將跳轉到文章頁面...', 'success');
-
-                    // 清除暫存文章ID（因為已經正式發布）
-                    temporaryArticleId = null;
-
-                    // 跳轉到文章詳情頁面
-                    setTimeout(() => {
-                        const articleId = result.data.acId;
-                        if (articleId) {
-                            window.location.href = `articles.html?id=${articleId}`;
-                        } else {
-                            window.location.href = 'articles.html';
-                        }
-                    }, 2000);
-                } else {
-                    throw new Error(result.message || '發布失敗');
-                }
-            } catch (error) {
-                console.error('發布文章時發生錯誤:', error);
-                showMessage(`發布失敗: ${error.message}`, 'error');
-            } finally {
-                // 恢復按鈕狀態
-                submitBtn.textContent = '發布文章';
-                submitBtn.classList.remove('loading');
-                form.classList.remove('loading');
-            }
-        });
-
         // 動態載入文章分類
         async function loadArticleTypes() {
             const select = document.getElementById('type');
@@ -1084,161 +726,53 @@
             loadArticleTypes();
             initQuillEditor();
 
-            // 監聽頁面離開事件
-            window.addEventListener('beforeunload', async function (e) {
-                // 如果有暫存文章且沒有正式發布，則刪除
-                if (temporaryArticleId) {
-                    await deleteTemporaryArticle();
+            // 添加表單提交處理
+            document.getElementById('add-article-form').onsubmit = async function (e) {
+                e.preventDefault();
+
+                try {
+                    const formData = {
+                        acTitle: document.getElementById('title').value,
+                        acContext: quill.root.innerHTML,
+                        memId: currentMemberId,
+                        acTypeId: parseInt(document.getElementById('type').value)
+                    };
+
+                    // 使用智慧型 API 創建文章
+                    const response = await fetch(`${window.api_prefix}/api/articles/smart-create`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(formData)
+                    });
+
+                    const result = await response.json();
+
+                    if (result.status === 'success') {
+                        showMessage('文章發布成功!', 'success');
+                        setTimeout(() => {
+                            // 從回應中獲取文章ID並跳轉
+                            const articleId = result.data.article.acId;
+                            window.location.href = `articles.html?acId=${articleId}`;
+                        }, 1500);
+                    } else if (result.status === 'chunked_required') {
+                        showMessage('正在處理大型圖片,請稍候...', 'warning');
+                        // 等待後端處理完成後跳轉到新文章
+                        setTimeout(() => {
+                            const articleId = result.data.article.acId;
+                            window.location.href = `articles.html?acId=${articleId}`;
+                        }, 3000);
+                    } else {
+                        throw new Error(result.message || '發布失敗');
+                    }
+
+                } catch (error) {
+                    console.error('發布失敗:', error);
+                    showMessage(`發布失敗: ${error.message}`, 'error');
                 }
-            });
-        });
-
-        // 測試函數供開發者使用
-        window.testImageUpload = async function (file) {
-            if (!file) {
-                console.error('請提供檔案，例如: testImageUpload(檔案物件)');
-                return;
-            }
-
-            console.log('🧪 測試圖片上傳...');
-            return await uploadImageToAPI(file, null);
-        };
-
-        // 檢查內容長度和圖片狀況
-        window.checkContent = function () {
-            if (!quill) {
-                console.error('❌ 編輯器未初始化');
-                return;
-            }
-
-            const rawContent = quill.root.innerHTML;
-            const textContent = quill.getText();
-            const cleanedContent = cleanHtmlContent(rawContent);
-
-            console.log('📏 內容分析報告:');
-            console.log('────────────────────');
-            console.log('📝 原始 HTML 長度:', rawContent.length);
-            console.log('📄 純文字長度:', textContent.length);
-            console.log('🧹 清理後 HTML 長度:', cleanedContent.length);
-            console.log('🖼️ Base64 圖片數量:', (rawContent.match(/data:image/g) || []).length);
-            console.log('🔗 外部圖片數量:', (rawContent.match(/<img(?![^>]*data:image)[^>]*>/g) || []).length);
-            console.log('⚠️ 是否超過限制 (4000):', cleanedContent.length > 4000);
-
-            if (cleanedContent.length > 4000) {
-                console.log('🚨 需要縮減:', cleanedContent.length - 4000, '個字元');
-            }
-
-            // 檢測可能的圖片問題
-            const base64Count = (rawContent.match(/data:image/g) || []).length;
-            if (base64Count > 0) {
-                console.log('⚠️ 檢測到 Base64 圖片，建議：');
-                console.log('   1. 使用圖片按鈕上傳圖片');
-                console.log('   2. 或提交時會自動處理');
-            }
-
-            return {
-                raw: rawContent.length,
-                text: textContent.length,
-                cleaned: cleanedContent.length,
-                base64Images: base64Count,
-                externalImages: (rawContent.match(/<img(?![^>]*data:image)[^>]*>/g) || []).length,
-                exceeded: cleanedContent.length > 4000,
-                overBy: Math.max(0, cleanedContent.length - 4000)
             };
-        };
-
-        // 測試 Base64 處理功能
-        window.testBase64Processing = async function () {
-            if (!quill) {
-                console.error('❌ 編輯器未初始化');
-                return;
-            }
-
-            const content = quill.root.innerHTML;
-
-            if (!content.includes('data:image')) {
-                console.log('ℹ️ 目前內容中沒有 Base64 圖片');
-                return;
-            }
-
-            console.log('🧪 測試 Base64 圖片處理...');
-            const result = await handleBase64Images(content, null);
-
-            console.log('📊 處理結果:');
-            console.log('原始長度:', content.length);
-            console.log('處理後長度:', result.length);
-            console.log('原始 Base64 數量:', (content.match(/data:image/g) || []).length);
-            console.log('處理後 Base64 數量:', (result.match(/data:image/g) || []).length);
-
-            return result;
-        };
-
-        // 創建暫存文章
-        async function createTemporaryArticle() {
-            try {
-                console.log('開始創建暫存文章，當前暫存ID:', temporaryArticleId);
-
-                // 如果已經有暫存文章ID，直接返回
-                if (temporaryArticleId) {
-                    console.log('使用現有暫存文章:', temporaryArticleId);
-                    return temporaryArticleId;
-                }
-
-                const tempArticleData = {
-                    acTitle: document.getElementById('title').value || '暫存文章',
-                    acContext: '<p>暫存文章內容</p>',
-                    memId: currentMemberId,
-                    acTypeId: parseInt(document.getElementById('type').value),
-                    acStatus: 2  // 使用狀態 2 表示暫存
-                };
-
-                console.log('準備創建新暫存文章:', tempArticleData);
-
-                const response = await fetch(`${window.api_prefix}/api/articles`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(tempArticleData)
-                });
-
-                const result = await response.json();
-                console.log('創建暫存文章結果:', result);
-
-                if (response.ok && result.status === 'success') {
-                    temporaryArticleId = result.data.acId;  // 儲存暫存文章ID
-                    console.log('新暫存文章創建成功，ID:', temporaryArticleId);
-                    return temporaryArticleId;
-                } else {
-                    throw new Error(result.message || '建立暫存文章失敗');
-                }
-            } catch (error) {
-                console.error('建立暫存文章失敗:', error);
-                showMessage('建立暫存文章失敗，請稍後再試', 'error');
-                return null;
-            }
-        }
-
-        // 添加刪除暫存文章的函數
-        async function deleteTemporaryArticle() {
-            if (!temporaryArticleId) return;
-
-            try {
-                const response = await fetch(`${window.api_prefix}/api/articles/${temporaryArticleId}`, {
-                    method: 'DELETE'
-                });
-
-                if (response.ok) {
-                    console.log('暫存文章已刪除:', temporaryArticleId);
-                } else {
-                    console.error('刪除暫存文章失敗:', temporaryArticleId);
-                }
-            } catch (error) {
-                console.error('刪除暫存文章時發生錯誤:', error);
-            } finally {
-                temporaryArticleId = null;  // 重置暫存文章ID
-            }
-        }
+        });
     </script>
 </body>
 
