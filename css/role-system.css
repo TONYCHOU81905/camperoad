@@ -1679,7 +1679,7 @@ input:checked+.toggle-slider:before {
 .coupon-status {
   padding: 4px 8px;
   border-radius: 12px;
-  font-size: 11px;
+  font-size: 15px;
   font-weight: 600;
   text-transform: uppercase;
 }
@@ -1699,19 +1699,41 @@ input:checked+.toggle-slider:before {
   color: #721c24;
 }
 
+/* 顯示折價券使用日期 */
+.coupon-used-date {
+  display: none;
+  font-size: 14px;
+  color: #999;
+  margin-top: 5px;
+  transition: opacity 0.3s ease;
+}
+
+/* 顯示折價券使用日期 */
+.coupon-card.used:hover .coupon-used-date {
+  display: block;
+  opacity: 1;
+}
+
+/* 折價券過期樣式 */
+.text-muted {
+  color: #999;
+  font-style: italic;
+  font-size: 14px;
+}
+
 .coupon-content {
   padding: 15px 20px;
 }
 
 .coupon-title {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 600;
   color: #2c3e50;
   margin-bottom: 8px;
 }
 
 .coupon-discount {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 700;
   color: #e74c3c;
   margin-bottom: 10px;
@@ -1722,6 +1744,8 @@ input:checked+.toggle-slider:before {
   color: #7f8c8d;
   line-height: 1.4;
 }
+
+
 
 .coupon-footer {
   padding: 10px 20px 15px;
@@ -1872,6 +1896,7 @@ input:checked+.toggle-slider:before {
 .btn-edit {
   background: #f39c12;
   color: white;
+  
 }
 
 .btn-edit:hover {
@@ -1885,6 +1910,19 @@ input:checked+.toggle-slider:before {
 
 .btn-delete:hover {
   background: #c0392b;
+}
+
+.btn-send {
+  background-color: #2196f3;
+  color: white;
+}
+.btn-send:hover {
+  background-color: #1976d2;
+}
+
+.text-muted {
+  color: #888;
+  font-style: italic;
 }
 
 .payment-card-content {

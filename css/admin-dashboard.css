@@ -763,6 +763,11 @@
   background-color: #6b9b73;
 }
 
+.btn-edit-discount {
+  background-color: #6b9b73;
+  margin-bottom: 10px;
+}
+
 .btn-edit:hover {
   background-color: #5a8c69;
 }
