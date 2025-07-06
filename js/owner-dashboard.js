@@ -257,7 +257,7 @@ class OwnerDashboard {
         credentials: "include", // 包含Cookie
       });
 
-      console.log("responseOwner:" + responseOwner);
+      console.log("responseOwner:", responseOwner);
 
       if (!responseOwner.ok) {
         const errorData = await responseOwner.json();
