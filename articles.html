@@ -558,6 +558,19 @@
             border-color: #3a5a40;
         }
 
+        .page-ellipsis {
+            padding: 8px 4px;
+            color: #999;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .prev-btn,
+        .next-btn {
+            font-weight: 500;
+        }
+
         @media (max-width: 768px) {
             .forum-post {
                 flex-direction: column;
@@ -644,6 +657,125 @@
             min-height: 100px;
             font-size: 0.9rem;
         }
+
+        /* 留言圖片預覽樣式 */
+        .image-preview-item {
+            position: relative;
+            display: inline-block;
+            width: 80px;
+            height: 80px;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 2px solid #e9ecef;
+            background: #f8f9fa;
+        }
+
+        .image-preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .image-preview-item .remove-image {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .image-preview-item .remove-image:hover {
+            background: #c82333;
+        }
+
+        /* 拖拽區域樣式 */
+        .comment-form.drag-over {
+            border: 2px dashed #3A5A40 !important;
+            background: rgba(58, 90, 64, 0.05) !important;
+        }
+
+        .comment-form.drag-over::before {
+            content: "拖拽圖片到此處上傳";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(58, 90, 64, 0.9);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* 留言中的圖片顯示 */
+        .comment-images {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .comment-image {
+            max-width: 150px;
+            max-height: 150px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid #e9ecef;
+        }
+
+        .comment-image:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        /* 圖片燈箱 */
+        .image-lightbox {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            cursor: pointer;
+        }
+
+        .image-lightbox img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .image-lightbox .close-lightbox {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.8);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            color: #333;
+        }
     </style>
 </head>
 
@@ -691,11 +823,12 @@
                 <div class="forum-post">
                     <div class="post-author">
                         <div class="author-avatar">
-                            <img src="images/user-1.jpg" alt="作者頭像" />
+                            <img src="images/user-1.jpg" alt="作者頭像" id="article-author-avatar" style="display:none;" />
                         </div>
                         <div class="author-name">載入中...</div>
                         <div class="author-camper-badge" style="display:none;">露營者</div>
                         <div class="author-stats">
+                            <p><span>會員編號:</span> <span>載入中...</span></p>
                             <p><span>發文數:</span> <span>載入中...</span></p>
                             <p><span>註冊時間:</span> <span>載入中...</span></p>
                         </div>
@@ -759,14 +892,29 @@
 
                 <div class="comment-form">
                     <div id="reply-info"></div>
-                    <textarea placeholder="分享你的露營經驗或提出問題..."></textarea>
+                    <textarea id="reply-textarea" placeholder="分享你的露營經驗或提出問題..."></textarea>
+
+                    <!-- 圖片預覽區域 -->
+                    <div id="image-preview-container"
+                        style="display: none; margin: 10px 0; padding: 10px; border: 1px dashed #ddd; border-radius: 4px;">
+                        <div class="preview-header"
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <span style="font-size: 0.9rem; color: #666;">📷 已選擇的圖片 (<span
+                                    id="image-count">0</span>/5)</span>
+                            <button type="button" id="clear-all-images"
+                                style="background: #dc3545; color: white; border: none; padding: 4px 8px; border-radius: 3px; font-size: 0.8rem; cursor: pointer;">清除全部</button>
+                        </div>
+                        <div id="image-preview-list" style="display: flex; flex-wrap: wrap; gap: 10px;"></div>
+                    </div>
+
                     <div class="comment-form-actions">
                         <div class="comment-tools">
-                            <button class="tool-btn" title="插入圖片"><i class="fas fa-image"></i></button>
-                            <button class="tool-btn" title="插入連結"><i class="fas fa-link"></i></button>
-                            <button class="tool-btn" title="表情符號"><i class="fas fa-smile"></i></button>
+                            <button type="button" class="tool-btn" id="upload-image-btn" title="上傳圖片"><i
+                                    class="fas fa-image"></i></button>
+                            <input type="file" id="image-file-input" accept="image/*" multiple style="display: none;">
+                            <span style="font-size: 0.8rem; color: #666; margin-left: 10px;">支援拖拽、粘貼或選擇圖片 (最多5張)</span>
                         </div>
-                        <button class="btn-submit-comment">發布留言</button>
+                        <button type="button" class="btn-submit-comment" id="submit-reply-btn">發布留言</button>
                     </div>
                 </div>
 
@@ -875,6 +1023,8 @@
             setupFavoriteButton() {
                 this.favoriteBtn = document.getElementById('favorite-btn');
                 if (this.favoriteBtn) {
+                    // 從URL獲取文章ID
+                    this.currentArticleId = new URLSearchParams(window.location.search).get('id');
                     this.favoriteBtn.addEventListener('click', (e) => {
                         e.preventDefault();
                         this.handleFavoriteClick();
@@ -1107,23 +1257,15 @@
                 }
 
                 try {
-                    // 獲取所有收藏記錄，然後檢查當前文章是否在其中
-                    const response = await fetch(`${window.api_prefix}/api/favorites`);
-                    // console.log('獲取收藏列表API回應:', response.status); // 已隱藏調試輸出
+                    // 使用更高效的 check API 直接查詢特定文章的收藏狀態
+                    const response = await fetch(`${window.api_prefix}/api/favorites/check?acId=${this.currentArticleId}&memId=${memId}`);
+                    // console.log('檢查收藏狀態API回應:', response.status); // 已隱藏調試輸出
 
                     const result = await response.json();
-                    // console.log('收藏列表結果:', result); // 已隱藏調試輸出
+                    // console.log('收藏狀態檢查結果:', result); // 已隱藏調試輸出
 
-                    if (response.ok && result.status === 'success' && result.data) {
-                        // console.log('收藏列表詳細數據:', result.data); // 已隱藏調試輸出
-
-                        // 檢查當前文章是否在收藏列表中
-                        // 後端返回的資料格式是 acId, memId
-                        const isFavorited = result.data.some(favorite => {
-                            const memMatch = favorite.memId === memId;
-                            const acMatch = favorite.acId === parseInt(this.currentArticleId);
-                            return memMatch && acMatch;
-                        });
+                    if (response.ok && result.status === 'success') {
+                        const isFavorited = result.data; // 直接取得布林值
 
                         if (isFavorited) {
                             this.favoriteBtn.classList.add('favorited');
@@ -1135,10 +1277,44 @@
                             // console.log('文章未收藏'); // 已隱藏調試輸出
                         }
                     } else {
-                        console.error('獲取收藏列表API回應錯誤:', result);
+                        console.error('檢查收藏狀態API回應錯誤:', result);
+                        // 如果 check API 失敗，回退到原本的方式
+                        this.fallbackCheckFavoriteStatus(memId);
                     }
                 } catch (error) {
                     console.error('檢查收藏狀態失敗:', error);
+                    // 如果 check API 失敗，回退到原本的方式
+                    this.fallbackCheckFavoriteStatus(memId);
+                }
+            }
+
+            // 回退方法：使用原本的方式檢查收藏狀態
+            async fallbackCheckFavoriteStatus(memId) {
+                try {
+                    // 獲取所有收藏記錄，然後檢查當前文章是否在其中
+                    const response = await fetch(`${window.api_prefix}/api/favorites`);
+                    const result = await response.json();
+
+                    if (response.ok && result.status === 'success' && result.data) {
+                        // 檢查當前文章是否在收藏列表中
+                        const isFavorited = result.data.some(favorite => {
+                            const memMatch = favorite.memId === memId;
+                            const acMatch = favorite.acId === parseInt(this.currentArticleId);
+                            return memMatch && acMatch;
+                        });
+
+                        if (isFavorited) {
+                            this.favoriteBtn.classList.add('favorited');
+                            this.favoriteBtn.querySelector('span').textContent = '已收藏';
+                        } else {
+                            this.favoriteBtn.classList.remove('favorited');
+                            this.favoriteBtn.querySelector('span').textContent = '收藏';
+                        }
+                    } else {
+                        console.error('回退檢查收藏狀態失敗:', result);
+                    }
+                } catch (error) {
+                    console.error('回退檢查收藏狀態失敗:', error);
                 }
             }
 
@@ -1307,239 +1483,2577 @@
         });
     </script>
     <script>
-        // 留言送出功能 + 回覆功能
-        let replyToFloor = null;
-        let replyToContent = null;
-        function setReplyTo(floor, content) {
-            replyToFloor = floor;
-            replyToContent = content;
-            // 顯示在表單上方
-            let replyInfo = document.getElementById('reply-info');
-            if (!replyInfo) {
-                replyInfo = document.createElement('div');
-                replyInfo.id = 'reply-info';
-                replyInfo.style = 'background:#f2f2f2;color:#555;padding:8px 12px;margin-bottom:8px;border-left:4px solid #bbb;font-size:0.97em;';
-                const form = document.querySelector('.comment-form');
-                form.insertBefore(replyInfo, form.firstChild);
-            }
-            replyInfo.innerHTML = `回覆 #${floor}: ${content}`;
-        }
-        function clearReplyTo() {
-            replyToFloor = null;
-            replyToContent = null;
-            const replyInfo = document.getElementById('reply-info');
-            if (replyInfo) replyInfo.remove();
-        }
+        // 初始化頭像（隱藏狀態，等待真實頭像載入）
+        document.addEventListener('DOMContentLoaded', function () {
+            const authorAvatarImg = document.getElementById('article-author-avatar');
+            if (authorAvatarImg) {
+                console.log('🎭 設置預設頭像，等待API載入真實頭像');
 
-        // 新增：留言排序功能
-        let allReplies = [];
-        function renderRepliesSorted(sortType = 'newest') {
-            if (!allReplies || allReplies.length === 0) return;
-            // 先依時間遞增排序，取得正確樓層順序
-            const timeSorted = allReplies.slice().sort((a, b) => new Date(a.replyTime) - new Date(b.replyTime));
-            function getReplyKey(reply) {
-                return reply.replyId || reply.id || (reply.replyTime + '_' + (reply.memId || reply.mem_id || ''));
+                // 初始隱藏頭像，避免閃爍
+                authorAvatarImg.style.display = 'none';
+
+                // 設置隨機 user- 圖片作為初始值
+                const randomUserImg = `images/user-${Math.floor(Math.random() * 4) + 1}.jpg`;
+                authorAvatarImg.src = randomUserImg;
+
+                // 重置更新標記
+                authorAvatarImg.dataset.avatarUpdated = 'false';
+
+                // 監聽src變化，防止被其他腳本修改為非預期圖片
+                const observer = new MutationObserver(function (mutations) {
+                    mutations.forEach(function (mutation) {
+                        if (mutation.type === 'attributes' && mutation.attributeName === 'src') {
+                            const newSrc = authorAvatarImg.src;
+                            // 如果被設定為非預期圖片（不是API URL、不是user-圖片），則阻止
+                            if (newSrc &&
+                                !newSrc.includes('/member/') &&
+                                !newSrc.includes('user-')) {
+                                console.log('🚫 阻止設定非預期頭像:', newSrc);
+                                authorAvatarImg.src = randomUserImg;
+                            }
+                        }
+                    });
+                });
+
+                observer.observe(authorAvatarImg, {
+                    attributes: true,
+                    attributeFilter: ['src']
+                });
             }
-            const floorMap = new Map();
-            timeSorted.forEach((reply, idx) => {
-                floorMap.set(getReplyKey(reply), idx + 1);
-            });
-            let sorted;
-            if (sortType === 'oldest') {
-                // 最早回覆：最早留言在最上方，最新留言在最下方
-                sorted = timeSorted;
-            } else {
-                // 最新回覆：最新留言在最上方，最早留言在最下方
-                sorted = timeSorted.slice().reverse();
+        });
+    </script>
+    <script>
+        // 增強版留言系統 - 支援圖片上傳
+        class EnhancedReplySystem {
+            constructor() {
+                this.replyToFloor = null;
+                this.replyToContent = null;
+                this.allReplies = [];
+                this.selectedImages = [];
+                this.maxImages = 5;
+                this.articleId = null;
+                this.commentsInitialized = false;
+                this.isSubmitting = false;
+                this.isEditSubmitting = false;
+
+                // 分頁相關屬性
+                this.currentPage = 1;
+                this.pageSize = 10;
+                this.totalPages = 1;
+
+                // 綁定方法以保持 this 上下文
+                this.handleImageSelect = this.handleImageSelect.bind(this);
+                this.handleDragOver = this.handleDragOver.bind(this);
+                this.handleDrop = this.handleDrop.bind(this);
+                this.handlePaste = this.handlePaste.bind(this);
             }
-            const commentsList = document.querySelector('.comments-list');
-            if (!commentsList) return;
-            // 完整留言格式（含頭像、作者、時間、內容、刪除/回覆等）
-            commentsList.innerHTML = sorted.map((reply, idx) => {
-                const floorNum = floorMap.get(getReplyKey(reply)) || 1;
-                const authorName = reply.memName || reply.mem_name || '露營愛好者';
-                const replyDate = reply.replyTime ? new Date(reply.replyTime).toLocaleString() : '';
-                let replyQuoteHtml = '';
-                if (reply.replyToFloor && reply.replyToContent) {
-                    replyQuoteHtml = `<div class=\"reply-quote\" style=\"color:#555;background:#f2f2f2;padding:8px 12px;margin-bottom:8px;border-left:4px solid #bbb;font-size:0.97em;\">回覆 #${reply.replyToFloor}: ${reply.replyToContent}</div>`;
+
+            // 設置回覆 (已禁用)
+            setReplyTo(floor, content) {
+                // 回覆功能已暫時禁用
+                console.log('📝 回覆功能暫時禁用');
+                return;
+            }
+
+            // 清除回覆 (已禁用)
+            clearReplyTo() {
+                // 回覆功能已暫時禁用
+                console.log('📝 回覆功能暫時禁用');
+                return;
+            }
+
+            // 圖片處理功能
+            async convertFileToBase64(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            // 添加圖片到預覽
+            async addImageToPreview(file) {
+                if (this.selectedImages.length >= this.maxImages) {
+                    this.showMessage(`最多只能上傳 ${this.maxImages} 張圖片`, 'warning');
+                    return;
                 }
-                // 刪除按鈕（僅本人可見）
-                let deleteBtnHtml = '';
-                let currentMemId = null;
+
+                // 檢查檔案大小 (10MB)
+                if (file.size > 10 * 1024 * 1024) {
+                    this.showMessage('圖片大小不能超過 10MB', 'error');
+                    return;
+                }
+
+                // 檢查檔案類型
+                if (!file.type.startsWith('image/')) {
+                    this.showMessage('只能上傳圖片檔案', 'error');
+                    return;
+                }
+
                 try {
-                    const memberData = localStorage.getItem('currentMember') || sessionStorage.getItem('currentMember');
-                    if (memberData) {
-                        const member = JSON.parse(memberData);
-                        currentMemId = member.mem_id || member.memId;
-                    }
-                } catch (e) { currentMemId = null; }
-                if (currentMemId && (reply.memId == currentMemId || reply.mem_id == currentMemId)) {
-                    deleteBtnHtml = `<button class=\"delete-reply-btn\" data-replyid=\"${reply.replyId || reply.id}\" style=\"position:absolute;top:8px;right:12px;background:#dc3545;color:#fff;border:none;border-radius:3px;padding:2px 10px;cursor:pointer;font-size:0.95em;z-index:2;\">刪除</button>`;
+                    const base64 = await this.convertFileToBase64(file);
+                    const imageData = {
+                        file: file,
+                        base64: base64,
+                        id: Date.now() + Math.random()
+                    };
+
+                    this.selectedImages.push(imageData);
+                    this.updateImagePreview();
+                } catch (error) {
+                    console.error('圖片處理失敗:', error);
+                    this.showMessage('圖片處理失敗', 'error');
                 }
-                return `
-                    <div class=\"comment-item\" style=\"position:relative;\">
-                        ${deleteBtnHtml}
-                        <div class=\"comment-header\">
-                            <div class=\"comment-avatar\">
-                                <img src=\"images/user-${((idx % 4) + 1)}.jpg\" alt=\"留言者頭像\" />
-                            </div>
-                            <div class=\"comment-author\">
-                                <div class=\"comment-author-name\">${authorName}</div>
-                                <div class=\"comment-date\">${replyDate}</div>
-                            </div>
-                            <div class=\"comment-floor\">#${floorNum}</div>
-                        </div>
-                        <div class=\"comment-content\">
-                            ${replyQuoteHtml}
-                            ${reply.replyContext ? reply.replyContext.replace(/\n/g, '<br>') : '無內容'}
-                        </div>
-                        <div class=\"comment-actions\">
-                            <a href=\"#\" class=\"comment-action reply-btn\" data-floor=\"${floorNum}\" data-content=\"${(reply.replyContext || '').replace(/\"/g, '&quot;')}\">
-                                <i class=\"fas fa-reply\"></i>
-                                <span>回覆</span>
-                            </a>
-                        </div>
+            }
+
+            // 更新圖片預覽
+            updateImagePreview() {
+                const container = document.getElementById('image-preview-container');
+                const list = document.getElementById('image-preview-list');
+                const count = document.getElementById('image-count');
+
+                if (this.selectedImages.length === 0) {
+                    container.style.display = 'none';
+                    return;
+                }
+
+                container.style.display = 'block';
+                count.textContent = this.selectedImages.length;
+
+                list.innerHTML = this.selectedImages.map((img, index) => `
+                    <div class="image-preview-item">
+                        <img src="${img.base64}" alt="預覽圖片 ${index + 1}">
+                        <button type="button" class="remove-image" onclick="window.replySystem.removeImage(${index})" title="移除圖片">×</button>
                     </div>
-                `;
-            }).join('');
-            // 綁定回覆與刪除事件
-            setTimeout(() => {
-                const replyBtns = document.querySelectorAll('.reply-btn');
-                replyBtns.forEach(btn => {
-                    btn.onclick = function (e) {
+                `).join('');
+            }
+
+            // 移除單張圖片
+            removeImage(index) {
+                this.selectedImages.splice(index, 1);
+                this.updateImagePreview();
+
+                // 更新動態上傳區域內容
+                const dynamicUploadArea = document.getElementById('dynamic-image-upload-area');
+                if (dynamicUploadArea && dynamicUploadArea.style.display !== 'none') {
+                    this.updateDynamicUploadAreaContent(dynamicUploadArea);
+                }
+            }
+
+            // 清除所有圖片
+            clearAllImages() {
+                this.selectedImages = [];
+                this.updateImagePreview();
+
+                // 更新動態上傳區域內容
+                const dynamicUploadArea = document.getElementById('dynamic-image-upload-area');
+                if (dynamicUploadArea && dynamicUploadArea.style.display !== 'none') {
+                    this.updateDynamicUploadAreaContent(dynamicUploadArea);
+                }
+            }
+
+            // 處理檔案選擇
+            handleImageSelect(event) {
+                const files = Array.from(event.target.files);
+                files.forEach(file => this.addImageToPreview(file));
+                event.target.value = ''; // 清除選擇，允許重複選擇同一檔案
+            }
+
+            // 處理拖拽
+            handleDragOver(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                const form = document.querySelector('.comment-form');
+                form.classList.add('drag-over');
+            }
+
+            handleDragLeave(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                const form = document.querySelector('.comment-form');
+                form.classList.remove('drag-over');
+            }
+
+            handleDrop(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                const form = document.querySelector('.comment-form');
+                form.classList.remove('drag-over');
+
+                const files = Array.from(event.dataTransfer.files);
+                const imageFiles = files.filter(file => file.type.startsWith('image/'));
+
+                if (imageFiles.length === 0) {
+                    this.showMessage('請拖拽圖片檔案', 'warning');
+                    return;
+                }
+
+                imageFiles.forEach(file => this.addImageToPreview(file));
+            }
+
+            // 處理粘貼
+            handlePaste(event) {
+                const clipboardData = event.clipboardData;
+                if (!clipboardData) return;
+
+                const items = Array.from(clipboardData.items);
+                const imageItems = items.filter(item => item.type.startsWith('image/'));
+
+                if (imageItems.length === 0) return;
+
+                event.preventDefault(); // 阻止預設粘貼行為
+
+                imageItems.forEach(item => {
+                    const file = item.getAsFile();
+                    if (file) {
+                        this.addImageToPreview(file);
+                    }
+                });
+            }
+
+            // 渲染留言列表（增強版，支援圖片和分頁）
+            async renderRepliesSorted(sortType = 'newest') {
+                console.log('🎨 開始渲染留言，數量:', this.allReplies ? this.allReplies.length : 0);
+                console.log('🎨 留言數據:', this.allReplies);
+
+                if (!this.allReplies || this.allReplies.length === 0) {
+                    console.log('📝 無留言數據，顯示空狀態');
+                    const commentsList = document.querySelector('.comments-list');
+                    if (commentsList) {
+                        commentsList.innerHTML = '<div style="text-align: center; padding: 40px; color: #999;">暫無留言，成為第一個留言的人吧！</div>';
+                    }
+                    this.updatePagination(0);
+                    return;
+                }
+
+                // 先依時間遞增排序，取得正確樓層順序
+                const timeSorted = this.allReplies.slice().sort((a, b) => new Date(a.replyTime) - new Date(b.replyTime));
+
+                const floorMap = new Map();
+                timeSorted.forEach((reply, idx) => {
+                    const key = reply.replyId || reply.id || (reply.replyTime + '_' + (reply.memId || reply.mem_id || ''));
+                    floorMap.set(key, idx + 1);
+                });
+
+                let sorted;
+                if (sortType === 'oldest') {
+                    sorted = timeSorted;
+                } else {
+                    sorted = timeSorted.slice().reverse();
+                }
+
+                // 計算分頁
+                this.totalPages = Math.ceil(sorted.length / this.pageSize);
+                console.log('📄 總頁數:', this.totalPages, '當前頁:', this.currentPage);
+
+                // 確保當前頁面在有效範圍內
+                if (this.currentPage > this.totalPages) {
+                    this.currentPage = Math.max(1, this.totalPages);
+                }
+
+                // 計算當前頁面要顯示的留言範圍
+                const startIndex = (this.currentPage - 1) * this.pageSize;
+                const endIndex = startIndex + this.pageSize;
+                const currentPageReplies = sorted.slice(startIndex, endIndex);
+
+                console.log('📄 當前頁留言:', startIndex, '-', endIndex, '共', currentPageReplies.length, '則');
+
+                const commentsList = document.querySelector('.comments-list');
+                if (!commentsList) return;
+
+                // 渲染當前頁面的留言HTML（包含圖片）
+                const commentsHTML = await Promise.all(currentPageReplies.map(async (reply, idx) => {
+                    const replyKey = reply.replyId || reply.id || (reply.replyTime + '_' + (reply.memId || reply.mem_id || ''));
+                    const floorNum = floorMap.get(replyKey) || 1;
+                    const authorName = reply.memName || reply.mem_name || '露營愛好者';
+                    const replyDate = reply.replyTime ? new Date(reply.replyTime).toLocaleString() : '';
+
+                    // 回覆引用
+                    let replyQuoteHtml = '';
+                    if (reply.replyToFloor && reply.replyToContent) {
+                        replyQuoteHtml = `<div class="reply-quote" style="color:#555;background:#f2f2f2;padding:8px 12px;margin-bottom:8px;border-left:4px solid #bbb;font-size:0.97em;">回覆 #${reply.replyToFloor}: ${reply.replyToContent}</div>`;
+                    }
+
+                    // 編輯和刪除按鈕（僅本人可見）
+                    let actionBtnsHtml = '';
+                    let currentMemId = null;
+
+                    console.log('🔍 檢查留言權限 - 留言ID:', reply.replyId || reply.id);
+                    console.log('🔍 留言作者ID:', reply.memId, '或', reply.mem_id);
+
+                    try {
+                        const memberData = localStorage.getItem('currentMember') || sessionStorage.getItem('currentMember');
+                        console.log('🔍 當前會員資料存在:', !!memberData);
+
+                        if (memberData) {
+                            const member = JSON.parse(memberData);
+                            currentMemId = member.mem_id || member.memId;
+                            console.log('🔍 當前登入會員ID:', currentMemId);
+                            console.log('🔍 會員資料詳細:', member);
+                        }
+                    } catch (e) {
+                        console.error('🔍 解析會員資料失敗:', e);
+                        currentMemId = null;
+                    }
+
+                    const isOwner = currentMemId && (reply.memId == currentMemId || reply.mem_id == currentMemId);
+                    console.log('🔍 是否為留言作者:', isOwner);
+                    console.log('🔍 比較結果:', {
+                        currentMemId: currentMemId,
+                        replyMemId: reply.memId,
+                        replyMem_id: reply.mem_id,
+                        match1: reply.memId == currentMemId,
+                        match2: reply.mem_id == currentMemId
+                    });
+
+                    if (isOwner) {
+                        console.log('✅ 顯示編輯和刪除按鈕');
+                        actionBtnsHtml = `
+                        <div class="comment-owner-actions" style="position:absolute;top:8px;right:12px;display:flex;gap:5px;z-index:2;">
+                            <button class="edit-reply-btn" data-replyid="${reply.replyId || reply.id}" style="background:#28a745;color:#fff;border:none;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:0.85em;">編輯</button>
+                            <button class="delete-reply-btn" data-replyid="${reply.replyId || reply.id}" style="background:#dc3545;color:#fff;border:none;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:0.85em;">刪除</button>
+                        </div>
+                    `;
+                    } else {
+                        console.log('❌ 不顯示編輯按鈕 - 非本人留言');
+                    }
+
+                    // 獲取留言圖片
+                    let imagesHtml = '';
+                    console.log('🖼️ 檢查留言圖片 - 留言ID:', reply.replyId);
+
+                    if (reply.replyId) {
+                        try {
+                            const imageApiUrl = `${window.api_prefix}/api/reply-images/reply/${reply.replyId}`;
+                            console.log('🖼️ 請求圖片API:', imageApiUrl);
+
+                            const imagesResponse = await fetch(imageApiUrl);
+                            console.log('🖼️ 圖片API回應狀態:', imagesResponse.status);
+
+                            if (imagesResponse.ok) {
+                                const imagesResult = await imagesResponse.json();
+                                console.log('🖼️ 圖片API回應內容:', imagesResult);
+
+                                if (imagesResult.status === 'success' && imagesResult.data && imagesResult.data.length > 0) {
+                                    console.log('🖼️ 找到圖片數量:', imagesResult.data.length);
+                                    const imageElements = imagesResult.data.map((img, imgIndex) => {
+                                        const imgUrl = `${window.api_prefix}/api/reply-images/${img.replyImgId}/image`;
+                                        console.log('🖼️ 圖片URL:', imgUrl);
+                                        return `<img src="${imgUrl}" 
+                                                     class="comment-image" 
+                                                     data-image-loaded="false"
+                                                     onclick="window.replySystem.showImageLightbox('${imgUrl}')" 
+                                                     alt="留言圖片"
+                                                     onload="
+                                                         console.log('✅ 留言圖片載入成功:', '${imgUrl}');
+                                                         this.setAttribute('data-image-loaded', 'true');
+                                                     "
+                                                     onerror="
+                                                         if (this.getAttribute('data-image-loaded') === 'false') {
+                                                             console.log('🖼️ 留言圖片載入失敗，顯示錯誤圖標:', '${imgUrl}');
+                                                             this.style.display = 'none';
+                                                             this.setAttribute('data-image-loaded', 'true');
+                                                             if (!this.nextElementSibling || !this.nextElementSibling.classList.contains('image-error-placeholder')) {
+                                                                 const placeholder = document.createElement('div');
+                                                                 placeholder.className = 'image-error-placeholder';
+                                                                 placeholder.innerHTML = '<i class=\\'fas fa-image\\' style=\\'font-size: 24px; color: #dc3545; margin-bottom: 8px;\\'></i><br>圖片無法載入';
+                                                                 placeholder.style.cssText = 'display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f8f9fa; border: 2px dashed #dee2e6; border-radius: 8px; color: #6c757d; font-size: 14px; padding: 20px; min-height: 80px; cursor: not-allowed; text-align: center;';
+                                                                 this.parentNode.insertBefore(placeholder, this.nextSibling);
+                                                             }
+                                                             this.onerror = null;
+                                                         }
+                                                     " />`;
+                                    }).join('');
+                                    imagesHtml = `<div class="comment-images">${imageElements}</div>`;
+                                    console.log('🖼️ 圖片HTML:', imagesHtml);
+                                } else {
+                                    console.log('🖼️ 沒有圖片或API返回失敗');
+                                }
+                            } else {
+                                console.log('🖼️ 圖片API請求失敗:', imagesResponse.status);
+                            }
+                        } catch (error) {
+                            console.error('🖼️ 載入留言圖片失敗:', error);
+                        }
+                    } else {
+                        console.log('🖼️ 留言沒有replyId，跳過圖片檢查');
+                    }
+
+                    return `
+                        <div class="comment-item" style="position:relative;" data-replyid="${reply.replyId || reply.id}">
+                        ${actionBtnsHtml}
+                            <div class="comment-header">
+                                <div class="comment-avatar">
+                                    ${this.createAvatarElement(reply, idx)}
+                                </div>
+                                <div class="comment-author">
+                                    <div class="comment-author-name">${authorName}</div>
+                                    <div class="comment-date">${replyDate}</div>
+                                </div>
+                                <div class="comment-floor">#${floorNum}</div>
+                            </div>
+                                                        <div class="comment-content" data-replyid="${reply.replyId || reply.id}">
+                            ${replyQuoteHtml}
+                                <div class="comment-text" data-original-text="${(reply.replyContext || '').replace(/"/g, '&quot;')}">${reply.replyContext ? reply.replyContext.replace(/\n/g, '<br>') : '無內容'}</div>
+                                ${imagesHtml}
+                        </div>
+                            <div class="comment-actions" style="display: none;">
+                                <!-- 回覆功能暫時隱藏 -->
+                                <a href="#" class="comment-action reply-btn" data-floor="${floorNum}" data-content="${(reply.replyContext || '').replace(/"/g, '&quot;')}" style="display: none;">
+                                    <i class="fas fa-reply"></i>
+                                    <span>回覆</span>
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                }));
+
+                commentsList.innerHTML = commentsHTML.join('');
+
+                // 更新分頁導航
+                this.updatePagination(sorted.length);
+
+                // 更新留言標題顯示
+                this.updateCommentsTitle(sorted.length);
+
+                // 綁定事件
+                this.bindReplyEvents();
+            }
+
+            // 更新分頁導航
+            updatePagination(totalReplies) {
+                const pagination = document.querySelector('.pagination');
+                if (!pagination) return;
+
+                if (totalReplies === 0 || this.totalPages <= 1) {
+                    // 沒有留言或只有一頁時隱藏分頁
+                    pagination.style.display = 'none';
+                    return;
+                }
+
+                pagination.style.display = 'flex';
+
+                let paginationHTML = '';
+
+                // 上一頁按鈕
+                if (this.currentPage > 1) {
+                    paginationHTML += `<a href="#" class="page-btn prev-btn" data-page="${this.currentPage - 1}">上一頁</a>`;
+                }
+
+                // 頁碼按鈕
+                const maxShowPages = 5; // 最多顯示5個頁碼
+                let startPage = Math.max(1, this.currentPage - Math.floor(maxShowPages / 2));
+                let endPage = Math.min(this.totalPages, startPage + maxShowPages - 1);
+
+                // 調整起始頁面，確保顯示足夠的頁碼
+                if (endPage - startPage + 1 < maxShowPages) {
+                    startPage = Math.max(1, endPage - maxShowPages + 1);
+                }
+
+                // 如果起始頁面大於1，顯示第一頁和省略號
+                if (startPage > 1) {
+                    paginationHTML += `<a href="#" class="page-btn" data-page="1">1</a>`;
+                    if (startPage > 2) {
+                        paginationHTML += `<span class="page-ellipsis">...</span>`;
+                    }
+                }
+
+                // 顯示頁碼
+                for (let i = startPage; i <= endPage; i++) {
+                    const activeClass = i === this.currentPage ? ' active' : '';
+                    paginationHTML += `<a href="#" class="page-btn${activeClass}" data-page="${i}">${i}</a>`;
+                }
+
+                // 如果結束頁面小於總頁數，顯示省略號和最後一頁
+                if (endPage < this.totalPages) {
+                    if (endPage < this.totalPages - 1) {
+                        paginationHTML += `<span class="page-ellipsis">...</span>`;
+                    }
+                    paginationHTML += `<a href="#" class="page-btn" data-page="${this.totalPages}">${this.totalPages}</a>`;
+                }
+
+                // 下一頁按鈕
+                if (this.currentPage < this.totalPages) {
+                    paginationHTML += `<a href="#" class="page-btn next-btn" data-page="${this.currentPage + 1}">下一頁</a>`;
+                }
+
+                pagination.innerHTML = paginationHTML;
+
+                // 綁定分頁按鈕點擊事件
+                this.bindPaginationEvents();
+
+                console.log('📄 分頁導航已更新:', this.currentPage, '/', this.totalPages);
+            }
+
+            // 綁定分頁按鈕事件
+            bindPaginationEvents() {
+                const pageButtons = document.querySelectorAll('.page-btn');
+                pageButtons.forEach(btn => {
+                    btn.onclick = (e) => {
                         e.preventDefault();
-                        const floor = this.getAttribute('data-floor');
-                        const content = this.getAttribute('data-content');
-                        if (window.setReplyTo) window.setReplyTo(floor, content);
+                        const page = parseInt(btn.getAttribute('data-page'));
+                        if (page && page !== this.currentPage) {
+                            this.goToPage(page);
+                        }
                     };
                 });
+            }
+
+            // 跳轉到指定頁面
+            async goToPage(page) {
+                if (page < 1 || page > this.totalPages || page === this.currentPage) {
+                    return;
+                }
+
+                console.log('📄 跳轉到第', page, '頁');
+                this.currentPage = page;
+
+                // 重新渲染當前排序的留言
+                const sortSelect = document.querySelector('.sort-comments');
+                const sortType = sortSelect ? sortSelect.value : 'newest';
+                await this.renderRepliesSorted(sortType);
+
+                // 滾動到留言區域頂部
+                const commentsSection = document.querySelector('.comments-section');
+                if (commentsSection) {
+                    commentsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
+
+            // 更新留言標題顯示
+            updateCommentsTitle(totalReplies) {
+                const commentsTitle = document.querySelector('.comments-title');
+                if (!commentsTitle) return;
+
+                if (totalReplies <= this.pageSize) {
+                    // 只有一頁或沒有留言
+                    commentsTitle.textContent = `留言討論 (${totalReplies})`;
+                } else {
+                    // 多頁顯示詳細信息
+                    const startNum = (this.currentPage - 1) * this.pageSize + 1;
+                    const endNum = Math.min(this.currentPage * this.pageSize, totalReplies);
+                    commentsTitle.textContent = `留言討論 (第 ${this.currentPage} 頁，${startNum}-${endNum} / 共 ${totalReplies} 則)`;
+                }
+            }
+
+            // 處理刪除留言後的分頁調整
+            async handleAfterDelete() {
+                console.log('🗑️ 處理刪除後的分頁調整...');
+
+                // 重新載入留言數據
+                await this.loadReplies();
+
+                // 計算新的總頁數
+                if (this.allReplies && this.allReplies.length > 0) {
+                    const newTotalPages = Math.ceil(this.allReplies.length / this.pageSize);
+
+                    // 如果當前頁面超過了新的總頁數，調整到最後一頁
+                    if (this.currentPage > newTotalPages) {
+                        console.log('📄 當前頁面超出範圍，調整到第', newTotalPages, '頁');
+                        this.currentPage = Math.max(1, newTotalPages);
+                    }
+
+                    // 檢查當前頁面是否還有留言
+                    const startIndex = (this.currentPage - 1) * this.pageSize;
+                    const endIndex = startIndex + this.pageSize;
+                    const currentPageReplies = this.allReplies.slice(startIndex, endIndex);
+
+                    // 如果當前頁面沒有留言，但總共還有留言，調整到上一頁
+                    if (currentPageReplies.length === 0 && this.allReplies.length > 0) {
+                        this.currentPage = Math.max(1, this.currentPage - 1);
+                        console.log('📄 當前頁面無留言，調整到第', this.currentPage, '頁');
+                    }
+                } else {
+                    // 沒有留言了，回到第一頁
+                    this.currentPage = 1;
+                    console.log('📄 無留言，回到第一頁');
+                }
+
+                // 重新渲染
+                const sortSelect = document.querySelector('.sort-comments');
+                const sortType = sortSelect ? sortSelect.value : 'newest';
+                await this.renderRepliesSorted(sortType);
+            }
+
+            // 綁定回覆、編輯和刪除事件
+            bindReplyEvents() {
+                // 回覆按鈕 (已禁用)
+                const replyBtns = document.querySelectorAll('.reply-btn');
+                replyBtns.forEach(btn => {
+                    btn.onclick = (e) => {
+                        e.preventDefault();
+                        console.log('📝 回覆功能暫時禁用');
+                        // 回覆功能已暫時禁用
+                        return;
+                    };
+                });
+
+                // 編輯按鈕
+                const editBtns = document.querySelectorAll('.edit-reply-btn');
+                editBtns.forEach(btn => {
+                    btn.onclick = (e) => {
+                        e.preventDefault();
+                        const replyId = btn.getAttribute('data-replyid');
+                        this.startEditReply(replyId);
+                    };
+                });
+
+                // 刪除按鈕
                 const delBtns = document.querySelectorAll('.delete-reply-btn');
                 delBtns.forEach(btn => {
-                    btn.onclick = async function (e) {
+                    btn.onclick = async (e) => {
                         e.preventDefault();
                         if (!confirm('確定要刪除此留言嗎？')) return;
-                        const replyId = this.getAttribute('data-replyid');
+
+                        const replyId = btn.getAttribute('data-replyid');
                         try {
                             const response = await fetch(`${window.api_prefix}/api/replies/${replyId}`, {
                                 method: 'DELETE'
                             });
+
                             if (response.ok) {
-                                alert('留言已刪除');
-                                location.reload();
+                                this.showMessage('留言已刪除', 'success');
+                                // 刪除留言後可能需要調整當前頁面
+                                await this.handleAfterDelete();
                             } else {
-                                alert('刪除失敗');
+                                this.showMessage('刪除失敗', 'error');
                             }
-                        } catch (err) {
-                            alert('刪除失敗，請稍後再試');
+                        } catch (error) {
+                            console.error('刪除留言失敗:', error);
+                            this.showMessage('刪除失敗，請稍後再試', 'error');
                         }
                     };
                 });
-            }, 0);
-        }
-        // 留言系統初始化（確保只執行一次）
-        let commentsInitialized = false;
+            }
 
-        document.addEventListener('DOMContentLoaded', function () {
-            if (commentsInitialized) return;
-            commentsInitialized = true;
-
-            const commentForm = document.querySelector('.comment-form');
-            if (!commentForm) return;
-            const textarea = commentForm.querySelector('textarea');
-            const submitBtn = commentForm.querySelector('.btn-submit-comment');
-
-            // 取得當前文章ID
-            let articleId;
-            const checkArticleId = setInterval(() => {
-                if (window.articleDisplayManager && window.articleDisplayManager.getCurrentArticleId()) {
-                    articleId = window.articleDisplayManager.getCurrentArticleId();
-                    clearInterval(checkArticleId);
-                    initializeComments();
-                }
-            }, 100);
-
-            function initializeComments() {
-
-                // 監聽排序選單
-                const sortSelect = document.querySelector('.sort-comments');
-                if (sortSelect) {
-                    sortSelect.addEventListener('change', function () {
-                        renderRepliesSorted(this.value);
-                    });
+            // 顯示圖片燈箱
+            showImageLightbox(imageSrc) {
+                // 移除現有燈箱
+                const existingLightbox = document.querySelector('.image-lightbox');
+                if (existingLightbox) {
+                    existingLightbox.remove();
                 }
 
-                // 載入留言
-                fetch(`${window.api_prefix}/api/replies/article/${articleId}`)
-                    .then(res => res.json())
-                    .then(result => {
-                        if (result.status === 'success' && Array.isArray(result.data)) {
-                            allReplies = result.data;
-                            renderRepliesSorted(sortSelect ? sortSelect.value : 'newest');
+                // 創建新燈箱
+                const lightbox = document.createElement('div');
+                lightbox.className = 'image-lightbox';
+                lightbox.innerHTML = `
+                    <img src="${imageSrc}" alt="放大圖片">
+                    <button class="close-lightbox">×</button>
+                `;
+
+                // 點擊關閉
+                lightbox.onclick = (e) => {
+                    if (e.target === lightbox || e.target.className === 'close-lightbox') {
+                        lightbox.remove();
+                    }
+                };
+
+                // ESC 鍵關閉
+                const handleEsc = (e) => {
+                    if (e.key === 'Escape') {
+                        lightbox.remove();
+                        document.removeEventListener('keydown', handleEsc);
+                    }
+                };
+                document.addEventListener('keydown', handleEsc);
+
+                document.body.appendChild(lightbox);
+            }
+
+            // 開始編輯留言
+            async startEditReply(replyId) {
+                console.log('🖊️ 開始編輯留言:', replyId);
+
+                // 確保留言資料已載入
+                if (!this.allReplies || this.allReplies.length === 0) {
+                    console.log('🔄 留言資料未載入，重新載入...');
+                    await this.loadReplies();
+                }
+
+                // 找到留言項目
+                const commentItem = document.querySelector(`.comment-item[data-replyid="${replyId}"]`);
+                if (!commentItem) {
+                    console.error('找不到留言項目');
+                    return;
+                }
+
+                // 找到留言文字元素
+                const commentText = commentItem.querySelector('.comment-text');
+                if (!commentText) {
+                    console.error('找不到留言文字元素');
+                    return;
+                }
+
+                // 獲取原始文字
+                const originalText = commentText.getAttribute('data-original-text') || commentText.textContent;
+                console.log('📝 原始文字:', originalText);
+
+                // 創建編輯表單
+                const editForm = document.createElement('div');
+                editForm.className = 'edit-reply-form';
+                editForm.style.cssText = `
+                    margin: 10px 0;
+                    padding: 15px;
+                    background: #f8f9fa;
+                    border-radius: 6px;
+                    border: 1px solid #e9ecef;
+                `;
+
+                editForm.innerHTML = `
+                    <div style="margin-bottom: 10px; font-size: 0.9rem; color: #666;">
+                        <i class="fas fa-edit"></i> 編輯留言
+                    </div>
+                    <textarea class="edit-textarea" style="
+                        width: 100%;
+                        min-height: 80px;
+                        padding: 10px;
+                        border: 1px solid #ddd;
+                        border-radius: 4px;
+                        font-family: inherit;
+                        font-size: 0.95rem;
+                        resize: vertical;
+                        box-sizing: border-box;
+                        margin-bottom: 10px;
+                    ">${originalText}</textarea>
+                    
+                    <!-- 圖片編輯區域 -->
+                    <div class="edit-images-section" style="margin-bottom: 10px;">
+                        <div style="margin-bottom: 8px; font-size: 0.9rem; color: #666;">
+                            <i class="fas fa-images"></i> 圖片 (最多5張，每張最大10MB)
+                        </div>
+                        
+                        <!-- 當前圖片顯示區 -->
+                        <div class="current-images" style="margin-bottom: 10px;">
+                            <div class="current-images-grid" style="
+                                display: grid;
+                                grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+                                gap: 8px;
+                                margin-bottom: 10px;
+                            "></div>
+                            <div class="current-images-note" style="font-size: 0.8rem; color: #666;">
+                                當前圖片（點擊 ❌ 移除，儲存時將保留未移除的圖片並新增選擇的圖片）
+                            </div>
+                        </div>
+                        
+                        <!-- 新圖片上傳區 -->
+                        <div class="new-images-upload" style="
+                            border: 2px dashed #ddd;
+                            border-radius: 4px;
+                            padding: 20px;
+                            text-align: center;
+                            background: white;
+                            cursor: pointer;
+                            transition: border-color 0.3s;
+                        " onmouseover="this.style.borderColor='#007bff'" onmouseout="this.style.borderColor='#ddd'">
+                            <i class="fas fa-cloud-upload-alt" style="font-size: 1.5rem; color: #007bff; margin-bottom: 10px;"></i>
+                            <div style="margin-bottom: 5px; color: #333;">點擊或拖拽上傳新圖片（可多選）</div>
+                            <div style="font-size: 0.8rem; color: #666;">支援 JPG、PNG、GIF 格式，可多次選擇累積至5張</div>
+                            <input type="file" class="edit-image-input" multiple accept="image/*" style="display: none;">
+                        </div>
+                        
+                        <!-- 新圖片預覽區 -->
+                        <div class="new-images-preview" style="
+                            margin-top: 10px;
+                            display: grid;
+                            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+                            gap: 8px;
+                        "></div>
+                    </div>
+                    
+                    <div class="edit-actions" style="
+                        display: flex;
+                        gap: 10px;
+                        justify-content: flex-end;
+                    ">
+                        <button type="button" class="cancel-edit-btn" style="
+                            background: #6c757d;
+                            color: white;
+                            border: none;
+                            padding: 6px 15px;
+                            border-radius: 4px;
+                            cursor: pointer;
+                            font-size: 0.9rem;
+                        ">取消</button>
+                        <button type="button" class="save-edit-btn" style="
+                            background: #28a745;
+                            color: white;
+                            border: none;
+                            padding: 6px 15px;
+                            border-radius: 4px;
+                            cursor: pointer;
+                            font-size: 0.9rem;
+                        ">儲存</button>
+                    </div>
+                `;
+
+                // 隱藏原始文字
+                commentText.style.display = 'none';
+
+                // 插入編輯表單
+                commentText.parentNode.insertBefore(editForm, commentText.nextSibling);
+
+                // 隱藏操作按鈕
+                const actionBtns = commentItem.querySelector('.comment-owner-actions');
+                if (actionBtns) {
+                    actionBtns.style.display = 'none';
+                }
+
+                // 載入當前圖片
+                await this.loadCurrentReplyImages(replyId, editForm);
+
+                // 綁定編輯表單事件
+                const textarea = editForm.querySelector('.edit-textarea');
+                const saveBtn = editForm.querySelector('.save-edit-btn');
+                const cancelBtn = editForm.querySelector('.cancel-edit-btn');
+                const imageInput = editForm.querySelector('.edit-image-input');
+                const uploadArea = editForm.querySelector('.new-images-upload');
+
+                // 自動聚焦到文字框末尾
+                textarea.focus();
+                textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+
+                // 初始化圖片上傳功能
+                this.initEditImageUpload(editForm, replyId);
+
+                // 保存按鈕
+                saveBtn.onclick = () => {
+                    const newContent = textarea.value.trim();
+                    const newImages = this.getEditSelectedImages(editForm);
+
+                    // 檢查是否有變更
+                    if (newContent === originalText && newImages.length === 0) {
+                        this.cancelEditReply(replyId);
+                        return;
+                    }
+
+                    this.saveEditReply(replyId, newContent, newImages);
+                };
+
+                // 取消按鈕
+                cancelBtn.onclick = () => {
+                    this.cancelEditReply(replyId);
+                };
+
+                // Enter + Ctrl 快捷鍵儲存
+                textarea.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && e.ctrlKey) {
+                        e.preventDefault();
+                        const newContent = textarea.value.trim();
+                        const newImages = this.getEditSelectedImages(editForm);
+
+                        if (newContent !== originalText || newImages.length > 0) {
+                            this.saveEditReply(replyId, newContent, newImages);
                         }
+                    }
+                    // ESC 取消
+                    if (e.key === 'Escape') {
+                        e.preventDefault();
+                        this.cancelEditReply(replyId);
+                    }
+                });
+
+                console.log('✅ 編輯表單已建立');
+            }
+
+            // 載入當前留言的圖片
+            async loadCurrentReplyImages(replyId, editForm) {
+                console.log('🖼️ 載入當前留言圖片:', replyId);
+
+                try {
+                    const response = await fetch(`${window.api_prefix}/api/reply-images/reply/${replyId}`);
+                    const result = await response.json();
+
+                    const currentImagesGrid = editForm.querySelector('.current-images-grid');
+
+                    if (response.ok && result.status === 'success' && result.data.length > 0) {
+                        console.log('📸 找到圖片:', result.data.length, '張');
+
+                        currentImagesGrid.innerHTML = result.data.map(image => `
+                            <div class="current-image-item" style="
+                                position: relative;
+                                border-radius: 4px;
+                                overflow: hidden;
+                                aspect-ratio: 1;
+                            ">
+                                <img src="${window.api_prefix}/api/reply-images/${image.replyImgId}/image" 
+                                     alt="當前圖片" 
+                                     style="
+                                         width: 100%;
+                                         height: 100%;
+                                         object-fit: cover;
+                                         cursor: pointer;
+                                     "
+                                     onclick="window.replySystem.showImageLightbox('${window.api_prefix}/api/reply-images/${image.replyImgId}/image')"
+                                     onerror="
+                                         console.log('🖼️ 編輯頁面圖片載入失敗:', '${window.api_prefix}/api/reply-images/${image.replyImgId}/image');
+                                         this.style.display = 'none';
+                                         if (!this.nextElementSibling || !this.nextElementSibling.classList.contains('edit-image-error-placeholder')) {
+                                             const placeholder = document.createElement('div');
+                                             placeholder.className = 'edit-image-error-placeholder';
+                                             placeholder.innerHTML = '🖼️<br>圖片無法顯示';
+                                             placeholder.style.cssText = 'display: flex; align-items: center; justify-content: center; background: #f8f9fa; border: 2px dashed #dee2e6; border-radius: 8px; color: #6c757d; font-size: 12px; text-align: center; width: 100%; height: 100%; cursor: not-allowed; position: absolute; top: 0; left: 0;';
+                                             this.parentNode.appendChild(placeholder);
+                                         }
+                                         this.onerror = null;
+                                     ">
+                                <div class="remove-current-image" 
+                                     style="
+                                         position: absolute;
+                                         top: 2px;
+                                         right: 2px;
+                                         background: rgba(220, 53, 69, 0.8);
+                                         color: white;
+                                         border: none;
+                                         border-radius: 50%;
+                                         width: 20px;
+                                         height: 20px;
+                                         font-size: 12px;
+                                         cursor: pointer;
+                                         display: flex;
+                                         align-items: center;
+                                         justify-content: center;
+                                     "
+                                     onclick="this.parentElement.remove()"
+                                     title="移除此圖片">
+                                    ❌
+                                </div>
+                            </div>
+                        `).join('');
+                    } else {
+                        console.log('📷 此留言沒有圖片');
+                        currentImagesGrid.innerHTML = '<div style="text-align: center; color: #666; font-size: 0.9rem; padding: 20px;">此留言沒有圖片</div>';
+                    }
+                } catch (error) {
+                    console.error('❌ 載入當前圖片失敗:', error);
+                    const currentImagesGrid = editForm.querySelector('.current-images-grid');
+                    currentImagesGrid.innerHTML = '<div style="text-align: center; color: #dc3545; font-size: 0.9rem; padding: 20px;">載入圖片失敗</div>';
+                }
+            }
+
+            // 初始化編輯時的圖片上傳功能
+            initEditImageUpload(editForm, replyId) {
+                const imageInput = editForm.querySelector('.edit-image-input');
+                const uploadArea = editForm.querySelector('.new-images-upload');
+                const previewArea = editForm.querySelector('.new-images-preview');
+
+                // 點擊上傳區域觸發檔案選擇
+                uploadArea.onclick = () => imageInput.click();
+
+                // 檔案選擇事件
+                imageInput.addEventListener('change', (e) => {
+                    this.handleEditImageSelection(e.target.files, previewArea);
+                    // 清空輸入框的值，允許重複選擇相同檔案或多次選擇
+                    e.target.value = '';
+                });
+
+                // 拖拽上傳
+                uploadArea.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    uploadArea.style.borderColor = '#007bff';
+                    uploadArea.style.backgroundColor = '#f8f9ff';
+                });
+
+                uploadArea.addEventListener('dragleave', (e) => {
+                    e.preventDefault();
+                    uploadArea.style.borderColor = '#ddd';
+                    uploadArea.style.backgroundColor = 'white';
+                });
+
+                uploadArea.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    uploadArea.style.borderColor = '#ddd';
+                    uploadArea.style.backgroundColor = 'white';
+
+                    const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'));
+                    this.handleEditImageSelection(files, previewArea);
+                });
+            }
+
+            // 處理編輯時的圖片選擇
+            handleEditImageSelection(files, previewArea) {
+                console.log('🖼️ 編輯時選擇圖片:', files.length);
+
+                if (files.length === 0) return;
+
+                // 檢查當前已有的圖片數量
+                const currentCount = previewArea.querySelectorAll('.edit-image-preview-item').length;
+                const totalCount = currentCount + files.length;
+
+                if (totalCount > 5) {
+                    this.showMessage(`最多只能選擇5張圖片，您已有${currentCount}張，再選擇${files.length}張會超過限制`, 'warning');
+                    return;
+                }
+
+                // 不清空之前的預覽，允許累積選擇
+
+                Array.from(files).forEach((file, index) => {
+                    // 檢查檔案大小（10MB）
+                    if (file.size > 10 * 1024 * 1024) {
+                        this.showMessage(`圖片 ${file.name} 超過10MB限制`, 'warning');
+                        return;
+                    }
+
+                    // 創建預覽
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const previewItem = document.createElement('div');
+                        previewItem.className = 'edit-image-preview-item';
+                        previewItem.style.cssText = `
+                            position: relative;
+                            border-radius: 4px;
+                            overflow: hidden;
+                            aspect-ratio: 1;
+                            border: 2px solid #28a745;
+                        `;
+
+                        previewItem.innerHTML = `
+                            <img src="${e.target.result}" 
+                                 alt="新圖片預覽" 
+                                 style="
+                                     width: 100%;
+                                     height: 100%;
+                                     object-fit: cover;
+                                 ">
+                            <div class="remove-preview-image" 
+                                 style="
+                                     position: absolute;
+                                     top: 2px;
+                                     right: 2px;
+                                     background: rgba(220, 53, 69, 0.8);
+                                     color: white;
+                                     border: none;
+                                     border-radius: 50%;
+                                     width: 20px;
+                                     height: 20px;
+                                     font-size: 12px;
+                                     cursor: pointer;
+                                     display: flex;
+                                     align-items: center;
+                                     justify-content: center;
+                                 "
+                                 onclick="this.parentElement.remove(); console.log('🗑️ 移除編輯圖片，剩餘:', document.querySelectorAll('.edit-image-preview-item').length - 1, '張');"
+                                 title="移除此圖片">
+                                ❌
+                            </div>
+                            <div style="
+                                position: absolute;
+                                bottom: 2px;
+                                left: 2px;
+                                background: rgba(40, 167, 69, 0.8);
+                                color: white;
+                                padding: 2px 6px;
+                                border-radius: 2px;
+                                font-size: 0.7rem;
+                            ">新</div>
+                        `;
+
+                        // 儲存檔案到預覽項目
+                        previewItem._file = file;
+                        previewArea.appendChild(previewItem);
+                    };
+
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            // 獲取編輯時選擇的圖片
+            getEditSelectedImages(editForm) {
+                const previewArea = editForm.querySelector('.new-images-preview');
+                const previewItems = previewArea.querySelectorAll('.edit-image-preview-item');
+
+                const selectedImages = [];
+                previewItems.forEach(item => {
+                    if (item._file) {
+                        selectedImages.push(item._file);
+                    }
+                });
+
+                console.log('📸 編輯時選擇的圖片數量:', selectedImages.length);
+                return selectedImages;
+            }
+
+            // 儲存編輯的留言
+            async saveEditReply(replyId, newContent, images = []) {
+                if (!newContent && images.length === 0) {
+                    this.showMessage('留言內容不能為空', 'warning');
+                    return;
+                }
+
+                console.log('💾 儲存編輯的留言:', replyId, newContent);
+                console.log('🖼️ 編輯的圖片數量:', images.length);
+
+                // 防止重複提交
+                if (this.isEditSubmitting) {
+                    console.log('⚠️ 正在編輯提交中，忽略重複請求');
+                    return;
+                }
+                this.isEditSubmitting = true;
+
+                try {
+                    // 禁用儲存按鈕
+                    const commentItem = document.querySelector(`.comment-item[data-replyid="${replyId}"]`);
+                    const saveBtn = commentItem.querySelector('.save-edit-btn');
+                    const cancelBtn = commentItem.querySelector('.cancel-edit-btn');
+
+                    if (saveBtn) {
+                        saveBtn.textContent = '儲存中...';
+                        saveBtn.disabled = true;
+                    }
+                    if (cancelBtn) {
+                        cancelBtn.disabled = true;
+                    }
+
+                    // 獲取原始留言資料
+                    const originalReply = this.allReplies.find(reply => {
+                        const currentReplyId = reply.replyId || reply.id;
+                        return currentReplyId == replyId;
+                    });
+                    if (!originalReply) {
+                        console.log('🔍 當前 allReplies:', this.allReplies);
+                        console.log('🔍 尋找的 replyId:', replyId);
+                        throw new Error('找不到原始留言資料');
+                    }
+
+                    // 構建完整的請求資料
+                    const requestData = {
+                        replyContext: newContent,
+                        memId: originalReply.memId || originalReply.mem_id,
+                        acId: originalReply.acId || originalReply.ac_id,
+                        replyTime: originalReply.replyTime || originalReply.reply_time,
+                        replyStatus: originalReply.replyStatus || originalReply.reply_status || 0
+                    };
+
+                    console.log('📤 發送編輯請求:', requestData);
+
+                    // 調用更新API
+                    const response = await fetch(`${window.api_prefix}/api/replies/${replyId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(requestData)
                     });
 
-                submitBtn.addEventListener('click', async function () {
-                    const replyContent = textarea.value.trim();
-                    if (!replyContent) {
-                        alert('請輸入留言內容');
-                        return;
+                    console.log('📡 編輯API回應狀態:', response.status);
+                    const result = await response.json();
+                    console.log('📥 編輯API回應內容:', result);
+
+                    if (response.ok && result.status === 'success') {
+                        // 如果有新圖片需要處理
+                        if (images.length > 0) {
+                            console.log('🖼️ 開始處理編輯的圖片...');
+
+                            // 先刪除舊圖片
+                            try {
+                                await fetch(`${window.api_prefix}/api/reply-images/reply/${replyId}/cleanup`, {
+                                    method: 'DELETE'
+                                });
+                                console.log('🗑️ 舊圖片已清理');
+                            } catch (error) {
+                                console.warn('⚠️ 清理舊圖片失敗:', error);
+                            }
+
+                            // 上傳新圖片
+                            for (let i = 0; i < Math.min(images.length, 5); i++) {
+                                try {
+                                    const formData = new FormData();
+                                    formData.append('replyImg', images[i]);
+                                    formData.append('replyId', replyId);
+
+                                    const uploadResponse = await fetch(`${window.api_prefix}/api/reply-images/upload`, {
+                                        method: 'POST',
+                                        body: formData
+                                    });
+
+                                    if (!uploadResponse.ok) {
+                                        console.warn(`⚠️ 圖片 ${i + 1} 上傳失敗`);
+                                    } else {
+                                        console.log(`✅ 圖片 ${i + 1} 上傳成功`);
+                                    }
+                                } catch (error) {
+                                    console.warn(`⚠️ 圖片 ${i + 1} 上傳異常:`, error);
+                                }
+                            }
+                        }
+
+                        this.showMessage('留言已更新', 'success');
+
+                        // 移除編輯表單
+                        this.cancelEditReply(replyId);
+
+                        // 重新載入留言以顯示更新後的內容
+                        await this.loadReplies();
+
+                    } else {
+                        this.showMessage('更新失敗: ' + (result.message || '未知錯誤'), 'error');
+
+                        // 恢復按鈕狀態
+                        if (saveBtn) {
+                            saveBtn.textContent = '儲存';
+                            saveBtn.disabled = false;
+                        }
+                        if (cancelBtn) {
+                            cancelBtn.disabled = false;
+                        }
                     }
-                    // 取得登入會員
-                    const memberData = localStorage.getItem('currentMember') || sessionStorage.getItem('currentMember');
-                    if (!memberData) {
-                        alert('請先登入後再發表留言');
-                        return;
+                } catch (error) {
+                    console.error('💥 儲存編輯時發生錯誤:', error);
+                    this.showMessage('儲存失敗: ' + error.message, 'error');
+
+                    // 恢復按鈕狀態
+                    const commentItem = document.querySelector(`.comment-item[data-replyid="${replyId}"]`);
+                    const saveBtn = commentItem.querySelector('.save-edit-btn');
+                    const cancelBtn = commentItem.querySelector('.cancel-edit-btn');
+
+                    if (saveBtn) {
+                        saveBtn.textContent = '儲存';
+                        saveBtn.disabled = false;
                     }
-                    const member = JSON.parse(memberData);
-                    const memId = member.mem_id || member.memId;
-                    if (!memId) {
-                        alert('請先登入後再發表留言');
-                        return;
+                    if (cancelBtn) {
+                        cancelBtn.disabled = false;
                     }
-                    // 準備留言資料
-                    const replyData = {
-                        acId: articleId,
-                        memId: memId,
-                        replyContext: replyContent
+                } finally {
+                    this.isEditSubmitting = false;
+                }
+            }
+
+            // 取消編輯留言
+            cancelEditReply(replyId) {
+                console.log('❌ 取消編輯留言:', replyId);
+
+                const commentItem = document.querySelector(`.comment-item[data-replyid="${replyId}"]`);
+                if (!commentItem) return;
+
+                // 移除編輯表單
+                const editForm = commentItem.querySelector('.edit-reply-form');
+                if (editForm) {
+                    editForm.remove();
+                }
+
+                // 顯示原始文字
+                const commentText = commentItem.querySelector('.comment-text');
+                if (commentText) {
+                    commentText.style.display = '';
+                }
+
+                // 顯示操作按鈕
+                const actionBtns = commentItem.querySelector('.comment-owner-actions');
+                if (actionBtns) {
+                    actionBtns.style.display = '';
+                }
+
+                console.log('✅ 編輯已取消');
+            }
+
+            // 生成會員頭像URL
+            generateAvatarUrl(reply) {
+                // 檢查留言數據中是否有頭像欄位
+                const memId = reply.memId || reply.mem_id;
+
+                // 多種可能的頭像欄位名稱
+                const avatarFields = [
+                    reply.memImg, reply.mem_img,
+                    reply.profileImg, reply.profile_img,
+                    reply.avatar, reply.userAvatar, reply.user_avatar,
+                    reply.memPic, reply.mem_pic
+                ];
+
+                // 檢查是否有直接的頭像URL（但排除可能指向user-圖片的欄位）
+                for (const avatarField of avatarFields) {
+                    if (avatarField && typeof avatarField === 'string') {
+                        // 排除可能指向user-圖片的欄位
+                        if (avatarField.includes('user-') || avatarField.includes('default-avatar')) {
+                            console.log('🚫 跳過可能指向user-圖片的欄位:', avatarField);
+                            continue;
+                        }
+
+                        // 如果是完整URL，直接使用
+                        if (avatarField.startsWith('http')) {
+                            return avatarField;
+                        }
+                        // 如果是相對路徑，組合完整URL
+                        if (avatarField.startsWith('/') || avatarField.includes('.')) {
+                            return `${window.api_prefix}${avatarField.startsWith('/') ? '' : '/'}${avatarField}`;
+                        }
+                    }
+                }
+
+                // 如果沒有直接的頭像URL，嘗試通過會員ID獲取
+                if (memId) {
+                    // 正確的會員頭像API端點
+                    return `${window.api_prefix}/member/${memId}/pic`;
+                }
+
+                // 如果都沒有，返回null，稍後使用默認頭像
+                return null;
+            }
+
+            // 創建頭像HTML元素（支援錯誤處理）
+            createAvatarElement(reply, index) {
+                const memId = reply.memId || reply.mem_id;
+                const avatarUrl = this.generateAvatarUrl(reply);
+                const defaultAvatarUrl = `images/user-${((index % 4) + 1)}.jpg`;
+                const fallbackAvatar = `images/user-${Math.floor(Math.random() * 4) + 1}.jpg`; // 隨機備用頭像
+
+                if (avatarUrl) {
+                    // 嘗試使用真實頭像，失敗時直接使用user-開頭的圖片（避免無限重試）
+                    return `
+                        <img src="${avatarUrl}" 
+                             alt="留言者頭像" 
+                             data-avatar-loaded="false"
+                             onload="
+                                 console.log('✅ 留言者頭像載入成功:', '${avatarUrl}');
+                                 this.setAttribute('data-avatar-loaded', 'true');
+                             "
+                             onerror="
+                                 if (this.getAttribute('data-avatar-loaded') === 'false') {
+                                     console.log('⚠️ 留言者頭像載入失敗，直接使用user-開頭的圖片:', '${avatarUrl}');
+                                     this.src = '${defaultAvatarUrl}';
+                                     this.setAttribute('data-avatar-loaded', 'true');
+                                     this.onerror = null;
+                                 }
+                             " />
+                    `;
+                } else {
+                    console.log('📷 會員', memId, '沒有頭像信息，直接使用user-開頭的圖片');
+                    // 直接使用user-開頭的圖片
+                    return `
+                        <img src="${defaultAvatarUrl}" 
+                             alt="留言者頭像" 
+                             data-avatar-loaded="true"
+                             onerror="
+                                 console.log('⚠️ user-開頭圖片載入失敗，使用隨機備用頭像');
+                                 this.src = '${fallbackAvatar}';
+                                 this.onerror = null;
+                             " />
+                    `;
+                }
+            }
+
+            // 嘗試從留言資料更新作者頭像（已禁用，避免錯誤推斷）
+            tryUpdateAuthorAvatarFromReplies() {
+                console.log('🔍 嘗試從留言資料更新作者頭像...');
+                console.log('❌ 從留言推斷作者頭像功能已禁用，避免顯示錯誤的頭像');
+                // 不再從留言推斷作者ID，防止顯示其他用戶的頭像
+                return;
+            }
+
+            // 更新文章作者頭像（防閃爍版本）
+            updateArticleAuthorAvatar(authorData) {
+                const authorAvatarImg = document.querySelector('.author-avatar img');
+                if (!authorAvatarImg) {
+                    console.log('[DEBUG] 找不到頭像元素');
+                    return;
+                }
+
+                // 如果已經更新過且是正確的頭像，跳過重複更新（除非是強制更新）
+                if (authorAvatarImg.dataset.avatarUpdated === 'true' && authorData !== null) {
+                    console.log('[DEBUG] 頭像已更新過，跳過重複更新');
+                    return;
+                }
+
+                // 額外保護：如果頭像已經是正確的API頭像，避免被覆蓋（除非強制更新）
+                if (authorData && authorAvatarImg.src.includes('/member/') && !authorData.forceUpdate) {
+                    console.log('[DEBUG] 頭像已是正確的API頭像，跳過覆蓋');
+                    authorAvatarImg.dataset.avatarUpdated = 'true';
+                    return;
+                }
+
+                // 如果是強制更新，重置更新標記
+                if (authorData && authorData.forceUpdate) {
+                    console.log('[DEBUG] 強制更新頭像，重置更新標記');
+                    authorAvatarImg.dataset.avatarUpdated = 'false';
+                }
+
+                // 處理無作者資料的情況（顯示預設頭像）
+                if (!authorData) {
+                    const randomUserImg = `images/user-${Math.floor(Math.random() * 4) + 1}.jpg`;
+                    authorAvatarImg.style.display = 'none';
+                    authorAvatarImg.src = randomUserImg;
+                    authorAvatarImg.onerror = null;
+                    authorAvatarImg.onload = function () {
+                        this.style.display = '';
+                        this.dataset.avatarUpdated = 'true';
                     };
-                    if (replyToFloor && replyToContent) {
-                        replyData.replyToFloor = replyToFloor;
-                        replyData.replyToContent = replyToContent;
+                    console.log('[DEBUG] 無作者資料，顯示預設 user- 圖片:', randomUserImg);
+                    return;
+                }
+
+                // 僅允許明確的作者ID - 檢查多種可能的欄位
+                const authorId = authorData?.memId ||
+                    authorData?.mem_id ||
+                    authorData?.memberVO?.memId ||
+                    authorData?.memberVO?.mem_id ||
+                    authorData?.acMemId ||
+                    authorData?.ac_mem_id ||
+                    authorData?.authorId ||
+                    authorData?.author_id;
+                if (!authorId || (authorId !== 0 && !Number(authorId))) {
+                    // 沒有明確ID就顯示隨機 user- 圖片
+                    const randomUserImg = `images/user-${Math.floor(Math.random() * 4) + 1}.jpg`;
+                    authorAvatarImg.style.display = 'none';
+                    authorAvatarImg.src = randomUserImg;
+                    authorAvatarImg.onerror = null;
+                    authorAvatarImg.onload = function () {
+                        this.style.display = '';
+                        this.dataset.avatarUpdated = 'true';
+                    };
+                    console.log('[DEBUG] 沒有明確作者ID，顯示隨機 user- 圖片:', randomUserImg, '(authorId:', authorId, ')');
+                    return;
+                }
+
+                // 隱藏頭像準備更新
+                authorAvatarImg.style.display = 'none';
+
+                // 嘗試 API 頭像
+                const avatarUrl = `${window.api_prefix}/member/${authorId}/pic`;
+                console.log('[DEBUG] 設定文章作者頭像 src =', avatarUrl, '，作者ID =', authorId);
+
+                const tempImg = new Image();
+                tempImg.onload = function () {
+                    // API 載入成功
+                    authorAvatarImg.src = avatarUrl;
+                    authorAvatarImg.onerror = null;
+                    authorAvatarImg.onload = function () {
+                        this.style.display = '';
+                        this.dataset.avatarUpdated = 'true';
+                        console.log('[DEBUG] 文章作者頭像載入成功，顯示');
+                    };
+                };
+                tempImg.onerror = function () {
+                    // API失敗，使用 user- 圖片
+                    const randomUserImg = `images/user-${Math.floor(Math.random() * 4) + 1}.jpg`;
+                    authorAvatarImg.src = randomUserImg;
+                    authorAvatarImg.onerror = null;
+                    authorAvatarImg.onload = function () {
+                        this.style.display = '';
+                        this.dataset.avatarUpdated = 'true';
+                    };
+                    console.log('[DEBUG] API失敗，改用 user- 圖片 src =', randomUserImg);
+                };
+                tempImg.src = avatarUrl;
+            }
+
+            // 載入留言
+            async loadReplies() {
+                if (!this.articleId) return;
+
+                try {
+                    const response = await fetch(`${window.api_prefix}/api/replies/article/${this.articleId}`);
+                    const result = await response.json();
+
+                    if (result.status === 'success' && Array.isArray(result.data)) {
+                        this.allReplies = result.data;
+
+                        // 更新留言標題（初始載入時不顯示分頁信息）
+                        const commentsTitle = document.querySelector('.comments-title');
+                        if (commentsTitle) {
+                            commentsTitle.textContent = `留言討論 (${this.allReplies.length})`;
+                        }
+
+                        const sortSelect = document.querySelector('.sort-comments');
+                        const sortType = sortSelect ? sortSelect.value : 'newest';
+                        await this.renderRepliesSorted(sortType);
+
+                        // 留言載入完成後，嘗試更新作者頭像
+                        console.log('📝 留言載入完成，嘗試更新作者頭像...');
+                        this.tryUpdateAuthorAvatarFromReplies();
+                    } else {
+                        console.error('載入留言失敗:', result);
                     }
-                    try {
-                        const response = await fetch(`${window.api_prefix}/api/replies`, {
+                } catch (error) {
+                    console.error('載入留言時發生錯誤:', error);
+                    const commentsList = document.querySelector('.comments-list');
+                    if (commentsList) {
+                        commentsList.innerHTML = '<div style="text-align: center; padding: 40px; color: #999;">載入留言失敗，請重新整理頁面</div>';
+                    }
+                }
+            }
+
+            // 提交留言
+            async submitReply() {
+                console.log('🚀 開始提交留言...');
+
+                // 防止重複提交
+                if (this.isSubmitting) {
+                    console.log('⚠️ 正在提交中，忽略重複請求');
+                    return;
+                }
+
+                const textarea = document.getElementById('reply-textarea');
+                const replyContent = textarea.value.trim();
+
+                console.log('📝 留言內容:', replyContent);
+                console.log('🖼️ 選擇的圖片數量:', this.selectedImages.length);
+                console.log('📄 文章ID:', this.articleId);
+
+                if (!replyContent && this.selectedImages.length === 0) {
+                    this.showMessage('請輸入留言內容或上傳圖片', 'warning');
+                    return;
+                }
+
+                // 檢查登入狀態
+                const memberData = localStorage.getItem('currentMember') || sessionStorage.getItem('currentMember');
+                console.log('👤 會員資料:', memberData ? '已找到' : '未找到');
+
+                if (!memberData) {
+                    this.showMessage('請先登入後再發表留言', 'warning');
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 2000);
+                    return;
+                }
+
+                const member = JSON.parse(memberData);
+                const memId = member.mem_id || member.memId;
+                console.log('🆔 會員ID:', memId);
+                console.log('📊 會員完整資料:', member);
+
+                if (!memId) {
+                    this.showMessage('會員資訊錯誤，請重新登入', 'error');
+                    return;
+                }
+
+                // 檢查文章ID，並嘗試重新獲取
+                if (!this.articleId) {
+                    console.log('🔍 文章ID不存在，嘗試重新獲取...');
+
+                    // 嘗試從URL獲取
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const urlId = urlParams.get('id');
+                    if (urlId) {
+                        this.articleId = parseInt(urlId);
+                        console.log('✅ 從URL重新獲取到文章ID:', this.articleId);
+                    } else if (window.currentArticle && window.currentArticle.acId) {
+                        this.articleId = window.currentArticle.acId;
+                        console.log('✅ 從currentArticle重新獲取到文章ID:', this.articleId);
+                    } else if (window.articleDisplayManager && window.articleDisplayManager.getCurrentArticleId) {
+                        this.articleId = window.articleDisplayManager.getCurrentArticleId();
+                        console.log('✅ 從articleDisplayManager重新獲取到文章ID:', this.articleId);
+                    }
+                }
+
+                if (!this.articleId) {
+                    console.error('❌ 所有方法都無法獲取文章ID');
+                    this.showMessage('無法取得文章資訊，請重新整理頁面', 'error');
+                    return;
+                }
+
+                console.log('✅ 確認文章ID:', this.articleId);
+
+                // 設置提交中標誌
+                this.isSubmitting = true;
+
+                try {
+                    const submitBtn = document.getElementById('submit-reply-btn');
+                    submitBtn.textContent = '發布中...';
+                    submitBtn.disabled = true;
+
+                    let result;
+                    let apiUrl;
+                    let replyData;
+
+                    if (this.selectedImages.length > 0) {
+                        // 有圖片的留言
+                        apiUrl = `${window.api_prefix}/api/replies/with-images`;
+                        replyData = {
+                            memId: parseInt(memId),
+                            acId: parseInt(this.articleId),
+                            replyContext: replyContent || '',
+                            images: this.selectedImages.map(img => img.base64)
+                        };
+
+                        // 添加回覆資訊
+                        if (this.replyToFloor && this.replyToContent) {
+                            replyData.replyToFloor = this.replyToFloor;
+                            replyData.replyToContent = this.replyToContent;
+                        }
+
+                        console.log('📸 準備發送帶圖片的留言');
+                        console.log('🔗 API端點:', apiUrl);
+                        console.log('📤 發送資料:', {
+                            ...replyData,
+                            images: `${replyData.images.length} 張圖片 (已省略base64內容)`
+                        });
+
+                        const response = await fetch(apiUrl, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(replyData)
                         });
-                        const result = await response.json();
-                        if (result.status === 'success') {
-                            alert('留言成功！');
-                            textarea.value = '';
-                            clearReplyTo();
-                            // 重新載入留言區
-                            // location.reload();
-                            // 改為重新 fetch 並渲染
-                            fetch(`${window.api_prefix}/api/replies/article/${articleId}`)
-                                .then(res => res.json())
-                                .then(result => {
-                                    if (result.status === 'success' && Array.isArray(result.data)) {
-                                        allReplies = result.data;
-                                        renderRepliesSorted(sortSelect ? sortSelect.value : 'newest');
-                                    }
-                                });
-                        } else {
-                            alert('留言失敗: ' + (result.message || '未知錯誤'));
+
+                        console.log('📡 API回應狀態:', response.status);
+                        result = await response.json();
+                        console.log('📥 API回應內容:', result);
+
+                    } else {
+                        // 純文字留言
+                        apiUrl = `${window.api_prefix}/api/replies`;
+                        replyData = {
+                            memId: parseInt(memId),
+                            acId: parseInt(this.articleId),
+                            replyContext: replyContent
+                        };
+
+                        // 添加回覆資訊
+                        if (this.replyToFloor && this.replyToContent) {
+                            replyData.replyToFloor = this.replyToFloor;
+                            replyData.replyToContent = this.replyToContent;
                         }
-                    } catch (error) {
-                        alert('留言送出失敗，請稍後再試');
+
+                        console.log('💬 準備發送純文字留言');
+                        console.log('🔗 API端點:', apiUrl);
+                        console.log('📤 發送資料:', replyData);
+
+                        const response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(replyData)
+                        });
+
+                        console.log('📡 API回應狀態:', response.status);
+
+                        // 檢查回應是否為有效的JSON
+                        const responseText = await response.text();
+                        console.log('📄 原始回應內容:', responseText);
+
+                        try {
+                            result = JSON.parse(responseText);
+                            console.log('📥 解析後的API回應:', result);
+                        } catch (parseError) {
+                            console.error('❌ JSON解析失敗:', parseError);
+                            console.error('📄 無法解析的回應內容:', responseText);
+                            this.showMessage('伺服器回應格式錯誤', 'error');
+                            return;
+                        }
+                    }
+
+                    if (result && result.status === 'success') {
+                        console.log('✅ 留言提交成功');
+                        this.showMessage('留言發布成功！', 'success');
+
+                        // 清除表單
+                        textarea.value = '';
+                        this.clearAllImages();
+                        this.clearReplyTo();
+
+                        // 重新載入留言（回到第一頁顯示新留言）
+                        console.log('🔄 重新載入留言列表...');
+                        this.currentPage = 1; // 新留言發布後回到第一頁
+                        await this.loadReplies();
+                    } else {
+                        console.error('❌ 留言提交失敗:', result);
+                        this.showMessage('留言發布失敗: ' + (result && result.message ? result.message : '未知錯誤'), 'error');
+                    }
+
+                } catch (error) {
+                    console.error('💥 提交留言時發生例外:', error);
+                    console.error('🔍 錯誤堆疊:', error.stack);
+                    this.showMessage('留言提交失敗: ' + error.message, 'error');
+                } finally {
+                    // 重置提交標誌
+                    this.isSubmitting = false;
+
+                    const submitBtn = document.getElementById('submit-reply-btn');
+                    if (submitBtn) {
+                        submitBtn.textContent = '發布留言';
+                        submitBtn.disabled = false;
+                    }
+                    console.log('🏁 留言提交流程結束');
+                }
+            }
+
+            // 顯示訊息
+            showMessage(message, type) {
+                // 移除現有訊息
+                const existingMessage = document.querySelector('.floating-message');
+                if (existingMessage) {
+                    existingMessage.remove();
+                }
+
+                // 創建訊息元素
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'floating-message';
+                messageDiv.textContent = message;
+                messageDiv.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    padding: 12px 20px;
+                    border-radius: 6px;
+                    color: white;
+                    font-weight: 500;
+                    z-index: 1001;
+                    animation: slideInRight 0.3s ease;
+                    max-width: 300px;
+                    word-wrap: break-word;
+                `;
+
+                // 根據類型設置背景色
+                switch (type) {
+                    case 'success':
+                        messageDiv.style.backgroundColor = '#28a745';
+                        break;
+                    case 'error':
+                        messageDiv.style.backgroundColor = '#dc3545';
+                        break;
+                    case 'warning':
+                        messageDiv.style.backgroundColor = '#ffc107';
+                        messageDiv.style.color = '#212529';
+                        break;
+                    default:
+                        messageDiv.style.backgroundColor = '#6c757d';
+                }
+
+                // 添加動畫樣式
+                if (!document.querySelector('#floating-message-style')) {
+                    const style = document.createElement('style');
+                    style.id = 'floating-message-style';
+                    style.textContent = `
+                        @keyframes slideInRight {
+                            from { transform: translateX(100%); opacity: 0; }
+                            to { transform: translateX(0); opacity: 1; }
+                        }
+                        @keyframes slideOutRight {
+                            from { transform: translateX(0); opacity: 1; }
+                            to { transform: translateX(100%); opacity: 0; }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+
+                document.body.appendChild(messageDiv);
+
+                // 3秒後自動移除
+                setTimeout(() => {
+                    messageDiv.style.animation = 'slideOutRight 0.3s ease';
+                    setTimeout(() => {
+                        if (messageDiv.parentNode) {
+                            messageDiv.parentNode.removeChild(messageDiv);
+                        }
+                    }, 300);
+                }, 3000);
+            }
+
+            // 初始化系統
+            init() {
+                console.log('🎬 開始初始化留言系統...');
+
+                if (this.commentsInitialized) {
+                    console.log('⚠️ 留言系統已經初始化過，跳過');
+                    return;
+                }
+                this.commentsInitialized = true;
+                console.log('✅ 設置初始化標記為 true');
+
+                // 多種方式獲取文章ID
+                console.log('⏳ 開始獲取文章ID...');
+
+                const getArticleIdFromMultipleSources = () => {
+                    // 方法1: 從 articleDisplayManager 獲取
+                    if (window.articleDisplayManager && window.articleDisplayManager.getCurrentArticleId) {
+                        const id1 = window.articleDisplayManager.getCurrentArticleId();
+                        if (id1) {
+                            console.log('📄 從 articleDisplayManager 獲取到ID:', id1);
+                            return id1;
+                        }
+                    }
+
+                    // 方法2: 從 URL 參數獲取
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const id2 = urlParams.get('id');
+                    if (id2) {
+                        console.log('📄 從 URL 參數獲取到ID:', id2);
+                        return parseInt(id2);
+                    }
+
+                    // 方法3: 從全域變數獲取（如果存在）
+                    if (window.currentArticleId) {
+                        console.log('📄 從全域變數獲取到ID:', window.currentArticleId);
+                        return window.currentArticleId;
+                    }
+
+                    // 方法4: 從 articles.js 的全域變數獲取
+                    if (window.currentArticle && window.currentArticle.acId) {
+                        console.log('📄 從 currentArticle 全域變數獲取到ID:', window.currentArticle.acId);
+                        return window.currentArticle.acId;
+                    }
+
+                    console.log('❌ 無法從任何來源獲取文章ID');
+                    return null;
+                };
+
+                // 嘗試立即獲取文章ID
+                let articleId = getArticleIdFromMultipleSources();
+
+                if (articleId) {
+                    console.log('✅ 立即獲取到文章ID:', articleId);
+                    this.articleId = articleId;
+                    this.initializeUI();
+                    this.loadReplies();
+                } else {
+                    // 如果立即無法獲取，則等待
+                    console.log('⏳ 立即無法獲取文章ID，開始等待...');
+                    let attemptCount = 0;
+                    const maxAttempts = 50; // 最多等待5秒
+
+                    const checkArticleId = setInterval(() => {
+                        attemptCount++;
+                        console.log(`🔍 第 ${attemptCount} 次嘗試獲取文章ID...`);
+
+                        articleId = getArticleIdFromMultipleSources();
+
+                        if (articleId) {
+                            this.articleId = articleId;
+                            console.log('✅ 等待後獲取到文章ID:', this.articleId);
+                            clearInterval(checkArticleId);
+
+                            console.log('🔧 開始初始化UI...');
+                            this.initializeUI();
+
+                            console.log('📝 開始載入留言...');
+                            this.loadReplies();
+                        } else if (attemptCount >= maxAttempts) {
+                            console.error('❌ 超過最大嘗試次數，仍無法獲取文章ID');
+                            clearInterval(checkArticleId);
+
+                            // 最後嘗試：直接初始化UI，不管文章ID
+                            console.log('🆘 強制初始化UI（無文章ID）...');
+                            this.initializeUI();
+                        }
+                    }, 100);
+                }
+
+                // 監聽文章載入完成事件，更新作者頭像
+                this.setupArticleAuthorAvatarWatcher();
+
+                console.log('🎬 留言系統初始化設置完成');
+            }
+
+            // 設置文章作者頭像監聽器
+            setupArticleAuthorAvatarWatcher() {
+                console.log('👀 設置文章作者頭像監聽器...');
+
+                // 方法1: 監聽全域文章變數變化
+                const checkArticleData = () => {
+                    if (window.currentArticle) {
+                        const authorId = window.currentArticle.memId ||
+                            window.currentArticle.mem_id ||
+                            window.currentArticle.memberVO?.memId ||
+                            window.currentArticle.memberVO?.mem_id ||
+                            window.currentArticle.acMemId ||
+                            window.currentArticle.ac_mem_id;
+
+                        if (authorId) {
+                            console.log('📄 檢測到文章資料載入完成，更新作者頭像');
+                            this.updateArticleAuthorAvatar(window.currentArticle);
+                            return true;
+                        }
+                    }
+                    return false;
+                };
+
+                // 方法2: 監聽 ArticleDisplayManager 的文章載入
+                const checkArticleDisplayManager = () => {
+                    if (window.articleDisplayManager && window.articleDisplayManager.currentArticle) {
+                        const authorId = window.articleDisplayManager.currentArticle.memId ||
+                            window.articleDisplayManager.currentArticle.mem_id ||
+                            window.articleDisplayManager.currentArticle.memberVO?.memId ||
+                            window.articleDisplayManager.currentArticle.memberVO?.mem_id ||
+                            window.articleDisplayManager.currentArticle.acMemId ||
+                            window.articleDisplayManager.currentArticle.ac_mem_id;
+
+                        if (authorId) {
+                            console.log('📄 從 ArticleDisplayManager 獲取文章資料，更新作者頭像');
+                            this.updateArticleAuthorAvatar(window.articleDisplayManager.currentArticle);
+                            return true;
+                        }
+                    }
+                    return false;
+                };
+
+                // 防止重複更新的標記
+                let avatarUpdated = false;
+
+                // 方法3: 監聽DOM變化，檢測作者姓名載入完成
+                const checkAuthorNameLoaded = () => {
+                    if (avatarUpdated) return true; // 已經更新過，跳過
+
+                    const authorNameElement = document.querySelector('.author-name');
+                    if (authorNameElement && authorNameElement.textContent !== '載入中...') {
+                        console.log('📄 檢測到作者姓名載入完成:', authorNameElement.textContent);
+
+                        // 嘗試從多個來源獲取作者資料
+                        let authorData = null;
+                        let authorId = null;
+
+                        // 來源1: window.currentArticle
+                        if (window.currentArticle) {
+                            console.log('🔍 檢查 window.currentArticle 結構:', window.currentArticle);
+                            console.log('🔍 可用欄位:', Object.keys(window.currentArticle));
+
+                            // 檢查多種可能的作者ID欄位
+                            authorId = window.currentArticle.memId ||
+                                window.currentArticle.mem_id ||
+                                window.currentArticle.memberVO?.memId ||
+                                window.currentArticle.memberVO?.mem_id ||
+                                window.currentArticle.acMemId ||
+                                window.currentArticle.ac_mem_id ||
+                                window.currentArticle.authorId ||
+                                window.currentArticle.author_id;
+
+                            if (authorId) {
+                                authorData = window.currentArticle;
+                                console.log('✅ 從 window.currentArticle 獲取到作者ID:', authorId, '(來源欄位:', Object.keys(window.currentArticle).filter(k => k.toLowerCase().includes('mem') || k.toLowerCase().includes('author')), ')');
+                            } else {
+                                console.log('❌ window.currentArticle 中找不到作者ID，可用欄位:', Object.keys(window.currentArticle));
+                                console.log('❌ 詳細欄位值檢查:');
+                                console.log('  memId:', window.currentArticle.memId);
+                                console.log('  mem_id:', window.currentArticle.mem_id);
+                                console.log('  acMemId:', window.currentArticle.acMemId);
+                                console.log('  ac_mem_id:', window.currentArticle.ac_mem_id);
+                                console.log('  memberVO:', window.currentArticle.memberVO);
+                                console.log('  authorId:', window.currentArticle.authorId);
+                                console.log('  author_id:', window.currentArticle.author_id);
+                            }
+                        }
+
+                        // 來源2: articleDisplayManager
+                        if (!authorData && window.articleDisplayManager && window.articleDisplayManager.currentArticle) {
+                            console.log('🔍 檢查 articleDisplayManager.currentArticle 結構:', window.articleDisplayManager.currentArticle);
+                            console.log('🔍 可用欄位:', Object.keys(window.articleDisplayManager.currentArticle));
+
+                            // 檢查多種可能的作者ID欄位
+                            authorId = window.articleDisplayManager.currentArticle.memId ||
+                                window.articleDisplayManager.currentArticle.mem_id ||
+                                window.articleDisplayManager.currentArticle.memberVO?.memId ||
+                                window.articleDisplayManager.currentArticle.memberVO?.mem_id ||
+                                window.articleDisplayManager.currentArticle.acMemId ||
+                                window.articleDisplayManager.currentArticle.ac_mem_id ||
+                                window.articleDisplayManager.currentArticle.authorId ||
+                                window.articleDisplayManager.currentArticle.author_id;
+
+                            if (authorId) {
+                                authorData = window.articleDisplayManager.currentArticle;
+                                console.log('✅ 從 articleDisplayManager 獲取到作者ID:', authorId, '(來源欄位:', Object.keys(window.articleDisplayManager.currentArticle).filter(k => k.toLowerCase().includes('mem') || k.toLowerCase().includes('author')), ')');
+                            } else {
+                                console.log('❌ articleDisplayManager.currentArticle 中找不到作者ID，可用欄位:', Object.keys(window.articleDisplayManager.currentArticle));
+                                console.log('❌ 詳細欄位值檢查:');
+                                console.log('  memId:', window.articleDisplayManager.currentArticle.memId);
+                                console.log('  mem_id:', window.articleDisplayManager.currentArticle.mem_id);
+                                console.log('  acMemId:', window.articleDisplayManager.currentArticle.acMemId);
+                                console.log('  ac_mem_id:', window.articleDisplayManager.currentArticle.ac_mem_id);
+                                console.log('  memberVO:', window.articleDisplayManager.currentArticle.memberVO);
+                                console.log('  authorId:', window.articleDisplayManager.currentArticle.authorId);
+                                console.log('  author_id:', window.articleDisplayManager.currentArticle.author_id);
+                            }
+                        }
+
+                        // 來源3: 全域變數
+                        if (!authorData && window.currentArticleAuthorId) {
+                            authorId = window.currentArticleAuthorId;
+                            authorData = { memId: authorId };
+                            console.log('✅ 從全域變數獲取到作者ID:', authorId);
+                        }
+
+                        if (authorData && authorId) {
+                            console.log('🎯 準備更新文章作者頭像，作者資料:', authorData);
+                            this.updateArticleAuthorAvatar(authorData);
+                            avatarUpdated = true; // 標記已更新
+                            return true;
+                        } else {
+                            // 檢查是否頭像已經被其他地方正確設置了
+                            const authorAvatarImg = document.querySelector('.author-avatar img');
+                            if (authorAvatarImg && authorAvatarImg.src.includes('/member/')) {
+                                console.log('✅ 頭像已被其他地方正確設置，跳過覆蓋');
+                                avatarUpdated = true; // 標記已更新
+                                return true;
+                            }
+
+                            console.log('❌ 無法獲取明確的作者ID，顯示預設頭像');
+                            // 無法獲取作者ID時，顯示預設的user-圖片
+                            this.updateArticleAuthorAvatar(null);
+                            avatarUpdated = true; // 標記已更新
+                            return true;
+                        }
+                    }
+                    return false;
+                };
+
+                // 立即檢查一次
+                if (checkArticleData() || checkArticleDisplayManager() || checkAuthorNameLoaded()) {
+                    console.log('✅ 文章作者頭像已更新（立即檢查）');
+                    return;
+                }
+
+                // 設置定期檢查，但頻率較低
+                let checkCount = 0;
+                const maxChecks = 10; // 減少檢查次數
+                let intervalId = null;
+
+                const performCheck = () => {
+                    checkCount++;
+
+                    if (checkArticleData() || checkArticleDisplayManager() || checkAuthorNameLoaded()) {
+                        console.log('✅ 文章作者頭像已更新');
+                        if (intervalId) clearInterval(intervalId);
+                        return true;
+                    } else if (checkCount >= maxChecks) {
+                        console.log('⏰ 文章作者頭像監聽超時，顯示預設頭像');
+                        // 超時時顯示預設頭像，避免完全沒有頭像
+                        this.updateArticleAuthorAvatar(null);
+                        if (intervalId) clearInterval(intervalId);
+                        return true;
+                    }
+                    return false;
+                };
+
+                intervalId = setInterval(performCheck, 300); // 減少檢查頻率至300ms
+
+                // 監聽DOM變化（文章內容區域），但只觸發一次
+                const postContent = document.querySelector('.post-content');
+                if (postContent) {
+                    let domCheckTriggered = false;
+
+                    const observer = new MutationObserver((mutations) => {
+                        if (domCheckTriggered) return; // 避免重複觸發
+
+                        mutations.forEach((mutation) => {
+                            // 檢查是否有文字內容變化（表示文章載入完成）
+                            if (mutation.type === 'childList' || mutation.type === 'characterData') {
+                                setTimeout(() => {
+                                    if (!domCheckTriggered && (checkArticleData() || checkArticleDisplayManager() || checkAuthorNameLoaded())) {
+                                        domCheckTriggered = true;
+                                        observer.disconnect();
+                                    }
+                                }, 500);
+                            }
+                        });
+                    });
+
+                    observer.observe(postContent, {
+                        childList: true,
+                        subtree: true,
+                        characterData: true
+                    });
+
+                    // 3秒後自動停止監聽
+                    setTimeout(() => {
+                        observer.disconnect();
+                    }, 3000);
+                }
+
+                console.log('✅ 文章作者頭像監聽器設置完成');
+            }
+
+            // 初始化UI事件
+            initializeUI() {
+                console.log('🔧 開始初始化UI事件...');
+
+                // 圖片上傳按鈕
+                const uploadBtn = document.getElementById('upload-image-btn');
+                const fileInput = document.getElementById('image-file-input');
+                console.log('📸 圖片上傳按鈕:', uploadBtn ? '找到' : '未找到');
+                console.log('📁 檔案輸入框:', fileInput ? '找到' : '未找到');
+
+                if (uploadBtn && fileInput) {
+                    uploadBtn.addEventListener('click', () => {
+                        console.log('📸 圖片上傳按鈕被點擊');
+                        fileInput.click();
+                    });
+                    fileInput.addEventListener('change', this.handleImageSelect);
+                }
+
+                // 清除所有圖片按鈕
+                const clearAllBtn = document.getElementById('clear-all-images');
+                console.log('🗑️ 清除圖片按鈕:', clearAllBtn ? '找到' : '未找到');
+                if (clearAllBtn) {
+                    clearAllBtn.addEventListener('click', () => {
+                        console.log('🗑️ 清除圖片按鈕被點擊');
+                        this.clearAllImages();
+                    });
+                }
+
+                // 提交按鈕
+                const submitBtn = document.getElementById('submit-reply-btn');
+                console.log('📤 提交留言按鈕:', submitBtn ? '找到' : '未找到');
+
+                if (submitBtn) {
+                    console.log('✅ 正在綁定提交按鈕事件...');
+
+                    // 清除所有現有事件監聽器
+                    const newSubmitBtn = submitBtn.cloneNode(true);
+                    submitBtn.parentNode.replaceChild(newSubmitBtn, submitBtn);
+
+                    // 只綁定一個 click 事件監聽器
+                    newSubmitBtn.addEventListener('click', (e) => {
+                        console.log('🚀 提交按鈕被點擊！');
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        // 防止重複點擊
+                        if (newSubmitBtn.disabled) {
+                            console.log('⚠️ 按鈕已禁用，忽略點擊');
+                            return;
+                        }
+
+                        this.submitReply();
+                    });
+
+                    console.log('✅ 提交按鈕事件綁定完成');
+                } else {
+                    console.error('❌ 找不到提交按鈕元素 #submit-reply-btn');
+                }
+
+                // 排序選單
+                const sortSelect = document.querySelector('.sort-comments');
+                console.log('🔄 排序選單:', sortSelect ? '找到' : '未找到');
+                if (sortSelect) {
+                    sortSelect.addEventListener('change', () => {
+                        console.log('🔄 排序選單變更');
+                        // 排序改變時重置到第一頁
+                        this.currentPage = 1;
+                        this.renderRepliesSorted(sortSelect.value);
+                    });
+                }
+
+                // 拖拽事件
+                const commentForm = document.querySelector('.comment-form');
+                console.log('📝 留言表單:', commentForm ? '找到' : '未找到');
+                if (commentForm) {
+                    commentForm.addEventListener('dragover', this.handleDragOver);
+                    commentForm.addEventListener('dragleave', (e) => this.handleDragLeave(e));
+                    commentForm.addEventListener('drop', this.handleDrop);
+                }
+
+                // 粘貼事件
+                const textarea = document.getElementById('reply-textarea');
+                console.log('📝 文字輸入框:', textarea ? '找到' : '未找到');
+                if (textarea) {
+                    textarea.addEventListener('paste', this.handlePaste);
+
+                    // 動態圖片拖入框功能（僅在登入時顯示）
+                    textarea.addEventListener('focus', () => {
+                        console.log('🎯 文字框獲得焦點');
+                        this.showDynamicImageUploadArea();
+                    });
+
+                    textarea.addEventListener('blur', () => {
+                        console.log('👋 文字框失去焦點');
+                        // 延遲隱藏，避免點擊圖片拖入框時立即消失
+                        setTimeout(() => {
+                            this.hideDynamicImageUploadArea();
+                        }, 200);
+                    });
+                }
+
+                // Enter 鍵提交（Ctrl+Enter）
+                if (textarea) {
+                    textarea.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter' && e.ctrlKey) {
+                            console.log('⌨️ Ctrl+Enter 快捷鍵觸發');
+                            e.preventDefault();
+
+                            // 防止重複提交
+                            const submitButton = document.getElementById('submit-reply-btn');
+                            if (submitButton && !submitButton.disabled) {
+                                this.submitReply();
+                            }
+                        }
+                    });
+                }
+
+                console.log('🔧 UI事件初始化完成');
+            }
+
+            // 檢查登入狀態
+            isUserLoggedIn() {
+                const memberData = localStorage.getItem('currentMember') || sessionStorage.getItem('currentMember');
+                return !!memberData;
+            }
+
+            // 顯示動態圖片上傳區域
+            showDynamicImageUploadArea() {
+                // 檢查登入狀態
+                if (!this.isUserLoggedIn()) {
+                    console.log('👤 用戶未登入，不顯示圖片上傳區域');
+                    return;
+                }
+
+                // 檢查是否已存在動態上傳區域
+                let dynamicUploadArea = document.getElementById('dynamic-image-upload-area');
+                if (dynamicUploadArea) {
+                    console.log('📸 動態上傳區域已存在，直接顯示');
+                    dynamicUploadArea.style.display = 'block';
+                    // 重置樣式並更新內容
+                    dynamicUploadArea.style.borderColor = '#007bff';
+                    dynamicUploadArea.style.backgroundColor = 'rgba(0, 123, 255, 0.05)';
+                    dynamicUploadArea.style.cursor = 'pointer';
+                    this.updateDynamicUploadAreaContent(dynamicUploadArea);
+                    return;
+                }
+
+                console.log('📸 創建動態圖片上傳區域');
+
+                // 創建動態圖片上傳區域
+                dynamicUploadArea = document.createElement('div');
+                dynamicUploadArea.id = 'dynamic-image-upload-area';
+                dynamicUploadArea.style.cssText = `
+                    margin: 10px 0;
+                    padding: 20px;
+                    border: 2px dashed #007bff;
+                    border-radius: 8px;
+                    background: rgba(0, 123, 255, 0.05);
+                    text-align: center;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    position: relative;
+                `;
+
+                dynamicUploadArea.innerHTML = `
+                    <div class="dynamic-upload-content">
+                        <i class="fas fa-cloud-upload-alt" style="font-size: 2rem; color: #007bff; margin-bottom: 10px; display: block;"></i>
+                        <div style="font-size: 1.1rem; color: #333; margin-bottom: 5px; font-weight: 500;">拖拽圖片到此處或點擊上傳</div>
+                        <div style="font-size: 0.9rem; color: #666; margin-bottom: 10px;">支援 JPG、PNG、GIF 格式，最多5張，每張最大10MB</div>
+                        <div style="font-size: 0.8rem; color: #999;">您也可以直接貼上剪貼簿中的圖片</div>
+                        <input type="file" class="dynamic-image-input" multiple accept="image/*" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;">
+                    </div>
+                `;
+
+                // 將動態上傳區域插入到留言表單中
+                const commentForm = document.querySelector('.comment-form');
+                const textarea = document.getElementById('reply-textarea');
+                if (commentForm && textarea) {
+                    commentForm.insertBefore(dynamicUploadArea, textarea.nextSibling);
+                }
+
+                // 綁定事件
+                this.bindDynamicUploadEvents(dynamicUploadArea);
+
+                // 添加懸停效果
+                dynamicUploadArea.addEventListener('mouseenter', () => {
+                    if (this.selectedImages.length < 5) {
+                        dynamicUploadArea.style.borderColor = '#0056b3';
+                        dynamicUploadArea.style.backgroundColor = 'rgba(0, 123, 255, 0.1)';
                     }
                 });
+
+                dynamicUploadArea.addEventListener('mouseleave', () => {
+                    if (this.selectedImages.length === 0) {
+                        dynamicUploadArea.style.borderColor = '#007bff';
+                        dynamicUploadArea.style.backgroundColor = 'rgba(0, 123, 255, 0.05)';
+                    } else if (this.selectedImages.length < 5) {
+                        dynamicUploadArea.style.borderColor = '#28a745';
+                        dynamicUploadArea.style.backgroundColor = 'rgba(40, 167, 69, 0.05)';
+                    } else {
+                        dynamicUploadArea.style.borderColor = '#dc3545';
+                        dynamicUploadArea.style.backgroundColor = 'rgba(220, 53, 69, 0.05)';
+                    }
+                });
+
+                // 立即更新內容以反映當前狀態
+                this.updateDynamicUploadAreaContent(dynamicUploadArea);
+
+                console.log('✅ 動態圖片上傳區域創建完成');
+            }
+
+            // 隱藏動態圖片上傳區域
+            hideDynamicImageUploadArea() {
+                const dynamicUploadArea = document.getElementById('dynamic-image-upload-area');
+                if (dynamicUploadArea) {
+                    console.log('📸 隱藏動態圖片上傳區域');
+                    dynamicUploadArea.style.display = 'none';
+                }
+            }
+
+            // 綁定動態上傳區域的事件
+            bindDynamicUploadEvents(uploadArea) {
+                const fileInput = uploadArea.querySelector('.dynamic-image-input');
+
+                // 點擊上傳
+                uploadArea.addEventListener('click', (e) => {
+                    if (e.target === fileInput) return; // 避免重複觸發
+                    fileInput.click();
+                });
+
+                // 檔案選擇事件
+                fileInput.addEventListener('change', (e) => {
+                    console.log('📸 動態上傳區域：選擇檔案', e.target.files.length, '個');
+                    this.handleImageSelect(e);
+                    // 選擇完檔案後保持顯示，但更新內容
+                    this.updateDynamicUploadAreaContent(uploadArea);
+                });
+
+                // 拖拽事件
+                uploadArea.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    uploadArea.style.borderColor = '#0056b3';
+                    uploadArea.style.backgroundColor = 'rgba(0, 123, 255, 0.15)';
+                });
+
+                uploadArea.addEventListener('dragleave', (e) => {
+                    e.preventDefault();
+                    uploadArea.style.borderColor = '#007bff';
+                    uploadArea.style.backgroundColor = 'rgba(0, 123, 255, 0.05)';
+                });
+
+                uploadArea.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    uploadArea.style.borderColor = '#007bff';
+                    uploadArea.style.backgroundColor = 'rgba(0, 123, 255, 0.05)';
+
+                    const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'));
+                    if (files.length > 0) {
+                        console.log('📸 動態上傳區域：拖拽檔案', files.length, '個');
+
+                        // 模擬檔案選擇事件
+                        const dataTransfer = new DataTransfer();
+                        files.forEach(file => dataTransfer.items.add(file));
+                        fileInput.files = dataTransfer.files;
+
+                        // 觸發 change 事件
+                        const changeEvent = new Event('change', { bubbles: true });
+                        fileInput.dispatchEvent(changeEvent);
+
+                        // 更新動態上傳區域內容
+                        this.updateDynamicUploadAreaContent(uploadArea);
+                    }
+                });
+
+                // 阻止動態上傳區域失去焦點時立即隱藏
+                uploadArea.addEventListener('mousedown', (e) => {
+                    e.preventDefault(); // 阻止 textarea 失去焦點
+                });
+
+                uploadArea.addEventListener('mouseup', () => {
+                    // 重新聚焦到 textarea
+                    const textarea = document.getElementById('reply-textarea');
+                    if (textarea) {
+                        textarea.focus();
+                    }
+                });
+
+                console.log('✅ 動態上傳區域事件綁定完成');
+            }
+
+            // 更新動態上傳區域內容（根據選擇的圖片數量）
+            updateDynamicUploadAreaContent(uploadArea) {
+                const content = uploadArea.querySelector('.dynamic-upload-content');
+                if (!content) return;
+
+                const selectedCount = this.selectedImages.length;
+                const maxImages = 5;
+                const canAddMore = selectedCount < maxImages;
+
+                if (selectedCount === 0) {
+                    // 沒有選擇圖片，顯示初始狀態
+                    content.innerHTML = `
+                        <i class="fas fa-cloud-upload-alt" style="font-size: 2rem; color: #007bff; margin-bottom: 10px; display: block;"></i>
+                        <div style="font-size: 1.1rem; color: #333; margin-bottom: 5px; font-weight: 500;">拖拽圖片到此處或點擊上傳</div>
+                        <div style="font-size: 0.9rem; color: #666; margin-bottom: 10px;">支援 JPG、PNG、GIF 格式，最多5張，每張最大10MB</div>
+                        <div style="font-size: 0.8rem; color: #999;">您也可以直接貼上剪貼簿中的圖片</div>
+                        <input type="file" class="dynamic-image-input" multiple accept="image/*" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;">
+                    `;
+                } else if (canAddMore) {
+                    // 已選擇部分圖片，可以繼續添加
+                    const remainingCount = maxImages - selectedCount;
+                    content.innerHTML = `
+                        <i class="fas fa-images" style="font-size: 1.8rem; color: #28a745; margin-bottom: 8px; display: block;"></i>
+                        <div style="font-size: 1rem; color: #28a745; margin-bottom: 5px; font-weight: 500;">已選擇 ${selectedCount} 張圖片</div>
+                        <div style="font-size: 0.9rem; color: #666; margin-bottom: 8px;">點擊或拖拽可再添加 ${remainingCount} 張圖片</div>
+                        <div style="font-size: 0.8rem; color: #999;">最多總共5張圖片</div>
+                        <input type="file" class="dynamic-image-input" multiple accept="image/*" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;">
+                    `;
+
+                    // 更新樣式
+                    uploadArea.style.borderColor = '#28a745';
+                    uploadArea.style.backgroundColor = 'rgba(40, 167, 69, 0.05)';
+                } else {
+                    // 已達到最大圖片數量
+                    content.innerHTML = `
+                        <i class="fas fa-check-circle" style="font-size: 1.8rem; color: #dc3545; margin-bottom: 8px; display: block;"></i>
+                        <div style="font-size: 1rem; color: #dc3545; margin-bottom: 5px; font-weight: 500;">已達上限 (${selectedCount}/5)</div>
+                        <div style="font-size: 0.9rem; color: #666; margin-bottom: 8px;">如需添加更多圖片，請先移除部分已選圖片</div>
+                        <div style="font-size: 0.8rem; color: #999;">您可以在下方預覽區域管理圖片</div>
+                    `;
+
+                    // 更新樣式
+                    uploadArea.style.borderColor = '#dc3545';
+                    uploadArea.style.backgroundColor = 'rgba(220, 53, 69, 0.05)';
+                    uploadArea.style.cursor = 'not-allowed';
+                }
+
+                // 重新綁定檔案輸入事件
+                const newFileInput = uploadArea.querySelector('.dynamic-image-input');
+                if (newFileInput && canAddMore) {
+                    newFileInput.addEventListener('change', (e) => {
+                        console.log('📸 動態上傳區域：選擇檔案', e.target.files.length, '個');
+                        this.handleImageSelect(e);
+                        this.updateDynamicUploadAreaContent(uploadArea);
+                    });
+                }
+
+                console.log('✅ 動態上傳區域內容已更新，當前圖片數:', selectedCount);
+            }
+        }
+
+        // 創建全域實例
+        let replySystem;
+
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('🌟 DOM載入完成，開始創建留言系統實例...');
+
+            try {
+                replySystem = new EnhancedReplySystem();
+                console.log('✅ 留言系統實例創建成功');
+
+                window.replySystem = replySystem; // 全域存取
+                console.log('🌐 留言系統已設置為全域變數');
+
+                // 禁用舊的留言系統
+                window.disableOldReplySystem = true;
+                console.log('🚫 已禁用舊的留言系統');
+
+                // 覆蓋可能的舊留言函數
+                window.initComments = function () {
+                    console.log('🚫 阻止舊留言系統初始化');
+                    return false;
+                };
+
+                window.loadReplies = function () {
+                    console.log('🚫 阻止舊留言系統載入');
+                    return false;
+                };
+
+                window.renderReplies = function () {
+                    console.log('🚫 阻止舊留言系統渲染');
+                    return false;
+                };
+
+                // 保護留言容器不被覆蓋
+                const protectCommentsList = () => {
+                    const commentsList = document.querySelector('.comments-list');
+                    if (commentsList) {
+                        // 標記為受保護
+                        commentsList.setAttribute('data-protected', 'true');
+
+                        // 監聽DOM變化，防止被覆蓋（降低敏感度避免無限重渲染）
+                        let lastObserverRender = 0;
+                        const OBSERVER_RENDER_COOLDOWN = 3000; // 3秒冷卻時間
+
+                        const observer = new MutationObserver((mutations) => {
+                            const now = Date.now();
+                            if (now - lastObserverRender < OBSERVER_RENDER_COOLDOWN) {
+                                return; // 在冷卻期間，忽略變化
+                            }
+
+                            mutations.forEach((mutation) => {
+                                if (mutation.type === 'childList') {
+                                    // 更嚴格的檢查條件 - 只有當內容完全被清空時才重新渲染
+                                    const currentContent = commentsList.innerHTML.trim();
+                                    const hasCommentItems = commentsList.querySelector('.comment-item');
+                                    const hasEmptyMessage = currentContent.includes('暫無留言');
+
+                                    if (!hasCommentItems && !hasEmptyMessage && currentContent.length < 100 &&
+                                        replySystem && replySystem.allReplies && replySystem.allReplies.length > 0) {
+                                        console.log('🛡️ 偵測到留言完全遺失，重新渲染');
+                                        lastObserverRender = now;
+                                        setTimeout(() => {
+                                            replySystem.renderRepliesSorted();
+                                        }, 200);
+                                    }
+                                }
+                            });
+                        });
+
+                        observer.observe(commentsList, {
+                            childList: true,
+                            subtree: false // 只監聽直接子元素變化，不監聽深層變化
+                        });
+
+                        console.log('🛡️ 已保護留言容器');
+                    }
+                };
+
+                replySystem.init();
+                console.log('🚀 留言系統初始化調用完成');
+
+                // 延遲設置保護，確保留言已載入
+                setTimeout(protectCommentsList, 2000);
+
+                // 定期檢查並恢復內容（降低檢查頻率以避免無限重新渲染）
+                let lastRenderTime = 0;
+                const MIN_RENDER_INTERVAL = 5000; // 最小5秒間隔
+
+                const maintainContent = () => {
+                    const now = Date.now();
+                    if (now - lastRenderTime < MIN_RENDER_INTERVAL) {
+                        return; // 太頻繁，跳過這次檢查
+                    }
+
+                    if (replySystem && replySystem.allReplies && replySystem.allReplies.length > 0) {
+                        const commentsList = document.querySelector('.comments-list');
+                        if (commentsList) {
+                            // 更嚴格的檢查條件，避免誤判
+                            const hasCommentItems = commentsList.querySelector('.comment-item');
+                            const hasEmptyMessage = commentsList.innerHTML.includes('暫無留言');
+
+                            // 只有當完全沒有留言項目且應該有留言時才重新渲染
+                            if (!hasCommentItems && !hasEmptyMessage && replySystem.allReplies.length > 0) {
+                                console.log('🔄 偵測到內容完全遺失，重新渲染留言');
+                                lastRenderTime = now;
+                                replySystem.renderRepliesSorted();
+                            }
+                        }
+                    }
+                };
+
+                // 每10秒檢查一次（降低頻率）
+                setInterval(maintainContent, 10000);
+
+                // 頁面載入完成後強制檢查
+                window.addEventListener('load', () => {
+                    setTimeout(() => {
+                        console.log('🔄 頁面載入完成，強制重新渲染留言');
+                        if (replySystem && replySystem.allReplies && replySystem.allReplies.length > 0) {
+                            replySystem.renderRepliesSorted();
+                        }
+
+                        // 備用機制：檢查頭像是否顯示，如果沒有則顯示預設頭像
+                        const authorAvatarImg = document.querySelector('.author-avatar img');
+                        if (authorAvatarImg && authorAvatarImg.style.display === 'none') {
+                            console.log('🔧 備用機制：強制顯示預設頭像');
+                            if (replySystem) {
+                                replySystem.updateArticleAuthorAvatar(null);
+                            }
+                        }
+                    }, 3000);
+                });
+
+            } catch (error) {
+                console.error('❌ 創建留言系統時發生錯誤:', error);
+                console.error('🔍 錯誤堆疊:', error.stack);
             }
         });
 
-        // 提供給外部呼叫
-        window.setReplyTo = setReplyTo;
+        // 提供給外部呼叫的函數（向後相容）- 已禁用
+        window.setReplyTo = function (floor, content) {
+            // 回覆功能已暫時禁用
+            console.log('📝 回覆功能暫時禁用');
+            return;
+        };
+
+        // 提供外部更新文章作者頭像的方法
+        window.updateArticleAuthorAvatar = function (authorData) {
+            if (window.replySystem) {
+                console.log('🌐 外部調用：更新文章作者頭像');
+                window.replySystem.updateArticleAuthorAvatar(authorData);
+            } else {
+                console.warn('⚠️ 留言系統尚未初始化，無法更新文章作者頭像');
+            }
+        };
     </script>
     <script>
         // 瀏覽次數處理（統一處理，避免重複）
@@ -1671,6 +4185,29 @@
         // 添加到全域供手動測試
         window.testUploadStrategy = testUploadStrategy;
         */
+    </script>
+    <script>
+        // 文章內容圖片點擊放大（燈箱）
+        function bindArticleImageLightbox() {
+            const postBody = document.querySelector('.post-body');
+            if (!postBody) return;
+            postBody.querySelectorAll('img').forEach(img => {
+                img.style.cursor = 'zoom-in';
+                img.addEventListener('click', function () {
+                    if (window.replySystem && typeof window.replySystem.showImageLightbox === 'function') {
+                        window.replySystem.showImageLightbox(this.src);
+                    }
+                });
+            });
+        }
+
+        // 若文章內容是動態載入，請在內容載入後再呼叫
+        // 這裡先在 DOMContentLoaded 呼叫一次
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // 若文章內容是 AJAX 載入，請在內容插入後再呼叫
+            setTimeout(bindArticleImageLightbox, 800); // 延遲確保內容已載入
+        });
     </script>
 </body>
 

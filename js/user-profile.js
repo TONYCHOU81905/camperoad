@@ -731,8 +731,8 @@ class UserProfileManager {
                     )}</span>
                     <span>營地數量: ${detail.campsiteNum}</span>
                     <span>營地金額: NT$ ${(
-                      detail.campsiteAmount || 0
-                    ).toLocaleString()}</span>
+                    detail.campsiteAmount || 0
+                  ).toLocaleString()}</span>
                   </div>
                 `
                   )
@@ -816,15 +816,14 @@ class UserProfileManager {
           }
           
           <div class="order-actions">
-            ${
-              order.campsiteOrderStatus < this.ORDER_STATUS.COMPLETED
-                ? `
+            ${order.campsiteOrderStatus < this.ORDER_STATUS.COMPLETED
+            ? `
               <button class="btn-cancel-order" data-order-id="${order.campsiteOrderId}">
                 <i class="fas fa-times"></i> 取消訂單
               </button>
             `
-                : ""
-            }
+            : ""
+          }
           </div>
         </div>
       `;
@@ -1426,15 +1425,18 @@ class UserProfileManager {
             </div>
             <div class="coupon-content">
               <div class="coupon-title">活動名稱:${coupon.discountCode}</div>
+
               <div class="coupon-description">單筆滿 NT$${
                 coupon.minOrderAmount
               } 可使用</div>
+
               <div class="coupon-valid">使用期限：${coupon.startDate.substring(
-                0,
-                10
-              )} ~ ${coupon.endDate.substring(0, 10)}</div>
+            0,
+            10
+          )} ~ ${coupon.endDate.substring(0, 10)}</div>
             </div>
             <div class="coupon-footer">
+
               <div class="coupon-code">請使用優惠碼：${
                 coupon.discountCodeId
               }</div>
@@ -1451,6 +1453,7 @@ class UserProfileManager {
                     )}</div>`
                   : ""
               }
+
             </div>
           </div>`;
       })
@@ -2594,11 +2597,10 @@ function viewShopOrderDetail(orderId) {
                     <div class="info-item"><span class="info-label">配送方式:</span><span class="info-value">${shipmentMethod}</span></div>
                     <div class="info-item"><span class="info-label">商品總數:</span><span class="info-value">${totalItems} 件</span></div>
                     <div class="info-item"><span class="info-label">退貨申請狀態:</span><span class="info-value">${returnApplyText}</span></div>
-                    <div class="info-item"><span class="info-label">出貨日期:</span><span class="info-value">${
-                      order.shopOrderShipDate
-                        ? order.shopOrderShipDate.split("T")[0]
-                        : ""
-                    }</span></div>
+                    <div class="info-item"><span class="info-label">出貨日期:</span><span class="info-value">${order.shopOrderShipDate
+              ? order.shopOrderShipDate.split("T")[0]
+              : ""
+            }</span></div>
                       <div class="info-item"><span class="info-label">訂單備註:</span><span class="info-value">${orderNoteText}</span></div>
                   </div>
                 </div>
@@ -2889,6 +2891,712 @@ document.addEventListener("click", function (e) {
   }
 });
 
+
+
+// === 收藏文章管理器（從 articles-favorites.html 移植，並整合到 user-profile.js） ===
+class FavoritesManager {
+  constructor() {
+    this.currentMember = null;
+    this.favorites = [];
+    this.filteredFavorites = [];
+    this.membersData = null;
+    this.currentCategory = 'all';
+    this.currentSearchKeyword = '';
+    this.currentSortType = 'latest';
+    this.init();
+  }
+
+  async init() {
+    this.checkLoginStatus();
+    await this.loadMembersData();
+    await this.loadFavorites();
+    this.setupEventListeners();
+    // 移除重複的 displayFavorites 調用，讓 loadFavoriteArticles 負責顯示
+  }
+
+  checkLoginStatus() {
+    const memberData = localStorage.getItem("currentMember") || sessionStorage.getItem("currentMember");
+    if (memberData) {
+      this.currentMember = JSON.parse(memberData);
+      this.currentMember.memId = this.currentMember.mem_id || this.currentMember.memId;
+      this.updateUserInfo();
+    } else {
+      this.showEmptyState('請先登入才能查看收藏');
+    }
+  }
+
+  updateUserInfo() {
+    // 可根據 user-profile.html 結構補充
+  }
+
+  async loadMembersData() {
+    try {
+      const response = await fetch('data/mem.json');
+      this.membersData = await response.json();
+    } catch (error) {
+      this.membersData = [];
+    }
+  }
+
+  async loadFavorites() {
+    if (!this.currentMember) {
+      this.showEmptyState('請先登入');
+      return;
+    }
+    try {
+      const response = await fetch(`${window.api_prefix}/api/favorites`);
+      const result = await response.json();
+      if (response.ok && result.status === 'success' && result.data) {
+        this.favorites = result.data.filter(fav => fav.memId === (this.currentMember.mem_id || this.currentMember.memId));
+        await this.loadFavoriteArticles();
+      } else {
+        this.loadLocalFavorites();
+      }
+    } catch (error) {
+      this.loadLocalFavorites();
+    }
+  }
+
+  loadLocalFavorites() {
+    const localFavorites = JSON.parse(localStorage.getItem('articleFavorites') || '[]');
+    this.favorites = localFavorites.filter(fav => fav.memId === (this.currentMember.mem_id || this.currentMember.memId));
+    if (this.favorites.length > 0) {
+      // 對於本地收藏，直接設置 filteredFavorites 並顯示
+      this.filteredFavorites = [...this.favorites];
+      this.updateCategories();
+      this.sortFavorites('latest');
+
+      // 從 URL 參數獲取當前頁碼
+      const urlParams = new URLSearchParams(window.location.search);
+      const currentPage = parseInt(urlParams.get('page')) || 1;
+
+      this.displayFavorites(currentPage);
+    } else {
+      this.showEmptyState();
+    }
+  }
+
+  async loadFavoriteArticles() {
+    try {
+      const response = await fetch(`${window.api_prefix}/api/articles`);
+      const result = await response.json();
+      if (response.ok && result.status === 'success' && result.data) {
+        const favoriteArticles = this.favorites.map(fav => {
+          const article = result.data.find(art => art.acId === fav.acId);
+          return {
+            ...article,
+            favoriteTime: fav.acFavTime
+          };
+        }).filter(article => article.acId);
+        this.favorites = favoriteArticles;
+        this.filteredFavorites = [...favoriteArticles];
+
+        // 先更新分類，再排序和顯示
+        this.updateCategories();
+        this.sortFavorites('latest');
+
+        // 從 URL 參數獲取當前頁碼
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentPage = parseInt(urlParams.get('page')) || 1;
+
+        // 確保有數據後再顯示
+        if (this.filteredFavorites.length > 0) {
+          this.displayFavorites(currentPage);
+        } else {
+          this.showEmptyState();
+        }
+      } else {
+        this.showEmptyState('無法載入文章資訊');
+      }
+    } catch (error) {
+      this.showEmptyState('載入失敗');
+    }
+  }
+
+  displayFavorites(page = 1) {
+    const container = document.getElementById('favorites-container');
+    const countElement = document.getElementById('favorites-count');
+    if (!container) return;
+
+    console.log('displayFavorites 被調用，頁碼:', page, '收藏數量:', this.filteredFavorites.length);
+
+    if (this.filteredFavorites.length === 0) {
+      console.log('沒有收藏文章，顯示空狀態');
+      this.showEmptyState();
+      return;
+    }
+
+    if (countElement) {
+      countElement.textContent = this.filteredFavorites.length;
+    }
+
+    // 分頁設定
+    const itemsPerPage = 10;
+    const totalPages = Math.ceil(this.filteredFavorites.length / itemsPerPage);
+    const startIndex = (page - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const currentPageItems = this.filteredFavorites.slice(startIndex, endIndex);
+
+    let html = '';
+    for (let index = 0; index < currentPageItems.length; index++) {
+      const article = currentPageItems[index];
+      const favoriteDate = article.favoriteTime ? new Date(article.favoriteTime).toLocaleDateString('zh-TW') : '未知時間';
+      const authorName = this.getAuthorName(article);
+      const articleType = this.getArticleType(article.acTypeId);
+      html += `
+        <div class="article-item" data-article-id="${article.acId}">
+          <div class="article-checkbox-cell">
+            <input type="checkbox" class="article-checkbox" data-article-id="${article.acId}" title="選擇此文章">
+          </div>
+          <div class="article-image-cell">
+            <img src="images/camp-${(index % 5) + 1}.jpg" alt="文章圖片" class="article-image" />
+          </div>
+          <div class="article-title-cell">
+            <a href="articles.html?id=${article.acId}" class="article-title-link">${article.acTitle}</a>
+            <div class="article-preview">${article.acContext ? article.acContext.replace(/<[^>]+>/g, '').substring(0, 100) + '...' : '無內容預覽'}</div>
+            <span class="article-tag">${articleType}
+              <span class="reply-count" data-article-id="${article.acId}" style="margin-left:18px;color:#fff;font-size:0.92em;">
+                <i class='fas fa-comments' style="color:#fff;"></i> ${article.replyCount || 0}
+              </span>
+              <span class="view-count" data-article-id="${article.acId}" style="margin-left:12px;color:#fff;font-size:0.92em;">
+                <i class='fas fa-eye' style="color:#fff;"></i> ${article.acViewCount || 0}
+              </span>
+            </span>
+          </div>
+          <div class="article-author-cell">${authorName}</div>
+          <div class="article-date-cell">${favoriteDate}</div>
+          <div class="article-stats-cell">
+            <button class="remove-favorite-btn" onclick="favoritesManager.removeFavorite(${article.acId})">
+              <i class="fas fa-trash"></i> 移除收藏
+            </button>
+          </div>
+        </div>
+      `;
+    }
+    container.innerHTML = html;
+
+    // 綁定勾選框事件
+    this.bindCheckboxEvents();
+
+    // 綁定全選勾選框事件（在 DOM 元素創建後）
+    this.bindSelectAllCheckbox();
+
+    // 綁定刪除選中按鈕事件（在 DOM 元素創建後）
+    this.bindDeleteSelectedButton();
+
+    // 渲染分頁
+    this.renderPagination(totalPages, page);
+  }
+
+  showEmptyState(message = '') {
+    const container = document.getElementById('favorites-container');
+    const countElement = document.getElementById('favorites-count');
+    if (countElement) {
+      countElement.textContent = '0';
+    }
+    if (container) {
+      container.innerHTML = `<div class="empty-favorites"><i class="fas fa-bookmark"></i><h3>還沒有收藏任何文章</h3><p>${message || '開始瀏覽論壇，收藏您喜歡的文章吧！'}</p><a href="article-type.html" class="btn-explore">瀏覽論壇</a></div>`;
+    }
+    // 清空分頁
+    const paginationContainer = document.querySelector('.pagination');
+    if (paginationContainer) {
+      paginationContainer.innerHTML = '';
+    }
+  }
+
+  // 渲染分頁控制
+  renderPagination(totalPages, currentPage) {
+    const paginationContainer = document.querySelector('.pagination');
+    if (!paginationContainer) return;
+
+    if (totalPages <= 1) {
+      paginationContainer.innerHTML = '';
+      return;
+    }
+
+    let paginationHTML = '';
+
+    // 上一頁按鈕
+    if (currentPage > 1) {
+      paginationHTML += `<a href="#" data-page="${currentPage - 1}"><i class="fas fa-chevron-left"></i> 上一頁</a>`;
+    }
+
+    // 頁碼按鈕
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      const activeClass = i === currentPage ? 'active' : '';
+      paginationHTML += `<a href="#" class="${activeClass}" data-page="${i}">${i}</a>`;
+    }
+
+    // 下一頁按鈕
+    if (currentPage < totalPages) {
+      paginationHTML += `<a href="#" data-page="${currentPage + 1}">下一頁 <i class="fas fa-chevron-right"></i></a>`;
+    }
+
+    paginationContainer.innerHTML = paginationHTML;
+
+    // 綁定分頁點擊事件
+    this.bindPaginationEvents();
+  }
+
+  // 綁定分頁事件
+  bindPaginationEvents() {
+    const paginationContainer = document.querySelector('.pagination');
+    if (!paginationContainer) return;
+
+    paginationContainer.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (e.target.tagName === 'A') {
+        const page = parseInt(e.target.dataset.page);
+        if (page) {
+          this.goToPage(page);
+        }
+      }
+    });
+  }
+
+  // 跳轉到指定頁面
+  goToPage(page) {
+    // 更新 URL 參數
+    const url = new URL(window.location);
+    url.searchParams.set('page', page);
+    window.history.pushState({}, '', url);
+
+    // 重新渲染文章列表
+    this.displayFavorites(page);
+  }
+
+  async removeFavorite(articleId) {
+    const memId = this.currentMember.mem_id || this.currentMember.memId;
+    if (!memId) {
+      this.showMessage('會員資訊錯誤，請重新登入', 'error');
+      return;
+    }
+    if (!confirm('確定要移除這篇收藏嗎？')) return;
+    try {
+      await fetch(`${window.api_prefix}/api/favorites/${memId}/${articleId}`, { method: 'DELETE' });
+    } catch { }
+    this.favorites = this.favorites.filter(fav => fav.acId !== articleId);
+    this.filteredFavorites = this.filteredFavorites.filter(fav => fav.acId !== articleId);
+    const localFavorites = JSON.parse(localStorage.getItem('articleFavorites') || '[]');
+    const updatedFavorites = localFavorites.filter(fav => !(fav.memId === memId && fav.acId === articleId));
+    localStorage.setItem('articleFavorites', JSON.stringify(updatedFavorites));
+    this.updateCategories();
+    this.sortFavorites(document.getElementById('sort-favorites')?.value || 'latest');
+
+    // 保持當前頁面，如果當前頁沒有文章了，回到上一頁
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentPage = parseInt(urlParams.get('page')) || 1;
+    const itemsPerPage = 10;
+    const totalPages = Math.ceil(this.filteredFavorites.length / itemsPerPage);
+
+    let targetPage = currentPage;
+    if (currentPage > totalPages && totalPages > 0) {
+      targetPage = totalPages;
+    }
+
+    this.displayFavorites(targetPage);
+    this.showMessage('已移除收藏', 'success');
+  }
+
+  updateCategories() {
+    const categoriesList = document.getElementById('categories-list');
+    if (!categoriesList) return;
+    const categories = {};
+    this.favorites.forEach(article => {
+      const type = this.getArticleType(article.acTypeId);
+      categories[type] = (categories[type] || 0) + 1;
+    });
+    if (Object.keys(categories).length === 0) {
+      categoriesList.innerHTML = '<li><div style="text-align: center; padding: 20px; color: #666;">暫無分類</div></li>';
+      return;
+    }
+    let html = '';
+    const totalCount = this.favorites.length;
+    html += `<li class="category-item active" data-category="all" style="cursor: pointer; background-color: #3A5A40; color: white; border-radius: 5px;"><span class="category-name">全部</span><span class="category-count">${totalCount}</span></li>`;
+    Object.entries(categories).forEach(([type, count]) => {
+      html += `<li class="category-item" data-category="${type}" style="cursor: pointer;"><span class="category-name">${type}</span><span class="category-count">${count}</span></li>`;
+    });
+    categoriesList.innerHTML = html;
+    this.setupCategoryClickEvents();
+  }
+
+  getAuthorName(article) {
+    if (!article) return '未知作者';
+    const memberId = article.memId || article.mem_id;
+    if (!memberId) return '未知作者';
+    if (this.membersData) {
+      const member = this.membersData.find(m => m.mem_id === memberId);
+      return member ? member.mem_name : `用戶${memberId}`;
+    }
+    return `用戶${memberId}`;
+  }
+
+  getArticleType(acTypeId) {
+    const typeMap = { 30001: '新手指南', 30002: '裝備評測', 30003: '營地推薦' };
+    return typeMap[acTypeId] || '其他';
+  }
+
+  // 統一過濾與排序流程
+  applyFilters() {
+    let filtered = [...this.favorites];
+    // 1. 搜尋
+    if (this.currentSearchKeyword.trim()) {
+      const keyword = this.currentSearchKeyword.trim().toLowerCase();
+      filtered = filtered.filter(article => {
+        const authorName = this.getAuthorName(article).toLowerCase();
+        return (
+          (article.acTitle && article.acTitle.toLowerCase().includes(keyword)) ||
+          (article.acContext && article.acContext.toLowerCase().includes(keyword)) ||
+          authorName.includes(keyword)
+        );
+      });
+    }
+    // 2. 分類
+    if (this.currentCategory !== 'all') {
+      filtered = filtered.filter(article => this.getArticleType(article.acTypeId) === this.currentCategory);
+    }
+    // 3. 排序
+    switch (this.currentSortType) {
+      case 'latest':
+        filtered.sort((a, b) => new Date(b.favoriteTime) - new Date(a.favoriteTime));
+        break;
+      case 'oldest':
+        filtered.sort((a, b) => new Date(a.favoriteTime) - new Date(b.favoriteTime));
+        break;
+      case 'most-commented':
+        filtered.sort((a, b) => (b.replyCount || 0) - (a.replyCount || 0));
+        break;
+      case 'most-viewed':
+        filtered.sort((a, b) => (b.acViewCount || 0) - (a.acViewCount || 0));
+        break;
+    }
+    this.filteredFavorites = filtered;
+
+    // 重置到第一頁並顯示
+    this.displayFavorites(1);
+  }
+
+  searchFavorites(keyword) {
+    this.currentSearchKeyword = keyword;
+    this.applyFilters();
+  }
+
+  sortFavorites(sortType) {
+    this.currentSortType = sortType;
+    this.applyFilters();
+  }
+
+  filterByCategory(category) {
+    this.currentCategory = category;
+    // 同步右側下拉選單
+    const categoryFilter = document.getElementById('category-filter');
+    if (categoryFilter) {
+      if (category === 'all') {
+        categoryFilter.value = '';
+      } else {
+        for (let i = 0; i < categoryFilter.options.length; i++) {
+          if (categoryFilter.options[i].text === category) {
+            categoryFilter.selectedIndex = i;
+            break;
+          }
+        }
+      }
+    }
+    this.applyFilters();
+    const countElement = document.getElementById('favorites-count');
+    if (countElement) {
+      countElement.textContent = this.filteredFavorites.length;
+    }
+  }
+
+  setupEventListeners() {
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) {
+      searchInput.addEventListener('keypress', (event) => {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          this.searchFavorites(searchInput.value.trim());
+        }
+      });
+      // 新增：input 清空時自動重設搜尋
+      searchInput.addEventListener('input', (event) => {
+        if (!event.target.value) {
+          this.searchFavorites('');
+        }
+      });
+    }
+
+    // 添加搜尋表單submit事件監聽
+    const searchForm = document.getElementById('search-form');
+    if (searchForm) {
+      searchForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) {
+          this.searchFavorites(searchInput.value.trim());
+        }
+      });
+    }
+
+    const sortSelect = document.getElementById('sort-favorites');
+    if (sortSelect) {
+      sortSelect.value = 'latest';
+      sortSelect.addEventListener('change', (event) => {
+        this.sortFavorites(event.target.value);
+      });
+    }
+    // 新增：右側下拉分類選單同步
+    const categoryFilter = document.getElementById('category-filter');
+    if (categoryFilter) {
+      categoryFilter.addEventListener('change', (event) => {
+        const val = event.target.value;
+        this.filterByCategory(val === '' ? 'all' : categoryFilter.options[categoryFilter.selectedIndex].text);
+        this.updateCategoryActiveState(val === '' ? 'all' : categoryFilter.options[categoryFilter.selectedIndex].text);
+      });
+    }
+
+    // 綁定全選勾選框事件
+    this.bindSelectAllCheckbox();
+
+    // 綁定刪除選中按鈕事件
+    this.bindDeleteSelectedButton();
+  }
+
+  setupCategoryClickEvents() {
+    const categoryItems = document.querySelectorAll('.category-item');
+    categoryItems.forEach(item => {
+      item.addEventListener('click', () => {
+        const category = item.getAttribute('data-category');
+        this.filterByCategory(category);
+        this.updateCategoryActiveState(category);
+        // 新增：同步右側下拉選單
+        const categoryFilter = document.getElementById('category-filter');
+        if (categoryFilter) {
+          if (category === 'all') {
+            categoryFilter.value = '';
+          } else {
+            // 根據 option 文字同步
+            for (let i = 0; i < categoryFilter.options.length; i++) {
+              if (categoryFilter.options[i].text === category) {
+                categoryFilter.selectedIndex = i;
+                break;
+              }
+            }
+          }
+        }
+      });
+    });
+  }
+
+  filterByCategory(category) {
+    this.currentCategory = category; // 新增：記錄目前分類
+    // 新增：同步右側下拉選單
+    const categoryFilter = document.getElementById('category-filter');
+    if (categoryFilter) {
+      if (category === 'all') {
+        categoryFilter.value = '';
+      } else {
+        for (let i = 0; i < categoryFilter.options.length; i++) {
+          if (categoryFilter.options[i].text === category) {
+            categoryFilter.selectedIndex = i;
+            break;
+          }
+        }
+      }
+    }
+    this.applyFilters();
+    const countElement = document.getElementById('favorites-count');
+    if (countElement) {
+      countElement.textContent = this.filteredFavorites.length;
+    }
+  }
+
+  updateCategoryActiveState(activeCategory) {
+    const categoryItems = document.querySelectorAll('.category-item');
+    categoryItems.forEach(item => {
+      const category = item.getAttribute('data-category');
+      if (category === activeCategory) {
+        item.style.backgroundColor = '#3A5A40';
+        item.style.color = 'white';
+        item.style.borderRadius = '5px';
+        item.classList.add('active');
+      } else {
+        item.style.backgroundColor = '#f8f9fa';
+        item.style.color = '#333';
+        item.style.borderRadius = '5px';
+        item.classList.remove('active');
+      }
+    });
+  }
+
+  showMessage(message, type) {
+    // 可複用現有 showMessage 實作
+    window.showMessage?.(message, type);
+  }
+
+  // 綁定勾選框事件
+  bindCheckboxEvents() {
+    const checkboxes = document.querySelectorAll('.article-checkbox');
+    checkboxes.forEach(checkbox => {
+      // 直接每次都重新綁定事件，移除 data-event-bound 機制
+      checkbox.onchange = () => {
+        this.updateSelectAllState();
+        this.updateDeleteSelectedBar();
+      };
+    });
+  }
+
+  // 綁定全選勾選框事件
+  bindSelectAllCheckbox() {
+    const selectAllCheckbox = document.getElementById('select-all-checkbox');
+    if (selectAllCheckbox) {
+      // 直接用 onchange 屬性，確保每次都只有一個事件
+      selectAllCheckbox.onchange = (event) => {
+        const isChecked = event.target.checked;
+        const checkboxes = document.querySelectorAll('.article-checkbox');
+        checkboxes.forEach(checkbox => {
+          checkbox.checked = isChecked;
+          // 觸發 change 事件，確保 UI 狀態和工具列同步
+          checkbox.dispatchEvent(new Event('change'));
+        });
+        this.updateDeleteSelectedBar();
+      };
+    }
+  }
+
+  // 綁定刪除選中按鈕事件
+  bindDeleteSelectedButton() {
+    const deleteSelectedBtn = document.getElementById('delete-selected-btn');
+    if (deleteSelectedBtn && !deleteSelectedBtn.hasAttribute('data-event-bound')) {
+      deleteSelectedBtn.setAttribute('data-event-bound', 'true');
+      deleteSelectedBtn.addEventListener('click', () => {
+        this.deleteSelectedFavorites();
+      });
+    }
+  }
+
+  // 更新全選勾選框狀態
+  updateSelectAllState() {
+    const selectAllCheckbox = document.getElementById('select-all-checkbox');
+    const checkboxes = document.querySelectorAll('.article-checkbox');
+    const checkedCheckboxes = document.querySelectorAll('.article-checkbox:checked');
+
+    if (selectAllCheckbox && checkboxes.length > 0) {
+      if (checkedCheckboxes.length === 0) {
+        selectAllCheckbox.checked = false;
+        selectAllCheckbox.indeterminate = false;
+      } else if (checkedCheckboxes.length === checkboxes.length) {
+        selectAllCheckbox.checked = true;
+        selectAllCheckbox.indeterminate = false;
+      } else {
+        selectAllCheckbox.checked = false;
+        selectAllCheckbox.indeterminate = true;
+      }
+    }
+  }
+
+  // 更新刪除選中工具列顯示狀態
+  updateDeleteSelectedBar() {
+    const deleteSelectedBar = document.getElementById('delete-selected-bar');
+    const checkedCheckboxes = document.querySelectorAll('.article-checkbox:checked');
+
+    if (deleteSelectedBar) {
+      if (checkedCheckboxes.length > 0) {
+        deleteSelectedBar.style.display = 'flex';
+        const deleteBtn = document.getElementById('delete-selected-btn');
+        if (deleteBtn) {
+          deleteBtn.textContent = `刪除勾選收藏 (${checkedCheckboxes.length})`;
+        }
+      } else {
+        deleteSelectedBar.style.display = 'none';
+      }
+    }
+  }
+
+  // 刪除選中的收藏
+  deleteSelectedFavorites() {
+    const checkedCheckboxes = document.querySelectorAll('.article-checkbox:checked');
+    if (checkedCheckboxes.length === 0) {
+      // 不再顯示燈箱，直接 return
+      return;
+    }
+    const ids = Array.from(checkedCheckboxes).map(cb => cb.dataset.articleId);
+    this.batchRemoveFavorites(ids);
+  }
+
+  // 批次刪除收藏文章
+  async batchRemoveFavorites(articleIds) {
+    const memId = this.currentMember.mem_id || this.currentMember.memId;
+    if (!memId) {
+      this.showMessage('會員資訊錯誤，請重新登入', 'error');
+      return;
+    }
+
+    const confirmMessage = `確定要刪除選中的 ${articleIds.length} 篇收藏嗎？此操作無法復原。`;
+    if (!confirm(confirmMessage)) {
+      return;
+    }
+
+    try {
+      // 批次刪除收藏
+      const deletePromises = articleIds.map(articleId =>
+        fetch(`${window.api_prefix}/api/favorites/${memId}/${articleId}`, {
+          method: 'DELETE'
+        })
+      );
+
+      await Promise.all(deletePromises);
+
+      // 從本地資料中移除
+      this.favorites = this.favorites.filter(fav => !articleIds.includes(fav.acId.toString()));
+      this.filteredFavorites = this.filteredFavorites.filter(fav => !articleIds.includes(fav.acId.toString()));
+
+      // 更新 localStorage
+      const localFavorites = JSON.parse(localStorage.getItem('articleFavorites') || '[]');
+      const updatedFavorites = localFavorites.filter(fav =>
+        !(fav.memId === memId && articleIds.includes(fav.acId.toString()))
+      );
+      localStorage.setItem('articleFavorites', JSON.stringify(updatedFavorites));
+
+      // 更新分類和排序
+      this.updateCategories();
+      this.sortFavorites(document.getElementById('sort-favorites')?.value || 'latest');
+
+      // 重新顯示當前頁面
+      const urlParams = new URLSearchParams(window.location.search);
+      const currentPage = parseInt(urlParams.get('page')) || 1;
+      const itemsPerPage = 10;
+      const totalPages = Math.ceil(this.filteredFavorites.length / itemsPerPage);
+
+      let targetPage = currentPage;
+      if (currentPage > totalPages && totalPages > 0) {
+        targetPage = totalPages;
+      }
+
+      this.displayFavorites(targetPage);
+      this.showMessage(`已成功刪除 ${articleIds.length} 篇收藏`, 'success');
+      // 刪除完成後隱藏工具列
+      this.updateDeleteSelectedBar();
+      // 重置全選按鈕狀態
+      this.updateSelectAllState();
+    } catch (error) {
+      console.error('批次刪除收藏失敗:', error);
+      this.showMessage('刪除收藏時發生錯誤，請稍後再試', 'error');
+    }
+  }
+}
+
+// 初始化收藏管理器
+window.favoritesManager = new FavoritesManager();
+
 // ====== 性能優化和工具方法 ======
 
 // 通用 API 請求方法，包含錯誤處理和重試邏輯
@@ -2984,3 +3692,4 @@ window.addEventListener("beforeunload", () => {
   cleanupPerformanceMarks();
   domCache.clear();
 });
+
