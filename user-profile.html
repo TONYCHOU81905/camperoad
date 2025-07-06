@@ -20,35 +20,7 @@
   </head>
 
   <body class="profile-page">
-    <header class="site-header">
-      <div class="container">
-        <div class="logo">
-          <a href="index.html">
-            <img src="images/logo.svg" alt="露途 Logo" />
-          </a>
-        </div>
-        <nav class="main-nav">
-          <ul>
-            <li><a href="campsites.html">營地預訂</a></li>
-            <li><a href="shop.html">裝備商城</a></li>
-            <li><a href="camp-guides.html">論壇攻略</a></li>
-            <li><a href="user-profile.html">關於我們</a></li>
-          </ul>
-        </nav>
-        <div class="user-actions">
-          <a href="#" class="btn-search"><i class="fas fa-search"></i></a>
-          <a href="camp_cart.html" class="btn-cart"
-            ><i class="fas fa-shopping-cart"></i>
-          </a>
-          <a href="login.html" class="btn-login">登入 / 註冊</a>
-        </div>
-        <button class="mobile-menu-toggle">
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
-      </div>
-    </header>
+    <div id="header-container"></div>
 
     <div class="dashboard-container">
       <main class="dashboard-content">
@@ -548,6 +520,8 @@
       </div>
     </div>
 
+    <div id="footer-container"></div>
+
     <!-- 隱藏的會員ID和營地主ID輸入框 -->
     <input type="hidden" id="memId" value="" />
     <input type="hidden" id="ownerId" value="" />
@@ -559,5 +533,6 @@
     <script src="js/user-profile.js"></script>
     <script src="js/chat-management.js"></script>
     <link rel="stylesheet" href="css/chat.css" />
+    <script src="js/include.js"></script>
   </body>
 </html>

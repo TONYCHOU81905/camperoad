@@ -780,35 +780,7 @@
 </head>
 
 <body>
-    <header class="site-header">
-        <div class="container">
-            <div class="logo">
-                <a href="index.html">
-                    <img src="images/logo.svg" alt="露營路Logo" />
-                    <!-- <span>露營路</span> -->
-                </a>
-            </div>
-            <nav class="main-nav">
-                <ul>
-                    <li><a href="index.html">營地搜尋</a></li>
-                    <li><a href="shop.html">裝備商城</a></li>
-                    <li><a href="article-type.html" class="active">論壇攻略</a></li>
-                    <li><a href="user-profile.html">關於我們</a></li>
-                </ul>
-            </nav>
-            <div class="user-actions">
-                <a href="#" class="btn-search"><i class="fas fa-search"></i></a>
-                <a href="cart.html" class="btn-cart"><i class="fas fa-shopping-cart"></i><span
-                        class="cart-count">0</span></a>
-                <a href="login.html" class="btn-login">登入 / 註冊</a>
-            </div>
-            <button class="mobile-menu-toggle">
-                <span></span>
-                <span></span>
-                <span></span>
-            </button>
-        </div>
-    </header>
+    <div id="header-container"></div>
 
     <main class="forum-container">
         <div class="container">
@@ -993,6 +965,7 @@
     <!-- <script src="js/article-display.js"></script> -->
     <script src="js/articles.js"></script>
     <script src="js/header-auth.js"></script>
+
     <script>
         // 文章收藏功能
         class ArticleFavoriteManager {
