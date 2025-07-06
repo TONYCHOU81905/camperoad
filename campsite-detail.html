@@ -569,7 +569,7 @@
           </div>
         </div>
 
-        <div class="similar-campsites">
+        <!-- <div class="similar-campsites">
           <h2 class="section-title">您可能也會喜歡</h2>
           <div class="camp-cards">
             <div class="camp-card">
@@ -637,7 +637,7 @@
             </div>
           </div>
         </div>
-      </div>
+      </div> -->
     </main>
 
     <div id="footer-container"></div>
@@ -769,13 +769,13 @@
         // 檢查最多4張圖片
         for (let i = 1; i <= 4; i++) {
           const imageUrl = `${window.api_prefix}/api/camps/${campId}/${i}`;
-          console.log(`檢查圖片 ${i}: ${imageUrl}`);
+          // console.log(`檢查圖片 ${i}: ${imageUrl}`);
 
           // 使用圖片載入方式檢查，而不是HEAD請求
           const isImageValid = await checkImageExists(imageUrl);
 
           if (isImageValid) {
-            console.log(`圖片 ${i} 載入成功`);
+            // console.log(`圖片 ${i} 載入成功`);
             validImages.push({ index: i, url: imageUrl });
 
             // 設置第一張有效圖片為主圖
@@ -900,6 +900,17 @@
           const apiResult = await response.json();
           if (apiResult.status === "success" && apiResult.data) {
             availableCamps = apiResult.data;
+
+            // 更新全域變數
+            window.availableRoomData = {
+              timestamp: new Date().getTime(),
+              data: apiResult.data,
+              requestParams: { campId, guests, checkIn, checkOut },
+            };
+            console.log(
+              "已更新全域變數 availableRoomData:",
+              window.availableRoomData
+            );
           } else {
             availableCamps = [];
           }
@@ -954,29 +965,34 @@
           <h3>適合 ${guests} 人的房型選擇</h3>
           <div class="room-types-container" id="room-types-container"></div>
         `;
-        
-        const roomTypesContainer = document.getElementById("room-types-container");
-        
+
+        const roomTypesContainer = document.getElementById(
+          "room-types-container"
+        );
+
         // 為每個房型創建卡片並獲取圖片
         for (const camp of camps) {
           const roomCard = document.createElement("div");
           roomCard.className = "room-type-card";
-          
+
           // 獲取房型照片（使用 API 格式）
           const urlParams = new URLSearchParams(window.location.search);
           const campId = urlParams.get("id");
-          const photos = await getCampsiteTypePhotos(camp.campsiteTypeId, campId);
-          
+          const photos = await getCampsiteTypePhotos(
+            camp.campsiteTypeId,
+            campId
+          );
+
           const roomImages = document.createElement("div");
           roomImages.className = "room-type-images";
-          
+
           let imageSrc;
           if (photos.length > 0) {
             imageSrc = photos[0];
           } else {
             imageSrc = "images/camp-1.jpg";
           }
-          
+
           roomCard.innerHTML = `
             <div class="room-type-images">
               <img src="${imageSrc}" alt="${camp.campsiteName}" />
@@ -991,17 +1007,19 @@
               </button>
             </div>
           `;
-          
+
           roomTypesContainer.appendChild(roomCard);
         }
 
         // 綁定購物車按鈕事件
-        roomTypesContainer.querySelectorAll(".btn-add-to-cart").forEach((btn) => {
-          btn.addEventListener("click", function () {
-            const typeId = this.getAttribute("data-type-id");
-            if (typeof addToCart === "function") addToCart(typeId);
+        roomTypesContainer
+          .querySelectorAll(".btn-add-to-cart")
+          .forEach((btn) => {
+            btn.addEventListener("click", function () {
+              const typeId = this.getAttribute("data-type-id");
+              if (typeof addToCart === "function") addToCart(typeId);
+            });
           });
-        });
       }
 
       // 綁定 btn-book 點擊事件

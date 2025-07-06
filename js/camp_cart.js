@@ -1,12 +1,37 @@
 // 購物車功能
 class CartManager {
   constructor() {
+    this.checkLoginStatus();
     this.cart = JSON.parse(localStorage.getItem("campingCart")) || [];
     this.bundleItems = []; // 加購商品
     this.campsiteTypes = []; // 營地房型資料
     this.initialized = false; // 初始化完成標誌
     this.updateCartCount();
     this.init(); // 初始化資料
+  }
+
+  //確認會員登入狀態
+  async checkLoginStatus() {
+    console.log("確認會員登入狀態");
+
+    let memberInfo =
+      localStorage.getItem("currentMember") ||
+      sessionStorage.getItem("currentMember");
+    if (memberInfo) {
+      try {
+        const member = JSON.parse(memberInfo);
+        this.memId = member.mem_id || member.memId;
+        // console.log('初始化會員ID:', this.memId, '原始 memberInfo:', memberInfo);
+      } catch (e) {
+        console.error("解析會員資料失敗:", e);
+      }
+    }
+    if (!this.memId) {
+      console.log("未找到會員資料，跳轉到登入頁面");
+      localStorage.setItem("returnUrl", window.location.href);
+      window.location.href = "login.html";
+      return;
+    }
   }
 
   // 初始化資料
