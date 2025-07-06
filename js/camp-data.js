@@ -2,7 +2,7 @@
 window.campData = [];
 // window.api_prefix = "http://localhost:8080";
 window.api_prefix = "http://localhost:8081/CJA101G02";
-window.api_prefix = "http://lutu.ddnsking.com";
+// window.api_prefix = "http://lutu.ddnsking.com";
 let cartItems = [];
 let memberData = [];
 let currentMember = null;
