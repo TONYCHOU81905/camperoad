@@ -131,6 +131,8 @@ async function handleLogin(e) {
 
       showMessage("登入成功！", "success");
 
+      
+
       // 登入成功後合併未登入時的購物車資料
       try {
         const sessionCart = sessionStorage.getItem("sessionCart");
@@ -537,15 +539,20 @@ function showMessage(message, type = "info") {
   }, 3000);
 }
 
-// 檢查是否已登入
 function checkLoginStatus() {
-  const savedMember = localStorage.getItem("currentMember");
-  if (savedMember) {
-    currentMember = JSON.parse(savedMember);
-    // 如果已登入，可以選擇跳轉到首頁或顯示已登入狀態
-    showMessage(`歡迎回來，${currentMember.mem_name}！`, "success");
+  let savedMemberStr = sessionStorage.getItem("currentMember") || localStorage.getItem("currentMember");
+  if (savedMemberStr) {
+    try {
+      const savedMember = JSON.parse(savedMemberStr);
+      if (savedMember.memName) {
+        currentMember = savedMember;
+        showMessage(`歡迎回來，${currentMember.memName}！`, "success");
+        // 可以這裡做更多顯示登入狀態的操作，例如改變頁面header按鈕文字等
+      }
+    } catch (e) {
+      console.error("解析 currentMember 失敗", e);
+    }
   }
 }
-
 // 頁面載入時檢查登入狀態
 checkLoginStatus();

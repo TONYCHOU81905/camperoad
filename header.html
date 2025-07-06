@@ -21,16 +21,24 @@
         <li><a href="article-type.html">論壇攻略</a></li>
       </ul>
     </nav>
-    <div class="user-actions">
-      <a href="#" class="btn-search"><i class="fas fa-search"></i></a>
-      <a href="shop_cart.html" class="btn-cart">
-        <i class="fas fa-shopping-cart"></i>
-      </a>
-      <!-- <a href="login.html" class="btn-login">登入 / 註冊</a> -->
-      <a href="user-profile.html" class="btn-login"
-        ><i class="fas fa-user"></i
-      ></a>
-    </div>
+      
+        <div class="user-actions">
+           <!-- <a href="#" class="btn-search"><i class="fas fa-search"></i></a> -->
+           <a href="camp_cart.html" class="btn-camp-cart">
+            <i class="fa-solid fa-campground" style="margin-right: 8px;"></i>營地購物車
+            </a>
+           <a href="shop_cart.html" class="btn-cart">
+           <i class="fas fa-shopping-cart" style="margin-right: 8px;"></i>商城購物車
+           </a>
+          <!-- <a href="user-profile.html" class="btn-login">
+          <i class="fas fa-user"></i>登入 / 註冊
+          </a> -->
+          <a href="login.html" class="btn-login-text" id="login-button">
+            <i class="fas fa-user" style="margin-right: 8px;"></i>
+            <span class="login-text">登入 / 註冊</span>
+          </a>
+        </div>
+
     <button class="mobile-menu-toggle">
       <span></span>
       <span></span>
@@ -38,3 +46,24 @@
     </button>
   </div>
 </header>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  // 導入 header 與 footer
+  fetch("header.html")
+    .then((res) => res.text())
+    .then((html) => {
+      document.getElementById("header-container").innerHTML = html;
+      // header 載入完成後再載入 header.js
+      var script = document.createElement('script');
+      script.src = 'js/header.js';
+      document.body.appendChild(script);
+    });
+
+  fetch("footer.html")
+    .then((res) => res.text())
+    .then((html) => {
+      document.getElementById("footer-container").innerHTML = html;
+    });
+});
+
+</script>

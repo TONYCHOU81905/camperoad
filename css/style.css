@@ -7,7 +7,7 @@
 
 body {
   font-family: "Noto Sans TC", sans-serif;
-  font-size: 16px;
+  font-size: 17px;
   line-height: 1.6;
   color: #333;
   background: linear-gradient(135deg, #f4f1de 0%, #e0d7c7 100%);
@@ -19,7 +19,7 @@ body {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 20px;
+  /* padding: 0 20px; */
 }
 
 a {
@@ -204,13 +204,13 @@ h4 {
 }
 
 .logo img {
-  height: 40px;
+  height: 50px;
   margin-right: 10px;
 }
 
 .main-nav ul {
   display: flex;
-  gap: 20px;
+  gap: 25px;
 }
 
 .main-nav a {
@@ -237,19 +237,33 @@ h4 {
 .user-actions {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 12px;
   height: 40px; /* 確保統一高度 */
 }
 
-.btn-search,
+/* .btn-search,
 .btn-cart,
 .btn-login {
   font-size: 1.2rem;
   color: #3a5a40;
   position: relative;
-  width: 24px; /* 統一三個圖示的寬度 */
+  width: 24px; /* 統一三個圖示的寬度
+  text-align: center;
+} */
+
+.btn-camp-cart,
+.btn-cart,
+.btn-login-text {
+  font-size: 15px;
+  color: #3a5a40;
+  border: 1.5px solid #3a5a40;
+  border-radius: 5px;
+  padding: 5px 10px;
+  position: relative;
   text-align: center;
 }
+
+
 
 .btn-cart.active {
   color: #e76f51;
@@ -1181,10 +1195,10 @@ h4 {
   padding: 25px 0;
   border-top: 1px solid rgba(255, 255, 255, 0.2);
   color: #e0d7c7;
-  background: rgba(0, 0, 0, 0.1);
-  margin: 0 -50vw -25px -50vw;
-  left: 50%;
-  right: 50%;
+  /* background: rgba(0, 0, 0, 0.1); */
+  /* margin: 0 -50vw -25px -50vw; */
+  /* left: 50%;
+  right: 50%; */
   position: relative;
 }
 
