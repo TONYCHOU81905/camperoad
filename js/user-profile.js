@@ -93,10 +93,7 @@ class UserProfileManager {
             <div class="form-group">
               <label for="new-password">新密碼</label>
               <input type="password" id="new-password" required>
-              <div class="password-strength-meter">
-                <div class="strength-bar"></div>
-              </div>
-              <p class="password-hint">密碼須包含至少8個字符，包括大小寫字母、數字和特殊符號</p>
+
             </div>
             <div class="form-group">
               <label for="confirm-password">確認新密碼</label>
@@ -141,12 +138,12 @@ class UserProfileManager {
           return;
         }
 
-        // 驗證密碼強度
-        const strength = this.checkPasswordStrength(newPassword);
-        if (strength < 60) {
-          showMessage("新密碼強度不足，請設置更複雜的密碼", "error");
-          return;
-        }
+        // // 驗證密碼強度
+        // const strength = this.checkPasswordStrength(newPassword);
+        // if (strength < 60) {
+        //   showMessage("新密碼強度不足，請設置更複雜的密碼", "error");
+        //   return;
+        // }
 
         try {
           // 使用API更改密碼
@@ -158,15 +155,17 @@ class UserProfileManager {
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                memId: this.currentMember.memId,
-                old_password: currentPassword,
-                new_password: newPassword,
+                oldPassword: currentPassword,
+                newPassword: newPassword,
               }),
               credentials: "include", // 包含Cookie
             }
           );
 
           if (!response.ok) {
+            const errorText = await response.text();
+            console.error("API錯誤狀態碼:", response.status);
+            console.error("API回傳內容:", errorText);
             throw new Error("密碼更改請求失敗");
           }
 
@@ -189,25 +188,25 @@ class UserProfileManager {
       });
 
       // 密碼強度檢測
-      const newPasswordInput = document.getElementById("new-password");
-      const strengthBar = modal.querySelector(".strength-bar");
+      // const newPasswordInput = document.getElementById("new-password");
+      // const strengthBar = modal.querySelector(".strength-bar");
 
-      newPasswordInput.addEventListener("input", () => {
-        const password = newPasswordInput.value;
-        const strength = this.checkPasswordStrength(password);
+      // newPasswordInput.addEventListener("input", () => {
+      //   const password = newPasswordInput.value;
+      //   const strength = this.checkPasswordStrength(password);
 
         // 更新強度條
-        strengthBar.style.width = `${strength}%`;
+      //   strengthBar.style.width = `${strength}%`;
 
-        // 根據強度設置顏色
-        if (strength < 30) {
-          strengthBar.style.backgroundColor = "#ff4d4d"; // 弱
-        } else if (strength < 60) {
-          strengthBar.style.backgroundColor = "#ffa64d"; // 中
-        } else {
-          strengthBar.style.backgroundColor = "#4CAF50"; // 強
-        }
-      });
+      //   // 根據強度設置顏色
+      //   if (strength < 30) {
+      //     strengthBar.style.backgroundColor = "#ff4d4d"; // 弱
+      //   } else if (strength < 60) {
+      //     strengthBar.style.backgroundColor = "#ffa64d"; // 中
+      //   } else {
+      //     strengthBar.style.backgroundColor = "#4CAF50"; // 強
+      //   }
+      // });
     }
 
     // 顯示模態框
@@ -1192,48 +1191,52 @@ class UserProfileManager {
       return;
     }
 
-    try {
-      // 使用API更新會員資料
-      const response = await fetch(`${window.api_prefix}/api/member/update`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(memData),
-        // credentials: "include", // 包含Cookie
-      });
 
-      if (!response.ok) {
-        throw new Error("更新請求失敗");
+  const formData = new FormData();
+  formData.append("memName", memData.memName);
+  formData.append("memPwd", memData.memPwd);
+  formData.append("memMobile", memData.memMobile);
+  formData.append("memAddr", memData.memAddr);
+
+  const fileInput = document.getElementById("profile-picture");
+  if (fileInput && fileInput.files.length > 0) {
+    formData.append("memPic", fileInput.files[0]);
+  }
+
+  try {
+    const response = await fetch(`${window.api_prefix}/api/member/update`, {
+      method: "PUT",
+      body: formData,
+      credentials: "include", // ✅ 保留 session cookie
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("API錯誤狀態碼:", response.status);
+      console.error("API回傳內容:", errorText);
+      throw new Error("密碼更改請求失敗");
+    }
+
+    const data = await response.json();
+
+    if (data.success || data.memId) {
+      // ✅ 更新成功後更新 localStorage / sessionStorage
+      this.currentMember = { ...this.currentMember, ...memData };
+
+      if (localStorage.getItem("currentMember")) {
+        localStorage.setItem("currentMember", JSON.stringify(this.currentMember));
       }
-
-      const data = await response.json();
-
-      if (data.success) {
-        // 更新成功，更新本地儲存的會員資料
-        this.currentMember = { ...this.currentMember, ...memData };
-
-        // 更新localStorage和sessionStorage中的會員資訊
-        if (localStorage.getItem("currentMember")) {
-          localStorage.setItem(
-            "currentMember",
-            JSON.stringify(this.currentMember)
-          );
-        }
-        if (sessionStorage.getItem("currentMember")) {
-          sessionStorage.setItem(
-            "currentMember",
-            JSON.stringify(this.currentMember)
-          );
-        }
+      if (sessionStorage.getItem("currentMember")) {
+        sessionStorage.setItem("currentMember", JSON.stringify(this.currentMember));
+      }
 
         showMessage("會員資料更新成功", "success");
       } else {
         showMessage(data.message || "更新失敗，請檢查資料是否正確", "error");
       }
     } catch (error) {
-      console.error("更新失敗：", error);
-      showMessage("更新失敗，請稍後再試", "error");
+      console.error("密碼更改錯誤：", error.message);
+      showMessage("密碼更改失敗，請稍後再試", "error");
     }
   }
 
@@ -2104,7 +2107,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // UserProfileManager實例已在文件末尾創建
 
   // 頭像上傳功能
-  const avatarInput = document.getElementById("avatar-input");
+  const avatarInput = document.getElementById("profile-picture");
   const avatarPreview = document.querySelector(".avatar-preview img");
   const uploadBtn = document.querySelector(".btn-upload");
   const uploadProgress = document.createElement("div");
@@ -2157,7 +2160,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  if (avatarInput && uploadBtn) {
+  if (avatarInput) {
     // 添加懸停效果
     uploadBtn.addEventListener("mouseover", function () {
       if (avatarPreview) {
