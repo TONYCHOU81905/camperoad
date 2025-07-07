@@ -461,21 +461,8 @@ async function displayCurrentPage() {
   const endIndex = startIndex + itemsPerPage;
   const currentPageCamps = allCampCards.slice(startIndex, endIndex);
 
-  // 清空並渲染當前頁面的營地
-  const searchResults = document.getElementById("search-results");
-  if (searchResults) {
-    searchResults.innerHTML = "";
-
-    // 使用Promise.all來並行處理所有營地卡片的創建
-    const campCardPromises = currentPageCamps.map((camp) =>
-      createCampCard(camp)
-    );
-    const campCards = await Promise.all(campCardPromises);
-
-    campCards.forEach((campCard) => {
-      searchResults.appendChild(campCard);
-    });
-  }
+  // 使用優化後的渲染函數
+  await renderCampCards(currentPageCamps, "search-results");
 
   // 更新結果數量顯示
   updateSearchResultsCount(totalItems);

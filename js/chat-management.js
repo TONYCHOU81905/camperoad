@@ -40,10 +40,20 @@ window.initChatManagement = function () {
       typeof ownerDashboard !== "undefined" ? "存在" : "不存在"
     );
 
-    // 營地主模式：從ownerDashboard實例獲取營地主ID
+    // 營地主模式：從ownerProfileSelect下拉選單獲取當前選擇的營地ID
     if (typeof ownerDashboard !== "undefined" && ownerDashboard.currentOwner) {
-      const ownerId = ownerDashboard.currentOwner.ownerId;
-      console.log("獲取到營地主ID:" + ownerId);
+      // 從ownerProfileSelect下拉選單獲取當前選擇的營地ID
+      const ownerProfileSelect = document.getElementById("ownerProfileSelect");
+      let ownerId = null;
+
+      if (ownerProfileSelect && ownerProfileSelect.value) {
+        ownerId = ownerProfileSelect.value;
+        console.log("從ownerProfileSelect獲取到營地ID:" + ownerId);
+      } else {
+        // 如果下拉選單不存在或沒有值，使用預設值或從currentOwner獲取
+        ownerId = ownerDashboard.currentOwner.owner_id;
+        console.log("使用預設營地主ID:" + ownerId);
+      }
 
       // 設置隱藏的營地主ID輸入框
       const ownerIdInput = document.getElementById("ownerId");
@@ -153,7 +163,7 @@ async function loadCampData() {
     const campsResponse = await fetch(`${window.api_prefix}/api/getallcamps`);
     // 載入營地資料
     const campsData = await campsResponse.json();
-    console.log("獲取營地資料:", campsData);
+    console.log("獲取營地資料1:", campsData);
 
     if (campsData.status.trim() == "success") {
       this.camps = campsData.data;
@@ -183,7 +193,7 @@ async function fetchChatList(memId) {
 
     try {
       // 嘗試從API獲取數據
-      const response = await fetch(`${window.api_prefix}/api/cto/getonecto`, {
+      const response = await fetch(`${window.api_prefix}/cto/getonecto`, {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
@@ -265,13 +275,13 @@ async function fetchOwnerChatList(ownerId) {
       // 嘗試從API獲取數據
       console.log("getonecto1:", ownerId);
 
-      const response = await fetch(`${window.api_prefix}/api/cto/getonecto`, {
+      const response = await fetch(`${window.api_prefix}/cto/getonecto`, {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
         },
         body: new URLSearchParams({
-          userId: parseInt(ownerId),
+          userId: 1001,
         }),
       });
 
@@ -314,7 +324,9 @@ async function fetchOwnerChatList(ownerId) {
 
       // 處理不同的數據格式
       const chatData = data.data || data;
-      displayOwnerChatList(chatData, ownerId);
+      console.log("營地data:", data.data);
+
+      displayOwnerChatList(chatData, 1001);
 
       if (useMockData) {
         // 如果使用的是模擬數據，顯示提示
@@ -347,6 +359,8 @@ function displayChatList(data, memId) {
   const chatListContainer = document.getElementById("chat-list");
   if (!chatListContainer) return;
 
+  console.log("displayChatList:", data);
+
   // 清空容器
   chatListContainer.innerHTML = "";
 
@@ -358,6 +372,8 @@ function displayChatList(data, memId) {
 
   // 獲取營地資料
   const campData = window.campData || [];
+
+  console.log("獲取營地資料2:", campData);
 
   // 創建聊天項目
   data.secondList.forEach((ownerId, index) => {
@@ -407,13 +423,13 @@ function displayOwnerChatList(data, ownerId) {
   chatListContainer.innerHTML = "";
 
   // 檢查是否有聊天記錄
-  if (!data.secondList || data.secondList.length === 0) {
+  if (data.length === 0) {
     showEmptyState("暫無聊天記錄", "目前沒有會員與您聊天");
     return;
   }
-
+  console.log("獲取營地資料3:", data);
   // 創建聊天項目
-  data.secondList.forEach((member, index) => {
+  data.forEach((member, index) => {
     const memId = member.memId;
     const memName = member.memName || `會員 ${memId}`;
     const latestMessage = member.latestMessage || "點擊開始聊天";
@@ -709,7 +725,7 @@ function initSimpleWebSocketConnection() {
   isSimpleWebSocketMode = true;
 
   try {
-    const socket = new SockJS(`${window.api_prefix}/ws`);
+    const socket = new SockJS(`${window.api_prefix}/ws-chat`);
     simpleStompClient = Stomp.over(socket);
 
     console.log("嘗試連接 WebSocket...");
@@ -751,7 +767,8 @@ function initSimpleWebSocketConnection() {
         });
 
         // 訂閱聊天歷史記錄
-        const historyTopic = `/topic/chat/history/${memId || ownerId}`;
+        const historyTopic = `/topic/chat/history`;
+        // const historyTopic = `/topic/chat/history/${memId || ownerId}`;
         simpleStompClient.subscribe(historyTopic, (msg) => {
           const historyData = JSON.parse(msg.body);
           console.log("收到聊天歷史:", historyData);
@@ -792,6 +809,7 @@ function initSimpleWebSocketConnection() {
             });
           }
         });
+        memId = 10000001;
         console.log("chat-management_mem:" + memId);
         console.log("chat-management_owner:" + ownerId);
 
