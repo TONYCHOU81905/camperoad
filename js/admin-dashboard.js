@@ -325,122 +325,120 @@ function showAccountTab(tabType, event) {
   }
 }
 
-// 載入露營者表格
-function loadCampersTable() {
+
+
+// 載入露營者表格（從後端 API 取得資料）
+async function loadCampersTable() {
   const tbody = document.getElementById("campers-table-body");
   tbody.innerHTML = "";
 
-  membersData.forEach((member) => {
-    const row = document.createElement("tr");
-    row.innerHTML = `
-            <td>${member.mem_id}</td>
-            <td>${member.mem_acc}</td>
-            <td>${member.mem_name}</td>
-            <td>${member.mem_email}</td>
-            <td>${new Date(member.mem_reg_date).toLocaleDateString()}</td>
-            <td><span class="status-badge ${getStatusClass(
-              member.acc_status
-            )}">${getStatusText(member.acc_status)}</span></td>
-            <td>
-                ${
-                  member.acc_status !== 1
-                    ? `<button class="action-btn btn-activate" onclick="updateAccountStatus('member', ${member.mem_id}, 1)">啟用</button>`
-                    : ""
-                }
-                ${
-                  member.acc_status !== 2
-                    ? `<button class="action-btn btn-suspend" onclick="updateAccountStatus('member', ${member.mem_id}, 2)">停權</button>`
-                    : ""
-                }
-                ${
-                  member.acc_status !== 0
-                    ? `<button class="action-btn btn-deactivate" onclick="updateAccountStatus('member', ${member.mem_id}, 0)">停用</button>`
-                    : ""
-                }
-            </td>
+  try {
+    const response = await fetch(`${window.api_prefix}/member/admin/all`);
+    const result = await response.json();
+
+    if (result.status === "success") {
+      const members = result.data;
+
+      members.forEach((member) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${member.memId}</td>
+          <td>${member.memAcc}</td>
+          <td>${member.memName}</td>
+          <td>${member.memEmail}</td>
+          <td>${new Date(member.memRegDate).toLocaleDateString()}</td>
+          <td>
+            <span class="status-badge ${getStatusClass(member.accStatus)}">
+              ${getStatusText(member.accStatus)}
+            </span>
+          </td>
+          <td>
+            ${generateActionButtons(member.memId, member.accStatus)}
+          </td>
         `;
-
-        
-
-
-    tbody.appendChild(row);
-  });
+        tbody.appendChild(row);
+      });
+    } else {
+      console.error("取得會員資料失敗:", result.message);
+    }
+  } catch (error) {
+    console.error("API 請求錯誤:", error);
+  }
 }
 
-// 載入營地主表格
-function loadOwnersTable() {
+
+
+// 載入營地主表格（從後端 API 取得資料）
+async function loadOwnersTable() {
   const tbody = document.getElementById("owners-table-body");
   tbody.innerHTML = "";
 
-  ownersData.forEach((owner) => {
-    const row = document.createElement("tr");
-    row.innerHTML = `
-            <td>${owner.owner_id}</td>
-            <td>${owner.owner_acc}</td>
-            <td>${owner.owner_name}</td>
-            <td>${owner.owner_rep}</td>
-            <td>${owner.owner_email}</td>
-            <td>${new Date(owner.owner_reg_date).toLocaleDateString()}</td>
-            <td><span class="status-badge ${getStatusClass(
-              owner.acc_status
-            )}">${getStatusText(owner.acc_status)}</span></td>
-            <td>
-                ${
-                  owner.acc_status !== 1
-                    ? `<button class="action-btn btn-activate" onclick="updateAccountStatus('owner', ${owner.owner_id}, 1)">啟用</button>`
-                    : ""
-                }
-                ${
-                  owner.acc_status !== 2
-                    ? `<button class="action-btn btn-suspend" onclick="updateAccountStatus('owner', ${owner.owner_id}, 2)">停權</button>`
-                    : ""
-                }
-                ${
-                  owner.acc_status !== 0
-                    ? `<button class="action-btn btn-deactivate" onclick="updateAccountStatus('owner', ${owner.owner_id}, 0)">停用</button>`
-                    : ""
-                }
-            </td>
+  try {
+    const response = await fetch(`${window.api_prefix}/api/owner/all`);
+    const result = await response.json();
+
+    if (result.status === "success") {
+      const owners = result.data;
+
+      owners.forEach((owner) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${owner.ownerId}</td>
+          <td>${owner.ownerAcc}</td>
+          <td>${owner.ownerName}</td>
+          <td>${owner.ownerRep}</td>
+          <td>${owner.ownerEmail}</td>
+          <td>${new Date(owner.ownerRegDate).toLocaleDateString()}</td>
+          <td>
+            <span class="status-badge ${getStatusClass(owner.accStatus)}">
+              ${getStatusText(owner.accStatus)}
+            </span>
+          </td>
+          <td>
+            ${generateOwnerActionButtons(owner.ownerId, owner.accStatus)}
+          </td>
         `;
-    tbody.appendChild(row);
-  });
+        tbody.appendChild(row);
+      });
+    } else {
+      console.error("取得營地主資料失敗：", result.message);
+    }
+  } catch (error) {
+    console.error("載入營地主失敗：", error);
+  }
 }
 
-// 載入管理員表格
-function loadAdminsTable() {
+// 載入管理員表格（從後端 API 取得資料）
+async function loadAdminsTable() {
   const tbody = document.getElementById("admins-table-body");
   tbody.innerHTML = "";
 
-  adminsData.forEach((admin) => {
-    const row = document.createElement("tr");
-    row.innerHTML = `
-            <td>${admin.admin_id}</td>
-            <td>${admin.admin_acc}</td>
-            <td>${admin.admin_name}</td>
-            <td><span class="status-badge ${getStatusClass(
-              admin.admin_status
-            )}">${getStatusText(admin.admin_status)}</span></td>
-            <td>
-                ${
-                  admin.admin_status !== 1
-                    ? `<button class="action-btn btn-activate" onclick="updateAccountStatus('admin', ${admin.admin_id}, 1)">啟用</button>`
-                    : ""
-                }
-                ${
-                  admin.admin_status !== 2
-                    ? `<button class="action-btn btn-suspend" onclick="updateAccountStatus('admin', ${admin.admin_id}, 2)">停權</button>`
-                    : ""
-                }
-                ${
-                  admin.admin_status !== 0
-                    ? `<button class="action-btn btn-deactivate" onclick="updateAccountStatus('admin', ${admin.admin_id}, 0)">停用</button>`
-                    : ""
-                }
-            </td>
-        `;
-    tbody.appendChild(row);
-  });
+  try {
+    const response = await fetch(`${window.api_prefix}/api/admin/all`);
+    const admins = await response.json();
+
+    admins.forEach((admin) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${admin.adminId}</td>
+        <td>${admin.adminAcc}</td>
+        <td>${admin.adminName}</td>
+        <td>
+          <span class="status-badge ${getStatusClass(admin.adminStatus)}">
+            ${getStatusText(admin.adminStatus)}
+          </span>
+        </td>
+        <td>
+          ${generateAdminActionButtons(admin.adminId, admin.adminStatus)}
+        </td>
+      `;
+      tbody.appendChild(row);
+    });
+  } catch (error) {
+    console.error("載入管理員資料失敗：", error);
+  }
 }
+
 
 // 取得狀態樣式類別
 function getStatusClass(status) {
@@ -470,44 +468,215 @@ function getStatusText(status) {
   }
 }
 
-// 更新帳號狀態
-function updateAccountStatus(type, id, newStatus) {
-  const confirmText = `確定要將此帳號狀態更改為「${getStatusText(
-    newStatus
-  )}」嗎？`;
 
-  if (!confirm(confirmText)) {
-    return;
+
+// 更新露營者帳號狀態（呼叫後端API）
+async function updateAccountStatus(type, memId, newStatus, buttonElement) {
+  const row = buttonElement.closest("tr");
+  const statusCell = row.querySelector("td:nth-child(6)");
+  const buttonsCell = row.querySelector("td:nth-child(7)");
+  const originalText = buttonElement.textContent;
+
+  buttonElement.textContent = "處理中...";
+  buttonElement.disabled = true;
+
+  try {
+    const response = await fetch(`${window.api_prefix}/member/${memId}/status?status=${newStatus}`, {
+      method: "PATCH"
+    });
+
+    const result = await response.json();
+
+    if (result.status === "success") {
+      alert("狀態更新成功");
+      // 更新該列的狀態與按鈕
+      statusCell.innerHTML = `
+        <span class="status-badge ${getStatusClass(newStatus)}">
+          ${getStatusText(newStatus)}
+        </span>
+      `;
+      buttonsCell.innerHTML = generateActionButtons(memId, newStatus);
+    } else {
+      alert("更新失敗：" + result.message);
+    }
+  } catch (err) {
+    console.error("API 錯誤：", err);
+    alert("系統錯誤，請稍後再試");
+  } finally {
+    buttonElement.textContent = originalText;
+    buttonElement.disabled = false;
   }
-
-  // 這裡應該發送 API 請求更新資料庫
-  // 目前只更新本地資料
-  switch (type) {
-    case "member":
-      const member = membersData.find((m) => m.mem_id === id);
-      if (member) {
-        member.acc_status = newStatus;
-        loadCampersTable();
-      }
-      break;
-    case "owner":
-      const owner = ownersData.find((o) => o.owner_id === id);
-      if (owner) {
-        owner.acc_status = newStatus;
-        loadOwnersTable();
-      }
-      break;
-    case "admin":
-      const admin = adminsData.find((a) => a.admin_id === id);
-      if (admin) {
-        admin.admin_status = newStatus;
-        loadAdminsTable();
-      }
-      break;
-  }
-
-  alert("帳號狀態已更新");
 }
+
+// 更新露營者帳號狀態:產生操作按鈕
+function generateActionButtons(memId, currentStatus) {
+  let html = "";
+  if (currentStatus !== 1) {
+    html += `<button class="action-btn btn-activate" data-mem-id="${memId}" data-action="activate">啟用</button>`;
+  }
+  if (currentStatus !== 2) {
+    html += `<button class="action-btn btn-suspend" data-mem-id="${memId}" data-action="suspend">停權</button>`;
+  }
+  if (currentStatus !== 0) {
+    html += `<button class="action-btn btn-deactivate" data-mem-id="${memId}" data-action="deactivate">停用</button>`;
+  }
+  return html;
+}
+
+//營地主狀態更新函式(呼叫API)
+async function updateOwnerStatus(ownerId, newStatus, buttonElement) {
+  const originalText = buttonElement.textContent;
+  buttonElement.textContent = "處理中...";
+  buttonElement.disabled = true;
+
+  try {
+    const response = await fetch(`${window.api_prefix}/api/owner/update-status/${ownerId}?status=${newStatus}`, {
+      method: "PUT",
+      credentials: "include"
+    });
+
+    const resultText = await response.text();
+
+    if (response.ok) {
+      alert("狀態更新成功");
+
+      // 重新載入表格
+      loadOwnersTable();
+    } else {
+      alert("更新失敗：" + resultText);
+    }
+  } catch (err) {
+    console.error("API 錯誤：", err);
+    alert("系統錯誤，請稍後再試");
+  } finally {
+    buttonElement.textContent = originalText;
+    buttonElement.disabled = false;
+  }
+}
+//營地主狀態更新函式:產生操作按鈕
+function generateOwnerActionButtons(ownerId, currentStatus) {
+  let html = "";
+  if (currentStatus !== 1) {
+    html += `<button class="action-btn btn-activate" data-owner-id="${ownerId}" data-status="1">啟用</button>`;
+  }
+  if (currentStatus !== 2) {
+    html += `<button class="action-btn btn-suspend" data-owner-id="${ownerId}" data-status="2">停權</button>`;
+  }
+  if (currentStatus !== 0) {
+    html += `<button class="action-btn btn-deactivate" data-owner-id="${ownerId}" data-status="0">停用</button>`;
+  }
+  return html;
+}
+
+
+// 管理員狀態更新函式(呼叫API)
+async function updateAdminStatus(adminId, newStatus, buttonElement) {
+  const originalText = buttonElement.textContent;
+  buttonElement.textContent = "處理中...";
+  buttonElement.disabled = true;
+
+  try {
+    const response = await fetch(`${window.api_prefix}/api/admin/update-status/${adminId}?status=${newStatus}`, {
+      method: "PUT",
+      credentials: "include"
+    });
+
+    const result = await response.json();
+
+    if (result.status === "success") {
+      alert("狀態更新成功");
+      // 選擇性：重新載入管理員表格或更新 UI
+      loadAdminsTable();
+    } else {
+      alert("更新失敗：" + result.message);
+    }
+  } catch (err) {
+    console.error("API 錯誤：", err);
+    alert("系統錯誤，請稍後再試");
+  } finally {
+    buttonElement.textContent = originalText;
+    buttonElement.disabled = false;
+  }
+}
+
+// 更新管理員帳號狀態:產生操作按鈕
+function generateAdminActionButtons(adminId, currentStatus) {
+  let html = "";
+
+  if (currentStatus !== 1) {
+    html += `<button class="action-btn btn-activate" data-admin-id="${adminId}" data-status="1">啟用</button>`;
+  }
+  if (currentStatus !== 2) {
+    html += `<button class="action-btn btn-suspend" data-admin-id="${adminId}" data-status="2">停權</button>`;
+  }
+  if (currentStatus !== 0) {
+    html += `<button class="action-btn btn-deactivate" data-admin-id="${adminId}" data-status="0">停用</button>`;
+  }
+
+  return html;
+}
+
+
+
+
+// 露營者狀態管理事件綁定
+document.getElementById("campers-table-body").addEventListener("click", function (e) {
+  const btn = e.target;
+  if (!btn.classList.contains("action-btn")) return;
+
+  const memId = btn.dataset.memId;
+  const role = btn.dataset.role;
+  const action = btn.dataset.action;
+  const statusMap = {
+    activate: 1,
+    suspend: 2,
+    deactivate: 0,
+  };
+  const newStatus = statusMap[action];
+
+  if (memId && newStatus !== undefined) {
+    updateAccountStatus("member", parseInt(memId), newStatus, btn);
+  }
+});
+
+
+//營地主狀態管理事件綁定
+document.getElementById("owners-table-body").addEventListener("click", function (e) {
+  const btn = e.target;
+  if (!btn.classList.contains("action-btn")) return;
+
+  const ownerId = btn.dataset.ownerId;
+  const newStatus = parseInt(btn.dataset.status);
+
+  if (ownerId && !isNaN(newStatus)) {
+    updateOwnerStatus(ownerId, newStatus, btn);
+  }
+});
+
+
+//管理員狀態管理事件綁定
+window.addEventListener("DOMContentLoaded", function () {
+  // 確保 HTML 都載入後再綁事件
+  document.getElementById("admins-table-body").addEventListener("click", function (e) {
+    const btn = e.target;
+    if (!btn.classList.contains("action-btn")) return;
+
+    const adminId = btn.dataset.adminId;
+    const newStatus = parseInt(btn.dataset.status);
+
+    if (adminId && !isNaN(newStatus)) {
+      updateAdminStatus(adminId, newStatus, btn);
+    }
+  });
+
+  // 初次載入管理員資料
+  loadAdminsTable();
+});
+
+
+
+
+
 
 // 載入營地訂單管理
 function loadCampsiteOrders() {
