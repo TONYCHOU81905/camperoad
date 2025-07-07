@@ -717,6 +717,18 @@ function viewOrderDetail(orderId) {
                 <p><strong>入住日期:</strong> ${order.checkIn}</p>
                 <p><strong>退房日期:</strong> ${order.checkOut}</p>
                 <p><strong>訂單狀態:</strong> <span class="status-badge ${statusClass}">${statusText}</span></p>
+                <div class="status-update-section">
+                  <label for="orderStatusSelect"><strong>更改狀態:</strong></label>
+                  <select id="orderStatusSelect" class="form-control" style="margin-top: 5px;">
+                    <option value="0" ${order.campsiteOrderStatus === 0 ? 'selected' : ''}>露營者未付款</option>
+                    <option value="1" ${order.campsiteOrderStatus === 1 ? 'selected' : ''}>營地主未確認</option>
+                    <option value="2" ${order.campsiteOrderStatus === 2 ? 'selected' : ''}>營地主已確認</option>
+                    <option value="3" ${order.campsiteOrderStatus === 3 ? 'selected' : ''}>露營者自行取消</option>
+                    <option value="4" ${order.campsiteOrderStatus === 4 ? 'selected' : ''}>訂單結案(撥款)</option>
+                    <option value="5" ${order.campsiteOrderStatus === 5 ? 'selected' : ''}>營地主自行取消</option>
+                  </select>
+                  <button class="btn btn-primary btn-sm" style="margin-top: 10px;" onclick="updateOrderStatus('${order.campsiteOrderId}', document.getElementById('orderStatusSelect').value)">更新狀態</button>
+                </div>
                 
               </div>
             </div>
@@ -809,6 +821,63 @@ function closeOrderModal(event) {
   const modal = document.getElementById("orderDetailsModal");
   if (modal) {
     modal.remove();
+  }
+}
+
+// 更新訂單狀態
+async function updateOrderStatus(orderId, newStatus) {
+  const statusMap = {
+    0: "露營者未付款",
+    1: "營地主未確認",
+    2: "營地主已確認",
+    3: "露營者自行取消",
+    4: "訂單結案(撥款)",
+    5: "營地主自行取消",
+  };
+
+  const confirmText = `確定要將訂單狀態更改為「${statusMap[newStatus]}」嗎？`;
+  
+  if (!confirm(confirmText)) {
+    return;
+  }
+
+  try {
+    // 建立 FormData 物件
+    const formData = new FormData();
+    formData.append("orderId", orderId);
+    formData.append("status", newStatus);
+
+    // 調用 API 更新訂單狀態
+    const response = await fetch(
+      `${window.api_prefix}/api/campsite/order/update`,
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+
+    if (response.ok) {
+      const result = await response.json();
+      
+      // 更新本地資料
+      const orderIndex = ordersData.findIndex(order => order.campsiteOrderId === orderId);
+      if (orderIndex !== -1) {
+        ordersData[orderIndex].campsiteOrderStatus = parseInt(newStatus);
+      }
+      
+      alert("訂單狀態更新成功！");
+      
+      // 關閉模態視窗
+      closeOrderModal();
+      
+      // 重新載入訂單列表
+      loadCampsiteOrders();
+    } else {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+  } catch (error) {
+    console.error("更新訂單狀態失敗:", error);
+    alert("更新訂單狀態失敗，請稍後再試");
   }
 }
 
