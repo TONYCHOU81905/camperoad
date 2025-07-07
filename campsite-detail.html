@@ -285,6 +285,52 @@
         }
       }
 
+      /* 載入狀態樣式 */
+      .loading-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 60vh;
+        background-color: #f8f9fa;
+      }
+
+      .loading-spinner {
+        text-align: center;
+        padding: 40px;
+        background-color: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      }
+
+      .loading-spinner i {
+        font-size: 2.5rem;
+        color: #3a5a40;
+        margin-bottom: 20px;
+        animation: spin 1s linear infinite;
+      }
+
+      .loading-spinner p {
+        color: #666;
+        font-size: 1.1rem;
+        margin: 0;
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      /* 隱藏載入中的元素 */
+      .campsite-detail[style*="display: none"] {
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+
+      .campsite-detail {
+        opacity: 1;
+        transition: opacity 0.3s ease;
+      }
+
       @media (max-width: 768px) {
         .gallery-thumbs {
           grid-template-columns: repeat(3, 1fr);
@@ -297,6 +343,14 @@
         .camp-cards {
           grid-template-columns: 1fr;
         }
+
+        .loading-spinner {
+          padding: 30px 20px;
+        }
+
+        .loading-spinner i {
+          font-size: 2rem;
+        }
       }
     </style>
   </head>
@@ -305,14 +359,23 @@
 
 
 
-    <main class="campsite-detail">
+    <!-- 載入狀態 -->
+    <div id="loading-container" class="loading-container">
+      <div class="loading-spinner">
+        <i class="fas fa-spinner fa-spin"></i>
+        <p>載入營地資料中...</p>
+      </div>
+    </div>
+
+    <main class="campsite-detail" id="main-content" style="display: none;">
       <div class="container">
         <div class="campsite-gallery">
           <div class="gallery-main">
             <img
-              src="images/product-1.jpg"
-              alt="山林星空營地主圖"
+              src=""
+              alt="營地主圖"
               id="main-image"
+              style="display: none;"
             />
           </div>
           <div class="gallery-thumbs" id="gallery-thumbs">
@@ -323,59 +386,30 @@
         <div class="campsite-info-container">
           <div class="campsite-info">
             <div class="campsite-title">
-              <h1>山林星空營地</h1>
-              <span class="camp-tag">人氣王</span>
+              <h1 id="campsite-name">載入中...</h1>
+              <span class="camp-tag" id="camp-tag" style="display: none;">人氣王</span>
             </div>
 
-            <p class="campsite-location">
+            <p class="campsite-location" id="campsite-location">
               <i class="fas fa-map-marker-alt"></i>
-              新北市三峽區，距離台北市區約45分鐘車程
+              載入中...
             </p>
 
-            <div class="campsite-features">
-              <div class="feature-item">
-                <i class="fas fa-mountain"></i> 山景
-              </div>
-              <div class="feature-item">
-                <i class="fas fa-shower"></i> 衛浴設施
-              </div>
-              <div class="feature-item">
-                <i class="fas fa-utensils"></i> 餐廳
-              </div>
-              <div class="feature-item">
-                <i class="fas fa-wifi"></i> 免費WiFi
-              </div>
-              <div class="feature-item">
-                <i class="fas fa-parking"></i> 停車場
-              </div>
+            <div class="campsite-features" id="campsite-features">
+              <!-- 特色將通過JavaScript動態載入 -->
             </div>
 
             <div class="campsite-description">
               <h3>營地介紹</h3>
-              <p>
-                山林星空營地位於新北市三峽區的山林之中，是一處遠離塵囂、親近自然的絕佳去處。營地四周被蓊鬱的森林環繞，晚上可以欣賞到滿天星斗，是觀星的理想地點。
-              </p>
-              <p>
-                我們提供完善的露營設施，包括乾淨的衛浴設備、餐廳、休閒區等，讓您在享受大自然的同時，也不失生活的便利。營地內還有多條登山步道，可以探索周邊的自然風光。
-              </p>
-              <p>
-                無論您是露營新手還是經驗豐富的露營愛好者，我們都能為您提供舒適愉快的露營體驗。
-              </p>
+              <div id="campsite-description-content">
+                <p>載入中...</p>
+              </div>
             </div>
 
             <div class="campsite-amenities">
               <h3>營地設施</h3>
-              <ul class="amenities-list">
-                <li><i class="fas fa-toilet"></i> 乾淨衛浴設施</li>
-                <li><i class="fas fa-fire"></i> 營火區</li>
-                <li><i class="fas fa-utensils"></i> 餐廳</li>
-                <li><i class="fas fa-store"></i> 小賣部</li>
-                <li><i class="fas fa-parking"></i> 停車場</li>
-                <li><i class="fas fa-wifi"></i> 免費WiFi</li>
-                <li><i class="fas fa-hiking"></i> 登山步道</li>
-                <li><i class="fas fa-water"></i> 飲用水</li>
-                <li><i class="fas fa-bolt"></i> 電源插座</li>
-                <li><i class="fas fa-child"></i> 兒童遊樂區</li>
+              <ul class="amenities-list" id="amenities-list">
+                <li>載入中...</li>
               </ul>
             </div>
           </div>
