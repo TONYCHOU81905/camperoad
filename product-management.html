@@ -31,12 +31,12 @@
     <!-- Dashboard Container -->
     <div class="dashboard-container">
       <!-- Sidebar Toggle Button -->
-      <button id="sidebarToggle" class="sidebar-toggle">
-        <i class="fas fa-chevron-left" id="toggleIcon"></i>
+      <button id="sidebarToggle" class="sidebar-toggle collapsed">
+        <i class="fas fa-chevron-right" id="toggleIcon"></i>
       </button>
       
       <!-- Sidebar -->
-      <aside class="sidebar">
+      <aside class="sidebar collapsed">
         <nav class="sidebar-nav">
           <ul>
             <li>
@@ -79,14 +79,7 @@
                 ><i class="fas fa-headset"></i> <span>客服管理</span></a
               >
             </li>
-            <li>
-              <a
-                href="admin-dashboard.html?section=forum-management"
-                class="nav-link"
-                data-title="論壇管理"
-                ><i class="fas fa-comments"></i> <span>論壇管理</span></a
-              >
-            </li>
+            <!-- 移除論壇管理 -->
             <li>
               <a
                 href="admin-dashboard.html?section=discount-management"
@@ -107,7 +100,7 @@
       </aside>
 
       <!-- Main Content -->
-      <main class="main-content">
+      <main class="main-content expanded">
         <div class="content-section active">
           <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
             <h2><i class="fas fa-box"></i> 商品管理</h2>
