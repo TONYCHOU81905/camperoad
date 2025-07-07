@@ -697,8 +697,35 @@
                 <input type="text" id="new-camp-name" name="camp_name" required />
               </div>
               <div class="form-group">
-                <label for="new-camp-location">營地位置</label>
-                <input type="text" id="new-camp-location" name="camp_location" required />
+                <label for="new-camp-region">地區</label>
+                <select id="new-camp-region" name="camp_region" required>
+                  <option value="">選擇地區</option>
+                  <option value="0">北部</option>
+                  <option value="1">中部</option>
+                  <option value="2">南部</option>
+                  <option value="3">東部</option>
+                  <option value="4">離島</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="new-camp-city">縣市</label>
+                <select id="new-camp-city" name="camp_city" required>
+                  <option value="">請先選擇地區</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="new-camp-district">鄉鎮市區</label>
+                <select id="new-camp-district" name="camp_district" required>
+                  <option value="">請先選擇縣市</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="new-camp-address">詳細地址</label>
+                <input type="text" id="new-camp-address" name="camp_address" placeholder="請輸入詳細地址" required />
               </div>
             </div>
             <div class="form-row">
