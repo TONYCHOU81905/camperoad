@@ -77,8 +77,9 @@ function checkAdminAuth() {
 async function loadAllData() {
   try {
     // 載入會員資料
-    const membersResponse = await fetch("data/mem.json");
-    membersData = await membersResponse.json();
+    const membersResponse = await fetch(`${window.api_prefix}/member/getallmembers`);
+    const membersDataJson = await membersResponse.json();
+    membersData = membersDataJson.data;
 
     // 載入營地主資料
     const ownersResponse = await fetch("data/owner.json");
@@ -89,22 +90,32 @@ async function loadAllData() {
     adminsData = await adminsResponse.json();
 
     // 載入營地訂單資料
-    const campOrderResponse = await fetch("data/campsite_order.json");
-    ordersData = await campOrderResponse.json();
+    const campOrderResponse = await fetch(`${window.api_prefix}/api/campsite/order/all`);
+    const ordersDataJson = await campOrderResponse.json();
+    ordersData = ordersDataJson.data;
 
     // 載入營地訂單詳細資料
-    const campOrderDetailResponse = await fetch(
-      "data/campsite_order_details.json"
-    );
-    ordersDetailData = await campOrderDetailResponse.json();
+    ordersDetailData = ordersData.orderDetails;
+    // const campOrderDetailResponse = await fetch(
+    //   "data/campsite_order_details.json"
+    // );
+    // ordersDetailData = await campOrderDetailResponse.json();
 
     // 載入營地資料
-    const campResponse = await fetch("data/camp.json");
-    campData = await campResponse.json();
+    const campResponse = await fetch(`${window.api_prefix}/api/getallcamps`);
+    const campResponseJson = await campResponse.json();
+    campData = campResponseJson.data;
 
     // 載入營地類型資料
-    const campsiteTypeResponse = await fetch("data/campsite_type.json");
-    campsiteTypeData = await campsiteTypeResponse.json();
+    const campsiteTypeResponse = await fetch(`${window.api_prefix}/campsite/getAllCampsite`);
+    const campsiteTypeDataJson = await campsiteTypeResponse.json();
+    campsiteTypeData = campsiteTypeDataJson.data;
+
+    console.log("MEMEBERDATA:", membersData);
+    console.log("ordersData:", ordersData);
+    console.log("ordersDetailData:", ordersDetailData);
+    console.log("campData:", campData);
+    console.log("campsiteTypeData:", campsiteTypeData);
 
     // 載入商品訂單資料
     try {
@@ -513,30 +524,28 @@ function loadCampsiteOrders() {
       tableRows = ordersData
         .map((order) => {
           const memberInfo = membersData.find(
-            (member) => member.mem_id === order.mem_id
+            (member) => member.memId === order.memId
           );
           const campInfo = campData.find(
-            (camp) => camp.camp_id === order.camp_id
+            (camp) => camp.campId === order.campId
           );
 
           return `
           <tr>
-            <td>${order.campsite_order_id}</td>
-            <td>${memberInfo ? memberInfo.mem_name : "未知會員"}</td>
-            <td>${campInfo ? campInfo.camp_name : "未知營地"}</td>
-            <td>${order.order_date}</td>
-            <td>${order.check_in}</td>
-            <td>${order.check_out}</td>
-            <td>NT$ ${
-              order.aft_amount ? order.aft_amount.toLocaleString() : "0"
+            <td>${order.campsiteOrderId}</td>
+            <td>${memberInfo ? memberInfo.memName : "未知會員"}</td>
+            <td>${campInfo ? campInfo.campName : "未知營地"}</td>
+            <td>${order.orderDate}</td>
+            <td>${order.checkIn}</td>
+            <td>${order.checkOut}</td>
+            <td>NT$ ${order.aftAmount ? order.aftAmount.toLocaleString() : "0"
             }</td>
             <td><span class="status-badge ${getOrderStatusClass(
-              order.campsite_order_status
-            )}">${getOrderStatusText(order.campsite_order_status)}</span></td>
+              order.campsiteOrderStatus
+            )}">${getOrderStatusText(order.campsiteOrderStatus)}</span></td>
             <td>
-              <button class="btn btn-info btn-sm" onclick="viewOrderDetail('${
-                order.campsite_order_id
-              }')">
+              <button class="btn btn-info btn-sm" onclick="viewOrderDetail('${order.campsiteOrderId
+            }')">
                 <i class="fas fa-eye"></i> 查看詳情
               </button>
             </td>
@@ -581,6 +590,7 @@ function loadCampsiteOrders() {
   }, 1000);
 }
 
+
 // 取得訂單狀態樣式類別
 function getOrderStatusClass(status) {
   switch (status) {
@@ -615,22 +625,23 @@ function getOrderStatusText(status) {
 
 // 查看訂單詳情
 function viewOrderDetail(orderId) {
-  const order = ordersData.find((o) => o.campsite_order_id === orderId);
+  const order = ordersData.find((o) => o.campsiteOrderId === orderId);
   if (!order) {
     alert("找不到訂單資料");
     return;
   }
 
-  const memberInfo = membersData.find(
-    (member) => member.mem_id === order.mem_id
-  );
-  const campInfo = campData.find((camp) => camp.camp_id === order.camp_id);
-  const orderDetails = ordersDetailData.filter(
-    (detail) => detail.campsite_order_id === orderId
-  );
-  const discountInfo = order.discount_code_id
+  const memberInfo = membersData.find((member) => member.memId === order.memId);
+  const campInfo = campData.find((camp) => camp.campId === order.campId);
+  // const orderDetails = ordersDetailData.filter(
+  //   (detail) => detail.campsiteOrderId === orderId
+  // );
+  const orderDetails = order.orderDetails;
+  console.log("orderDetails1111", orderDetails);
+
+  const discountInfo = order.discountCodeId
     ? discountCodesData.find(
-        (discount) => discount.discount_code_id === order.discount_code_id
+        (discount) => discount.discountCodeId === order.discountCodeId
       )
     : null;
 
@@ -638,20 +649,24 @@ function viewOrderDetail(orderId) {
   const campsiteDetailsHtml = orderDetails
     .map((detail) => {
       const campsiteType = campsiteTypeData.find(
-        (type) => type.campsite_type_id === detail.campsite_type_id
+        (type) => type.campsiteTypeId === detail.campsiteTypeId
       );
+
+      console.log("建立營地類型詳細資料HTML:", campsiteType);
+      console.log("建立營地類型詳細資料HTML_detail:", detail);
+
       return `
       <div class="campsite-detail-item">
         <div class="campsite-info">
-          <h6>${campsiteType ? campsiteType.campsite_name : "未知營地類型"}</h6>
+          <h6>${
+            campsiteType ? campsiteType.campsiteIdName : "未知營地類型"
+          }</h6>
           <p><strong>可容納人數:</strong> ${
-            campsiteType ? campsiteType.campsite_people : "N/A"
+            campsiteType ? campsiteType.campsitePeople : "N/A"
           } 人</p>
-          <p><strong>預訂數量:</strong> ${detail.campsite_num} 間</p>
-          <p><strong>單價:</strong> NT$ ${
-            campsiteType ? campsiteType.campsite_price.toLocaleString() : "0"
-          }</p>
-          <p><strong>小計金額:</strong> NT$ ${detail.campsite_amount.toLocaleString()}</p>
+          <p><strong>預訂數量:</strong> ${detail.campsiteNum} 間</p>
+         
+          <p><strong>小計金額:</strong> NT$ ${detail.campsiteAmount.toLocaleString()}</p>
         </div>
       </div>
     `;
@@ -660,21 +675,22 @@ function viewOrderDetail(orderId) {
 
   // 計算總數量
   const totalCampsiteNum = orderDetails.reduce(
-    (sum, detail) => sum + detail.campsite_num,
+    (sum, detail) => sum + detail.campsiteNum,
     0
   );
 
   // 獲取訂單狀態文字和樣式
-  const statusText = getOrderStatusText(order.campsite_order_status);
-  const statusClass = getOrderStatusClass(order.campsite_order_status);
+  const statusText = getOrderStatusText(order.campsiteOrderStatus);
+  const statusClass = getOrderStatusClass(order.campsiteOrderStatus);
 
   // 付款方式文字
   const payMethodText =
-    order.pay_method === 1
+    order.payMethod === 1
       ? "信用卡"
-      : order.pay_method === 2
+      : order.payMethod === 2
       ? "銀行轉帳"
       : "其他";
+  console.log("TTESJ:", order);
 
   const modalHtml = `
     <div class="modal-overlay" id="orderDetailsModal" onclick="closeOrderModal(event)">
@@ -688,36 +704,22 @@ function viewOrderDetail(orderId) {
             <div class="info-row">
               <div class="info-col">
                 <h6>基本資訊</h6>
-                <p><strong>訂單編號:</strong> ${order.campsite_order_id}</p>
+                <p><strong>訂單編號:</strong> ${order.campsiteOrderId}</p>
                 <p><strong>營地名稱:</strong> ${
-                  campInfo ? campInfo.camp_name : "未知營地"
+                  campInfo ? campInfo.campName : "未知營地"
                 }</p>
                 <p><strong>客戶姓名:</strong> ${
-                  memberInfo ? memberInfo.mem_name : "未知會員"
+                  memberInfo ? memberInfo.memName : "未知會員"
                 }</p>
-                <p><strong>下訂日期:</strong> ${order.order_date}</p>
+                <p><strong>下訂日期:</strong> ${order.orderDate}</p>
                 <p><strong>付款方式:</strong> ${payMethodText}</p>
               </div>
               <div class="info-col">
                 <h6>住宿資訊</h6>
-                <p><strong>入住日期:</strong> ${order.check_in}</p>
-                <p><strong>退房日期:</strong> ${order.check_out}</p>
+                <p><strong>入住日期:</strong> ${order.checkIn}</p>
+                <p><strong>退房日期:</strong> ${order.checkOut}</p>
                 <p><strong>訂單狀態:</strong> <span class="status-badge ${statusClass}">${statusText}</span></p>
-                ${
-                  order.comment_satisfaction
-                    ? `<p><strong>評價星數:</strong> ${order.comment_satisfaction} 星</p>`
-                    : ""
-                }
-                ${
-                  order.comment_content
-                    ? `<p><strong>評價內容:</strong> ${order.comment_content}</p>`
-                    : ""
-                }
-                ${
-                  order.comment_date
-                    ? `<p><strong>評價日期:</strong> ${order.comment_date}</p>`
-                    : ""
-                }
+                
               </div>
             </div>
           </div>
@@ -743,36 +745,36 @@ function viewOrderDetail(orderId) {
                 </div>
                 <div class="amount-item">
                   <span>營地費用:</span>
-                  <span>NT$ ${order.camp_amount.toLocaleString()}</span>
+                  <span>NT$ ${order.campsiteAmount}</span>
                 </div>
                 ${
-                  order.bundle_amount > 0
+                  order.bundleAmount > 0
                     ? `
                 <div class="amount-item">
                   <span>加購項目:</span>
-                  <span>NT$ ${order.bundle_amount.toLocaleString()}</span>
+                  <span>NT$ ${order.bundleAmount}</span>
                 </div>
                 `
                     : ""
                 }
                 <div class="amount-item">
                   <span>小計:</span>
-                  <span>NT$ ${order.bef_amount.toLocaleString()}</span>
+                  <span>NT$ ${order.befAmount}</span>
                 </div>
               </div>
               <div class="amount-col">
                 ${
-                  order.dis_amount > 0
+                  order.disAmount > 0
                     ? `
                 <div class="amount-item discount">
                   <span>折扣金額:</span>
-                  <span class="discount-amount">-NT$ ${order.dis_amount.toLocaleString()}</span>
+                  <span class="discount-amount">-NT$ ${order.disAmount.toLocaleString()}</span>
                 </div>
                 ${
                   discountInfo
                     ? `
                 <div class="discount-info">
-                  <p><strong>折價券:</strong> ${discountInfo.discount_code}</p>
+                  <p><strong>折價券:</strong> ${discountInfo.discountCode}</p>
                  
                 </div>
                 `
@@ -783,7 +785,7 @@ function viewOrderDetail(orderId) {
                 }
                 <div class="amount-item total">
                   <span><strong>實付金額:</strong></span>
-                  <span class="total-amount"><strong>NT$ ${order.aft_amount.toLocaleString()}</strong></span>
+                  <span class="total-amount"><strong>NT$ ${order.aftAmount.toLocaleString()}</strong></span>
                 </div>
               </div>
             </div>
@@ -2090,7 +2092,7 @@ function viewShopOrderDetails(orderId) {
   modal.innerHTML = `
     <div class="modal-content order-detail-modal">
       <div class="modal-header">
-        <h3>訂單詳情 #${order.shopOrderId}</h3>
+        <h3 style="font-size: 20px;color: white;">訂單詳情 #${order.shopOrderId}</h3>
         <button class="close-btn" onclick="closeShopOrderDetailModal()">×</button>
       </div>
       
@@ -2589,18 +2591,18 @@ const modalStyles = `
 // 將樣式加入頁面
 document.head.insertAdjacentHTML("beforeend", modalStyles);
 
-// 模擬圖片上傳
-async function simulateImageUpload(file) {
-  // 在實際應用中，這裡應該將圖片上傳到伺服器
-  // 這裡僅返回一個模擬的URL
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      // 隨機選擇一個示例圖片URL
-      const randomIndex = Math.floor(Math.random() * 4) + 1;
-      resolve(`images/product-${randomIndex}.jpg`);
-    }, 300);
-  });
-}
+// // 模擬圖片上傳
+// async function simulateImageUpload(file) {
+//   // 在實際應用中，這裡應該將圖片上傳到伺服器
+//   // 這裡僅返回一個模擬的URL
+//   return new Promise((resolve) => {
+//     setTimeout(() => {
+//       // 隨機選擇一個示例圖片URL
+//       const randomIndex = Math.floor(Math.random() * 4) + 1;
+//       resolve(`images/product-${randomIndex}.jpg`);
+//     }, 300);
+//   });
+// }
 
 // 顯示通知消息
 function showNotification(message, type = "success") {
@@ -2834,7 +2836,7 @@ function showEditShopOrderModal(orderId) {
           <label>出貨日期</label>
           <input type="date" id="edit-order-shipdate" value="${
             order.shopOrderShipDate ? order.shopOrderShipDate.split("T")[0] : ""
-          }" ${canEditShipDate ? "" : "disabled"} />
+          }" min="${getTomorrowDateString()}" ${canEditShipDate ? "" : "disabled"} />
           ${
             !canEditShipDate
               ? '<small style="color: #666;">訂單狀態為已取貨完成、未取貨退回或已取消時無法修改出貨日期</small>'
@@ -2843,13 +2845,11 @@ function showEditShopOrderModal(orderId) {
         </div>
         <div class="form-group">
           <label>折扣碼ID</label>
-          <input type="text" id="edit-discount-code-id" value="${
-            order.discountCodeId ?? ""
-          }" ${canEditBasicFields ? "" : "disabled"} />
+          <select id="edit-discount-code-id" ${canEditBasicFields ? '' : 'disabled'}></select>
           ${
             !canEditBasicFields
               ? '<small style="color: #666;">只有等待賣家確認中的訂單才能修改此欄位</small>'
-              : ""
+              : ''
           }
         </div>
         <div class="form-group">
@@ -2877,6 +2877,44 @@ function showEditShopOrderModal(orderId) {
     e.preventDefault();
     submitEditShopOrder(order.shopOrderId);
   };
+
+  // 動態載入可用折價券並設置下拉選單
+  if (canEditBasicFields) {
+    const discountSelect = modal.querySelector('#edit-discount-code-id');
+    // 先加載 loading option
+    discountSelect.innerHTML = '<option value="">載入中...</option>';
+    fetch(`${window.api_prefix}/api/userdiscount/notUsed/${order.memId}`)
+      .then(res => res.json())
+      .then(list => {
+        let options = '<option value="">不使用折價券</option>';
+        list.forEach(item => {
+          options += `<option value="${item.discountCodeId}" ${order.discountCodeId === item.discountCodeId ? 'selected' : ''}>${item.discountCodeId} - ${item.discountCodeExplain || ''}</option>`;
+        });
+        discountSelect.innerHTML = options;
+      });
+    // 綁定選擇事件
+    let prevDiscountCodeId = order.discountCodeId;
+    discountSelect.addEventListener('change', async function() {
+      const newCode = this.value;
+      if (newCode && newCode !== prevDiscountCodeId) {
+        // 1. 標記新折價券為已使用
+        await fetch(`${window.api_prefix}/api/userdiscount/used`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ memId: order.memId, discountCodeId: newCode })
+        });
+        // 2. 取消原本折價券
+        if (prevDiscountCodeId) {
+          await fetch(`${window.api_prefix}/api/userdiscount/cancelUsed`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ memId: order.memId, discountCodeId: prevDiscountCodeId })
+          });
+        }
+        prevDiscountCodeId = newCode;
+      }
+    });
+  }
 }
 
 function closeEditShopOrderModal() {
@@ -3145,4 +3183,10 @@ function formatDateOnly(dateStr) {
   if (!dateStr) return "";
   const [datePart, timePart] = dateStr.split("T");
   return datePart;
+}
+
+function getTomorrowDateString() {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  return d.toISOString().split('T')[0];
 }
