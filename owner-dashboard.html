@@ -256,7 +256,7 @@
               <table class="table table-striped table-hover">
                 <thead class="table-dark">
                   <tr>
-                    <th>圖片</th>
+                    <th>照片</th>
                     <th>房型編號</th>
                     <th>名稱</th>
                     <th>預設間數</th>
@@ -287,7 +287,7 @@
                       <tr>
                         <th>房間編號</th>
                         <th>房間名稱</th>
-                        <th>入住者姓名</th>
+                        <th>入住者姓名(Check In登記)</th>
                         <th>操作</th>
                       </tr>
                     </thead>
@@ -317,19 +317,19 @@
                       <div class="col-md-6">
                         <div class="form-group mb-3">
                           <label for="campsite-name">房型名稱</label>
-                          <input type="text" id="campsite-name" name="campsite_name" class="form-control" required />
+                          <input type="text" id="campsite-name" name="campsiteName" class="form-control" required />
                         </div>
                         <div class="form-group mb-3">
                           <label for="campsite-people">可入住人數</label>
-                          <input type="number" id="campsite-people" name="campsite_people" class="form-control" min="1" required />
+                          <input type="number" id="campsite-people" name="campsitePeople" class="form-control" min="1" required />
                         </div>
                         <div class="form-group mb-3">
                           <label for="campsite-num">房間數量</label>
-                          <input type="number" id="campsite-num" name="campsite_num" class="form-control" min="1" required />
+                          <input type="number" id="campsite-num" name="campsiteNum" class="form-control" min="1" required />
                         </div>
                         <div class="form-group mb-3">
                           <label for="campsite-price">房間價格</label>
-                          <input type="number" id="campsite-price" name="campsite_price" class="form-control" min="0" required />
+                          <input type="number" id="campsite-price" name="campsitePrice" class="form-control" min="0" required />
                         </div>
                       </div>
                       <div class="col-md-6">
@@ -422,14 +422,14 @@
                       <input type="number" id="edit-campsite-price" name="campsitePrice" class="form-control" min="0" required />
                     </div>
                     <div class="form-group mb-2">
-                      <label>房型圖片上傳</label>
+                      <label>房型照片上傳</label>
                       <div class="d-flex flex-wrap gap-3 mb-2">
                         <div class="image-upload-item text-center">
                           <div class="image-card" id="preview-campsite-img1" style="cursor:pointer;" onclick="document.getElementById('edit-roomtype-img1').click()">
                             <img id="edit-roomtype-img-preview1" src="#" style="width:100%;height:100%;object-fit:cover;display:none;border-radius:12px;" />
                             <div id="upload-hint1" style="display:flex;flex-direction:column;align-items:center;justify-content:center;color:#666;">
                               <i class="fas fa-plus" style="font-size:20px;margin-bottom:4px;"></i>
-                              <span style="font-size:10px;">上傳圖片</span>
+                              <span style="font-size:10px;">上傳照片</span>
                             </div>
                           </div>
                           <input type="file" id="edit-roomtype-img1" name="roomtypeImg1" accept="image/*" style="display:none;">
@@ -439,7 +439,7 @@
                             <img id="edit-roomtype-img-preview2" src="#" style="width:100%;height:100%;object-fit:cover;display:none;border-radius:12px;" />
                             <div id="upload-hint2" style="display:flex;flex-direction:column;align-items:center;justify-content:center;color:#666;">
                               <i class="fas fa-plus" style="font-size:20px;margin-bottom:4px;"></i>
-                              <span style="font-size:10px;">上傳圖片</span>
+                              <span style="font-size:10px;">上傳照片</span>
                             </div>
                           </div>
                           <input type="file" id="edit-roomtype-img2" name="roomtypeImg2" accept="image/*" style="display:none;">
@@ -449,7 +449,7 @@
                             <img id="edit-roomtype-img-preview3" src="#" style="width:100%;height:100%;object-fit:cover;display:none;border-radius:12px;" />
                             <div id="upload-hint3" style="display:flex;flex-direction:column;align-items:center;justify-content:center;color:#666;">
                               <i class="fas fa-plus" style="font-size:20px;margin-bottom:4px;"></i>
-                              <span style="font-size:10px;">上傳圖片</span>
+                              <span style="font-size:10px;">上傳照片</span>
                             </div>
                           </div>
                           <input type="file" id="edit-roomtype-img3" name="roomtypeImg3" accept="image/*" style="display:none;">
@@ -459,7 +459,7 @@
                             <img id="edit-roomtype-img-preview4" src="#" style="width:100%;height:100%;object-fit:cover;display:none;border-radius:12px;" />
                             <div id="upload-hint4" style="display:flex;flex-direction:column;align-items:center;justify-content:center;color:#666;">
                               <i class="fas fa-plus" style="font-size:20px;margin-bottom:4px;"></i>
-                              <span style="font-size:10px;">上傳圖片</span>
+                              <span style="font-size:10px;">上傳照片</span>
                             </div>
                           </div>
                           <input type="file" id="edit-roomtype-img4" name="roomtypeImg4" accept="image/*" style="display:none;">
@@ -629,7 +629,7 @@
                       <input type="text" id="edit-room-name" name="campsiteIdName" class="form-control" required />
                     </div>
                     <div class="form-group mb-2">
-                      <label for="edit-camper-name">入住者姓名</label>
+                      <label for="edit-camper-name">入住者姓名(Check In登記)</label>
                       <input type="text" id="edit-camper-name" name="camperName" class="form-control" />
                     </div>
                     <div class="form-actions mt-3">
@@ -843,7 +843,7 @@
     </div>
   </div>
 
-  <!-- 新增折價券模態框 -->
+  <!-- 新增折價券模態框
   <div class="modal fade" id="addDiscountCodeModal" tabindex="-1" aria-labelledby="addDiscountCodeLabel"
     aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -900,7 +900,7 @@
         </div>
       </div>
     </div>
-  </div>
+  </div> -->
 
   <!-- 更改密碼模態框 -->
   <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
@@ -936,33 +936,7 @@
     </div>
   </div>
 
-  <!-- 網站頁尾 -->
-  <footer class="site-footer">
-    <div class="container">
-      <div class="footer-content">
-        <div class="footer-section">
-          <h4>露途 LUTU</h4>
-          <p>讓每一次露營都成為美好回憶</p>
-        </div>
-        <div class="footer-section">
-          <h4>快速連結</h4>
-          <ul>
-            <li><a href="index.html">首頁</a></li>
-            <li><a href="camp-list.html">找營地</a></li>
-            <li><a href="equipment.html">租裝備</a></li>
-          </ul>
-        </div>
-        <div class="footer-section">
-          <h4>聯絡我們</h4>
-          <p>Email: info@lutu.com.tw</p>
-          <p>電話: 0800-123-456</p>
-        </div>
-      </div>
-      <div class="footer-bottom">
-        <p>&copy; 2024 露途 LUTU. All rights reserved.</p>
-      </div>
-    </div>
-  </footer>
+  <div id="footer-container"></div>
 
   <!-- WebSocket相關庫 -->
   <script>
@@ -979,6 +953,7 @@
   <script src="js/camp-data.js"></script>
   <script src="js/owner-dashboard.js"></script>
   <script src="js/chat-management.js"></script>
+  <script src="js/include.js"></script>
   <link rel="stylesheet" href="css/chat.css" />
 </body>
 

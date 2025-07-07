@@ -1088,7 +1088,7 @@ class OwnerDashboard {
               container.innerHTML = `
                  <div class="image-placeholder" onclick="ownerDashboard.uploadCampImage(${i}, event)">
                    <i class="fas fa-plus"></i>
-                   <span>上傳圖片</span>
+                   <span>上傳照片</span>
                  </div>
                `;
             }
@@ -1096,7 +1096,7 @@ class OwnerDashboard {
             container.innerHTML = `
                <div class="image-placeholder" onclick="ownerDashboard.uploadCampImage(${i}, event)">
                  <i class="fas fa-plus"></i>
-                 <span>上傳圖片</span>
+                 <span>上傳照片</span>
                </div>
              `;
           }
@@ -1524,57 +1524,57 @@ class OwnerDashboard {
       );
     }
 
-    // 折價券表單驗證
-    const discountTypeSelect = document.getElementById("discount-type");
-    const discountValueInput = document.getElementById("discount-value");
-    const startDateInput = document.getElementById("discount-start-date");
-    const endDateInput = document.getElementById("discount-end-date");
+    // // 折價券表單驗證
+    // const discountTypeSelect = document.getElementById("discount-type");
+    // const discountValueInput = document.getElementById("discount-value");
+    // const startDateInput = document.getElementById("discount-start-date");
+    // const endDateInput = document.getElementById("discount-end-date");
 
-    if (discountTypeSelect && discountValueInput) {
-      discountTypeSelect.addEventListener("change", () => {
-        const discountType = parseInt(discountTypeSelect.value);
-        if (discountType === 1) {
-          // 百分比折扣
-          discountValueInput.setAttribute("max", "0.99");
-          discountValueInput.setAttribute("step", "0.01");
-          discountValueInput.setAttribute("placeholder", "例如：0.1 (代表10%)");
-          discountValueInput.removeAttribute("min");
-        } else {
-          // 固定金額折扣
-          discountValueInput.setAttribute("min", "1");
-          discountValueInput.setAttribute("step", "1");
-          discountValueInput.setAttribute("placeholder", "例如：100");
-          discountValueInput.removeAttribute("max");
-        }
-        discountValueInput.value = ""; // 清空輸入值
-      });
+    // if (discountTypeSelect && discountValueInput) {
+    //   discountTypeSelect.addEventListener("change", () => {
+    //     const discountType = parseInt(discountTypeSelect.value);
+    //     if (discountType === 1) {
+    //       // 百分比折扣
+    //       discountValueInput.setAttribute("max", "0.99");
+    //       discountValueInput.setAttribute("step", "0.01");
+    //       discountValueInput.setAttribute("placeholder", "例如：0.1 (代表10%)");
+    //       discountValueInput.removeAttribute("min");
+    //     } else {
+    //       // 固定金額折扣
+    //       discountValueInput.setAttribute("min", "1");
+    //       discountValueInput.setAttribute("step", "1");
+    //       discountValueInput.setAttribute("placeholder", "例如：100");
+    //       discountValueInput.removeAttribute("max");
+    //     }
+    //     discountValueInput.value = ""; // 清空輸入值
+    //   });
 
-      // 初始化設定
-      discountTypeSelect.dispatchEvent(new Event("change"));
-    }
+    //   // 初始化設定
+    //   discountTypeSelect.dispatchEvent(new Event("change"));
+    // }
 
-    if (startDateInput && endDateInput) {
-      startDateInput.addEventListener("change", () => {
-        const startDate = startDateInput.value;
-        if (startDate) {
-          // 設定結束日期的最小值為開始日期的隔天
-          const minEndDate = new Date(startDate);
-          minEndDate.setDate(minEndDate.getDate() + 1);
-          endDateInput.setAttribute(
-            "min",
-            minEndDate.toISOString().split("T")[0]
-          );
+    // if (startDateInput && endDateInput) {
+    //   startDateInput.addEventListener("change", () => {
+    //     const startDate = startDateInput.value;
+    //     if (startDate) {
+    //       // 設定結束日期的最小值為開始日期的隔天
+    //       const minEndDate = new Date(startDate);
+    //       minEndDate.setDate(minEndDate.getDate() + 1);
+    //       endDateInput.setAttribute(
+    //         "min",
+    //         minEndDate.toISOString().split("T")[0]
+    //       );
 
-          // 如果當前結束日期早於或等於開始日期，清空結束日期
-          if (
-            endDateInput.value &&
-            new Date(endDateInput.value) <= new Date(startDate)
-          ) {
-            endDateInput.value = "";
-          }
-        }
-      });
-    }
+    //       // 如果當前結束日期早於或等於開始日期，清空結束日期
+    //       if (
+    //         endDateInput.value &&
+    //         new Date(endDateInput.value) <= new Date(startDate)
+    //       ) {
+    //         endDateInput.value = "";
+    //       }
+    //     }
+    //   });
+    // }
 
     // 訂單狀態篩選
     const orderStatusFilter = document.getElementById("orderStatusFilter");
@@ -2885,10 +2885,10 @@ class OwnerDashboard {
       const form = e.target;
       const formData = new FormData(form);
 
-      const campsiteName = formData.get("campsite_name");
-      const campsitePeople = formData.get("campsite_people");
-      const campsiteNum = formData.get("campsite_num");
-      const campsitePrice = formData.get("campsite_price");
+      const campsiteName = formData.get("campsiteName");
+      const campsitePeople = formData.get("campsitePeople");
+      const campsiteNum = formData.get("campsiteNum");
+      const campsitePrice = formData.get("campsitePrice");
       const imgFiles = [
         form.querySelector("#add-roomtype-img1").files[0],
         form.querySelector("#add-roomtype-img2").files[0],
@@ -3125,7 +3125,7 @@ class OwnerDashboard {
     const form = e.target;
     const formData = new FormData(form);
     const typeId =
-      formData.get("campsiteTypeId") || formData.get("campsite_type_id");
+      formData.get("campsiteTypeId") || formData.get("campsiteTypeId");
     const campId = formData.get("campId") || formData.get("campId");
 
     // 前端驗證
