@@ -2261,7 +2261,7 @@ class OwnerDashboard {
       1: "營地主未確認",
       2: "營地主已確認",
       3: "露營者自行取消",
-      4: "訂單結案",
+      4: "訂單結案(撥款)",
       5: "營地主自行取消",
     };
     return statusMap[status] || "未知狀態";
@@ -2274,27 +2274,170 @@ class OwnerDashboard {
       </button>
     `;
 
-    switch (order.campsiteOrderStatus) {
-      case 1:
-        actionButtons += `
+    if (order.campsiteOrderStatus < 4) {
+      actionButtons += `
           <button class="btn btn-sm btn-danger" onclick="ownerDashboard.cancelOrder('${order.campsiteOrderId}')">
             <i class="fas fa-times"></i>
           </button>
         `;
+      // break;
+    }
+
+    // switch (order.campsiteOrderStatus) {
+    //   case 1:
+    //     actionButtons += `
+    //       <button class="btn btn-sm btn-danger" onclick="ownerDashboard.cancelOrder('${order.campsiteOrderId}')">
+    //         <i class="fas fa-times"></i>
+    //       </button>
+    //     `;
+    //     break;
+    //   // case 2:
+    //   //   actionButtons += `
+    //   //     <button class="btn btn-sm btn-camping me-1" onclick="ownerDashboard.checkInOrder('${order.campsiteOrderId}')">
+    //   //       <i class="fas fa-sign-in-alt"></i>
+    //   //     </button>
+    //   //     <button class="btn btn-sm btn-warning" onclick="ownerDashboard.checkOutOrder('${order.campsiteOrderId}')">
+    //   //       <i class="fas fa-sign-out-alt"></i>
+    //   //     </button>
+    //   //   `;
+    //   //   break;
+    // }
+
+    return actionButtons;
+  }
+
+  // 獲取訂單詳情模態框的操作按鈕
+  getOrderModalActionButtons(order) {
+    let actionButtons = "";
+
+    switch (order.campsiteOrderStatus) {
+      case 1:
+        actionButtons = `
+          <button type="button" class="btn btn-success" onclick="ownerDashboard.confirmOrder('${order.campsiteOrderId}')">
+            <i class="fas fa-check"></i> 營地主確認
+          </button>
+        `;
         break;
       case 2:
-        actionButtons += `
-          <button class="btn btn-sm btn-camping me-1" onclick="ownerDashboard.checkInOrder('${order.campsiteOrderId}')">
-            <i class="fas fa-sign-in-alt"></i>
-          </button>
-          <button class="btn btn-sm btn-warning" onclick="ownerDashboard.checkOutOrder('${order.campsiteOrderId}')">
-            <i class="fas fa-sign-out-alt"></i>
+        actionButtons = `
+          <button type="button" class="btn btn-primary" onclick="ownerDashboard.completeOrder('${order.campsiteOrderId}')">
+            <i class="fas fa-money-bill-wave"></i> 訂單結案(撥款)
           </button>
         `;
         break;
     }
 
     return actionButtons;
+  }
+
+  // 營地主確認訂單 (狀態 1 -> 2)
+  async confirmOrder(orderId) {
+    if (!confirm("確定要確認此訂單嗎？")) {
+      return;
+    }
+
+    try {
+      // 建立 FormData 物件
+      const formData = new FormData();
+      formData.append("orderId", orderId);
+      formData.append("status", 2);
+
+      // 調用 API 更新訂單狀態為 2（營地主已確認）
+      const response = await fetch(
+        `${window.api_prefix}/api/campsite/order/update`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`API 請求失敗：${response.status}`);
+      }
+
+      const result = await response.json();
+
+      if (result.status === "success") {
+        // 更新本地訂單資料
+        const order = this.orderData.find((o) => o.campsiteOrderId === orderId);
+        if (order) {
+          order.campsiteOrderStatus = 2;
+        }
+
+        // 重新渲染訂單列表
+        this.renderOrders();
+
+        // 關閉模態框
+        const modal = bootstrap.Modal.getInstance(
+          document.getElementById("orderDetailsModal")
+        );
+        if (modal) {
+          modal.hide();
+        }
+
+        this.showMessage("訂單確認成功！", "success");
+      } else {
+        throw new Error(result.message || "訂單確認失敗");
+      }
+    } catch (error) {
+      console.error("確認訂單失敗：", error);
+      this.showMessage(`確認訂單失敗：${error.message}`, "error");
+    }
+  }
+
+  // 訂單結案(撥款) (狀態 2 -> 4)
+  async completeOrder(orderId) {
+    if (!confirm("確定要將此訂單結案並進行撥款嗎？")) {
+      return;
+    }
+
+    try {
+      // 建立 FormData 物件
+      const formData = new FormData();
+      formData.append("orderId", orderId);
+      formData.append("status", 4);
+
+      // 調用 API 更新訂單狀態為 4（訂單結案(撥款)）
+      const response = await fetch(
+        `${window.api_prefix}/api/campsite/order/update`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`API 請求失敗：${response.status}`);
+      }
+
+      const result = await response.json();
+
+      if (result.status === "success") {
+        // 更新本地訂單資料
+        const order = this.orderData.find((o) => o.campsiteOrderId === orderId);
+        if (order) {
+          order.campsiteOrderStatus = 4;
+        }
+
+        // 重新渲染訂單列表
+        this.renderOrders();
+
+        // 關閉模態框
+        const modal = bootstrap.Modal.getInstance(
+          document.getElementById("orderDetailsModal")
+        );
+        if (modal) {
+          modal.hide();
+        }
+
+        this.showMessage("訂單結案成功！", "success");
+      } else {
+        throw new Error(result.message || "訂單結案失敗");
+      }
+    } catch (error) {
+      console.error("訂單結案失敗：", error);
+      this.showMessage(`訂單結案失敗：${error.message}`, "error");
+    }
   }
 
   // 顯示訂單詳細資料
@@ -2462,6 +2605,7 @@ class OwnerDashboard {
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>
+              ${this.getOrderModalActionButtons(order)}
             </div>
           </div>
         </div>

@@ -609,18 +609,16 @@ function getOrderStatusClass(status) {
 
 // 取得訂單狀態文字
 function getOrderStatusText(status) {
-  switch (status) {
-    case 1:
-      return "待確認";
-    case 2:
-      return "已確認";
-    case 3:
-      return "已完成";
-    case 0:
-      return "已取消";
-    default:
-      return "未知狀態";
-  }
+  const statusMap = {
+    0: "露營者未付款",
+    1: "營地主未確認",
+    2: "營地主已確認",
+    3: "露營者自行取消",
+    4: "訂單結案(撥款)",
+    5: "營地主自行取消",
+  };
+  
+  return statusMap[status] || "未知狀態";
 }
 
 // 查看訂單詳情
