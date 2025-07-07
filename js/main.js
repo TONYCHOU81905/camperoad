@@ -155,8 +155,8 @@ document.addEventListener("DOMContentLoaded", function () {
         districtSelect.innerHTML = '<option value="">請先選擇縣市</option>';
       }
 
-      // 根據選擇的地區篩選並顯示營地
-      filterCampsByRegion(selectedRegion);
+      // 移除營地篩選功能，首頁固定顯示三個營地
+      // filterCampsByRegion(selectedRegion);
     });
   }
 });

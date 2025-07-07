@@ -171,15 +171,41 @@ async function createCampCard(camp) {
   const favBtn = card.querySelector(".btn-toggle-favorite");
   if (favBtn) {
     favBtn.addEventListener("click", async () => {
+      // 檢查會員登入狀態
       const saved =
         localStorage.getItem("currentMember") ||
         sessionStorage.getItem("currentMember");
-      if (!saved) return alert("請先登入才能收藏");
-      const currentMember = JSON.parse(saved);
+      
+      if (!saved) {
+        console.log("未找到會員資料，跳轉到登入頁面");
+        localStorage.setItem("returnUrl", window.location.href);
+        window.location.href = "login.html";
+        return;
+      }
+      
+      let currentMember;
+      try {
+        currentMember = JSON.parse(saved);
+      } catch (e) {
+        console.error("解析會員資料失敗:", e);
+        localStorage.setItem("returnUrl", window.location.href);
+        window.location.href = "login.html";
+        return;
+      }
+      
       const memId =
         currentMember.mem_id || currentMember.memId || currentMember.id;
+      
+      if (!memId) {
+        console.log("會員ID無效，跳轉到登入頁面");
+        localStorage.setItem("returnUrl", window.location.href);
+        window.location.href = "login.html";
+        return;
+      }
+      
       const campId = parseInt(favBtn.dataset.campId);
       if (!Array.isArray(window.favoriteCampIds)) window.favoriteCampIds = [];
+      
       try {
         const isFav = favBtn.classList.contains("favorited");
         const url = `${window.api_prefix}/camptracklist/${
