@@ -3,6 +3,13 @@ document.addEventListener("DOMContentLoaded", function () {
   // 載入會員資料
   loadMemberData();
 
+  // 讀取重定向URL參數
+  const urlParams = new URLSearchParams(window.location.search);
+  const redirectUrl = urlParams.get('redirect');
+  if (redirectUrl) {
+    localStorage.setItem('redirectUrl', redirectUrl);
+  }
+
   // 綁定露營者登入表單事件
   const camperLoginForm = document.getElementById("camperLoginForm");
   if (camperLoginForm) {
@@ -131,7 +138,7 @@ async function handleLogin(e) {
 
       showMessage("登入成功！", "success");
 
-      
+
 
       // 登入成功後合併未登入時的購物車資料
       try {
@@ -181,15 +188,14 @@ async function handleLogin(e) {
       }
 
       try {
-        const returnUrl = localStorage.getItem("returnUrl");
-        if (returnUrl) {
-          window.location.href = returnUrl;
-          localStorage.removeItem("returnUrl");
-        } else {
-          console.log("找不到returnUrl");
+        const redirectUrl = localStorage.getItem("redirectUrl");
+        if (redirectUrl) {
+          window.location.href = redirectUrl;
+          localStorage.removeItem("redirectUrl");
+          return; // 如果有重定向URL，直接返回，不執行後面的index.html跳轉
         }
       } catch (error) {
-        console.error("營地登入後導轉發生意外:", err);
+        console.error("登入後重定向發生意外:", error);
       }
 
       setTimeout(() => {

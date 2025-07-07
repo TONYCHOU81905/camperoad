@@ -873,7 +873,7 @@
                         style="font-size: 2rem; color: #6c757d; margin-bottom: 15px; display: block;"></i>
                     <h4 style="color: #495057; margin-bottom: 10px;">請登入後再發表留言</h4>
                     <p style="color: #6c757d; margin-bottom: 20px;">登入後即可參與討論，分享您的露營經驗</p>
-                    <a href="login.html" id="login-redirect-btn"
+                    <a href="login.html?redirect=" + encodeURIComponent(window.location.href) + ""
                         style="background: #3A5A40; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; display: inline-block; transition: background 0.3s ease;">立即登入</a>
                 </div>
 
@@ -957,8 +957,8 @@
             setupFavoriteButton() {
                 this.favoriteBtn = document.getElementById('favorite-btn');
                 if (this.favoriteBtn) {
-                    // 從URL獲取文章ID，支援 acId 和 id 參數
-                    this.currentArticleId = new URLSearchParams(window.location.search).get('acId') || new URLSearchParams(window.location.search).get('id');
+                    // 從URL獲取文章ID
+                    this.currentArticleId = new URLSearchParams(window.location.search).get('id');
                     this.favoriteBtn.addEventListener('click', (e) => {
                         e.preventDefault();
                         this.handleFavoriteClick();
@@ -1063,7 +1063,7 @@
             simulateFavorite(favoriteData) {
                 this.favoriteBtn.classList.add('favorited');
                 this.favoriteBtn.querySelector('span').textContent = '已收藏';
-                this.showMessage('收藏成功', 'success');
+                this.showMessage('收藏成功！(模擬)', 'success');
 
                 // 儲存到localStorage
                 this.saveToLocalStorage(favoriteData);
@@ -1116,7 +1116,7 @@
                     if (response.ok && result.status === 'success') {
                         this.favoriteBtn.classList.remove('favorited');
                         this.favoriteBtn.querySelector('span').textContent = '收藏';
-                        this.showMessage('已取消收藏!', 'success');
+                        this.showMessage('已取消收藏', 'success');
 
                         // 從localStorage移除
                         this.removeFromLocalStorage();
@@ -1135,7 +1135,7 @@
             simulateUnfavorite() {
                 this.favoriteBtn.classList.remove('favorited');
                 this.favoriteBtn.querySelector('span').textContent = '收藏';
-                this.showMessage('已取消收藏', 'success');
+                this.showMessage('已取消收藏(模擬)', 'success');
 
                 // 從localStorage移除
                 this.removeFromLocalStorage();
@@ -1419,12 +1419,6 @@
     <script>
         // 初始化頭像（隱藏狀態，等待真實頭像載入）
         document.addEventListener('DOMContentLoaded', function () {
-            // 設置登入按鈕的重定向URL
-            const loginRedirectBtn = document.getElementById('login-redirect-btn');
-            if (loginRedirectBtn) {
-                loginRedirectBtn.href = 'login.html?redirect=' + encodeURIComponent(window.location.href);
-            }
-
             const authorAvatarImg = document.getElementById('article-author-avatar');
             if (authorAvatarImg) {
                 console.log('🎭 設置預設頭像，等待API載入真實頭像');
@@ -2757,16 +2751,8 @@
                     return;
                 }
 
-                // 調試：輸出完整的 authorData 結構
-                console.log('[DEBUG] updateArticleAuthorAvatar 接收到的 authorData:', authorData);
-                console.log('[DEBUG] authorData 類型:', typeof authorData);
-                if (authorData) {
-                    console.log('[DEBUG] authorData 所有欄位:', Object.keys(authorData));
-                    console.log('[DEBUG] authorData 詳細內容:', JSON.stringify(authorData, null, 2));
-                }
-
                 // 如果已經更新過且是正確的頭像，跳過重複更新（除非是強制更新）
-                if (authorAvatarImg.dataset.avatarUpdated === 'true' && authorData !== null && !authorData.forceUpdate) {
+                if (authorAvatarImg.dataset.avatarUpdated === 'true' && authorData !== null) {
                     console.log('[DEBUG] 頭像已更新過，跳過重複更新');
                     return;
                 }

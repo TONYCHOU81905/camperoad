@@ -302,9 +302,8 @@
         </div>
     </section>
 
-    <nav class="breadcrumb" id="breadcrumb-nav" style="margin: px 0 0 0; padding-left: 24px; font-size: 0.98rem;">
-        <a href="index.html">首頁</a> &gt; <a href="article-type.html">論壇攻略</a> &gt; <span
-            id="breadcrumb-rest">發表新文章</span>
+    <nav class="breadcrumb" style="margin: px 0 0 0; padding-left: 24px; font-size: 0.98rem;">
+        <a href="index.html">首頁</a> &gt; <a href="article-type.html">論壇攻略</a> &gt; <span>發表新文章</span>
     </nav>
 
     <section class="article-add-content">
@@ -678,42 +677,9 @@
             }
         }
 
-        // 設置動態麵包屑導航
-        function setupDynamicBreadcrumb() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const acTypeId = urlParams.get('acTypeId');
-            const rest = document.getElementById('breadcrumb-rest');
-            if (!rest) return;
-            if (acTypeId) {
-                let categoryName = '';
-                let categoryUrl = '';
-                switch (acTypeId) {
-                    case '30001':
-                        categoryName = '新手指南';
-                        categoryUrl = 'articles-list-1.html';
-                        break;
-                    case '30002':
-                        categoryName = '裝備評測';
-                        categoryUrl = 'articles-list-2.html';
-                        break;
-                    case '30003':
-                        categoryName = '營地推薦';
-                        categoryUrl = 'articles-list-3.html';
-                        break;
-                    default:
-                        rest.textContent = '發表新文章';
-                        return;
-                }
-                rest.innerHTML = `<a href="${categoryUrl}">${categoryName}</a> &gt; 發表新文章`;
-            } else {
-                rest.textContent = '發表新文章';
-            }
-        }
-
         // 頁面載入時初始化
         document.addEventListener('DOMContentLoaded', function () {
             console.log('文章新增頁面開始初始化...');
-            setupDynamicBreadcrumb();
             initPage();
             setupLoginStateListener();
             setupLoginRedirect();

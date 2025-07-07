@@ -1,7 +1,6 @@
-/**
  * 文章顯示處理模組
- * 負責載入和顯示包含圖片的文章內容
- */
+    * 負責載入和顯示包含圖片的文章內容
+    */
 class ArticleDisplayManager {
     constructor() {
         this.currentArticle = null;
@@ -12,7 +11,7 @@ class ArticleDisplayManager {
     init() {
         // 從 URL 獲取文章 ID
         const urlParams = new URLSearchParams(window.location.search);
-        this.currentArticleId = urlParams.get('id');
+        this.currentArticleId = urlParams.get('acId') || urlParams.get('id');
 
         console.log('ArticleDisplayManager 初始化，文章 ID:', this.currentArticleId);
         console.log('API 前綴:', window.api_prefix);
