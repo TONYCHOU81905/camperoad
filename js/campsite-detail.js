@@ -61,46 +61,48 @@ document.addEventListener("DOMContentLoaded", function () {
   // 並行載入所有必要資料以提升速度
   Promise.all([
     loadCampData(),
-    loadCampsiteTypesData() // 預先載入房型資料
-  ]).then(() => {
-    console.log("所有基礎資料載入完成");
+    loadCampsiteTypesData(), // 預先載入房型資料
+  ])
+    .then(() => {
+      console.log("所有基礎資料載入完成");
 
-    // 初始化頁面
-    initDetailPage();
+      // 初始化頁面
+      initDetailPage();
 
-    // 載入特定營地詳情（包括房型資料）
-    loadCampDetails().then(() => {
-      // 載入營地圖片
-      if (typeof loadCampImages === "function") {
-        loadCampImages();
-      }
+      // 載入特定營地詳情（包括房型資料）
+      loadCampDetails().then(() => {
+        // 載入營地圖片
+        if (typeof loadCampImages === "function") {
+          loadCampImages();
+        }
 
-      // 隱藏載入狀態，顯示主要內容
-      hideLoadingState();
+        // 隱藏載入狀態，顯示主要內容
+        hideLoadingState();
 
-      // 更新購物車數量顯示
-      const cart = JSON.parse(localStorage.getItem("campingCart")) || [];
-      updateCartCount(cart.length);
+        // 更新購物車數量顯示
+        const cart = JSON.parse(localStorage.getItem("campingCart")) || [];
+        updateCartCount(cart.length);
+      });
+    })
+    .catch((error) => {
+      console.error("載入資料失敗:", error);
+      showErrorState();
     });
-  }).catch(error => {
-    console.error("載入資料失敗:", error);
-    showErrorState();
-  });
 });
 
 /**
  * 顯示載入狀態
  */
 function showLoadingState() {
-  const loadingContainer = document.getElementById('loading-container');
-  const mainContent = document.getElementById('main-content');
-  
+  const loadingContainer = document.getElementById("loading-container");
+  const mainContent = document.getElementById("main-content");
+
   if (loadingContainer) {
-    loadingContainer.style.display = 'flex';
+    loadingContainer.style.display = "flex";
   }
-  
+
   if (mainContent) {
-    mainContent.style.display = 'none';
+    mainContent.style.display = "none";
   }
 }
 
@@ -108,18 +110,18 @@ function showLoadingState() {
  * 隱藏載入狀態，顯示主要內容
  */
 function hideLoadingState() {
-  const loadingContainer = document.getElementById('loading-container');
-  const mainContent = document.getElementById('main-content');
-  
+  const loadingContainer = document.getElementById("loading-container");
+  const mainContent = document.getElementById("main-content");
+
   if (loadingContainer) {
-    loadingContainer.style.display = 'none';
+    loadingContainer.style.display = "none";
   }
-  
+
   if (mainContent) {
-    mainContent.style.display = 'block';
+    mainContent.style.display = "block";
     // 添加淡入效果
     setTimeout(() => {
-      mainContent.style.opacity = '1';
+      mainContent.style.opacity = "1";
     }, 50);
   }
 }
@@ -128,8 +130,8 @@ function hideLoadingState() {
  * 顯示錯誤狀態
  */
 function showErrorState() {
-  const loadingContainer = document.getElementById('loading-container');
-  
+  const loadingContainer = document.getElementById("loading-container");
+
   if (loadingContainer) {
     loadingContainer.innerHTML = `
       <div class="loading-spinner">
@@ -654,19 +656,38 @@ async function checkRemainingRoomCount(
 /**
  * 使用API獲取可用房型數據並顯示
  * @param {string} campId - 營地ID
- * @param {string} guests - 人數
+ * @param {int} guests - 人數
  * @param {string} checkIn - 入住日期
  * @param {string} checkOut - 退房日期
  */
 async function getAvailableRoomTypesFromAPI(campId, guests, checkIn, checkOut) {
   try {
+    // 預設人數為 2，如果 guests 為 null 則使用 2
+    const finalPeople = guests == "null" ? 2 : guests;
+
+    // 預設日期為明天和後天
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    const dayAfterTomorrow = new Date(today);
+    dayAfterTomorrow.setDate(today.getDate() + 2);
+
+    // 將日期格式轉為 yyyy-mm-dd
+    const formatDate = (d) => d.toISOString().split("T")[0];
+
+    // 如果 checkIn 或 checkOut 為 null，使用預設值
+    const finalCheckIn = checkIn == "null" ? formatDate(tomorrow) : checkIn;
+    const finalCheckOut =
+      checkOut == "null" ? formatDate(dayAfterTomorrow) : checkOut;
+    // 建立請求內容
     const requestBody = new URLSearchParams({
       campIds: campId,
-      people: guests,
-      checkIn: checkIn,
-      checkOut: checkOut,
+      people: finalPeople,
+      checkIn: finalCheckIn,
+      checkOut: finalCheckOut,
     });
-    console.log("requestBody2:", checkIn, checkOut);
+
+    console.log("requestBody2:", finalCheckIn, finalCheckOut, finalPeople);
     const response = await fetch(
       `${window.api_prefix}/api/ca/available/Remaing`,
       {
@@ -1410,14 +1431,14 @@ function updateCampDetails(camp) {
   // 顯示營地標籤
   const tagElement = document.getElementById("camp-tag");
   if (tagElement) {
-    tagElement.style.display = 'inline-block';
+    tagElement.style.display = "inline-block";
     // 可以根據營地數據設置不同的標籤
     if (camp.campCommentNumberCount > 50) {
-      tagElement.textContent = '人氣王';
+      tagElement.textContent = "人氣王";
     } else if (camp.campId % 3 === 0) {
-      tagElement.textContent = '新上架';
+      tagElement.textContent = "新上架";
     } else {
-      tagElement.textContent = '推薦';
+      tagElement.textContent = "推薦";
     }
   }
 
@@ -1431,9 +1452,13 @@ function updateCampDetails(camp) {
   updateCampsiteFeatures(camp);
 
   // 更新營地描述
-  const descriptionElement = document.getElementById("campsite-description-content");
+  const descriptionElement = document.getElementById(
+    "campsite-description-content"
+  );
   if (descriptionElement) {
-    descriptionElement.innerHTML = `<p>${camp.campContent || '暫無詳細介紹'}</p>`;
+    descriptionElement.innerHTML = `<p>${
+      camp.campContent || "暫無詳細介紹"
+    }</p>`;
   }
 
   // 更新營地設施
@@ -1455,22 +1480,37 @@ function updateCampsiteFeatures(camp) {
 
   // 根據營地數據生成特色標籤
   const features = [];
-  
+
   // 基本特色（可以根據實際數據調整）
-  features.push('<div class="feature-item"><i class="fas fa-mountain"></i> 山景</div>');
-  features.push('<div class="feature-item"><i class="fas fa-shower"></i> 衛浴設施</div>');
-  features.push('<div class="feature-item"><i class="fas fa-wifi"></i> 免費WiFi</div>');
-  features.push('<div class="feature-item"><i class="fas fa-parking"></i> 停車場</div>');
-  
+  features.push(
+    '<div class="feature-item"><i class="fas fa-mountain"></i> 山景</div>'
+  );
+  features.push(
+    '<div class="feature-item"><i class="fas fa-shower"></i> 衛浴設施</div>'
+  );
+  features.push(
+    '<div class="feature-item"><i class="fas fa-wifi"></i> 免費WiFi</div>'
+  );
+  features.push(
+    '<div class="feature-item"><i class="fas fa-parking"></i> 停車場</div>'
+  );
+
   // 根據營地位置添加特色
-  if (camp.campCity && camp.campCity.includes('宜蘭')) {
-    features.push('<div class="feature-item"><i class="fas fa-tint"></i> 溪流</div>');
+  if (camp.campCity && camp.campCity.includes("宜蘭")) {
+    features.push(
+      '<div class="feature-item"><i class="fas fa-tint"></i> 溪流</div>'
+    );
   }
-  if (camp.campCity && (camp.campCity.includes('南投') || camp.campCity.includes('花蓮'))) {
-    features.push('<div class="feature-item"><i class="fas fa-cloud"></i> 雲海</div>');
+  if (
+    camp.campCity &&
+    (camp.campCity.includes("南投") || camp.campCity.includes("花蓮"))
+  ) {
+    features.push(
+      '<div class="feature-item"><i class="fas fa-cloud"></i> 雲海</div>'
+    );
   }
-  
-  featuresElement.innerHTML = features.join('');
+
+  featuresElement.innerHTML = features.join("");
 }
 
 /**
@@ -1491,10 +1531,10 @@ function updateCampsiteAmenities(camp) {
     '<li><i class="fas fa-hiking"></i> 登山步道</li>',
     '<li><i class="fas fa-water"></i> 飲用水</li>',
     '<li><i class="fas fa-bolt"></i> 電源插座</li>',
-    '<li><i class="fas fa-child"></i> 兒童遊樂區</li>'
+    '<li><i class="fas fa-child"></i> 兒童遊樂區</li>',
   ];
 
-  amenitiesElement.innerHTML = amenities.join('');
+  amenitiesElement.innerHTML = amenities.join("");
 }
 
 /**
@@ -1505,15 +1545,15 @@ function updateCampsiteImages(camp) {
   if (!mainImage) return;
 
   // 設置預設圖片或使用營地圖片
-  if (camp.campPic && camp.campPic.trim() !== '') {
+  if (camp.campPic && camp.campPic.trim() !== "") {
     mainImage.src = camp.campPic;
   } else {
     // 使用預設圖片
-    mainImage.src = 'images/camp-1.jpg';
+    mainImage.src = "images/camp-1.jpg";
   }
-  
-  mainImage.alt = camp.campName || '營地圖片';
-  mainImage.style.display = 'block';
+
+  mainImage.alt = camp.campName || "營地圖片";
+  mainImage.style.display = "block";
 }
 
 /**
