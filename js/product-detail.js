@@ -1364,6 +1364,9 @@ function renderProductReviews(comments) {
   if (!reviewsPanel) return;
   if (!comments || !comments.length) {
     reviewsPanel.innerHTML = '<div class="product-reviews"><p>暫無評價</p></div>';
+    // 也要清空 product-meta 的星星與評論數
+    const metaRating = document.querySelector('.product-meta .product-rating');
+    if (metaRating) metaRating.innerHTML = '';
     return;
   }
 
@@ -1377,6 +1380,23 @@ function renderProductReviews(comments) {
     if (stars[s] !== undefined) stars[s]++;
   });
   Object.keys(stars).forEach(k => stars[k] = count ? Math.round(stars[k] / count * 100) : 0);
+
+  // 動態更新 product-meta 的星星與評論數
+  const metaRating = document.querySelector('.product-meta .product-rating');
+  if (metaRating) {
+    let starsHtml = '';
+    for (let i = 1; i <= 5; i++) {
+      if (i <= Math.floor(average)) {
+        starsHtml += '<i class="fas fa-star"></i>';
+      } else if (i === Math.ceil(average) && average % 1 >= 0.5) {
+        starsHtml += '<i class="fas fa-star-half-alt"></i>';
+      } else {
+        starsHtml += '<i class="far fa-star"></i>';
+      }
+    }
+    starsHtml += ` <span>(${count} 則評價)</span>`;
+    metaRating.innerHTML = starsHtml;
+  }
 
   // 星等統計
   const starsHtml = [5,4,3,2,1].map(star => `
