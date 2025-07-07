@@ -1,3 +1,57 @@
+// 價格快取 Map
+let priceMap = new Map();
+
+// 取得所有商品規格
+async function fetchAllProductSpecs() {
+  try {
+    const response = await fetch(`${window.api_prefix}/api/prod-specs`);
+    if (!response.ok) throw new Error('無法取得商品規格');
+    const data = await response.json();
+    return data.status === 'success' ? data.data : [];
+  } catch (error) {
+    console.error('取得商品規格失敗:', error);
+    return [];
+  }
+}
+
+// 從 API 取得商品單價並建立 Map
+async function fetchPriceMap() {
+  try {
+    const response = await fetch(`${window.api_prefix}/api/products`);
+    if (!response.ok) throw new Error('無法取得商品價格');
+    const data = await response.json();
+    if (data.status === 'success' && data.data) {
+      priceMap = new Map();
+      data.data.forEach(product => {
+        const prodId = product.prodId;
+        const discountRate = product.prodDiscount || 1;
+        
+        // 遍歷每個商品的顏色列表
+        (product.prodColorList || []).forEach(color => {
+          // 遍歷每個顏色的規格列表
+          (product.prodSpecList || []).forEach(spec => {
+            const key = `${prodId}-${color.prodColorId || 0}-${spec.prodSpecId}`;
+            const basePrice = spec.prodSpecPrice || 0;
+            priceMap.set(key, {
+              basePrice: basePrice,
+              discountRate: discountRate,
+              discountedPrice: Math.round(basePrice * discountRate)
+            });
+          });
+        });
+      
+      });
+    }
+  } catch (error) {
+    console.error('取得價格資料失敗:', error);
+  }
+  // console.log('priceMap 完成後:', priceMap);
+}
+
+(async () => {
+  await fetchPriceMap();
+})();
+
 // Session Cart 管理工具
 const sessionCartManager = {
   getCart: function() {
@@ -65,6 +119,12 @@ document.addEventListener('DOMContentLoaded', function() {
 async function initCartPage() {
   showLoadingOverlay();
   try {
+    // 確保價格快取已經載入
+    if (priceMap.size === 0) {
+      console.log('價格快取為空，重新載入價格資料...');
+      await fetchPriceMap();
+    }
+    
     // 從API獲取購物車數據
     const cartData = await fetchCartData();
     
@@ -108,7 +168,7 @@ async function fetchCartData() {
         const cartItems = data.data;
         const totalItems = cartItems.reduce((sum, item) => sum + item.cartProdQty, 0);
         const subtotal = cartItems.reduce((sum, item) => sum + (item.prodPrice * item.cartProdQty), 0);
-        console.log('送出API資料', { memId, data });
+        // console.log('送出API資料', { memId, data });
         return {
           items: cartItems,
           totalItems: totalItems,
@@ -168,7 +228,7 @@ async function fetchCartData() {
       }));
       const totalItems = enrichedItems.reduce((sum, item) => sum + item.cartProdQty, 0);
       const subtotal = enrichedItems.reduce((sum, item) => sum + (item.prodPrice ? item.prodPrice * item.cartProdQty : 0), 0);
-      console.log('送出API資料', { memId: null, enrichedItems });
+      // console.log('送出API資料', { memId: null, enrichedItems });
       return {
         items: enrichedItems,
         totalItems: totalItems,
@@ -249,10 +309,24 @@ function createCartItemElement(item, colorOptions, specOptions) {
   }
   specSelect += '</select>';
 
+  // 從價格快取取得價格資訊
+  const priceKey = `${item.prodId}-${item.prodColorId || 0}-${item.prodSpecId}`;
+  const priceInfo = priceMap.get(priceKey) || { basePrice: item.prodPrice || 0, discountRate: item.discountRate || 1, discountedPrice: item.prodPrice || 0 };
+  
+  // console.log('createCartItemElement 價格資訊:', {
+  //   prodId: item.prodId,
+  //   prodColorId: item.prodColorId,
+  //   prodSpecId: item.prodSpecId,
+  //   priceKey,
+  //   priceInfo,
+  //   priceMapSize: priceMap.size,
+  //   fallbackPrice: item.prodPrice
+  // });
+  
   // 商品價格顯示
-  let priceHtml = `<span class="current-price" data-base-price="${item.prodPrice}" data-discount-rate="${item.discountRate}">NT$ ${item.prodPrice ? item.prodPrice.toLocaleString() : ''}</span>`;
-  if (item.discountRate && item.discountRate < 1 && item.basePrice) {
-    priceHtml += ` <span class="original-price">NT$ ${item.basePrice.toLocaleString()}</span>`;
+  let priceHtml = `<span class="current-price" data-base-price="${priceInfo.basePrice}" data-discount-rate="${priceInfo.discountRate}">NT$ ${priceInfo.discountedPrice.toLocaleString()}</span>`;
+  if (priceInfo.discountRate && priceInfo.discountRate < 1 && priceInfo.basePrice) {
+    priceHtml += ` <span class="original-price">NT$ ${priceInfo.basePrice.toLocaleString()}</span>`;
   }
 
   itemDiv.innerHTML = `
@@ -270,15 +344,16 @@ function createCartItemElement(item, colorOptions, specOptions) {
       <button class="btn-increase">+</button>
     </div>
     <div class="product-subtotal">
-      <span>NT$ ${(item.prodPrice * item.cartProdQty).toLocaleString()}</span>
+      <span>NT$ ${(priceInfo.discountedPrice * item.cartProdQty).toLocaleString()}</span>
     </div>
     <button class="btn-remove">
       <i class="fas fa-trash-alt"></i>
     </button>
   `;
 
-  // 綁定 select/數量事件
+  // 綁定 select/數量事件 - 避免重新載入頁面
   itemDiv.querySelector('.color-select').addEventListener('change', function() {
+    updateCartItemPrice(itemDiv);
     updateCartItem(itemDiv);
     // 更新原本的顏色id
     itemDiv.dataset.oldColorId = itemDiv.querySelector('.color-select').value;
@@ -286,6 +361,7 @@ function createCartItemElement(item, colorOptions, specOptions) {
     itemDiv.dataset.colorId = itemDiv.querySelector('.color-select').value;
   });
   itemDiv.querySelector('.spec-select').addEventListener('change', function() {
+    updateCartItemPrice(itemDiv);
     updateCartItem(itemDiv);
     // 更新原本的規格id
     itemDiv.dataset.oldSpecId = itemDiv.querySelector('.spec-select').value;
@@ -294,6 +370,7 @@ function createCartItemElement(item, colorOptions, specOptions) {
   });
   // input change 事件只呼叫一次 updateCartItem
   itemDiv.querySelector('.quantity-selector input').addEventListener('change', function() {
+    updateCartItemPrice(itemDiv);
     updateCartItem(itemDiv);
   });
 
@@ -315,33 +392,80 @@ function createCartItemElement(item, colorOptions, specOptions) {
     }
   });
 
+  // 綁定移除按鈕事件
+  itemDiv.querySelector('.btn-remove').addEventListener('click', function() {
+    removeCartItem(itemDiv);
+  });
+
   return itemDiv;
 }
 
 // 綁定購物車項目事件
 function bindCartItemEvents() {
+  // 移除按鈕事件已經在 createCartItemElement 中綁定
+  // 數量變更事件也已經在 createCartItemElement 中綁定
+  // 此函數保留以備未來擴展使用
+}
+
+// 新增：從價格快取更新商品價格和總計
+function updateCartItemPrice(cartItem) {
+  const prodId = parseInt(cartItem.dataset.id);
+  const prodColorId = parseInt(cartItem.querySelector('.color-select').value);
+  const prodSpecId = parseInt(cartItem.querySelector('.spec-select').value);
+  const quantity = parseInt(cartItem.querySelector('.quantity-selector input').value);
   
-  // 綁定數量輸入框變更事件
-  document.querySelectorAll('.quantity-selector input').forEach(input => {
-    input.addEventListener('change', function() {
-      // 確保數量在有效範圍內
-      let value = parseInt(this.value);
-      if (isNaN(value) || value < parseInt(this.min)) {
-        value = parseInt(this.min);
-      } else if (value > parseInt(this.max)) {
-        value = parseInt(this.max);
+  // 從價格快取取得價格資訊
+  const priceKey = `${prodId}-${prodColorId || 0}-${prodSpecId}`;
+  const priceInfo = priceMap.get(priceKey);
+  
+  // console.log('updateCartItemPrice 除錯資訊:', {
+  //   prodId,
+  //   prodColorId,
+  //   prodSpecId,
+  //   quantity,
+  //   priceKey,
+  //   priceInfo,
+  //   priceMapSize: priceMap.size
+  // });
+  
+  if (priceInfo) {
+    // 更新價格顯示
+    const currentPriceElement = cartItem.querySelector('.current-price');
+    if (currentPriceElement) {
+      currentPriceElement.textContent = `NT$ ${priceInfo.discountedPrice.toLocaleString()}`;
+      currentPriceElement.dataset.basePrice = priceInfo.basePrice;
+      currentPriceElement.dataset.discountRate = priceInfo.discountRate;
+      // console.log('價格更新成功:', priceInfo.discountedPrice);
+    }
+    
+    // 更新原價顯示
+    const originalPriceElement = cartItem.querySelector('.original-price');
+    if (priceInfo.discountRate && priceInfo.discountRate < 1 && priceInfo.basePrice) {
+      if (originalPriceElement) {
+        originalPriceElement.textContent = `NT$ ${priceInfo.basePrice.toLocaleString()}`;
+      } else {
+        // 如果沒有原價元素，則新增
+        currentPriceElement.insertAdjacentHTML('afterend', ` <span class="original-price">NT$ ${priceInfo.basePrice.toLocaleString()}</span>`);
       }
-      this.value = value;
-      updateItemQuantity(this.closest('.cart-item'));
-    });
-  });
-  
-  // 綁定移除按鈕
-  document.querySelectorAll('.btn-remove').forEach(btn => {
-    btn.addEventListener('click', function() {
-      removeCartItem(this.closest('.cart-item'));
-    });
-  });
+    } else if (originalPriceElement) {
+      // 如果沒有折扣，移除原價元素
+      originalPriceElement.remove();
+    }
+    
+    // 更新商品小計
+    const subtotalElement = cartItem.querySelector('.product-subtotal span');
+    if (subtotalElement) {
+      const newSubtotal = priceInfo.discountedPrice * quantity;
+      subtotalElement.textContent = `NT$ ${newSubtotal.toLocaleString()}`;
+      // console.log('小計更新成功:', newSubtotal);
+    }
+    
+    // 更新購物車摘要
+    recalculateCartSummary();
+  } else {
+    console.warn('找不到價格資訊:', priceKey);
+    console.log('可用的價格快取 keys:', Array.from(priceMap.keys()));
+  }
 }
 
 // 修改 updateCartItem，未登入時用 sessionCartManager
@@ -358,7 +482,7 @@ async function updateCartItem(cartItem) {
   console.log('取得會員ID:', memId);
 
   if (memId) {
-    // ...原本已登入API邏輯...
+    // 已登入使用者，呼叫 API 更新購物車
     try {
       const response = await fetch(`${window.api_prefix}/api/updateCart`, {
         method: 'POST',
@@ -373,7 +497,8 @@ async function updateCartItem(cartItem) {
       if (!response.ok) throw new Error('網路回應不正常');
       const data = await response.json();
       if (data.status === 'success') {
-        await initCartPage();
+        // 更新成功，不需要重新載入頁面
+        console.log('購物車更新成功');
       } else {
         alert('更新失敗');
       }
@@ -383,7 +508,7 @@ async function updateCartItem(cartItem) {
   } else {
     // 未登入，直接操作 sessionStorage，傳入新選擇的顏色/規格
     sessionCartManager.updateItem(prodId, prodColorId, prodSpecId, quantity);
-    await initCartPage();
+    console.log('Session 購物車更新成功');
   }
 }
 
@@ -401,7 +526,7 @@ async function removeCartItem(cartItem) {
   console.log('取得會員ID:', memId);
 
   if (memId) {
-    // ...原本已登入API邏輯...
+    // 已登入使用者，呼叫 API 移除商品
     try {
       const response = await fetch(`${window.api_prefix}/api/removeCart`, {
         method: 'POST',
@@ -420,7 +545,11 @@ async function removeCartItem(cartItem) {
       }
       const data = await response.json();
       if (data.status === 'success') {
-        await initCartPage();
+        // 移除成功，直接從 DOM 移除元素
+        cartItem.remove();
+        recalculateCartSummary();
+        checkEmptyCart(document.querySelectorAll('.cart-item').length);
+        console.log('購物車商品移除成功');
       } else {
         alert('移除商品失敗');
       }
@@ -430,7 +559,11 @@ async function removeCartItem(cartItem) {
   } else {
     // 未登入，直接操作 sessionStorage
     sessionCartManager.removeItem(prodId, prodColorId, prodSpecId);
-    await initCartPage();
+    // 直接從 DOM 移除元素
+    cartItem.remove();
+    recalculateCartSummary();
+    checkEmptyCart(document.querySelectorAll('.cart-item').length);
+    console.log('Session 購物車商品移除成功');
   }
 }
 
@@ -444,7 +577,7 @@ async function clearCart() {
   const memId = member ? member.memId : null;
   console.log('取得會員ID:', memId);
   if (memId) {
-    // ...原本已登入API邏輯...
+    // 已登入使用者，呼叫 API 清空購物車
     try {
       const response = await fetch(`${window.api_prefix}/api/clearCart?memId=${memId || ''}`, {
         method: 'POST',
@@ -457,7 +590,14 @@ async function clearCart() {
       }
       const data = await response.json();
       if (data.status === 'success') {
-        await initCartPage();
+        // 清空成功，直接清空 DOM 元素
+        const cartItemsContainer = document.getElementById('cart-items-container');
+        if (cartItemsContainer) {
+          cartItemsContainer.innerHTML = '';
+        }
+        recalculateCartSummary();
+        checkEmptyCart(0);
+        console.log('購物車清空成功');
       } else {
         alert('清空購物車失敗');
       }
@@ -467,7 +607,14 @@ async function clearCart() {
   } else {
     // 未登入，直接操作 sessionStorage
     sessionCartManager.clearCart();
-    await initCartPage();
+    // 直接清空 DOM 元素
+    const cartItemsContainer = document.getElementById('cart-items-container');
+    if (cartItemsContainer) {
+      cartItemsContainer.innerHTML = '';
+    }
+    recalculateCartSummary();
+    checkEmptyCart(0);
+    console.log('Session 購物車清空成功');
   }
 }
 
@@ -576,30 +723,60 @@ function showErrorMessage(message) {
 // 新增：即時計算商品總計、總計
 function recalculateCartSummary() {
   let subtotal = 0;
-  document.querySelectorAll('.cart-item').forEach(item => {
-    const price = parseInt(item.querySelector('.current-price').textContent.replace(/[^\d]/g, '')) || 0;
+  console.log('開始重新計算購物車摘要');
+  
+  document.querySelectorAll('.cart-item').forEach((item, index) => {
+    const prodId = parseInt(item.dataset.id);
+    const prodColorId = parseInt(item.querySelector('.color-select').value);
+    const prodSpecId = parseInt(item.querySelector('.spec-select').value);
     const qty = parseInt(item.querySelector('.quantity-selector input').value) || 1;
-    subtotal += price * qty;
+    
+    // 從價格快取取得價格
+    const priceKey = `${prodId}-${prodColorId || 0}-${prodSpecId}`;
+    const priceInfo = priceMap.get(priceKey);
+    const price = priceInfo ? priceInfo.discountedPrice : 0;
+    
+    const itemSubtotal = price * qty;
+    subtotal += itemSubtotal;
+    
+    // console.log(`商品 ${index + 1} 計算:`, {
+    //   prodId,
+    //   prodColorId,
+    //   prodSpecId,
+    //   qty,
+    //   priceKey,
+    //   price,
+    //   itemSubtotal
+    // });
+    
     // 更新每個商品小計
-    item.querySelector('.product-subtotal span').textContent = `NT$ ${(price * qty).toLocaleString()}`;
+    const subtotalElement = item.querySelector('.product-subtotal span');
+    if (subtotalElement) {
+      subtotalElement.textContent = `NT$ ${itemSubtotal.toLocaleString()}`;
+    }
   });
+  
+  // console.log('購物車總計:', subtotal);
+  
   // 商品總計
-  document.getElementById('cart-subtotal').textContent = `NT$ ${subtotal.toLocaleString()}`;
+  const subtotalElement = document.getElementById('cart-subtotal');
+  if (subtotalElement) {
+    subtotalElement.textContent = `NT$ ${subtotal.toLocaleString()}`;
+  }
+  
   // 運費
   const shipping = Number(SHIPPING_FEE);
-  document.querySelector('.shipping-fee').textContent = `NT$ ${shipping.toLocaleString()}`;
+  const shippingElement = document.querySelector('.shipping-fee');
+  if (shippingElement) {
+    shippingElement.textContent = `NT$ ${shipping.toLocaleString()}`;
+  }
+  
   // 總計
-  document.getElementById('cart-total').textContent = `NT$ ${(subtotal + shipping).toLocaleString()}`;
+  const total = subtotal + shipping;
+  const totalElement = document.getElementById('cart-total');
+  if (totalElement) {
+    totalElement.textContent = `NT$ ${total.toLocaleString()}`;
+  }
+  
+  console.log('購物車摘要更新完成:', { subtotal, shipping, total });
 }
-
-// console.log('送出新增/修改購物車API', {memId, payload });
-// 新增購物車內容
-fetch(`${window.api_prefix}/api/addCart`, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(payload)
-})
-.then(res => res.json())
-.then(data => {
-  console.log('addCart API response', data);
-});

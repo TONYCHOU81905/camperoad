@@ -109,10 +109,8 @@ async function loadAllData() {
     // 載入商品訂單資料
     try {
       console.log("開始載入商品訂單資料...");
-      // 使用 API（如果 CORS 問題解決）
       const shopOrderResponse = await fetch(
         `${window.api_prefix}/api/getAllShopOrders`
-        // "data/shop_order.json"  // 備用本地檔案
       );
 
       if (!shopOrderResponse.ok) {
@@ -166,7 +164,7 @@ async function loadAllData() {
     try {
       const shopOrderDetailsResponse = await fetch(
         `${window.api_prefix}/api/getAllShopOrdersDetails`
-      ); //data/shop_order_details.json
+      ); 
       shopOrderDetailsData = await shopOrderDetailsResponse.json();
       shopOrderDetailsData = shopOrderDetailsData.data;
     } catch (error) {
@@ -186,12 +184,12 @@ async function loadAllData() {
     // 初始化帳號管理頁面
     loadAccountManagement();
 
-    // 在資料載入完成後檢查資料
-    console.log("loadAllData 完成 - shopOrdersData:", shopOrdersData);
-    console.log(
-      "loadAllData 完成 - shopOrderDetailsData",
-      shopOrderDetailsData
-    );
+    // // 在資料載入完成後檢查資料
+    // console.log("loadAllData 完成 - shopOrdersData:", shopOrdersData);
+    // console.log(
+    //   "loadAllData 完成 - shopOrderDetailsData",
+    //   shopOrderDetailsData
+    // );
 
     // 如果當前在商品訂單管理頁面，重新載入
     const currentSection = document.querySelector(".content-section.active");
