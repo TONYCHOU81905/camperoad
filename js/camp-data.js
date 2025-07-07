@@ -46,7 +46,7 @@ async function loadMemberData() {
 }
 
 // 渲染營地卡片
-function renderCampCards(camps, containerId = "camp-cards") {
+async function renderCampCards(camps, containerId = "camp-cards") {
   const container =
     document.getElementById(containerId) ||
     document.querySelector(".camp-cards");
@@ -56,11 +56,24 @@ function renderCampCards(camps, containerId = "camp-cards") {
   }
 
   container.innerHTML = "";
-
-  camps.forEach(async (camp) => {
-    const campCard = await createCampCard(camp);
-    container.appendChild(campCard);
-  });
+  
+  // 預載入所有房型資料以減少API調用
+  const allCampsiteTypes = await loadCampsiteTypesData();
+  const urlParams = new URLSearchParams(window.location.search);
+  
+  // 使用 DocumentFragment 進行批量DOM操作
+  const fragment = document.createDocumentFragment();
+  
+  // 批量處理營地卡片創建
+  const campCardPromises = camps.map(camp => 
+    createCampCard(camp, allCampsiteTypes, urlParams)
+  );
+  
+  const campCards = await Promise.all(campCardPromises);
+  campCards.forEach(card => fragment.appendChild(card));
+  
+  // 一次性添加到DOM
+  container.appendChild(fragment);
 
   // 如果是搜尋結果頁面，更新結果數量
   if (containerId === "search-results") {
@@ -101,24 +114,36 @@ async function initFavoriteCampIds() {
 }
 
 // 建立營地卡片
-async function createCampCard(camp) {
-  console.log("createCampCard:", camp);
-
+async function createCampCard(camp, preloadedTypes = null, urlParams = null) {
   const card = document.createElement("div");
   card.className = "camp-card";
 
+  // 預先計算評分和星星HTML
   const rating = calculateRating(
     camp.campCommentSumScore,
     camp.campCommentNumberCount
   );
   const starsHtml = generateStarsHtml(rating);
 
-  const urlParams = new URLSearchParams(window.location.search);
+  // 重用URL參數，避免重複解析
+  if (!urlParams) {
+    urlParams = new URLSearchParams(window.location.search);
+  }
   const guests = urlParams.get("guests");
   const checkIn = urlParams.get("check-in");
   const checkOut = urlParams.get("check-out");
 
-  const campsiteTypes = await getCampsiteTypesByCampId(camp.campId, guests);
+  // 使用預載入的房型資料或按需載入
+  let campsiteTypes;
+  if (preloadedTypes) {
+    campsiteTypes = preloadedTypes.filter(
+      (type) => type.campId == camp.campId && 
+      (!guests || parseInt(type.campsitePeople) >= parseInt(guests))
+    );
+  } else {
+    campsiteTypes = await getCampsiteTypesByCampId(camp.campId, guests);
+  }
+  
   const priceListHtml = generatePriceListHtml(campsiteTypes);
   const formattedContent = formatCampContent(camp.campContent, 80);
   const regDate = formatDate(camp.campRegDate);
@@ -127,9 +152,11 @@ async function createCampCard(camp) {
 
   card.innerHTML = `
     <div class="camp-image">
-      <img src= "${window.api_prefix}/api/camps/${camp.campId}/1" alt="${
-    camp.campName
-  }" />
+      <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='200'%3E%3Crect width='100%25' height='100%25' fill='%23f0f0f0'/%3E%3C/svg%3E" 
+           data-src="${window.api_prefix}/api/camps/${camp.campId}/1" 
+           alt="${camp.campName}" 
+           class="lazy-load" 
+           loading="lazy" />
       <span class="camp-tag">熱門</span>
     </div>
     <div class="camp-info">
@@ -235,7 +262,45 @@ async function createCampCard(camp) {
     });
   }
 
+  // 設置懶載入
+  setupLazyLoading(card);
+  
   return card;
+}
+
+// 設置懶載入
+function setupLazyLoading(card) {
+  const img = card.querySelector('.lazy-load');
+  if (!img) return;
+  
+  // 使用 Intersection Observer 進行懶載入
+  if ('IntersectionObserver' in window) {
+    if (!window.campImageObserver) {
+      window.campImageObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const img = entry.target;
+            const realSrc = img.dataset.src;
+            if (realSrc) {
+              img.src = realSrc;
+              img.onload = () => {
+                img.classList.add('loaded');
+              };
+              img.onerror = () => {
+                img.src = 'images/camp-1.jpg'; // 預設圖片
+                img.classList.add('error');
+              };
+              window.campImageObserver.unobserve(img);
+            }
+          }
+        });
+      }, { rootMargin: '50px' });
+    }
+    window.campImageObserver.observe(img);
+  } else {
+    // 降級處理：直接載入圖片
+    img.src = img.dataset.src;
+  }
 }
 
 // 初始化營地收藏清單，獲取會員資料與會員

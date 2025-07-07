@@ -850,7 +850,7 @@ async function displayCampsiteTypes(types, guestCount) {
 
     // 創建照片輪播
     let photoCarousel = ``;
-    if (photos.length > 1) {
+    if (photos.length >= 1) {
       photoCarousel = `
         <div class="room-type-photos">
           <div class="main-photo">
@@ -1215,7 +1215,7 @@ async function loadCampsiteTypesByGuestCount() {
 
     // 從JSON文件載入房型資料
     const response = await fetch(
-      `${window.api_prefix}/campsitetype/getAllCampsiteTypes`
+      `${window.api_prefix}/campsitetype/${campId}/getCampsiteTypes`
     );
     if (!response.ok) {
       throw new Error("Failed to fetch campsite types");
@@ -1229,7 +1229,8 @@ async function loadCampsiteTypesByGuestCount() {
     );
 
     // 篩選當前營地的房型
-    const campsiteTypes = data.filter((type) => type.campId == campId);
+    const campsiteTypes = data;
+    // const campsiteTypes = data.filter((type) => type.campId == campId);
 
     // 篩選適合人數的房型
     const filteredTypes = campsiteTypes.filter((type) => {
@@ -1389,7 +1390,7 @@ async function updateLowestPrice(campId) {
   try {
     // 從JSON文件載入房型資料
     const response = await fetch(
-      `${window.api_prefix}/campsitetype/getAllCampsiteTypes`
+      `${window.api_prefix}/campsitetype/${campId}/getCampsiteTypes`
     );
     if (!response.ok) {
       throw new Error("Failed to fetch campsite types");
@@ -1399,7 +1400,8 @@ async function updateLowestPrice(campId) {
     const data = dataJson.data;
 
     // 篩選當前營地的房型
-    const campsiteTypes = data.filter((type) => type.campId == campId);
+     const campsiteTypes = data;
+    // const campsiteTypes = data.filter((type) => type.campId == campId);
 
     if (campsiteTypes.length > 0) {
       // 找出最低房價
