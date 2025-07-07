@@ -111,6 +111,8 @@ function initProductDetail() {
   
   // 載入商品詳情
   function loadProductDetail(prodId) {
+    // 記錄目前商品ID供tab切換用
+    window.currentProductId = prodId;
     // 顯示載入中狀態
     showLoading();
 
@@ -128,6 +130,8 @@ function initProductDetail() {
           updateProductDescription(product);
           // 載入商品評論
           loadProductReviews(prodId);
+          // 新增：載入商品評價
+          fetchProductReviews(prodId);
           console.log('載入商品資料：', product);
 
         } else {
@@ -714,6 +718,19 @@ function initProductDetail() {
       });
     });
   }
+  
+  // 在 tab 切換時自動載入評價資料
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const tab = this.getAttribute('data-tab');
+      if (tab === 'reviews') {
+        if (window.currentProductId) {
+          fetchProductReviews(window.currentProductId);
+        }
+      }
+      // 其他 tab 切換邏輯...
+    });
+  });
   
   // 切換收藏狀態
 function toggleWishlist(prodId) {
@@ -1324,4 +1341,113 @@ function checkFavoriteStatus(prodId) {
     .catch(error => {
       console.error('檢查收藏狀態失敗:', error);
     });
+}
+
+// 取得商品評價資料並渲染
+async function fetchProductReviews(prodId) {
+  try {
+    const res = await fetch(`${window.api_prefix}/api/getProdComments?prodId=${prodId}`);
+    const data = await res.json();
+    if (data.status === 'success' && Array.isArray(data.data)) {
+      renderProductReviews(data.data);
+    } else {
+      renderProductReviews([]); // 顯示暫無評價
+    }
+  } catch (error) {
+    console.error('載入商品評價失敗:', error);
+    renderProductReviews([]); // 顯示暫無評價
+  }
+}
+
+function renderProductReviews(comments) {
+  const reviewsPanel = document.getElementById('reviews');
+  if (!reviewsPanel) return;
+  if (!comments || !comments.length) {
+    reviewsPanel.innerHTML = '<div class="product-reviews"><p>暫無評價</p></div>';
+    // 也要清空 product-meta 的星星與評論數
+    const metaRating = document.querySelector('.product-meta .product-rating');
+    if (metaRating) metaRating.innerHTML = '';
+    return;
+  }
+
+  // 計算平均分數、星等統計
+  const count = comments.length;
+  const sum = comments.reduce((acc, c) => acc + (c.commentSatis || 0), 0);
+  const average = count ? (sum / count).toFixed(1) : 0;
+  const stars = {1:0,2:0,3:0,4:0,5:0};
+  comments.forEach(c => {
+    const s = c.commentSatis || 0;
+    if (stars[s] !== undefined) stars[s]++;
+  });
+  Object.keys(stars).forEach(k => stars[k] = count ? Math.round(stars[k] / count * 100) : 0);
+
+  // 動態更新 product-meta 的星星與評論數
+  const metaRating = document.querySelector('.product-meta .product-rating');
+  if (metaRating) {
+    let starsHtml = '';
+    for (let i = 1; i <= 5; i++) {
+      if (i <= Math.floor(average)) {
+        starsHtml += '<i class="fas fa-star"></i>';
+      } else if (i === Math.ceil(average) && average % 1 >= 0.5) {
+        starsHtml += '<i class="fas fa-star-half-alt"></i>';
+      } else {
+        starsHtml += '<i class="far fa-star"></i>';
+      }
+    }
+    starsHtml += ` <span>(${count} 則評價)</span>`;
+    metaRating.innerHTML = starsHtml;
+  }
+
+  // 星等統計
+  const starsHtml = [5,4,3,2,1].map(star => `
+    <div class="rating-bar-item">
+      <div class="rating-label">${star} 星</div>
+      <div class="rating-bar">
+        <div class="rating-fill" style="width: ${stars[star]}%"></div>
+      </div>
+      <div class="rating-percent">${stars[star]}%</div>
+    </div>
+  `).join('');
+
+  // 評價列表
+  const commentsHtml = comments.map(c => {
+    const id = c.memId ? `#${c.memId}` : '#未知';
+    const content = c.commentContent && c.commentContent.trim() ? c.commentContent : '(尚未有評論)';
+    return `
+    <div class="review-item">
+      <div class="reviewer-info">
+        <img src="images/default-avatar.png" alt="使用者頭像" class="reviewer-avatar"/>
+        <div class="reviewer-details">
+          <div class="reviewer-name">${id}</div>
+          <div class="review-date">${c.commentDate || ''}</div>
+        </div>
+      </div>
+      <div class="review-rating">
+        ${'<i class="fas fa-star"></i>'.repeat(c.commentSatis)}
+        ${'<i class="far fa-star"></i>'.repeat(5-c.commentSatis)}
+      </div>
+      <div class="review-content">
+        <p>${content}</p>
+      </div>
+    </div>
+    `;
+  }).join('');
+
+  reviewsPanel.innerHTML = `
+    <div class="product-reviews">
+      <div class="reviews-summary">
+        <div class="average-rating">
+          <div class="rating-number">${average}</div>
+          <div class="rating-stars">
+            ${'<i class="fas fa-star"></i>'.repeat(Math.floor(average))}
+            ${average % 1 >= 0.5 ? '<i class="fas fa-star-half-alt"></i>' : ''}
+            ${'<i class="far fa-star"></i>'.repeat(5 - Math.ceil(average))}
+          </div>
+          <div class="rating-count">${count} 則評價</div>
+        </div>
+        <div class="rating-bars">${starsHtml}</div>
+      </div>
+      <div class="review-list">${commentsHtml}</div>
+    </div>
+  `;
 }
