@@ -4155,10 +4155,18 @@ class OwnerDashboard {
           if (result.status === "success") {
             this.showMessage("房間刪除成功！", "success");
 
-            // 立即從前端資料移除
-            this.campsiteData = this.campsiteData.filter((room) => {
-              return room.campsiteId != roomId && room.campsite_id != roomId;
-            });
+           // 取得目前 modal 的房型ID與營地ID
+           const roomDetailModal = document.getElementById("roomDetailModal");
+           const campsiteTypeId = roomDetailModal?.getAttribute("data-current-campsite-type-id");
+           const campId = this.campData?.campId;
+
+           // 過濾出最新的房間清單
+           const roomList = this.campsiteData.filter(
+            (room) => room.campsiteTypeId == campsiteTypeId
+           );
+
+           // 重新渲染 modal
+           this.renderRoomDetailModal(roomList, campsiteTypeId, campId);
 
             // 新增：刪除房間後即時更新房型主表格的間數
             this.renderRoomTypes();
