@@ -5456,6 +5456,8 @@ async function handleAddCampSubmit(e) {
         addingMessage.remove();
       }
 
+      console.log("createonecamp:", data);
+
       if (data && data.status === "success") {
         // 新增成功
         console.log("營地資料新增成功：", data);
@@ -5493,8 +5495,8 @@ async function handleAddCampSubmit(e) {
         }
         window.addCampImages = {};
 
-        // 重新載入營地選項
-        ownerDashboard.loadOwnerCamps();
+        // 重新載入營地資料
+        ownerDashboard.loadAllData();
       } else {
         // 新增失敗
         console.error("營地資料新增失敗：", data);
