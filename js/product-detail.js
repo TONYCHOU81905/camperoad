@@ -1147,9 +1147,9 @@ function createProductCard(product) {
       ${hasDiscount ? `<span class="original-price">NT$ ${originalPrice}</span>` : ''}
     </div>`;
   
-  // 構建商品評分 HTML
-  const rating = product.prodRating || 4.5;
-  const ratingCount = product.prodRatingCount || 0;
+  // 構建商品評分 HTML - 預設隱藏，等 API 載入後決定是否顯示
+  const rating = 0;
+  const ratingCount = 0;
   const starsHtml = generateStarsHtml(rating);
   
   // 組合完整的商品卡片 HTML
@@ -1160,7 +1160,7 @@ function createProductCard(product) {
     </div>
     <div class="product-info">
       <h3><a href="product-detail.html?id=${product.prodId}">${product.prodName}</a></h3>
-      <div class="product-rating">
+      <div class="product-rating" data-product-id="${product.prodId}" style="display: none;">
         ${starsHtml}
         <span>(${ratingCount})</span>
       </div>
@@ -1174,7 +1174,52 @@ function createProductCard(product) {
     </div>
   `;
   
+  // 載入該商品的真實評分數據
+  loadProductRatingForCard(product.prodId);
+  
   return card;
+}
+
+// 修改後的函數：為相關商品卡片載入評分
+async function loadProductRatingForCard(prodId) {
+  try {
+    const res = await fetch(`${window.api_prefix}/api/getProdComments?prodId=${prodId}`);
+    const data = await res.json();
+    
+    if (data.status === 'success' && Array.isArray(data.data)) {
+      const comments = data.data;
+      const count = comments.length;
+      
+      const ratingElement = document.querySelector(`[data-product-id="${prodId}"] .product-rating`);
+      if (!ratingElement) return;
+      
+      if (count > 0) {
+        // 有評價時顯示評分
+        const sum = comments.reduce((acc, c) => acc + (c.commentSatis || 0), 0);
+        const average = (sum / count).toFixed(1);
+        
+        const starsHtml = generateStarsHtml(parseFloat(average));
+        ratingElement.innerHTML = `${starsHtml}<span>(${count} 則評價)</span>`;
+        ratingElement.style.display = 'flex'; // 顯示評分區塊
+      } else {
+        // 0 則評價時隱藏整個評分區塊
+        ratingElement.style.display = 'none';
+      }
+    } else {
+      // API 失敗時也隱藏評分區塊
+      const ratingElement = document.querySelector(`[data-product-id="${prodId}"] .product-rating`);
+      if (ratingElement) {
+        ratingElement.style.display = 'none';
+      }
+    }
+  } catch (error) {
+    console.error(`載入商品 ${prodId} 評分失敗:`, error);
+    // 發生錯誤時隱藏評分區塊
+    const ratingElement = document.querySelector(`[data-product-id="${prodId}"] .product-rating`);
+    if (ratingElement) {
+      ratingElement.style.display = 'none';
+    }
+  }
 }
 
 // 綁定相關商品的事件

@@ -297,3 +297,37 @@
     font-weight: normal;
     margin-left: 10px;
 }
+
+.product-rating .stars {
+  color: #ffc107; /* 金黃色 */
+}
+
+.product-rating .stars .fas.fa-star {
+  color: #ffc107; /* 實心星星 */
+}
+
+.product-rating .stars .far.fa-star {
+  color: #e0e0e0; /* 空心星星 */
+}
+
+.product-rating .stars .fas.fa-star-half-alt {
+  color: #ffc107; /* 半星 */
+}
+
+/* 簡化的星星樣式 */
+.product-rating .star {
+    font-size: 16px;
+    margin-right: 2px;
+}
+
+.product-rating .star.filled {
+    color: #ffc107;
+}
+
+.product-rating .star.half {
+    color: #ffc107;
+}
+
+.product-rating .star.empty {
+    color: #e0e0e0;
+}
