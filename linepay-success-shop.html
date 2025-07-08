@@ -58,7 +58,6 @@
         margin: 0 auto;
       }
 
-      
       #order-item {
         width: 100%;
         box-sizing: border-box;
@@ -98,15 +97,12 @@
         margin-top: 5px;
       }
 
-    
-
       .order-total {
         font-size: 20px;
         font-weight: bold;
         text-align: right;
         color: #333;
       }
-
 
       .action-buttons {
         margin-top: 30px;
@@ -120,8 +116,9 @@
   </head>
   <body>
     <!-- 頁頭 -->
-    <header class="site-header">
-    </header>
+    <!-- <header class="site-header">
+    </header> -->
+    <div id="header-container"></div>
 
     <!-- 主要內容 -->
     <main>
@@ -168,8 +165,9 @@
     </main>
 
     <!-- 頁尾 -->
-    <footer class="site-footer">
-    </footer>
+    <div id="footer-container"></div>
+    <!-- <footer class="site-footer">
+    </footer> -->
 
     <div class="loading-overlay">
       <div class="loading-animation">
@@ -192,155 +190,179 @@
     <script src="js/shop_cart.js"></script>
     <script>
       async function clearCartNoConfirm() {
-          const memberInfo = sessionStorage.getItem('currentMember');
-          const member = memberInfo ? JSON.parse(memberInfo) : null;
-          const memId = member ? member.memId : null;
-          console.log('取得會員ID:', memId);
-          try {
-            if (memId) {
-              const response = await fetch(`${window.api_prefix}/api/clearCart?memId=${memId}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-              });
-              if (!response.ok) {
-                throw new Error(`HTTP 錯誤！狀態碼: ${response.status}`);
+        const memberInfo = sessionStorage.getItem("currentMember");
+        const member = memberInfo ? JSON.parse(memberInfo) : null;
+        const memId = member ? member.memId : null;
+        console.log("取得會員ID:", memId);
+        try {
+          if (memId) {
+            const response = await fetch(
+              `${window.api_prefix}/api/clearCart?memId=${memId}`,
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
               }
-              const data = await response.json();
-              if (data.status !== 'success') {
-                throw new Error(data.message || '清空購物車失敗');
-              }
-            } else {
-              if (window.sessionCartManager) window.sessionCartManager.clearCart();
+            );
+            if (!response.ok) {
+              throw new Error(`HTTP 錯誤！狀態碼: ${response.status}`);
             }
-          } catch (error) {
-            console.error('清空購物車失敗:', error);
+            const data = await response.json();
+            if (data.status !== "success") {
+              throw new Error(data.message || "清空購物車失敗");
+            }
+          } else {
+            if (window.sessionCartManager)
+              window.sessionCartManager.clearCart();
           }
+        } catch (error) {
+          console.error("清空購物車失敗:", error);
         }
+      }
 
-        document.addEventListener('DOMContentLoaded', async () => {
-          // 隱藏載入動畫
-          const loadingOverlay = document.querySelector('.loading-overlay');
-          if (loadingOverlay) loadingOverlay.style.display = 'none';
+      document.addEventListener("DOMContentLoaded", async () => {
+        // 隱藏載入動畫
+        const loadingOverlay = document.querySelector(".loading-overlay");
+        if (loadingOverlay) loadingOverlay.style.display = "none";
 
-          // 解析 URL 參數
-          const urlParams = new URLSearchParams(window.location.search);
-          const orderId = urlParams.get('orderId');
-          const isCamp = urlParams.get('isCamp') === 'true';
-          const shopOrderId = orderId?.startsWith('SHOP') ? orderId.replace('SHOP', '') : orderId;
+        // 解析 URL 參數
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderId = urlParams.get("orderId");
+        const isCamp = urlParams.get("isCamp") === "true";
+        const shopOrderId = orderId?.startsWith("SHOP")
+          ? orderId.replace("SHOP", "")
+          : orderId;
 
-          // 顯示訂單編號
-          const orderIdElement = document.getElementById('order-id');
-          if (orderIdElement) orderIdElement.textContent = shopOrderId || '未知';
+        // 顯示訂單編號
+        const orderIdElement = document.getElementById("order-id");
+        if (orderIdElement) orderIdElement.textContent = shopOrderId || "未知";
 
-          // 初始化 CheckoutManager
-          const checkoutManager = new CheckoutManager();
-          await checkoutManager.init();
+        // 初始化 CheckoutManager
+        const checkoutManager = new CheckoutManager();
+        await checkoutManager.init();
 
-          // 執行 handlePaymentSuccess
-          await checkoutManager.handlePaymentSuccess({ orderId: shopOrderId });
+        // 執行 handlePaymentSuccess
+        await checkoutManager.handlePaymentSuccess({ orderId: shopOrderId });
 
-          if (shopOrderId && !isCamp) {
-            try {
-              const response = await fetch(`${window.api_prefix}/api/getOneById?shopOrderId=${shopOrderId}`, {
-                method: 'GET',
-                headers: { 'Content-Type': 'application/json' }
-              });
-
-              if (!response.ok) {
-                throw new Error(`HTTP 錯誤！狀態碼: ${response.status}`);
+        if (shopOrderId && !isCamp) {
+          try {
+            const response = await fetch(
+              `${window.api_prefix}/api/getOneById?shopOrderId=${shopOrderId}`,
+              {
+                method: "GET",
+                headers: { "Content-Type": "application/json" },
               }
+            );
 
-              const data = await response.json();
-              console.log('API 回應:', data);
+            if (!response.ok) {
+              throw new Error(`HTTP 錯誤！狀態碼: ${response.status}`);
+            }
 
-              if (data.status === 'success' && data.data) {
-                const order = data.data;
-                const orderItemsContainer = document.getElementById('order-item');
-                const orderTotalElement = document.getElementById('order-total');
+            const data = await response.json();
+            console.log("API 回應:", data);
 
-                orderTotalElement.textContent = `NT$ ${(order.afterDiscountAmount || 0).toLocaleString()}`;
+            if (data.status === "success" && data.data) {
+              const order = data.data;
+              const orderItemsContainer = document.getElementById("order-item");
+              const orderTotalElement = document.getElementById("order-total");
 
-                const orderInfo = `
+              orderTotalElement.textContent = `NT$ ${(
+                order.afterDiscountAmount || 0
+              ).toLocaleString()}`;
+
+              const orderInfo = `
                 <div class="order-item">
                   <div>
-                    <strong>收件人:</strong> ${order.orderName || '未知'}<br>
-                    <strong>電話:</strong> ${order.orderPhone || '未知'}<br>
-                    <strong>地址:</strong> ${order.orderShippingAddress || '未知'}<br>
-                    <strong>運費:</strong> NT$ ${(order.shopOrderShipFee || 0).toLocaleString()}<br>
-                    <strong>備註:</strong> ${order.shopOrderNote || '無'}
+                    <strong>收件人:</strong> ${order.orderName || "未知"}<br>
+                    <strong>電話:</strong> ${order.orderPhone || "未知"}<br>
+                    <strong>地址:</strong> ${
+                      order.orderShippingAddress || "未知"
+                    }<br>
+                    <strong>運費:</strong> NT$ ${(
+                      order.shopOrderShipFee || 0
+                    ).toLocaleString()}<br>
+                    <strong>備註:</strong> ${order.shopOrderNote || "無"}
                   </div>
                 </div>
               `;
-                if (orderItemsContainer) orderItemsContainer.innerHTML = orderInfo;
+              if (orderItemsContainer)
+                orderItemsContainer.innerHTML = orderInfo;
 
-                await clearCartNoConfirm();
-              } else {
-                throw new Error(data.message || '無法取得訂單資訊');
-              }
-            } catch (error) {
-              console.error('取得訂單資訊失敗:', error);
-              document.getElementById('success-title').textContent = '無法顯示訂單資訊';
-              document.getElementById('order-item').textContent = '無法載入訂單詳情，請稍後再試';
+              await clearCartNoConfirm();
+            } else {
+              throw new Error(data.message || "無法取得訂單資訊");
+            }
+          } catch (error) {
+            console.error("取得訂單資訊失敗:", error);
+            document.getElementById("success-title").textContent =
+              "無法顯示訂單資訊";
+            document.getElementById("order-item").textContent =
+              "無法載入訂單詳情，請稍後再試";
+          }
+        } else {
+          console.error("無效訂單參數:", { orderId, isCamp });
+        }
+      });
+
+      class CheckoutManager {
+        constructor() {
+          this.memId = null;
+        }
+
+        init = async () => {
+          let memberInfo =
+            localStorage.getItem("currentMember") ||
+            sessionStorage.getItem("currentMember");
+          if (memberInfo) {
+            try {
+              const member = JSON.parse(memberInfo);
+              this.memId = member.mem_id || member.memId;
+              console.log("初始化 memId:", this.memId);
+            } catch (e) {
+              console.error("解析會員資料失敗:", e);
             }
           } else {
-            console.error('無效訂單參數:', { orderId, isCamp });
+            console.error("未找到會員資料");
           }
-        });
+        };
 
-        class CheckoutManager {
-          constructor() {
-            this.memId = null;
+        handlePaymentSuccess = async (result) => {
+          console.log("付款成功", result);
+          if (!this.memId) {
+            console.error("memId 無效，無法更新折價券");
+            return;
           }
 
-          init = async () => {
-            let memberInfo = localStorage.getItem('currentMember') || sessionStorage.getItem('currentMember');
-            if (memberInfo) {
-              try {
-                const member = JSON.parse(memberInfo);
-                this.memId = member.mem_id || member.memId;
-                console.log('初始化 memId:', this.memId);
-              } catch (e) {
-                console.error('解析會員資料失敗:', e);
-              }
-            } else {
-              console.error('未找到會員資料');
-            }
-          };
+          // 從 localStorage 取得 discountCodeId（需結帳頁設置）
+          const discountCodeId = localStorage.getItem("lastDiscountCodeId");
+          console.log("更新折價券狀態:", { memId: this.memId, discountCodeId });
 
-          handlePaymentSuccess = async (result) => {
-            console.log('付款成功', result);
-            if (!this.memId) {
-              console.error('memId 無效，無法更新折價券');
-              return;
-            }
-
-            // 從 localStorage 取得 discountCodeId（需結帳頁設置）
-            const discountCodeId = localStorage.getItem('lastDiscountCodeId');
-            console.log('更新折價券狀態:', { memId: this.memId, discountCodeId });
-
-            if (discountCodeId) {
-              try {
-                const response = await fetch(`${window.api_prefix}/api/userdiscount/used`, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ memId: this.memId, discountCodeId })
-                });
-                if (!response.ok) {
-                  console.error('更新折價券失敗:', await response.text());
-                } else {
-                  console.log('折價券更新成功');
+          if (discountCodeId) {
+            try {
+              const response = await fetch(
+                `${window.api_prefix}/api/userdiscount/used`,
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ memId: this.memId, discountCodeId }),
                 }
-              } catch (error) {
-                console.error('更新折價券錯誤:', error);
+              );
+              if (!response.ok) {
+                console.error("更新折價券失敗:", await response.text());
+              } else {
+                console.log("折價券更新成功");
               }
-            } else {
-              console.warn('無效的 discountCodeId');
+            } catch (error) {
+              console.error("更新折價券錯誤:", error);
             }
+          } else {
+            console.warn("無效的 discountCodeId");
+          }
 
-            // 清空購物車
-            await clearCartNoConfirm();
-          };
-        }
+          // 清空購物車
+          await clearCartNoConfirm();
+        };
+      }
     </script>
   </body>
+  <script src="js/include.js"></script>
 </html>
