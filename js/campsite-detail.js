@@ -1556,12 +1556,14 @@ async function loadCampDetails() {
         console.log("開始獲取可用房型資料...");
         await getAvailableRoomTypesFromAPI(campId, guests, checkIn, checkOut);
         console.log("可用房型資料獲取完成，開始載入房型...");
-        await loadCampsiteTypesByGuestCount();
       } catch (error) {
         console.error("載入房型資料失敗:", error);
-        // 如果 API 失敗，嘗試使用基本房型資料
-        await loadCampsiteTypesByGuestCount();
+        // 如果 API 失敗，清空 availableRoomData 以便使用基本房型資料
+        window.availableRoomData = null;
       }
+      
+      // 無論 API 是否成功，都調用一次 loadCampsiteTypesByGuestCount
+      await loadCampsiteTypesByGuestCount();
 
       // 更新顯示最低房價
       await updateLowestPrice(campId);

@@ -629,12 +629,28 @@ function closeChat() {
     chatWindow.classList.remove("active");
   }
 
+  // 取消訂閱 /user/queue/messages 和 /user/queue/history
+  if (userMessageSubscription) {
+    userMessageSubscription.unsubscribe();
+    console.log("✅ 已取消 /user/queue/messages 訂閱");
+    userMessageSubscription = null;
+  }
+  
+  if (userHistorySubscription) {
+    userHistorySubscription.unsubscribe();
+    console.log("✅ 已取消 /user/queue/history 訂閱");
+    userHistorySubscription = null;
+  }
+
   // 斷開WebSocket連線
   if (window.userProfileManager) {
     window.userProfileManager.disconnect();
   } else if (isSimpleWebSocketMode) {
     disconnectSimpleWebSocket();
   }
+
+  // 重置訂閱標誌，確保下次打開時可以正常訂閱
+  hasSubscribedMessages = false;
 
   // 清空聊天訊息
   const messagesContainer = document.getElementById("chat-messages");
@@ -718,6 +734,9 @@ function formatDate(date) {
 // WebSocket 相關變數
 let simpleStompClient = null;
 let isSimpleWebSocketMode = false;
+let hasSubscribedMessages = false; // 避免重複訂閱
+let userMessageSubscription = null; // 記錄 messages 訂閱
+let userHistorySubscription = null; // 記錄 history 訂閱
 
 /**
  * 初始化簡化的WebSocket連接（當UserProfileManager不可用時使用）
@@ -746,42 +765,64 @@ function initSimpleWebSocketConnection() {
       function (frame) {
         console.log("WebSocket連接成功:", frame);
 
-        // 訂閱個人訊息
-        simpleStompClient.subscribe("/user/queue/messages", (msg) => {
-          const message = JSON.parse(msg.body);
-          console.log("收到個人訊息:", message);
+        // 訂閱個人訊息 - 避免重複訂閱
+        if (!hasSubscribedMessages) {
+          userMessageSubscription = simpleStompClient.subscribe("/user/queue/messages", (msg) => {
+            const message = JSON.parse(msg.body);
+            console.log("收到個人訊息:", message);
+            console.log("✅ 收到訊息:", message);
 
-          const time = new Date(message.chatMsgTime).toLocaleTimeString(
-            "zh-TW",
-            {
-              hour: "2-digit",
-              minute: "2-digit",
+            // 根據當前頁面決定是否過濾自己發送的訊息
+            const isOwnerDashboard =
+              window.location.pathname.includes("owner-dashboard");
+            
+            // 加入排除自己發送的訊息（防止本地與推播重複）
+            if (isOwnerDashboard) {
+              // 營地主後台：過濾營地主自己發送的訊息
+              if (parseInt(message.ownerId) === parseInt(ownerId) && 
+                  message.chatMsgDirect === 1) {
+                return; // 忽略自己已顯示的訊息
+              }
+            } else {
+              // 會員頁面：過濾會員自己發送的訊息
+              if (parseInt(message.memId) === parseInt(memId) && 
+                  message.chatMsgDirect === 0) {
+                return; // 忽略自己已顯示的訊息
+              }
             }
-          );
 
-          // 根據訊息方向和當前頁面決定顯示類型
-          const isOwnerDashboard =
-            window.location.pathname.includes("owner-dashboard");
-          let messageType;
+            const time = new Date(message.chatMsgTime).toLocaleTimeString(
+              "zh-TW",
+              {
+                hour: "2-digit",
+                minute: "2-digit",
+              }
+            );
 
-          if (isOwnerDashboard) {
-            // 在營地主後台：chatMsgDirect === 0 表示會員發送，顯示為 other（左側）
-            // chatMsgDirect === 1 表示營地主發送，顯示為 user（右側）
-            messageType = message.chatMsgDirect === 0 ? "other" : "user";
-          } else {
-            // 在會員頁面：chatMsgDirect === 0 表示會員發送，顯示為 user（右側）
-            // chatMsgDirect === 1 表示營地主發送，顯示為 other（左側）
-            messageType = message.chatMsgDirect === 0 ? "user" : "other";
-          }
+            // 根據訊息方向和當前頁面決定顯示類型
+            let messageType;
 
-          addMessage(message.chatMsgContent, messageType, time);
-        });
+            if (isOwnerDashboard) {
+              // 在營地主後台：chatMsgDirect === 0 表示會員發送，顯示為 other（左側）
+              // chatMsgDirect === 1 表示營地主發送，顯示為 user（右側）
+              messageType = message.chatMsgDirect === 0 ? "other" : "user";
+            } else {
+              // 在會員頁面：chatMsgDirect === 0 表示會員發送，顯示為 user（右側）
+              // chatMsgDirect === 1 表示營地主發送，顯示為 other（左側）
+              messageType = message.chatMsgDirect === 0 ? "user" : "other";
+            }
+
+            addMessage(message.chatMsgContent, messageType, time);
+          });
+
+          hasSubscribedMessages = true;
+        }
 
         // 訂閱聊天歷史記錄
         const historyTopic = `/user/queue/history`;
         console.log("訂閱歷史訊息頻道:", historyTopic);
         // const historyTopic = `/topic/chat/history/${memId || ownerId}`;
-        simpleStompClient.subscribe(historyTopic, (msg) => {
+        userHistorySubscription = simpleStompClient.subscribe(historyTopic, (msg) => {
           const historyData = JSON.parse(msg.body);
           console.log("收到聊天歷史:", historyData);
 
@@ -862,6 +903,9 @@ function disconnectSimpleWebSocket() {
     simpleStompClient = null;
   }
   isSimpleWebSocketMode = false;
+  hasSubscribedMessages = false; // 重置訂閱標誌
+  userMessageSubscription = null; // 重置訂閱物件
+  userHistorySubscription = null; // 重置訂閱物件
 }
 
 /**
