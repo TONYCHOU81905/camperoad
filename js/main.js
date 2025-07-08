@@ -26,11 +26,17 @@ document.addEventListener("DOMContentLoaded", function () {
       
       // 初始化日期選擇器聯動
       initDatePickerInteraction();
+      
+      // 載入商品推薦
+      loadRelatedProducts();
     })
     .catch((error) => {
       console.error("地區初始化失敗:", error);
       // 即使地區初始化失敗，仍然初始化日期選擇器聯動
       initDatePickerInteraction();
+      
+      // 載入商品推薦
+      loadRelatedProducts();
     });
 });
 
@@ -496,5 +502,116 @@ if (countySelectEl) {
     } else {
       districtSelect.innerHTML = '<option value="">請先選擇縣市</option>';
     }
+  });
+}
+
+
+// 載入商品卡片
+function loadRelatedProducts() {
+  const relatedProductsContainer = document.getElementById('index-product-container');
+  if (!relatedProductsContainer) return;
+
+  // 顯示載入中狀態
+  relatedProductsContainer.innerHTML = '<div class="index-loading-indicator">載入中...</div>';
+
+  // 使用隨機推薦商品 API
+  fetch(`${window.api_prefix}/api/products/random?limit=3`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'success' && Array.isArray(data.data)) {
+        const relatedProducts = data.data;
+
+        // 清空容器
+        relatedProductsContainer.innerHTML = '';
+
+        if (relatedProducts.length === 0) {
+          relatedProductsContainer.innerHTML = '<p class="index-no-products">暫無相關商品推薦</p>';
+          return;
+        }
+
+        // 渲染商品卡片
+        relatedProducts.forEach(product => {
+          relatedProductsContainer.appendChild(createProductCard(product));
+        });
+
+        // 綁定事件
+        bindRelatedProductEvents();
+      } else {
+        relatedProductsContainer.innerHTML = '<p class="index-error">載入推薦商品失敗</p>';
+      }
+    })
+    .catch(err => {
+      console.error('載入推薦商品失敗：', err);
+      relatedProductsContainer.innerHTML = '<p class="index-error">載入推薦商品失敗</p>';
+    });
+}
+
+// 創建Random商品卡片
+function createProductCard(product) {
+  const hasDiscount = product.prodDiscount !== null && product.prodDiscount < 1;
+  const firstSpec = product.prodSpecList?.[0];
+  const originalPrice = firstSpec ? firstSpec.prodSpecPrice : 0;
+  const discountedPrice = hasDiscount ? Math.round(originalPrice * product.prodDiscount) : originalPrice;
+
+  // 創建商品卡片元素
+  const card = document.createElement('div');
+  card.className = 'index-product-card';
+  card.dataset.productId = product.prodId;
+
+  // 將原始價格和折扣信息存儲在卡片上，以便後續使用
+  card.dataset.originalPrice = originalPrice;
+  card.dataset.hasDiscount = hasDiscount;
+  card.dataset.discountRate = product.prodDiscount || 1;
+
+  // 構建商品圖片 HTML
+  let productImageHtml = '';
+  if (product.prodPicList && product.prodPicList.length > 0) {
+    const firstPicId = product.prodPicList[0].prodPicId;
+    productImageHtml = `<img src="${window.api_prefix}/api/prodpics/${firstPicId}" alt="${product.prodName}" onerror="this.onerror=null; this.src='images/default-product.jpg';" />`;
+  } else {
+    productImageHtml = `<img src="images/default-product.jpg" alt="無圖片" />`;
+  }
+
+  // 構建商品標籤 HTML
+  let tagHtml = '';
+  if (hasDiscount) {
+    tagHtml = `<span class="index-product-tag">促銷</span>`;
+  }
+
+  // 構建商品價格 HTML，添加一個唯一的類名以便後續更新
+  let priceHtml = `
+    <div class="index-product-price" id="price-${product.prodId}">
+      <span class="current-price">NT$ ${discountedPrice}</span>
+      ${hasDiscount ? `<span class="original-price">NT$ ${originalPrice}</span>` : ''}
+    </div>`;
+
+  // 組合完整的商品卡片 HTML
+  card.innerHTML = `
+    <div class="index-product-image">
+      ${productImageHtml}
+      ${tagHtml}
+    </div>
+    <div class="index-product-info">
+      <h3><a href="product-detail.html?id=${product.prodId}">${product.prodName}</a></h3>
+      ${priceHtml}
+      <div class="index-product-actions">
+        <button class="index-btn-view-details"><i class="fas fa-search"></i> 查看詳情</button>
+      </div>
+    </div>
+  `;
+
+  return card;
+}
+
+// 綁定相關商品的事件
+function bindRelatedProductEvents() {
+  // 處理查看詳情按鈕
+  const viewDetailsButtons = document.querySelectorAll('#index-product-container .index-btn-view-details');
+  viewDetailsButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      const productCard = this.closest('.index-product-card');
+      const productId = productCard.dataset.productId;
+      window.location.href = `product-detail.html?id=${productId}`;
+    });
   });
 }

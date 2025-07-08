@@ -1464,73 +1464,7 @@ class UserProfileManager {
     this.setupCouponFilters();
   }
 
-  // 載入付款方式
-  async loadPaymentMethods() {
-    console.log("=== 開始載入付款方式 ===");
-    try {
-      if (!this.currentMember || !this.currentMember.memId) {
-        console.log("無會員資訊，跳過載入付款方式");
-        return;
-      }
-
-      const memId = this.currentMember.memId;
-      console.log("載入會員付款方式，會員ID:", memId);
-
-      // 這裡可以添加 API 調用來獲取真實的付款方式數據
-      // const response = await fetch(`${window.api_prefix}/api/member/${memId}/payment-methods`);
-      // const paymentData = await response.json();
-
-      // 目前顯示靜態示範數據，實際應用時可以替換為 API 數據
-      const paymentMethodsList = document.querySelector(
-        ".payment-methods-list"
-      );
-      if (paymentMethodsList) {
-        // 可以在這裡動態渲染真實的付款方式數據
-        this.initPaymentMethodEvents();
-      }
-    } catch (error) {
-      console.error("載入付款方式失敗:", error);
-    }
-  }
-
-  // 初始化付款方式事件
-  initPaymentMethodEvents() {
-    // 新增付款方式按鈕
-    const addPaymentBtn = document.querySelector(".btn-add-payment");
-    if (addPaymentBtn) {
-      addPaymentBtn.addEventListener("click", () => {
-        console.log("新增付款方式");
-        // 這裡可以打開新增付款方式的模態框
-        alert("新增付款方式功能開發中");
-      });
-    }
-
-    // 編輯按鈕
-    document.querySelectorAll(".btn-edit").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        console.log("編輯付款方式");
-        alert("編輯付款方式功能開發中");
-      });
-    });
-
-    // 刪除按鈕
-    document.querySelectorAll(".btn-delete").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        if (confirm("確定要刪除此付款方式嗎？")) {
-          console.log("刪除付款方式");
-          alert("刪除付款方式功能開發中");
-        }
-      });
-    });
-
-    // 設為預設按鈕
-    document.querySelectorAll(".btn-set-default").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        console.log("設為預設付款方式");
-        alert("設為預設付款方式功能開發中");
-      });
-    });
-  }
+  
 
   // 初始化聊天管理
   initChatManagement() {
