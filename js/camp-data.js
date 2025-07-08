@@ -118,12 +118,12 @@ async function createCampCard(camp, preloadedTypes = null, urlParams = null) {
   const card = document.createElement("div");
   card.className = "camp-card";
 
-  // 預先計算評分和星星HTML
-  const rating = calculateRating(
-    camp.campCommentSumScore,
-    camp.campCommentNumberCount
-  );
-  const starsHtml = generateStarsHtml(rating);
+  // // 預先計算評分和星星HTML
+  // const rating = calculateRating(
+  //   camp.campCommentSumScore,
+  //   camp.campCommentNumberCount
+  // );
+  // const starsHtml = generateStarsHtml(rating);
 
   // 重用URL參數，避免重複解析
   if (!urlParams) {
@@ -168,15 +168,8 @@ async function createCampCard(camp, preloadedTypes = null, urlParams = null) {
       <p class="camp-date">
         <i class="far fa-calendar-alt"></i> 上架日期: ${regDate}
       </p>
-      <div class="camp-rating">
-        <div class="stars">${starsHtml}</div>
-        <span class="rating-count">(${camp.campCommentNumberCount || 0})</span>
-      </div>
-      <div class="camp-features">
-        <span><i class="fas fa-mountain"></i> 山景</span>
-        <span><i class="fas fa-shower"></i> 衛浴</span>
-        <span><i class="fas fa-utensils"></i> 餐廳</span>
-      </div>
+      
+      
       <div class="camp-footer">
         <div class="camp-price-list">${priceListHtml}</div>
       </div>

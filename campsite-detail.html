@@ -390,6 +390,66 @@
         gap: 30px;
       }
 
+     /* 收藏按鈕基礎樣式 */
+#btn-favorite {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 16px;
+  color: #3a5a40;           /* 綠色文字 */
+  background-color: white;
+  border: 1.5px solid #3a5a40;
+  border-radius: 6px;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+}
+
+/* 愛心圖示大小 */
+#btn-favorite i {
+  font-size: 20px;
+  transition: color 0.3s;
+}
+
+/* 未收藏：空心愛心綠色 */
+#btn-favorite:not(.favorited) i.far.fa-heart {
+  color: #3a5a40;
+}
+
+/* 收藏狀態：紅底白字 */
+#btn-favorite.favorited {
+  background-color: #e60000;  /* 紅色背景 */
+  color: white;
+}
+
+/* 收藏狀態：實心愛心白色 */
+#btn-favorite.favorited i.fas.fa-heart {
+  color: white;
+}
+
+/* hover 狀態（不論收藏與否） */
+#btn-favorite:hover {
+  background-color: #e60000; /* 紅底 */
+  color: white;
+  
+}
+
+#btn-favorite:hover i.far.fa-heart,
+#btn-favorite:hover i.fas.fa-heart {
+  color: white;
+}
+
+/* 手機或小螢幕調整 */
+@media (max-width: 480px) {
+  #btn-favorite {
+    font-size: 14px;
+    padding: 5px 10px;
+  }
+  #btn-favorite i {
+    font-size: 18px;
+  }
+}
       @media (max-width: 992px) {
         .campsite-info-container {
           grid-template-columns: 1fr;
@@ -620,7 +680,9 @@
               <!-- 骨架畫面：標題 -->
               <div class="skeleton skeleton-text title"></div>
               <h1 id="campsite-name" style="display: none;">載入中...</h1>
-              <span class="camp-tag" id="camp-tag" style="display: none;">人氣王</span>
+              <button id="btn-favorite" class="btn-toggle-favorite" aria-label="收藏營地">
+                <i class="far fa-heart"></i>收藏
+              </button>
             </div>
 
             <!-- 骨架畫面：位置 -->
@@ -631,14 +693,14 @@
             </p>
 
             <!-- 骨架畫面：特色標籤 -->
-            <div class="skeleton-features">
+            <!-- <div class="skeleton-features">
               <div class="skeleton skeleton-tag"></div>
               <div class="skeleton skeleton-tag"></div>
               <div class="skeleton skeleton-tag"></div>
             </div>
-            <div class="campsite-features" id="campsite-features" style="display: none;">
+            <div class="campsite-features" id="campsite-features" style="display: none;">-->
               <!-- 特色將通過JavaScript動態載入 -->
-            </div>
+            <!-- </div>  -->
 
             <div class="campsite-description">
               <h3>營地介紹</h3>
