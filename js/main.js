@@ -508,11 +508,11 @@ if (countySelectEl) {
 
 // 載入商品卡片
 function loadRelatedProducts() {
-  const relatedProductsContainer = document.getElementById('product-container');
+  const relatedProductsContainer = document.getElementById('index-product-container');
   if (!relatedProductsContainer) return;
 
   // 顯示載入中狀態
-  relatedProductsContainer.innerHTML = '<div class="loading-indicator">載入中...</div>';
+  relatedProductsContainer.innerHTML = '<div class="index-loading-indicator">載入中...</div>';
 
   // 使用隨機推薦商品 API
   fetch(`${window.api_prefix}/api/products/random?limit=3`)
@@ -525,7 +525,7 @@ function loadRelatedProducts() {
         relatedProductsContainer.innerHTML = '';
 
         if (relatedProducts.length === 0) {
-          relatedProductsContainer.innerHTML = '<p class="no-products">暫無相關商品推薦</p>';
+          relatedProductsContainer.innerHTML = '<p class="index-no-products">暫無相關商品推薦</p>';
           return;
         }
 
@@ -537,12 +537,12 @@ function loadRelatedProducts() {
         // 綁定事件
         bindRelatedProductEvents();
       } else {
-        relatedProductsContainer.innerHTML = '<p class="error">載入推薦商品失敗</p>';
+        relatedProductsContainer.innerHTML = '<p class="index-error">載入推薦商品失敗</p>';
       }
     })
     .catch(err => {
       console.error('載入推薦商品失敗：', err);
-      relatedProductsContainer.innerHTML = '<p class="error">載入推薦商品失敗</p>';
+      relatedProductsContainer.innerHTML = '<p class="index-error">載入推薦商品失敗</p>';
     });
 }
 
@@ -555,7 +555,7 @@ function createProductCard(product) {
 
   // 創建商品卡片元素
   const card = document.createElement('div');
-  card.className = 'product-card';
+  card.className = 'index-product-card';
   card.dataset.productId = product.prodId;
 
   // 將原始價格和折扣信息存儲在卡片上，以便後續使用
@@ -578,26 +578,24 @@ function createProductCard(product) {
     tagHtml = `<span class="index-product-tag">促銷</span>`;
   }
 
-
-
   // 構建商品價格 HTML，添加一個唯一的類名以便後續更新
   let priceHtml = `
-    <div class="product-price" id="price-${product.prodId}">
+    <div class="index-product-price" id="price-${product.prodId}">
       <span class="current-price">NT$ ${discountedPrice}</span>
       ${hasDiscount ? `<span class="original-price">NT$ ${originalPrice}</span>` : ''}
     </div>`;
 
   // 組合完整的商品卡片 HTML
   card.innerHTML = `
-    <div class="product-image">
+    <div class="index-product-image">
       ${productImageHtml}
       ${tagHtml}
     </div>
-    <div class="product-info">
+    <div class="index-product-info">
       <h3><a href="product-detail.html?id=${product.prodId}">${product.prodName}</a></h3>
       ${priceHtml}
-      <div class="product-actions">
-        <button class="btn-view-details"><i class="fas fa-search"></i> 查看詳情</button>
+      <div class="index-product-actions">
+        <button class="index-btn-view-details"><i class="fas fa-search"></i> 查看詳情</button>
       </div>
     </div>
   `;
@@ -605,15 +603,13 @@ function createProductCard(product) {
   return card;
 }
 
-
-
 // 綁定相關商品的事件
 function bindRelatedProductEvents() {
   // 處理查看詳情按鈕
-  const viewDetailsButtons = document.querySelectorAll('#product-container .btn-view-details');
+  const viewDetailsButtons = document.querySelectorAll('#index-product-container .index-btn-view-details');
   viewDetailsButtons.forEach(button => {
     button.addEventListener('click', function() {
-      const productCard = this.closest('.product-card');
+      const productCard = this.closest('.index-product-card');
       const productId = productCard.dataset.productId;
       window.location.href = `product-detail.html?id=${productId}`;
     });
