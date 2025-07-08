@@ -85,6 +85,11 @@ document.addEventListener("DOMContentLoaded", async function () {
       }
     }, 100);
 
+    // 初始化收藏按鈕
+    initFavoriteCampIds().then(() => {
+      updateFavoriteButton(); // 根據收藏狀態更新愛心按鈕外觀
+    });
+
     // 更新購物車數量顯示
     const cart = JSON.parse(localStorage.getItem("campingCart")) || [];
     updateCartCount(cart.length);
@@ -1568,6 +1573,9 @@ async function loadCampDetails() {
   }
 }
 
+
+
+
 /**
  * 更新頁面上的營地詳情
  */
@@ -1877,3 +1885,128 @@ async function updateLowestPrice(campId) {
     console.error("更新最低房價失敗:", error);
   }
 }
+
+
+// 初始化收藏清單
+async function initFavoriteCampIds() {
+  const saved =
+    localStorage.getItem("currentMember") ||
+    sessionStorage.getItem("currentMember");
+  if (!saved) return;
+
+  let currentMember;
+  try {
+    currentMember = JSON.parse(saved);
+  } catch {
+    window.favoriteCampIds = [];
+    return;
+  }
+
+  const memId = currentMember.mem_id || currentMember.memId || currentMember.id;
+  if (!memId) {
+    window.favoriteCampIds = [];
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      `${window.api_prefix}/camptracklist/${memId}/getCampTrackLists`
+    );
+    if (!response.ok) throw new Error("API 錯誤");
+    const json = await response.json();
+    window.favoriteCampIds = json.data.map((item) => item.campId);
+  } catch (error) {
+    console.error("載入會員收藏清單失敗", error);
+    window.favoriteCampIds = [];
+  }
+}
+
+// 更新按鈕樣式
+function updateFavoriteButton() {
+  const campId = parseInt(new URLSearchParams(location.search).get("id"));
+  const favBtn = document.getElementById("btn-favorite");
+  if (!favBtn || isNaN(campId)) return;
+
+  favBtn.dataset.campId = campId;
+  const isFav = window.favoriteCampIds?.includes(campId);
+  favBtn.classList.toggle("favorited", isFav);
+  favBtn.title = isFav ? "已收藏" : "加入收藏";
+
+  // 同時切換愛心圖示
+  const icon = favBtn.querySelector("i");
+  if (icon) {
+    icon.classList.toggle("fas", isFav);
+    icon.classList.toggle("far", !isFav);
+  }
+}
+
+// 監聽 DOMReady
+document.addEventListener("DOMContentLoaded", async () => {
+  await initFavoriteCampIds();
+
+  const favBtn = document.getElementById("btn-favorite");
+  if (!favBtn) return;
+
+  const campId = parseInt(new URLSearchParams(window.location.search).get("id"));
+  if (isNaN(campId)) return;
+
+  favBtn.dataset.campId = campId;
+
+  updateFavoriteButton();
+
+  favBtn.addEventListener("click", async () => {
+    // 會員資料
+    const saved =
+      localStorage.getItem("currentMember") ||
+      sessionStorage.getItem("currentMember");
+    if (!saved) {
+      localStorage.setItem("returnUrl", window.location.href);
+      window.location.href = "login.html";
+      return;
+    }
+
+    let currentMember;
+    try {
+      currentMember = JSON.parse(saved);
+    } catch {
+      localStorage.setItem("returnUrl", window.location.href);
+      window.location.href = "login.html";
+      return;
+    }
+
+    const memId = currentMember.mem_id || currentMember.memId || currentMember.id;
+    if (!memId) {
+      localStorage.setItem("returnUrl", window.location.href);
+      window.location.href = "login.html";
+      return;
+    }
+
+    const campId = parseInt(favBtn.dataset.campId);
+    if (!Array.isArray(window.favoriteCampIds)) window.favoriteCampIds = [];
+
+    const isFav = favBtn.classList.contains("favorited");
+    const url = `${window.api_prefix}/camptracklist/${isFav ? "deleteCampTrackList" : "addCampTrackList"}`;
+
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ campId, memId }),
+      });
+      if (!response.ok) {
+        alert("操作失敗：" + response.statusText);
+        return;
+      }
+
+      // 更新前端狀態與樣式
+      if (isFav) {
+        window.favoriteCampIds = window.favoriteCampIds.filter((id) => id !== campId);
+      } else {
+        window.favoriteCampIds.push(campId);
+      }
+      updateFavoriteButton();
+    } catch {
+      alert("網路錯誤，請稍後再試");
+    }
+  });
+});
