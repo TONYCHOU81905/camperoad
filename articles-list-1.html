@@ -560,42 +560,29 @@
         footer {
             margin-top: auto;
         }
+
+        /* 麵包屑導航樣式 - 與 articles.html 一致 */
+        .breadcrumb {
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .breadcrumb a {
+            color: #3a5a40;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .breadcrumb a:hover {
+            color: #a68a64;
+        }
     </style>
 </head>
 
 <body>
-    <header class="site-header">
-        <div class="container">
-            <div class="logo">
-                <a href="index.html">
-                    <img src="images/logo.svg" alt="露營路Logo" />
-                    <!-- <span>露營路</span> -->
-                </a>
-            </div>
-            <nav class="main-nav">
-                <ul>
-                    <li><a href="index.html">營地搜尋</a></li>
-                    <li><a href="shop.html">裝備商城</a></li>
-                    <li><a href="article-type.html" class="active">論壇攻略</a></li>
-                    <li><a href="user-profile.html">關於我們</a></li>
-                </ul>
-            </nav>
-            <div class="user-actions">
-                <a href="#" class="btn-search"><i class="fas fa-search"></i></a>
-                <a href="cart.html" class="btn-cart"><i class="fas fa-shopping-cart"></i><span
-                        class="cart-count">0</span></a>
-                <a href="login.html" class="btn-login">登入 / 註冊</a>
-            </div>
-            <button class="mobile-menu-toggle">
-                <span></span>
-                <span></span>
-                <span></span>
-            </button>
-        </div>
-    </header>
-    <nav class="breadcrumb" style="margin: 16px 0 0 0; padding-left: 24px; font-size: 0.98rem;">
-        <a href="index.html">首頁</a> &gt; <a href="article-type.html">論壇攻略</a> &gt; <span>新手指南</span>
-    </nav>
+    <div id="header-container"></div>
+
 
     <section class="guide-hero">
         <div class="container">
@@ -614,6 +601,10 @@
             </div>
         </div>
     </section>
+
+    <nav class="breadcrumb" style="margin: 0px 0 0 0; padding-left: 24px; font-size: 0.98rem;">
+        <a href="index.html">首頁</a> &gt; <a href="article-type.html">論壇攻略</a> &gt; <span>新手指南</span>
+    </nav>
 
     <section class="guide-content">
         <div class="container">
@@ -666,76 +657,42 @@
                         <p>
                             你有特別的露營體驗或技巧想要分享嗎？歡迎投稿優質內容貢獻給社群，讓更多露營愛好者能夠交流學習。
                         </p>
-                        <a href="articles-add.html" class="btn-cta">立即投稿</a>
+                        <a href="#" id="submit-article-btn" class="btn-cta">立即投稿</a>
                     </div>
                 </aside>
             </div>
         </div>
     </section>
 
-    <footer class="site-footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-logo">
-                    <img src="images/logo-white.svg" alt="露營路Logo" />
-                    <p>探索自然，體驗生活</p>
-                </div>
-                <div class="footer-links">
-                    <div class="footer-column">
-                        <h3>關於我們</h3>
-                        <ul>
-                            <li><a href="#">公司簡介</a></li>
-                            <li><a href="#">服務條款</a></li>
-                            <li><a href="#">隱私政策</a></li>
-                            <li><a href="#">加入我們</a></li>
-                        </ul>
-                    </div>
-                    <div class="footer-column">
-                        <h3>營地資訊</h3>
-                        <ul>
-                            <li><a href="#">北部營地</a></li>
-                            <li><a href="#">中部營地</a></li>
-                            <li><a href="#">南部營地</a></li>
-                            <li><a href="#">東部營地</a></li>
-                        </ul>
-                    </div>
-                    <div class="footer-column">
-                        <h3>裝備商城</h3>
-                        <ul>
-                            <li><a href="#">全新商品</a></li>
-                            <li><a href="#">配送說明</a></li>
-                        </ul>
-                    </div>
-                    <div class="footer-column">
-                        <h3>幫助中心</h3>
-                        <ul>
-                            <li><a href="#">常見問題</a></li>
-                            <li><a href="#">使用教學</a></li>
-                            <li><a href="#">聯絡客服</a></li>
-                            <li><a href="#">緊急聯絡</a></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <div class="social-links">
-                    <a href="#"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#"><i class="fab fa-instagram"></i></a>
-                    <a href="#"><i class="fab fa-youtube"></i></a>
-                    <a href="#"><i class="fab fa-line"></i></a>
-                </div>
-                <p class="copyright">© 2023 露營路 All Rights Reserved.</p>
-            </div>
-        </div>
-    </footer>
+    <div id="footer-container"></div>
 
     <script src="js/main.js"></script>
     <script src="js/articles.js"></script>
     <script src="js/header-auth.js"></script>
     <script src="js/camp-data.js"></script>
+    <script src="js/include.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async function () {
             await setupArticleListSort(30001);
+
+            // 設置立即投稿按鈕的動態連結
+            const submitBtn = document.getElementById('submit-article-btn');
+            if (submitBtn) {
+                const memberData = localStorage.getItem("currentMember") || sessionStorage.getItem("currentMember");
+                if (memberData) {
+                    const member = JSON.parse(memberData);
+                    if (member.memId || member.mem_id) {
+                        // 已登入會員，直接跳轉到文章新增頁面
+                        submitBtn.href = "articles-add.html?acTypeId=30001";
+                    } else {
+                        // 非會員，跳轉到登入頁面
+                        submitBtn.href = "login.html?redirect=articles-add.html?acTypeId=30001";
+                    }
+                } else {
+                    // 未登入，跳轉到登入頁面
+                    submitBtn.href = "login.html?redirect=articles-add.html?acTypeId=30001";
+                }
+            }
         });
     </script>
 </body>

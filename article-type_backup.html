@@ -34,27 +34,17 @@
         }
 
         .article-type-list {
-            padding: 0px 0;
-        }
-
-        .article-type-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 30px;
-            margin-bottom: 40px;
+            padding: 16px 0;
         }
 
         .article-type-card {
             display: flex;
-            flex-direction: column;
+            margin-bottom: 40px;
             background-color: white;
-            border-radius: 12px;
+            border-radius: 8px;
             overflow: hidden;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
-            text-decoration: none;
-            color: inherit;
-            height: 600px;
         }
 
         .article-type-card:hover {
@@ -63,17 +53,16 @@
         }
 
         .article-type-image {
+            flex: 4;
             position: relative;
             overflow: hidden;
-            height: 250px;
-            width: 100%;
         }
 
         .article-type-image img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            object-position: center;
+            aspect-ratio: 10/3;
             transition: transform 0.5s ease;
         }
 
@@ -82,11 +71,11 @@
         }
 
         .article-type-content {
-            padding: 25px;
+            flex: 6;
+            padding: 30px;
             display: flex;
             flex-direction: column;
-            flex: 1;
-            justify-content: space-between;
+            justify-content: center;
         }
 
         .article-type-content h3 {
@@ -128,22 +117,14 @@
             box-shadow: 0 4px 8px rgba(58, 90, 64, 0.2);
         }
 
-        @media (max-width: 1024px) {
-            .article-type-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 20px;
-            }
-        }
-
         @media (max-width: 768px) {
-            .article-type-grid {
-                grid-template-columns: 1fr;
-                gap: 20px;
+            .article-type-card {
+                flex-direction: column;
             }
 
-            .article-type-card {
-                height: auto;
-                min-height: 400px;
+            .article-type-image,
+            .article-type-content {
+                flex: 1;
             }
 
             .article-type-content {
@@ -243,29 +224,26 @@
                     } catch {
                         count = '載入失敗';
                     }
-                    // 圖片處理（統一規格）
+                    // 圖片處理（若無則預設）
                     let imgSrc = `images/camp-${(idx % 5) + 1}.jpg`;
-                    // 確保圖片規格統一：寬度 400px，高度 250px，比例 8:5
                     // 連結處理（依 acTypeId 對應）
                     let link = `articles-list-${idx + 1}.html`;
                     // 卡片 HTML
                     return `
-                    <a href="${link}" class="article-type-card">
-                        <div class="article-type-image">
-                            <img src="${imgSrc}" alt="${type.acTypeKind}" />
-                        </div>
-                        <div class="article-type-content">
-                            <div>
+                        <a href="${link}" class="article-type-card">
+                            <div class="article-type-image">
+                                <img src="${imgSrc}" alt="${type.acTypeKind}" />
+                            </div>
+                            <div class="article-type-content">
                                 <span class="article-count"><i class="fas fa-file-alt"></i> ${count}</span>
                                 <h3>${type.acTypeKind}</h3>
                                 <p>${type.acTypeText || ''}</p>
+                                <div class="btn-view-articles">查看文章 <i class="fas fa-arrow-right"></i></div>
                             </div>
-                            <div class="btn-view-articles">查看文章 <i class="fas fa-arrow-right"></i></div>
-                        </div>
-                    </a>
-                `;
+                        </a>
+                    `;
                 }));
-                container.innerHTML = `<div class="article-type-grid">${cards.join('')}</div>`;
+                container.innerHTML = cards.join('');
             } catch (error) {
                 container.innerHTML = '<div class="loading-message">載入分類失敗</div>';
                 console.error('載入文章分類失敗:', error);

@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="zh-TW">
 
 <head>
@@ -599,48 +598,22 @@
 </head>
 
 <body>
-    <header class="site-header">
-        <div class="container">
-            <div class="logo">
-                <a href="index.html">
-                    <img src="images/logo.svg" alt="露營路Logo" />
-                </a>
-            </div>
-            <nav class="main-nav">
-                <ul>
-                    <li><a href="index.html">營地搜尋</a></li>
-                    <li><a href="shop.html">裝備商城</a></li>
-                    <li><a href="article-type.html" class="active">論壇攻略</a></li>
-                    <li><a href="user-profile.html">關於我們</a></li>
-                </ul>
-            </nav>
-            <div class="user-actions">
-                <a href="#" class="btn-search"><i class="fas fa-search"></i></a>
-                <a href="cart.html" class="btn-cart"><i class="fas fa-shopping-cart"></i><span
-                        class="cart-count">0</span></a>
-                <a href="login.html" class="btn-login">登入 / 註冊</a>
-            </div>
-            <button class="mobile-menu-toggle">
-                <span></span>
-                <span></span>
-                <span></span>
-            </button>
-        </div>
-    </header>
+    <div id="header-container"></div>
+    <nav class="breadcrumb" style="margin: 16px 0 0 0; padding-left: 24px; font-size: 0.98rem;">
+        <a href="index.html">首頁</a> &gt; <a href="article-type.html">論壇攻略</a> &gt; <span>我的收藏</span>
+    </nav>
 
     <section class="favorites-hero">
         <div class="container">
-            <div class="favorites-hero-content">
-                <h1>我的收藏</h1>
-                <p>管理您收藏的露營文章，隨時重溫精彩內容</p>
-                <div class="favorites-search-box">
-                    <form id="search-form" onsubmit="handleSearch(event)">
-                        <input type="text" placeholder="搜尋收藏的文章..." name="search" id="search-input" autocomplete="off">
-                        <button type="submit" class="btn-search-submit" title="搜尋">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </form>
-                </div>
+            <h1>我的收藏</h1>
+            <p>收藏您喜愛的文章，隨時回顧</p>
+            <div class="favorites-search-box">
+                <form id="search-form" onsubmit="handleSearch(event)">
+                    <input type="text" placeholder="搜尋收藏的文章..." name="search" id="search-input" autocomplete="off">
+                    <button type="submit" class="btn-search-submit" title="搜尋">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </form>
             </div>
         </div>
     </section>
@@ -720,65 +693,12 @@
         </div>
     </section>
 
-    <footer class="site-footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-logo">
-                    <img src="images/logo-white.svg" alt="露營路Logo" />
-                    <p>探索自然，體驗生活</p>
-                </div>
-                <div class="footer-links">
-                    <div class="footer-column">
-                        <h3>關於我們</h3>
-                        <ul>
-                            <li><a href="#">公司簡介</a></li>
-                            <li><a href="#">服務條款</a></li>
-                            <li><a href="#">隱私政策</a></li>
-                            <li><a href="#">加入我們</a></li>
-                        </ul>
-                    </div>
-                    <div class="footer-column">
-                        <h3>營地資訊</h3>
-                        <ul>
-                            <li><a href="#">北部營地</a></li>
-                            <li><a href="#">中部營地</a></li>
-                            <li><a href="#">南部營地</a></li>
-                            <li><a href="#">東部營地</a></li>
-                        </ul>
-                    </div>
-                    <div class="footer-column">
-                        <h3>裝備商城</h3>
-                        <ul>
-                            <li><a href="#">全新商品</a></li>
-                            <li><a href="#">配送說明</a></li>
-                        </ul>
-                    </div>
-                    <div class="footer-column">
-                        <h3>幫助中心</h3>
-                        <ul>
-                            <li><a href="#">常見問題</a></li>
-                            <li><a href="#">使用教學</a></li>
-                            <li><a href="#">聯絡客服</a></li>
-                            <li><a href="#">緊急聯絡</a></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <div class="social-links">
-                    <a href="#"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#"><i class="fab fa-instagram"></i></a>
-                    <a href="#"><i class="fab fa-youtube"></i></a>
-                    <a href="#"><i class="fab fa-line"></i></a>
-                </div>
-                <p class="copyright">© 2023 露營路 All Rights Reserved.</p>
-            </div>
-        </div>
-    </footer>
+    <div id="footer-container"></div>
 
     <script src="js/main.js"></script>
     <script src="js/articles.js"></script>
     <script src="js/header-auth.js"></script>
+    <script src="js/include.js"></script>
     <script>
         // 收藏文章管理器
         class FavoritesManager {
@@ -951,7 +871,7 @@
                                 <img src="images/camp-${(index % 5) + 1}.jpg" alt="文章圖片" class="article-image" />
                             </div>
                             <div class="article-title-cell">
-                                <a href="articles.html?id=${article.acId}" class="article-title-link">${article.acTitle}</a>
+                                <a href="articles.html?acId=${article.acId}" class="article-title-link">${article.acTitle}</a>
                                 <div class="article-preview">${article.acContext ? article.acContext.substring(0, 100) + '...' : '無內容預覽'}</div>
                                 <span class="article-tag">${articleType}</span>
                             </div>

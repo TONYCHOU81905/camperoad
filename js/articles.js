@@ -252,6 +252,12 @@ class ArticleManager {
                 const day = String(regDate.getDate()).padStart(2, '0');
                 const formattedDate = `${year}/${month}/${day}`;
                 console.log('格式化後的日期:', formattedDate);
+
+                // 新增：主動通知 articles.html 更新頭像
+                if (window.updateArticleAuthorAvatar) {
+                    window.updateArticleAuthorAvatar(member);
+                }
+
                 return formattedDate;
             }
 
@@ -772,7 +778,7 @@ class ArticleManager {
 
                         // 確保圖片有適當的樣式
                         img.style.maxWidth = '100%';
-                        img.style.height = 'auto';
+                        // img.style.height = 'auto'; // <-- 移除這行，保留原本的 height 屬性
                         img.style.borderRadius = '8px';
                         img.style.margin = '15px 0';
                         img.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
@@ -890,7 +896,7 @@ class ArticleManager {
                         <img src="${imageUrl}" alt="${article.acTitle}" class="article-image">
                     </div>
                     <div class="article-title-cell">
-                        <a href="articles.html?id=${article.acId}" class="article-title-link">
+                        <a href="articles.html?acId=${article.acId}" class="article-title-link">
                             ${article.acTitle}
                         </a>
                         <div class="article-preview">
