@@ -134,11 +134,126 @@
       }
 
       .amenities-list {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
+        margin-bottom: 20px;
       }
 
+      .amenities-container {
+        background: white;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+        overflow: hidden;
+      }
+
+      .amenities-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 20px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border-bottom: 1px solid #e9ecef;
+      }
+
+      .amenities-header:hover {
+        background: linear-gradient(135deg, #e9ecef 0%, #f8f9fa 100%);
+      }
+
+      .amenities-header h4 {
+        margin: 0;
+        display: flex;
+        align-items: center;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2c3e50;
+      }
+
+      .amenities-header h4 i {
+        margin-right: 10px;
+        color: #3a5a40;
+      }
+
+      .amenities-count {
+        margin-left: 8px;
+        font-size: 0.85rem;
+        color: #666;
+        font-weight: 400;
+      }
+
+      .toggle-icon {
+        color: #3a5a40;
+        transition: transform 0.3s ease;
+      }
+
+      .amenities-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+        background: white;
+      }
+
+      .amenities-content.expanded {
+        max-height: 500px;
+        padding: 20px;
+      }
+
+      .amenity-category-compact {
+        margin-bottom: 20px;
+      }
+
+      .amenity-category-compact:last-child {
+        margin-bottom: 0;
+      }
+
+      .category-title-compact {
+        display: flex;
+        align-items: center;
+        margin-bottom: 12px;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #2c3e50;
+        border-bottom: 1px solid #e9ecef;
+        padding-bottom: 6px;
+      }
+
+      .category-title-compact i {
+        margin-right: 8px;
+        color: #3a5a40;
+        font-size: 1rem;
+      }
+
+      .amenity-grid-compact {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 8px;
+      }
+
+      .amenity-item-compact {
+        display: flex;
+        align-items: center;
+        padding: 8px 12px;
+        background: #f8f9fa;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+      }
+
+      .amenity-item-compact:hover {
+        background: #e9ecef;
+        transform: translateX(3px);
+      }
+
+      .amenity-item-compact i {
+        margin-right: 8px;
+        font-size: 0.9rem;
+      }
+
+      .amenity-item-compact span {
+        color: #2c3e50;
+        font-weight: 500;
+      }
+
+      /* 舊版樣式保留作為備用 */
       .amenities-list li {
         display: flex;
         align-items: center;
@@ -331,6 +446,106 @@
         transition: opacity 0.3s ease;
       }
 
+      /* 骨架畫面樣式 */
+      .skeleton {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: loading 1.5s infinite;
+        border-radius: 4px;
+      }
+
+      @keyframes loading {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+      }
+
+      .skeleton-image {
+        width: 100%;
+        height: 608px;
+        border-radius: 8px;
+      }
+
+      .skeleton-thumb {
+        width: 100%;
+        height: 100px;
+        border-radius: 6px;
+      }
+
+      .skeleton-text.title {
+        width: 60%;
+        height: 32px;
+        margin-bottom: 10px;
+      }
+
+      .skeleton-text.subtitle {
+        width: 40%;
+        height: 20px;
+        margin-bottom: 20px;
+      }
+
+      .skeleton-text.line {
+        width: 100%;
+        height: 16px;
+        margin-bottom: 8px;
+      }
+
+      .skeleton-text.line.short {
+        width: 70%;
+      }
+
+      .skeleton-text.amenity {
+        width: 45%;
+        height: 16px;
+        margin-bottom: 10px;
+        display: inline-block;
+        margin-right: 10px;
+      }
+
+      .skeleton-tag {
+        width: 80px;
+        height: 32px;
+        border-radius: 20px;
+        display: inline-block;
+        margin-right: 15px;
+        margin-bottom: 15px;
+      }
+
+      .skeleton-features {
+        margin-bottom: 30px;
+      }
+
+      .skeleton-description {
+        margin-bottom: 30px;
+      }
+
+      .skeleton-amenities {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+
+      /* 懶加載內容樣式 */
+      .lazy-content {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.6s ease, transform 0.6s ease;
+      }
+
+      .lazy-content.loaded {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      /* 懶加載圖片樣式 */
+      img.lazy {
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+
+      img.lazy.loaded {
+        opacity: 1;
+      }
+
       @media (max-width: 768px) {
         .gallery-thumbs {
           grid-template-columns: repeat(3, 1fr);
@@ -350,6 +565,14 @@
 
         .loading-spinner i {
           font-size: 2rem;
+        }
+
+        .skeleton-image {
+          height: 300px;
+        }
+
+        .skeleton-amenities {
+          grid-template-columns: 1fr;
         }
       }
     </style>
@@ -371,14 +594,22 @@
       <div class="container">
         <div class="campsite-gallery">
           <div class="gallery-main">
+            <!-- 骨架畫面：主圖 -->
+            <div class="skeleton skeleton-image"></div>
             <img
               src=""
               alt="營地主圖"
               id="main-image"
+              loading="lazy"
               style="display: none;"
             />
           </div>
           <div class="gallery-thumbs" id="gallery-thumbs">
+            <!-- 骨架畫面：縮圖 -->
+            <div class="skeleton skeleton-thumb"></div>
+            <div class="skeleton skeleton-thumb"></div>
+            <div class="skeleton skeleton-thumb"></div>
+            <div class="skeleton skeleton-thumb"></div>
             <!-- 縮圖將通過JavaScript動態載入 -->
           </div>
         </div>
@@ -386,29 +617,52 @@
         <div class="campsite-info-container">
           <div class="campsite-info">
             <div class="campsite-title">
-              <h1 id="campsite-name">載入中...</h1>
+              <!-- 骨架畫面：標題 -->
+              <div class="skeleton skeleton-text title"></div>
+              <h1 id="campsite-name" style="display: none;">載入中...</h1>
               <span class="camp-tag" id="camp-tag" style="display: none;">人氣王</span>
             </div>
 
-            <p class="campsite-location" id="campsite-location">
+            <!-- 骨架畫面：位置 -->
+            <div class="skeleton skeleton-text subtitle"></div>
+            <p class="campsite-location" id="campsite-location" style="display: none;">
               <i class="fas fa-map-marker-alt"></i>
               載入中...
             </p>
 
-            <div class="campsite-features" id="campsite-features">
+            <!-- 骨架畫面：特色標籤 -->
+            <div class="skeleton-features">
+              <div class="skeleton skeleton-tag"></div>
+              <div class="skeleton skeleton-tag"></div>
+              <div class="skeleton skeleton-tag"></div>
+            </div>
+            <div class="campsite-features" id="campsite-features" style="display: none;">
               <!-- 特色將通過JavaScript動態載入 -->
             </div>
 
             <div class="campsite-description">
               <h3>營地介紹</h3>
-              <div id="campsite-description-content">
+              <!-- 骨架畫面：描述內容 -->
+              <div class="skeleton-description">
+                <div class="skeleton skeleton-text line"></div>
+                <div class="skeleton skeleton-text line"></div>
+                <div class="skeleton skeleton-text line short"></div>
+              </div>
+              <div id="campsite-description-content" style="display: none;">
                 <p>載入中...</p>
               </div>
             </div>
 
             <div class="campsite-amenities">
               <h3>營地設施</h3>
-              <ul class="amenities-list" id="amenities-list">
+              <!-- 骨架畫面：設施列表 -->
+              <div class="skeleton-amenities">
+                <div class="skeleton skeleton-text amenity"></div>
+                <div class="skeleton skeleton-text amenity"></div>
+                <div class="skeleton skeleton-text amenity"></div>
+                <div class="skeleton skeleton-text amenity"></div>
+              </div>
+              <ul class="amenities-list" id="amenities-list" style="display: none;">
                 <li>載入中...</li>
               </ul>
             </div>
@@ -483,7 +737,7 @@
           </div>
         </div>
 
-        <div class="reviews-section">
+        <!-- <div class="reviews-section lazy-content">
           <h2 class="section-title">露友評價</h2>
           <div class="review-card">
             <div class="review-header">
@@ -562,7 +816,7 @@
               </p>
             </div>
           </div>
-        </div>
+        </div> -->
 
         <!-- <div class="similar-campsites">
           <h2 class="section-title">您可能也會喜歡</h2>
@@ -965,32 +1219,26 @@
           "room-types-container"
         );
 
-        // 為每個房型創建卡片並獲取圖片
-        for (const camp of camps) {
+        // 為每個房型創建卡片（先顯示預設圖片，再異步載入實際圖片）
+        const urlParams = new URLSearchParams(window.location.search);
+        const campId = urlParams.get("id");
+        
+        // 先創建所有房型卡片，使用預設圖片
+        camps.forEach((camp, index) => {
           const roomCard = document.createElement("div");
           roomCard.className = "room-type-card";
-
-          // 獲取房型照片（使用 API 格式）
-          const urlParams = new URLSearchParams(window.location.search);
-          const campId = urlParams.get("id");
-          const photos = await getCampsiteTypePhotos(
-            camp.campsiteTypeId,
-            campId
-          );
-
-          const roomImages = document.createElement("div");
-          roomImages.className = "room-type-images";
-
-          let imageSrc;
-          if (photos.length > 0) {
-            imageSrc = photos[0];
-          } else {
-            imageSrc = "images/camp-1.jpg";
-          }
-
+          
+          // 使用預設圖片，根據索引輪換
+          const defaultImage = `images/camp-${(index % 5) + 1}.jpg`;
+          
           roomCard.innerHTML = `
             <div class="room-type-images">
-              <img src="${imageSrc}" alt="${camp.campsiteName}" />
+              <img src="${defaultImage}" 
+                   alt="${camp.campsiteName}" 
+                   data-campsite-type-id="${camp.campsiteTypeId}"
+                   data-camp-id="${campId}"
+                   loading="lazy"
+                   style="transition: opacity 0.3s ease;" />
             </div>
             <div class="room-type-info">
               <h4>${camp.campsiteName}</h4>
@@ -1002,9 +1250,12 @@
               </button>
             </div>
           `;
-
+          
           roomTypesContainer.appendChild(roomCard);
-        }
+        });
+        
+        // 異步載入實際圖片，不阻塞UI顯示
+        loadRoomTypeImagesAsync(camps, campId);
 
         // 綁定購物車按鈕事件
         roomTypesContainer
@@ -1017,6 +1268,44 @@
           });
       }
 
+      // 異步載入房型實際圖片
+      async function loadRoomTypeImagesAsync(camps, campId) {
+        // 為每個房型異步載入圖片
+        const imageLoadPromises = camps.map(async (camp) => {
+          try {
+            const photos = await getCampsiteTypePhotos(camp.campsiteTypeId, campId);
+            
+            // 找到對應的圖片元素
+            const imgElement = document.querySelector(
+              `img[data-campsite-type-id="${camp.campsiteTypeId}"][data-camp-id="${campId}"]`
+            );
+            
+            if (imgElement && photos.length > 0) {
+              // 預載入圖片以確保順暢切換
+              const newImg = new Image();
+              newImg.onload = () => {
+                // 淡出效果
+                imgElement.style.opacity = '0.5';
+                setTimeout(() => {
+                  imgElement.src = photos[0];
+                  imgElement.style.opacity = '1';
+                }, 150);
+              };
+              newImg.onerror = () => {
+                console.log(`房型 ${camp.campsiteTypeId} 圖片載入失敗，保持預設圖片`);
+              };
+              newImg.src = photos[0];
+            }
+          } catch (error) {
+            console.log(`房型 ${camp.campsiteTypeId} 圖片載入失敗:`, error);
+          }
+        });
+        
+        // 等待所有圖片載入完成（不阻塞UI）
+        await Promise.allSettled(imageLoadPromises);
+        console.log('所有房型圖片載入完成');
+      }
+
       // 注意：btn-book 的事件監聽器已在 campsite-detail.js 的 initBookingButton() 中綁定
       // 避免重複綁定導致 API 被調用兩次
     </script>
@@ -1024,8 +1313,8 @@
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
 
-    <script src="js/main.js"></script>
-    <script src="js/camp-data.js"></script>
+    <script src="js/main.js" defer></script>
+    <script src="js/camp-data.js" defer></script>
     <script>
       // 立即加載營地資料，不等待 DOMContentLoaded 事件
       console.log("立即加載營地資料");
@@ -1035,10 +1324,10 @@
         window.campData = data;
       });
     </script>
-    <script src="js/campsite-detail.js"></script>
-    <script src="js/chat.js"></script>
-    <script src="js/cart.js"></script>
-    <script src="js/include.js"></script>
+    <script src="js/campsite-detail.js" defer></script>
+    <script src="js/chat.js" defer></script>
+    <script src="js/cart.js" defer></script>
+    <script src="js/include.js" defer></script>
     <link rel="stylesheet" href="css/chat.css" />
   </body>
 </html>

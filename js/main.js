@@ -186,7 +186,7 @@ if (check_out_el) {
 // 解析URL參數並填入表單
 function parseAndFillSearchParams() {
   const urlParams = new URLSearchParams(window.location.search);
-  console.log("解析URL參數");
+  console.log("解析URL參數:", urlParams.toString());
 
   // 填入地區選擇
   const location = urlParams.get("location");
@@ -194,14 +194,10 @@ function parseAndFillSearchParams() {
     const locationSelect = document.getElementById("location");
     if (locationSelect) {
       // 確保location是有效的索引
-
-
-      if (location >= 0 && location < taiwanDistrictData.length) {
-        console.log("設置地區選擇: " + taiwanDistrictData[location].DistName);
-
+      const locationIndex = parseInt(location);
+      if (locationIndex >= 0 && locationIndex < taiwanDistrictData.length) {
+        console.log("設置地區選擇: " + taiwanDistrictData[locationIndex].DistName);
         locationSelect.value = location;
-
-
         // 觸發change事件以載入縣市選項
         locationSelect.dispatchEvent(new Event("change"));
       }
@@ -214,6 +210,7 @@ function parseAndFillSearchParams() {
     setTimeout(() => {
       const countySelect = document.getElementById("county");
       if (countySelect) {
+        console.log("設置縣市選擇: " + county);
         countySelect.value = county;
         countySelect.dispatchEvent(new Event("change"));
       }
@@ -226,6 +223,7 @@ function parseAndFillSearchParams() {
     setTimeout(() => {
       const districtSelect = document.getElementById("district");
       if (districtSelect) {
+        console.log("設置鄉鎮市區選擇: " + district);
         districtSelect.value = district;
       }
     }, 200);
@@ -236,8 +234,11 @@ function parseAndFillSearchParams() {
   if (checkIn) {
     const checkInInput = document.getElementById("check-in");
     if (checkInInput) {
+      console.log("設置入住日期: " + checkIn);
       checkInInput.value = checkIn;
       check_in_date = new Date(checkIn);
+      // 觸發change事件以更新退房日期的限制
+      checkInInput.dispatchEvent(new Event("change"));
     }
   }
 
@@ -245,6 +246,7 @@ function parseAndFillSearchParams() {
   if (checkOut) {
     const checkOutInput = document.getElementById("check-out");
     if (checkOutInput) {
+      console.log("設置退房日期: " + checkOut);
       checkOutInput.value = checkOut;
       check_out_date = new Date(checkOut);
     }
@@ -255,6 +257,7 @@ function parseAndFillSearchParams() {
   if (guests) {
     const guestsSelect = document.getElementById("guests");
     if (guestsSelect) {
+      console.log("設置人數: " + guests);
       guestsSelect.value = guests;
     }
   }
@@ -367,11 +370,6 @@ function initArea() {
 
         // 初始化時載入所有縣市
         updateCountyOptions();
-
-
-
-        // 初始化地區選單改變監聽器
-        initLocationChangeListener();
 
 
 
