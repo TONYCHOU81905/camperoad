@@ -1494,6 +1494,7 @@ class UserProfileManager {
     this.setupCouponFilters();
   }
 
+
   // 初始化聊天管理
   initChatManagement() {
     console.log("=== 開始初始化聊天管理 ===");
@@ -2092,6 +2093,91 @@ class UserProfileManager {
         this.currentOwnerId = null; // 重置當前營地主ID
       });
     }
+  }
+
+
+
+  async displayFavorites(page = 1) {
+    const container = document.getElementById('favorites-container');
+    const countElement = document.getElementById('favorites-count');
+    if (!container) return;
+
+    console.log('displayFavorites 被調用，頁碼:', page, '收藏數量:', this.filteredFavorites.length);
+
+    if (this.filteredFavorites.length === 0) {
+      console.log('沒有收藏文章，顯示空狀態');
+      this.showEmptyState();
+      return;
+    }
+
+    if (countElement) {
+      countElement.textContent = this.filteredFavorites.length;
+    }
+
+    // 分頁設定
+    const itemsPerPage = 10;
+    const totalPages = Math.ceil(this.filteredFavorites.length / itemsPerPage);
+    const startIndex = (page - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const currentPageItems = this.filteredFavorites.slice(startIndex, endIndex);
+
+    // 分批獲取所有文章的圖片（batch size 3）
+    const articleIds = currentPageItems.map(article => article.acId);
+    const articleImages = await this.batchFetchImages(articleIds, 3);
+
+    let html = '';
+    for (let index = 0; index < currentPageItems.length; index++) {
+      const article = currentPageItems[index];
+      const favoriteDate = article.favoriteTime ? new Date(article.favoriteTime).toLocaleDateString('zh-TW') : '未知時間';
+      const authorName = this.getAuthorName(article);
+      const articleType = this.getArticleType(article.acTypeId);
+
+      // 使用文章圖片，如果沒有則使用預設圖片
+      const imageUrl = articleImages[index] || `images/camp-${(index % 5) + 1}.jpg`;
+
+      html += `
+        <div class="article-item" data-article-id="${article.acId}">
+          <div class="article-checkbox-cell">
+            <input type="checkbox" class="article-checkbox" data-article-id="${article.acId}" title="選擇此文章">
+          </div>
+          <div class="article-image-cell">
+            <img src="${imageUrl}" alt="文章圖片" class="article-image" />
+          </div>
+          <div class="article-title-cell">
+            <a href="articles.html?acId=${article.acId}" class="article-title-link">${article.acTitle}</a>
+            <div class="article-preview">${article.acContext ? article.acContext.replace(/<[^>]+>/g, '').substring(0, 100) + '...' : '無內容預覽'}</div>
+            <span class="article-tag">${articleType}
+              <span class="reply-count" data-article-id="${article.acId}" style="margin-left:18px;color:#fff;font-size:0.92em;">
+                <i class='fas fa-comments' style="color:#fff;"></i> ${article.replyCount || 0}
+              </span>
+              <span class="view-count" data-article-id="${article.acId}" style="margin-left:12px;color:#fff;font-size:0.92em;">
+                <i class='fas fa-eye' style="color:#fff;"></i> ${article.acViewCount || 0}
+              </span>
+            </span>
+          </div>
+          <div class="article-author-cell">${authorName}</div>
+          <div class="article-date-cell">${favoriteDate}</div>
+          <div class="article-stats-cell">
+            <button class="remove-favorite-btn" onclick="favoritesManager.removeFavorite(${article.acId})">
+              <i class="fas fa-trash"></i> 移除收藏
+            </button>
+          </div>
+        </div>
+      `;
+    }
+    container.innerHTML = html;
+
+    // 綁定勾選框事件
+    this.bindCheckboxEvents();
+
+    // 綁定全選勾選框事件（在 DOM 元素創建後）
+    this.bindSelectAllCheckbox();
+
+    // 綁定刪除選中按鈕事件（在 DOM 元素創建後）
+    this.bindDeleteSelectedButton();
+
+    // 渲染分頁
+    this.renderPagination(totalPages, page);
   }
 }
 
@@ -2884,6 +2970,20 @@ document.addEventListener("click", function (e) {
 
 // === 收藏文章管理器（從 articles-favorites.html 移植，並整合到 user-profile.js） ===
 class FavoritesManager {
+
+  // 分批獲取所有文章的圖片
+  async batchFetchImages(articleIds, batchSize = 3) {
+    const results = [];
+    for (let i = 0; i < articleIds.length; i += batchSize) {
+      const batch = articleIds.slice(i, i + batchSize);
+      const batchResults = await Promise.all(
+        batch.map(id => this.getFirstArticleImage(id))
+      );
+      results.push(...batchResults);
+    }
+    return results;
+  }
+
   constructor() {
     this.currentMember = null;
     this.favorites = [];
@@ -3045,10 +3145,10 @@ class FavoritesManager {
     const endIndex = startIndex + itemsPerPage;
     const currentPageItems = this.filteredFavorites.slice(startIndex, endIndex);
 
-    // 獲取所有文章的圖片
-    const articleImages = await Promise.all(
-      currentPageItems.map((article) => this.getFirstArticleImage(article.acId))
-    );
+    // 分批獲取所有文章的圖片（batch size 3）
+    const articleIds = currentPageItems.map(article => article.acId);
+    const articleImages = await this.batchFetchImages(articleIds, 3);
+
 
     let html = "";
     for (let index = 0; index < currentPageItems.length; index++) {
@@ -3769,6 +3869,8 @@ class FavoritesManager {
 
 // 初始化收藏管理器
 window.favoritesManager = new FavoritesManager();
+console.log('favoritesManager prototype:', Object.getPrototypeOf(window.favoritesManager));
+console.log('batchFetchImages:', typeof window.favoritesManager.batchFetchImages);
 
 // ====== 性能優化和工具方法 ======
 
