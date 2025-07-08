@@ -431,9 +431,18 @@ function displayOwnerChatList(data, ownerId) {
   // 創建聊天項目
   data.forEach((member, index) => {
     const memId = member.memId;
-    const memName = member.memName || `會員 ${memId}`;
-    const latestMessage = member.latestMessage || "點擊開始聊天";
-    const latestTime = member.latestTime || new Date().toISOString();
+
+    // 從 ownerDashboard 的 memberData 中獲取會員名稱
+    let memName = member.memName || `會員 ${memId}`;
+    if (typeof ownerDashboard !== "undefined" && ownerDashboard.memberData) {
+      const memberInfo = ownerDashboard.memberData.find(
+        (m) => m.memId === memId
+      );
+      memName = memberInfo ? memberInfo.memName : `會員 ${memId}`;
+    }
+
+    const latestMessage = member.chatMsgContent || "點擊開始聊天";
+    const latestTime = member.chatMsgTime || new Date().toISOString();
     const unreadCount = member.unreadCount || 0;
 
     // 創建聊天項目
@@ -444,9 +453,9 @@ function displayOwnerChatList(data, ownerId) {
 
     chatItem.innerHTML = `
       <div class="chat-item-avatar">
-        <img src="images/member-avatar-${
-          (index % 5) + 1
-        }.jpg" alt="${memName}" onerror="this.src='images/default-avatar.png'">
+        <img src="${
+          window.api_prefix
+        }/member/${memId}/pic" alt="${memName}" onerror="this.src='images/default-avatar.png'">
       </div>
       <div class="chat-item-info">
         <div class="chat-item-name">${memName}</div>
@@ -725,13 +734,15 @@ function initSimpleWebSocketConnection() {
   isSimpleWebSocketMode = true;
 
   try {
-    const socket = new SockJS(`${window.api_prefix}/ws-chat`);
+    const socket = new SockJS(
+      `${window.api_prefix}/ws-chat?memId=${ownerId.toString()}`
+    );
     simpleStompClient = Stomp.over(socket);
 
-    console.log("嘗試連接 WebSocket...");
+    console.log(`${ownerId.toString()}嘗試連接 WebSocket...`);
 
     simpleStompClient.connect(
-      {},
+      { memId: ownerId.toString() },
       function (frame) {
         console.log("WebSocket連接成功:", frame);
 
@@ -767,7 +778,8 @@ function initSimpleWebSocketConnection() {
         });
 
         // 訂閱聊天歷史記錄
-        const historyTopic = `/topic/chat/history`;
+        const historyTopic = `/user/queue/history`;
+        console.log("訂閱歷史訊息頻道:", historyTopic);
         // const historyTopic = `/topic/chat/history/${memId || ownerId}`;
         simpleStompClient.subscribe(historyTopic, (msg) => {
           const historyData = JSON.parse(msg.body);
@@ -809,12 +821,16 @@ function initSimpleWebSocketConnection() {
             });
           }
         });
-        memId = 10000001;
+        // memId = 10000001;
         console.log("chat-management_mem:" + memId);
         console.log("chat-management_owner:" + ownerId);
 
         // 請求聊天歷史記錄
-        const requestHistoryTopic = `/app/chat/history`;
+        const requestHistoryTopic = `/app/chat.history`;
+        console.log("請求歷史訊息數據:", {
+          memId: parseInt(memId),
+          ownerId: parseInt(ownerId),
+        });
         simpleStompClient.send(
           requestHistoryTopic,
           {},

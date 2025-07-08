@@ -2110,7 +2110,6 @@ class OwnerDashboard {
       // 使用 API 獲取該訂單的詳細資料
       let orderDetails = [];
       const apiUrl1 = `${window.api_prefix}/api/campsite/order/getone/${order.campsiteOrderId}`;
-      console.log(`1939: ${apiUrl1}`);
       try {
         const response = await fetch(apiUrl1);
 

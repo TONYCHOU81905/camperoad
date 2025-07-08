@@ -212,6 +212,8 @@ class ChatWidget {
 
   // 訂閱聊天相關頻道並請求歷史資料
   subscribeToChat() {
+    console.log("訂閱聊天相關頻道");
+
     if (!this.stompClient || !this.stompClient.connected) {
       console.warn("WebSocket尚未連線，無法訂閱");
       return;
@@ -232,6 +234,7 @@ class ChatWidget {
         this.addMessage(message.chatMsgContent, "other", time);
       }
     });
+    console.log("訂閱聊天完成即時顯示");
 
     // 一次性歷史訊息接收
     const historyTopic = "/user/queue/history";
@@ -270,13 +273,10 @@ class ChatWidget {
     });
 
     // 已讀通知（可選）
-    this.stompClient.subscribe(
-      "/user/" + this.memId + "/queue/read",
-      (msg) => {
-        const message = JSON.parse(msg.body);
-        this.log(`📖 [已讀通知] ${message.chatMsgContent}`);
-      }
-    );
+    this.stompClient.subscribe("/user/" + this.memId + "/queue/read", (msg) => {
+      const message = JSON.parse(msg.body);
+      this.log(`📖 [已讀通知] ${message.chatMsgContent}`);
+    });
 
     // 發送請求歷史資料
     const currentMemId = parseInt(this.memId);
@@ -326,7 +326,9 @@ class ChatWidget {
     }
 
     try {
-      const socket = new SockJS(`${window.api_prefix}/ws-chat`);
+      const socket = new SockJS(
+        `${window.api_prefix}/ws-chat?memId=${this.memId.toString()}`
+      );
       this.stompClient = Stomp.over(socket);
 
       // 啟用 STOMP 客戶端的調試模式
@@ -334,10 +336,10 @@ class ChatWidget {
       //   console.log("STOMP:", str);
       // };
 
-      console.log("嘗試連接 WebSocket...");
+      console.log(`${this.memId.toString()}嘗試連接 WebSocket...`);
 
       this.stompClient.connect(
-        {},
+        { memId: this.memId.toString() }, // ✅ 把 memId 傳給後端（供 HandshakeHandler 使用）
         () => {
           this.log(`🔗 已與伺服器建立連線`);
           this.subscribeToChat();
@@ -422,10 +424,14 @@ class ChatWidget {
       `;
     } else if (sender === "other") {
       // 營地主發送的訊息
+      // 動態獲取當前營地名稱
+      const campName = this.getCurrentCampName();
+      const customerServiceName = campName ? `${campName}客服` : '客服小露';
+      
       messageElement.innerHTML = `
         <div class="chat-user">
           <img src="images/user-1.jpg" alt="客服">
-          <span>客服小露</span>
+          <span>${customerServiceName}</span>
         </div>
         <div class="message-content">${content}</div>
         <div class="message-info">${time}</div>
@@ -449,6 +455,37 @@ class ChatWidget {
       hour: "2-digit",
       minute: "2-digit",
     });
+  }
+
+  // 獲取當前營地名稱
+  getCurrentCampName() {
+    // 方法1: 從頁面元素獲取營地名稱
+    const campsiteNameElement = document.getElementById('campsite-name');
+    if (campsiteNameElement && campsiteNameElement.textContent && campsiteNameElement.textContent !== '載入中...') {
+      return campsiteNameElement.textContent.trim();
+    }
+    
+    // 方法2: 從 campData 獲取當前營地名稱
+    if (window.campData && Array.isArray(window.campData)) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const campId = urlParams.get('id');
+      if (campId) {
+        const campIdNum = parseInt(campId, 10);
+        const camp = window.campData.find(c => c.camp_id === campIdNum);
+        if (camp && camp.campName) {
+          return camp.campName;
+        }
+      }
+    }
+    
+    // 方法3: 從頁面標題獲取（作為備用方案）
+    const title = document.title;
+    if (title && title.includes(' - 露途')) {
+      return title.replace(' - 露途', '');
+    }
+    
+    // 如果都無法獲取，返回 null
+    return null;
   }
 
   // 記錄日誌（僅在控制台顯示）
