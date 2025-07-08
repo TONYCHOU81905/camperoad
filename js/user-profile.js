@@ -1324,7 +1324,7 @@ class UserProfileManager {
             <p class="camp-description">${camp.campContent || ""}</p>
             <div class="camp-actions">
               <a href="campsite-detail.html?id=${camp.campId
-            }" class="btn-view">查看詳情</a>
+            }&guests=null&check-in=null&check-out=null" class="btn-view">查看詳情</a>
             </div>
           </div>
         </div>
