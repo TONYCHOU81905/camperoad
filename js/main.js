@@ -512,10 +512,10 @@ function loadRelatedProducts() {
   // 顯示載入中狀態
   relatedProductsContainer.innerHTML = '<div class="index-loading-indicator">載入中...</div>';
 
-  // 使用隨機推薦商品 API
+  // 使用隨機推薦商品 API，固定載入3個商品
   fetch(`${window.api_prefix}/api/products/random?limit=3`)
     .then(response => response.json())
-    .then(data => {
+    .then(async data => {
       if (data.status === 'success' && Array.isArray(data.data)) {
         const relatedProducts = data.data;
 
@@ -532,6 +532,10 @@ function loadRelatedProducts() {
           relatedProductsContainer.appendChild(createProductCard(product));
         });
 
+        // 初始化收藏狀態
+        await initFavoriteProductIds();
+        updateProductFavoriteDisplay();
+
         // 綁定事件
         bindRelatedProductEvents();
       } else {
@@ -544,24 +548,56 @@ function loadRelatedProducts() {
     });
 }
 
-// 創建Random商品卡片
+// 創建簡化的商品卡片（類似營地卡片）
 function createProductCard(product) {
-  const hasDiscount = product.prodDiscount !== null && product.prodDiscount < 1;
-  const firstSpec = product.prodSpecList?.[0];
-  const originalPrice = firstSpec ? firstSpec.prodSpecPrice : 0;
-  const discountedPrice = hasDiscount ? Math.round(originalPrice * product.prodDiscount) : originalPrice;
+  const featuresHtml = generateProductFeatures(product);
+  const colorMap = new Map((product.colorList || []).map(c => [c.colorId, c.colorName]));
+  const specMap = new Map((product.specList || []).map(s => [s.specId, s.specName]));
+  const colors = product.prodColorList || [];
+  const specs = product.prodSpecList || [];
+  
+  // 生成規格顯示（與會員收藏樣式一致）
+  let specsHTML = '';
+  if (specs.length > 0) {
+    specsHTML = '<div class="prod-specs"><i class="fas fa-tag"></i> 規格：';
+    specs.forEach((spec, index) => {
+      const specId = spec.prodSpecId;
+      const specName = specMap.get(specId) || `規格 ${specId}`;
+      const specPrice = spec.prodSpecPrice || 0;
+      specsHTML += `<span>${specName} (NT$ ${specPrice})</span>`;
+      if (index < specs.length - 1) {
+        specsHTML += ', ';
+      }
+    });
+    specsHTML += '</div>';
+  } else {
+    specsHTML = '<div class="prod-specs"><i class="fas fa-tag"></i> 規格：無規格</div>';
+  }
 
-  // 創建商品卡片元素
-  const card = document.createElement('div');
-  card.className = 'index-product-card';
-  card.dataset.productId = product.prodId;
-
-  // 將原始價格和折扣信息存儲在卡片上，以便後續使用
-  card.dataset.originalPrice = originalPrice;
-  card.dataset.hasDiscount = hasDiscount;
-  card.dataset.discountRate = product.prodDiscount || 1;
-
-  // 構建商品圖片 HTML
+  // 生成顏色顯示（與會員收藏樣式一致）
+  let colorsHTML = '';
+  if (colors.length > 0) {
+    colorsHTML = '<div class="prod-colors"><i class="fas fa-palette"></i> 顏色：';
+    colors.forEach((color, index) => {
+      const colorId = color.prodColorId;
+      const colorName = colorMap.get(colorId) || `顏色 ${colorId}`;
+      colorsHTML += `<span>${colorName}</span>`;
+      if (index < colors.length - 1) {
+        colorsHTML += ', ';
+      }
+    });
+    colorsHTML += '</div>';
+  } else {
+    colorsHTML = '<div class="prod-colors"><i class="fas fa-palette"></i> 顏色：無顏色</div>';
+  }
+  
+  // 生成商品特色標籤
+  const productFeatures = '<div class="product-features-tags"><span><i class="fas fa-shield-alt"></i> 品質保證</span><span><i class="fas fa-truck"></i> 快速配送</span></div>';
+  
+  // 判斷是否有折扣
+  const hasDiscount = product.prodDiscount && product.prodDiscount < 1;
+  
+  // 動態取得商品圖片
   let productImageHtml = '';
   if (product.prodPicList && product.prodPicList.length > 0) {
     const firstPicId = product.prodPicList[0].prodPicId;
@@ -570,30 +606,42 @@ function createProductCard(product) {
     productImageHtml = `<img src="images/default-product.jpg" alt="無圖片" />`;
   }
 
-  // 構建商品標籤 HTML
-  let tagHtml = '';
-  if (hasDiscount) {
-    tagHtml = `<span class="index-product-tag">促銷</span>`;
-  }
+  // 創建商品卡片元素
+  const card = document.createElement('div');
+  card.className = 'index-product-card';
+  card.dataset.productId = product.prodId;
 
-  // 構建商品價格 HTML，添加一個唯一的類名以便後續更新
-  let priceHtml = `
-    <div class="index-product-price" id="price-${product.prodId}">
-      <span class="current-price">NT$ ${discountedPrice}</span>
-      ${hasDiscount ? `<span class="original-price">NT$ ${originalPrice}</span>` : ''}
-    </div>`;
-
-  // 組合完整的商品卡片 HTML
   card.innerHTML = `
     <div class="index-product-image">
       ${productImageHtml}
-      ${tagHtml}
+      <span class="${hasDiscount ? 'index-product-tag' : 'index-product-tag2'}">${hasDiscount ? '促銷' : (product.prodTag || '熱銷')}</span>
     </div>
     <div class="index-product-info">
       <h3><a href="product-detail.html?id=${product.prodId}">${product.prodName}</a></h3>
-      ${priceHtml}
+      <p class="product-category">
+        <i class="fas fa-tag"></i> ${product.prodTypeName}
+      </p>
+      
+      <!--商品評論生成部分-->
+      <div class="product-rating" data-product-id="${product.prodId}" style="display: none;">
+        <span class="stars"></span>
+        <span class="rating-count"></span>
+      </div>
+
+      ${productFeatures}
+
+      <div class="camp-description">
+        ${specsHTML}
+        ${colorsHTML}
+      </div>
+
       <div class="index-product-actions">
-        <button class="index-btn-view-details"><i class="fas fa-search"></i> 查看詳情</button>
+        <button class="index-btn-view-details"><i class="fas fa-search"></i> 查看商品明細</button>
+        <button class="btn-toggle-favorite-product" 
+                data-product-id="${product.prodId}" 
+                title="加入收藏">
+          <i class="fas fa-heart"></i>
+        </button>
       </div>
     </div>
   `;
@@ -601,15 +649,576 @@ function createProductCard(product) {
   return card;
 }
 
-// 綁定相關商品的事件
+// 刪除第二個 bindRelatedProductEvents 函數（第790行開始的那個）
+// 保留第一個正確的版本（第651行開始的那個）
+
+// 綁定相關商品的事件（簡化版）
 function bindRelatedProductEvents() {
-  // 處理查看詳情按鈕
+  // 處理查看商品明細按鈕
   const viewDetailsButtons = document.querySelectorAll('#index-product-container .index-btn-view-details');
   viewDetailsButtons.forEach(button => {
     button.addEventListener('click', function() {
-      const productCard = this.closest('.index-product-card');
-      const productId = productCard.dataset.productId;
+      const productId = this.closest('.index-product-card').dataset.productId;
       window.location.href = `product-detail.html?id=${productId}`;
     });
   });
+
+  // 處理商品收藏按鈕
+  const favoriteButtons = document.querySelectorAll('#index-product-container .btn-toggle-favorite-product');
+  favoriteButtons.forEach(button => {
+    button.addEventListener('click', async function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const productId = this.dataset.productId;
+      await toggleProductFavorite(productId, this);
+    });
+  });
 }
+
+// 切換商品收藏狀態
+async function toggleProductFavorite(productId, button) {
+  try {
+    // 檢查會員登入狀態 - 使用與 camp-data.js 相同的方式
+    const saved =
+      localStorage.getItem("currentMember") ||
+      sessionStorage.getItem("currentMember");
+    
+    if (!saved) {
+      console.log("未找到會員資料，跳轉到登入頁面");
+      localStorage.setItem("returnUrl", window.location.href);
+      window.location.href = "login.html";
+      return;
+    }
+    
+    let currentMember;
+    try {
+      currentMember = JSON.parse(saved);
+    } catch (e) {
+      console.error("解析會員資料失敗:", e);
+      localStorage.setItem("returnUrl", window.location.href);
+      window.location.href = "login.html";
+      return;
+    }
+    
+    const memId =
+      currentMember.mem_id || currentMember.memId || currentMember.id;
+    
+    if (!memId) {
+      console.log("會員ID無效，跳轉到登入頁面");
+      localStorage.setItem("returnUrl", window.location.href);
+      window.location.href = "login.html";
+      return;
+    }
+
+    // 初始化收藏清單（如果尚未初始化）
+    if (!Array.isArray(window.favoriteProductIds)) {
+      window.favoriteProductIds = [];
+    }
+
+    const productIdNum = parseInt(productId);
+    const isFavorited = button.classList.contains('favorited');
+
+    if (isFavorited) {
+      // 取消收藏
+      const response = await fetch(`${window.api_prefix}/api/prodfavorites/${memId}/${productId}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        button.classList.remove('favorited');
+        button.title = '加入收藏';
+        
+        // 更新本地收藏清單
+        window.favoriteProductIds = window.favoriteProductIds.filter(
+          id => id !== productIdNum
+        );
+        
+        console.log('取消收藏成功');
+      } else {
+        throw new Error('取消收藏失敗');
+      }
+    } else {
+      // 加入收藏
+      const response = await fetch(`${window.api_prefix}/api/prodfavorites/${memId}/${productId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        button.classList.add('favorited');
+        button.title = '已收藏';
+        
+        // 更新本地收藏清單
+        if (!window.favoriteProductIds.includes(productIdNum)) {
+          window.favoriteProductIds.push(productIdNum);
+        }
+        
+        console.log('加入收藏成功');
+      } else {
+        throw new Error('加入收藏失敗');
+      }
+    }
+  } catch (error) {
+    console.error('收藏操作失敗:', error);
+  }
+}
+
+// 添加評分載入函數
+async function loadProductRatingForCard(prodId) {
+  try {
+    const res = await fetch(`${window.api_prefix}/api/getProdComments?prodId=${prodId}`);
+    const data = await res.json();
+    
+    const ratingElement = document.querySelector(`[data-product-id="${prodId}"]`);
+    if (!ratingElement) return;
+
+    const starsElement = ratingElement.querySelector('.stars');
+    const countElement = ratingElement.querySelector('.rating-count');
+
+    if (data.status === 'success' && Array.isArray(data.data)) {
+      const comments = data.data;
+      const count = comments.length;
+
+      if (count === 0) {
+        ratingElement.style.display = 'none';
+        return;
+      }
+
+      const sum = comments.reduce((acc, c) => acc + (c.commentSatis || 0), 0);
+      const average = sum / count;
+
+      // 生成星星 HTML
+      let starsHtml = '';
+      for (let i = 1; i <= 5; i++) {
+        if (i <= Math.floor(average)) {
+          starsHtml += '<i class="fas fa-star"></i>';
+        } else if (i === Math.ceil(average) && average % 1 >= 0.5) {
+          starsHtml += '<i class="fas fa-star-half-alt"></i>';
+        } else {
+          starsHtml += '<i class="far fa-star"></i>';
+        }
+      }
+
+      if (starsElement) starsElement.innerHTML = starsHtml;
+      if (countElement) countElement.textContent = `（${count} 則評價）`;
+      ratingElement.style.display = 'block';
+    } else {
+      ratingElement.style.display = 'none';
+    }
+  } catch (error) {
+    console.error(`載入商品 ${prodId} 評分失敗:`, error);
+    const ratingElement = document.querySelector(`[data-product-id="${prodId}"]`);
+    if (ratingElement) ratingElement.style.display = 'none';
+  }
+}
+
+// 添加商品特色生成函數
+function generateProductFeatures(product) {
+  // 根據產品類型或特性生成不同的標籤
+  const features = [];
+  
+  // 可以根據需要添加更多特色標籤邏輯
+  if (product.prodDiscount && product.prodDiscount < 1) {
+    features.push('特價');
+  }
+  
+  if (features.length === 0) {
+    return '';
+  }
+  
+  return features.map(feature => `<span class="feature-tag">${feature}</span>`).join('');
+}
+
+// 初始化商品收藏狀態
+async function initFavoriteProductIds() {
+  const saved =
+    localStorage.getItem("currentMember") ||
+    sessionStorage.getItem("currentMember");
+  if (!saved) {
+    window.favoriteProductIds = [];
+    return;
+  }
+
+  try {
+    const currentMember = JSON.parse(saved);
+    const memId = currentMember.mem_id || currentMember.memId || currentMember.id;
+    
+    if (!memId) {
+      window.favoriteProductIds = [];
+      return;
+    }
+
+    // 使用正確的 API 端點
+    const response = await fetch(
+      `${window.api_prefix}/api/prodfavorites/member/${memId}`
+    );
+    const json = await response.json();
+    
+    // 根據 API 回傳的 ShopProdDTO 格式，提取 prodId
+    if (json.status === 'success' && Array.isArray(json.data)) {
+      window.favoriteProductIds = json.data.map((item) => item.prodId);
+      console.log('已載入商品收藏清單:', window.favoriteProductIds);
+    } else {
+      window.favoriteProductIds = [];
+      console.log('無收藏商品或API回傳格式異常');
+    }
+  } catch (error) {
+    console.error("載入會員商品收藏清單失敗", error);
+    window.favoriteProductIds = [];
+  }
+}
+
+// 更新商品收藏狀態顯示
+function updateProductFavoriteDisplay() {
+  if (!Array.isArray(window.favoriteProductIds)) return;
+  
+  document.querySelectorAll('.btn-toggle-favorite-product').forEach(button => {
+    const productId = parseInt(button.dataset.productId);
+    const isFavorited = window.favoriteProductIds.includes(productId);
+    
+    if (isFavorited) {
+      button.classList.add('favorited');
+      button.title = '已收藏';
+    } else {
+      button.classList.remove('favorited');
+      button.title = '加入收藏';
+    }
+  });
+}
+
+
+
+
+
+// 載入商品卡片
+function loadRelatedProducts() {
+  const relatedProductsContainer = document.getElementById('index-product-container');
+  if (!relatedProductsContainer) return;
+
+  // 顯示載入中狀態
+  relatedProductsContainer.innerHTML = '<div class="index-loading-indicator">載入中...</div>';
+
+  // 使用隨機推薦商品 API，固定載入3個商品
+  fetch(`${window.api_prefix}/api/products/random?limit=3`)
+    .then(response => response.json())
+    .then(async data => {
+      if (data.status === 'success' && Array.isArray(data.data)) {
+        const relatedProducts = data.data;
+
+        // 清空容器
+        relatedProductsContainer.innerHTML = '';
+
+        if (relatedProducts.length === 0) {
+          relatedProductsContainer.innerHTML = '<p class="index-no-products">暫無相關商品推薦</p>';
+          return;
+        }
+
+        // 渲染商品卡片
+        relatedProducts.forEach(product => {
+          relatedProductsContainer.appendChild(createProductCard(product));
+        });
+
+        // 初始化收藏狀態
+        await initFavoriteProductIds();
+        updateProductFavoriteDisplay();
+
+        // 綁定事件
+        bindRelatedProductEvents();
+      } else {
+        relatedProductsContainer.innerHTML = '<p class="index-error">載入推薦商品失敗</p>';
+      }
+    })
+    .catch(err => {
+      console.error('載入推薦商品失敗：', err);
+      relatedProductsContainer.innerHTML = '<p class="index-error">載入推薦商品失敗</p>';
+    });
+}
+
+// 創建簡化的商品卡片（類似營地卡片）
+function createProductCard(product) {
+  const featuresHtml = generateProductFeatures(product);
+  const colorMap = new Map((product.colorList || []).map(c => [c.colorId, c.colorName]));
+  const specMap = new Map((product.specList || []).map(s => [s.specId, s.specName]));
+  const colors = product.prodColorList || [];
+  const specs = product.prodSpecList || [];
+  
+  // 生成規格顯示（與會員收藏樣式一致）
+  let specsHTML = '';
+  if (specs.length > 0) {
+    specsHTML = '<div class="prod-specs"><i class="fas fa-tag"></i> 規格：';
+    specs.forEach((spec, index) => {
+      const specId = spec.prodSpecId;
+      const specName = specMap.get(specId) || `規格 ${specId}`;
+      const specPrice = spec.prodSpecPrice || 0;
+      specsHTML += `<span>${specName} (NT$ ${specPrice})</span>`;
+      if (index < specs.length - 1) {
+        specsHTML += ', ';
+      }
+    });
+    specsHTML += '</div>';
+  } else {
+    specsHTML = '<div class="prod-specs"><i class="fas fa-tag"></i> 規格：無規格</div>';
+  }
+
+  // 生成顏色顯示（與會員收藏樣式一致）
+  let colorsHTML = '';
+  if (colors.length > 0) {
+    colorsHTML = '<div class="prod-colors"><i class="fas fa-palette"></i> 顏色：';
+    colors.forEach((color, index) => {
+      const colorId = color.prodColorId;
+      const colorName = colorMap.get(colorId) || `顏色 ${colorId}`;
+      colorsHTML += `<span>${colorName}</span>`;
+      if (index < colors.length - 1) {
+        colorsHTML += ', ';
+      }
+    });
+    colorsHTML += '</div>';
+  } else {
+    colorsHTML = '<div class="prod-colors"><i class="fas fa-palette"></i> 顏色：無顏色</div>';
+  }
+  
+  // 生成商品特色標籤
+  const productFeatures = '<div class="product-features-tags"><span><i class="fas fa-shield-alt"></i> 品質保證</span><span><i class="fas fa-truck"></i> 快速配送</span></div>';
+  
+  // 判斷是否有折扣
+  const hasDiscount = product.prodDiscount && product.prodDiscount < 1;
+  
+  // 動態取得商品圖片
+  let productImageHtml = '';
+  if (product.prodPicList && product.prodPicList.length > 0) {
+    const firstPicId = product.prodPicList[0].prodPicId;
+    productImageHtml = `<img src="${window.api_prefix}/api/prodpics/${firstPicId}" alt="${product.prodName}" onerror="this.onerror=null; this.src='images/default-product.jpg';" />`;
+  } else {
+    productImageHtml = `<img src="images/default-product.jpg" alt="無圖片" />`;
+  }
+
+  // 創建商品卡片元素
+  const card = document.createElement('div');
+  card.className = 'index-product-card';
+  card.dataset.productId = product.prodId;
+
+  card.innerHTML = `
+    <div class="index-product-image">
+      ${productImageHtml}
+      <span class="${hasDiscount ? 'index-product-tag' : 'index-product-tag2'}">${hasDiscount ? '促銷' : (product.prodTag || '熱銷')}</span>
+    </div>
+    <div class="index-product-info">
+      <h3><a href="product-detail.html?id=${product.prodId}">${product.prodName}</a></h3>
+      <p class="product-category">
+        <i class="fas fa-tag"></i> ${product.prodTypeName}
+      </p>
+      
+      <!--商品評論生成部分-->
+      <div class="product-rating" data-product-id="${product.prodId}" style="display: none;">
+        <span class="stars"></span>
+        <span class="rating-count"></span>
+      </div>
+
+      ${productFeatures}
+
+      <div class="camp-description">
+        ${specsHTML}
+        ${colorsHTML}
+      </div>
+
+      <div class="index-product-actions">
+        <button class="index-btn-view-details"><i class="fas fa-search"></i> 查看商品明細</button>
+        <button class="btn-toggle-favorite-product" 
+                data-product-id="${product.prodId}" 
+                title="加入收藏">
+          <i class="fas fa-heart"></i>
+        </button>
+      </div>
+    </div>
+  `;
+
+  return card;
+}
+
+// 刪除第二個 bindRelatedProductEvents 函數（第790行開始的那個）
+// 保留第一個正確的版本（第651行開始的那個）
+
+// 綁定相關商品的事件（簡化版）
+function bindRelatedProductEvents() {
+  // 處理查看商品明細按鈕
+  const viewDetailsButtons = document.querySelectorAll('#index-product-container .index-btn-view-details');
+  viewDetailsButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      const productId = this.closest('.index-product-card').dataset.productId;
+      window.location.href = `product-detail.html?id=${productId}`;
+    });
+  });
+
+  // 處理商品收藏按鈕
+  const favoriteButtons = document.querySelectorAll('#index-product-container .btn-toggle-favorite-product');
+  favoriteButtons.forEach(button => {
+    button.addEventListener('click', async function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const productId = this.dataset.productId;
+      await toggleProductFavorite(productId, this);
+    });
+  });
+}
+
+// 切換商品收藏狀態
+async function toggleProductFavorite(productId, button) {
+  try {
+    // 檢查會員登入狀態 - 使用與 camp-data.js 相同的方式
+    const saved =
+      localStorage.getItem("currentMember") ||
+      sessionStorage.getItem("currentMember");
+    
+    if (!saved) {
+      console.log("未找到會員資料，跳轉到登入頁面");
+      localStorage.setItem("returnUrl", window.location.href);
+      window.location.href = "login.html";
+      return;
+    }
+    
+    let currentMember;
+    try {
+      currentMember = JSON.parse(saved);
+    } catch (e) {
+      console.error("解析會員資料失敗:", e);
+      localStorage.setItem("returnUrl", window.location.href);
+      window.location.href = "login.html";
+      return;
+    }
+    
+    const memId =
+      currentMember.mem_id || currentMember.memId || currentMember.id;
+    
+    if (!memId) {
+      console.log("會員ID無效，跳轉到登入頁面");
+      localStorage.setItem("returnUrl", window.location.href);
+      window.location.href = "login.html";
+      return;
+    }
+
+    // 初始化收藏清單（如果尚未初始化）
+    if (!Array.isArray(window.favoriteProductIds)) {
+      window.favoriteProductIds = [];
+    }
+
+    const productIdNum = parseInt(productId);
+    const isFavorited = button.classList.contains('favorited');
+
+    if (isFavorited) {
+      // 取消收藏
+      const response = await fetch(`${window.api_prefix}/api/prodfavorites/${memId}/${productId}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        button.classList.remove('favorited');
+        button.title = '加入收藏';
+        
+        // 更新本地收藏清單
+        window.favoriteProductIds = window.favoriteProductIds.filter(
+          id => id !== productIdNum
+        );
+        
+        console.log('取消收藏成功');
+      } else {
+        throw new Error('取消收藏失敗');
+      }
+    } else {
+      // 加入收藏
+      const response = await fetch(`${window.api_prefix}/api/prodfavorites/${memId}/${productId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        button.classList.add('favorited');
+        button.title = '已收藏';
+        
+        // 更新本地收藏清單
+        if (!window.favoriteProductIds.includes(productIdNum)) {
+          window.favoriteProductIds.push(productIdNum);
+        }
+        
+        console.log('加入收藏成功');
+      } else {
+        throw new Error('加入收藏失敗');
+      }
+    }
+  } catch (error) {
+    console.error('收藏操作失敗:', error);
+  }
+}
+
+// 添加評分載入函數
+async function loadProductRatingForCard(prodId) {
+  try {
+    const res = await fetch(`${window.api_prefix}/api/getProdComments?prodId=${prodId}`);
+    const data = await res.json();
+    
+    const ratingElement = document.querySelector(`[data-product-id="${prodId}"]`);
+    if (!ratingElement) return;
+
+    const starsElement = ratingElement.querySelector('.stars');
+    const countElement = ratingElement.querySelector('.rating-count');
+
+    if (data.status === 'success' && Array.isArray(data.data)) {
+      const comments = data.data;
+      const count = comments.length;
+
+      if (count === 0) {
+        ratingElement.style.display = 'none';
+        return;
+      }
+
+      const sum = comments.reduce((acc, c) => acc + (c.commentSatis || 0), 0);
+      const average = sum / count;
+
+      // 生成星星 HTML
+      let starsHtml = '';
+      for (let i = 1; i <= 5; i++) {
+        if (i <= Math.floor(average)) {
+          starsHtml += '<i class="fas fa-star"></i>';
+        } else if (i === Math.ceil(average) && average % 1 >= 0.5) {
+          starsHtml += '<i class="fas fa-star-half-alt"></i>';
+        } else {
+          starsHtml += '<i class="far fa-star"></i>';
+        }
+      }
+
+      if (starsElement) starsElement.innerHTML = starsHtml;
+      if (countElement) countElement.textContent = `（${count} 則評價）`;
+      ratingElement.style.display = 'block';
+    } else {
+      ratingElement.style.display = 'none';
+    }
+  } catch (error) {
+    console.error(`載入商品 ${prodId} 評分失敗:`, error);
+    const ratingElement = document.querySelector(`[data-product-id="${prodId}"]`);
+    if (ratingElement) ratingElement.style.display = 'none';
+  }
+}
+
+// 添加商品特色生成函數
+function generateProductFeatures(product) {
+  // 根據產品類型或特性生成不同的標籤
+  const features = [];
+  
+  // 可以根據需要添加更多特色標籤邏輯
+  if (product.prodDiscount && product.prodDiscount < 1) {
+    features.push('特價');
+  }
+  
+  if (features.length === 0) {
+    return '';
+  }
+  
+  return features.map(feature => `<span class="feature-tag">${feature}</span>`).join('');
+}
+
+

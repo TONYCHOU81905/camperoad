@@ -602,7 +602,7 @@ h4 {
 
 .index-product-container {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 30px;
   margin-bottom: 40px;
 }
@@ -610,35 +610,20 @@ h4 {
 .index-product-card {
   display: flex;
   flex-direction: column;
-  align-items: center;
   background: #fff;
-  border-radius: 18px;
-  box-shadow: 0 2px 12px rgba(60, 60, 60, 0.07);
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(58, 90, 64, 0.1);
   overflow: hidden;
-  transition: box-shadow 0.2s;
-  width: 320px;
-  height: 400px;
-  min-width: 260px;
-  max-width: 100%;
-  margin: 0 12px 32px 0;
-  padding: 0;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  height: 100%;
 }
 
 .index-product-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 10px 20px rgba(58, 90, 64, 0.15);
 }
 
-.index-product-image {
-  width: 100% !important;
-  height: 200px !important;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  overflow: hidden;
-  background: #f6f6f6;
-  position: relative;
-}
+
 
 .index-product-image img {
   width: 100% !important;
@@ -648,33 +633,33 @@ h4 {
 }
 
 .index-product-info {
-  width: 100%;
-  box-sizing: border-box;
-  padding: 20px 20px 16px 20px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
+  flex-grow: 1;
+  gap: 10px;
 }
 
 .index-product-info h3 {
-  margin-bottom: 12px;
-  font-size: 1.1rem;
+  margin: 0 0 10px 0;
+  font-size: 1.2rem;
   line-height: 1.4;
   font-weight: 700;
 }
 
 .index-product-info h3 a {
-  color: #3a5a40;
+  color: #333;
   text-decoration: none;
 }
 
 .index-product-info h3 a:hover {
-  color: #2d4731;
+  color: #3a5a40;
 }
 
 .index-product-price {
-  margin-bottom: 18px;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
   font-size: 1.1rem;
   font-weight: 700;
   color: #3a5a40;
@@ -682,31 +667,114 @@ h4 {
 
 .index-product-price .original-price {
   text-decoration: line-through;
-  color: #aaa;
-  font-size: 1rem;
-  margin-left: 8px;
+  color: #999;
+  font-size: 0.9rem;
+  margin-left: 0;
 }
 
+/* 商品卡片 actions 區塊樣式 - 與 camp-card 一致 */
 .index-product-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
   width: 100%;
+}
+
+/* 為 index 頁面添加顏色選擇按鈕樣式 */
+.index-product-card .product-color-select {
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.index-product-card .product-color-select .label {
+  font-weight: bold;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.index-product-card .color-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.85rem;
+}
+
+.index-product-card .color-box:hover,
+.index-product-card .color-box.active {
+  background-color: #3A5A40;
+  color: white;
+  border-color: #3A5A40;
+}
+
+.index-product-card .color-box .color-thumbnail {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+/* 規格選擇樣式 */
+.index-product-card .product-spec-select {
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.index-product-card .product-spec-select .label {
+  font-weight: bold;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.index-product-card .spec-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.85rem;
+}
+
+.index-product-card .spec-box:hover,
+.index-product-card .spec-box.active {
+  background-color: #3A5A40;
+  color: white;
+  border-color: #3A5A40;
 }
 
 .index-btn-view-details {
-  width: 100%;
-  padding: 10px 0;
-  background: #3a5a40;
-  color: #fff;
+  flex: 1;
+  margin-right: 12px;
+  padding: 12px 20px;
+  font-size: 1rem;
+  text-align: center;
+  background-color: #3a5a40;
+  color: white;
   border: none;
   border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 500;
   cursor: pointer;
-  transition: background 0.2s;
-  margin-top: 8px;
+  transition: all 0.3s ease;
 }
 
 .index-btn-view-details:hover {
-  background: #2d4731;
+  background-color: #2d4531;
+  box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .index-product-tag {
@@ -714,6 +782,17 @@ h4 {
   top: 10px;
   right: 10px;
   background-color: rgba(220, 53, 69, 0.8);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.index-product-tag2 {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: rgba(58, 90, 64, 0.8); /* 綠色 */
   color: white;
   padding: 4px 8px;
   border-radius: 4px;
@@ -1983,4 +2062,136 @@ h4 {
 .btn-edit-discount:hover {
   background-color: #678e6f;
 
+}
+
+/* 商品顏色顯示樣式 */
+.product-color-display {
+  margin: 8px 0;
+  font-size: 14px;
+}
+
+.product-color-display .label {
+  font-weight: 600;
+  color: #666;
+}
+
+.product-color-display .color-list {
+  color: #333;
+}
+
+/* 商品規格顯示樣式 */
+.product-spec-display {
+  margin: 8px 0;
+  font-size: 14px;
+}
+
+.product-spec-display .label {
+  font-weight: 600;
+  color: #666;
+}
+
+.product-spec-display .spec-list {
+  color: #333;
+}
+
+/* 商品規格和顏色顯示樣式（與會員收藏一致） */
+.camp-description {
+  margin: 12px 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.prod-specs,
+.prod-colors {
+  margin: 8px 0;
+  color: #666;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.prod-specs i,
+.prod-colors i {
+  color: #ff6b35;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.prod-specs span,
+.prod-colors span {
+  color: #333;
+  font-weight: 500;
+}
+
+/* 商品特色標籤樣式 */
+.product-features-tags {
+  margin: 10px 0;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.product-features-tags span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #f8f9fa;
+  color: #6c757d;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid #e9ecef;
+}
+
+.product-features-tags span i {
+  color: #6c757d;
+  font-size: 11px;
+}
+
+.product-features-tags span:hover {
+  background: #e9ecef;
+  color: #495057;
+}
+
+/* 商品卡片愛心收藏按鈕樣式 - 與 camp-card 一致 */
+.btn-toggle-favorite-product {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #aaa;
+  cursor: pointer;
+  transition: color 0.3s ease;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 40px;
+}
+
+.btn-toggle-favorite-product:hover {
+  color: #ff6b6b;
+  background-color: rgba(255, 107, 107, 0.1);
+}
+
+.btn-toggle-favorite-product.favorited {
+  color: #ff6b6b;
+}
+
+.btn-toggle-favorite-product.favorited:hover {
+  color: #ff5252;
+}
+
+/* 確保商品圖片容器有相對定位 */
+.index-product-image {
+  position: relative;
+  width: 100% !important;
+  height: 200px !important;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  overflow: hidden;
+  background: #f6f6f6;
 }
