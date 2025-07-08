@@ -1,4 +1,4 @@
-window.api_prefix = "http://localhost:8081/CJA101G02";
+// window.api_prefix = "http://localhost:8081/CJA101G02";
 // 營地主後台管理系統
 
 class OwnerDashboard {
@@ -668,12 +668,15 @@ class OwnerDashboard {
     try {
       console.log("開始載入營地主資料...");
 
+      const params = new URLSearchParams();
+      params.append("ownerAcc", this.currentOwner.ownerAcc);
+
       const response = await fetch(`${window.api_prefix}/api/owner/profile`, {
-        method: "GET",
-        credentials: "include", // 包含Cookie
+        method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/x-www-form-urlencoded",
         },
+        body: params,
       });
 
       console.log("營地主資料 API 回應:", response);
