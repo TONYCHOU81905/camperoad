@@ -246,8 +246,9 @@ class ChatWidget {
         );
 
         // 發送請求獲取歷史消息
-        const currentMemId = this.memId;
-        const currentOwnerId = this.ownerId;
+
+        const currentMemId = parseInt(this.memId);
+        const currentOwnerId = parseInt(this.ownerId);
         this.stompClient.send(
           "/app/chat.history",
           {},

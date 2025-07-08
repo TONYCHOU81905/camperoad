@@ -56,22 +56,22 @@ async function renderCampCards(camps, containerId = "camp-cards") {
   }
 
   container.innerHTML = "";
-  
+
   // 預載入所有房型資料以減少API調用
   const allCampsiteTypes = await loadCampsiteTypesData();
   const urlParams = new URLSearchParams(window.location.search);
-  
+
   // 使用 DocumentFragment 進行批量DOM操作
   const fragment = document.createDocumentFragment();
-  
+
   // 批量處理營地卡片創建
-  const campCardPromises = camps.map(camp => 
+  const campCardPromises = camps.map((camp) =>
     createCampCard(camp, allCampsiteTypes, urlParams)
   );
-  
+
   const campCards = await Promise.all(campCardPromises);
-  campCards.forEach(card => fragment.appendChild(card));
-  
+  campCards.forEach((card) => fragment.appendChild(card));
+
   // 一次性添加到DOM
   container.appendChild(fragment);
 
@@ -137,13 +137,14 @@ async function createCampCard(camp, preloadedTypes = null, urlParams = null) {
   let campsiteTypes;
   if (preloadedTypes) {
     campsiteTypes = preloadedTypes.filter(
-      (type) => type.campId == camp.campId && 
-      (!guests || parseInt(type.campsitePeople) >= parseInt(guests))
+      (type) =>
+        type.campId == camp.campId &&
+        (!guests || parseInt(type.campsitePeople) >= parseInt(guests))
     );
   } else {
     campsiteTypes = await getCampsiteTypesByCampId(camp.campId, guests);
   }
-  
+
   const priceListHtml = generatePriceListHtml(campsiteTypes);
   const formattedContent = formatCampContent(camp.campContent, 80);
   const regDate = formatDate(camp.campRegDate);
@@ -195,14 +196,14 @@ async function createCampCard(camp, preloadedTypes = null, urlParams = null) {
       const saved =
         localStorage.getItem("currentMember") ||
         sessionStorage.getItem("currentMember");
-      
+
       if (!saved) {
         console.log("未找到會員資料，跳轉到登入頁面");
         localStorage.setItem("returnUrl", window.location.href);
         window.location.href = "login.html";
         return;
       }
-      
+
       let currentMember;
       try {
         currentMember = JSON.parse(saved);
@@ -212,20 +213,20 @@ async function createCampCard(camp, preloadedTypes = null, urlParams = null) {
         window.location.href = "login.html";
         return;
       }
-      
+
       const memId =
         currentMember.mem_id || currentMember.memId || currentMember.id;
-      
+
       if (!memId) {
         console.log("會員ID無效，跳轉到登入頁面");
         localStorage.setItem("returnUrl", window.location.href);
         window.location.href = "login.html";
         return;
       }
-      
+
       const campId = parseInt(favBtn.dataset.campId);
       if (!Array.isArray(window.favoriteCampIds)) window.favoriteCampIds = [];
-      
+
       try {
         const isFav = favBtn.classList.contains("favorited");
         const url = `${window.api_prefix}/camptracklist/${
@@ -257,37 +258,40 @@ async function createCampCard(camp, preloadedTypes = null, urlParams = null) {
 
   // 設置懶載入
   setupLazyLoading(card);
-  
+
   return card;
 }
 
 // 設置懶載入
 function setupLazyLoading(card) {
-  const img = card.querySelector('.lazy-load');
+  const img = card.querySelector(".lazy-load");
   if (!img) return;
-  
+
   // 使用 Intersection Observer 進行懶載入
-  if ('IntersectionObserver' in window) {
+  if ("IntersectionObserver" in window) {
     if (!window.campImageObserver) {
-      window.campImageObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            const img = entry.target;
-            const realSrc = img.dataset.src;
-            if (realSrc) {
-              img.src = realSrc;
-              img.onload = () => {
-                img.classList.add('loaded');
-              };
-              img.onerror = () => {
-                img.src = 'images/camp-1.jpg'; // 預設圖片
-                img.classList.add('error');
-              };
-              window.campImageObserver.unobserve(img);
+      window.campImageObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const img = entry.target;
+              const realSrc = img.dataset.src;
+              if (realSrc) {
+                img.src = realSrc;
+                img.onload = () => {
+                  img.classList.add("loaded");
+                };
+                img.onerror = () => {
+                  img.src = "images/camp-1.jpg"; // 預設圖片
+                  img.classList.add("error");
+                };
+                window.campImageObserver.unobserve(img);
+              }
             }
-          }
-        });
-      }, { rootMargin: '50px' });
+          });
+        },
+        { rootMargin: "50px" }
+      );
     }
     window.campImageObserver.observe(img);
   } else {
