@@ -96,7 +96,6 @@ async function loadProductsData() {
 
     // 顯示資料
     displayProducts();
-    initProductTypeFilter();
     console.log("商品資料載入完成");
 
   } catch (err) {
@@ -122,7 +121,6 @@ async function loadProductsData() {
     ];
     filteredProducts = [...productsData];
     displayProducts();
-    initProductTypeFilter();
     showNotification("載入遠端資料失敗，已載入模擬資料", "error");
   }
 }
@@ -153,9 +151,6 @@ function displayProducts() {
   // 生成商品表格
   let html = `
     <div class="filter-section">
-      <select id="product-type-filter" class="filter-select">
-        <option value="all">所有類型</option>
-      </select>
       <select id="product-status-filter" class="filter-select">
         <option value="all">所有狀態</option>
         <option value="上架中">上架中</option>
@@ -278,7 +273,8 @@ function displayProducts() {
   
   // 初始化篩選器事件
   document.getElementById("product-status-filter").addEventListener("change", filterProducts);
-  document.getElementById("product-type-filter").addEventListener("change", filterProducts);
+  // 移除商品類型篩選器事件監聽器
+  // document.getElementById("product-type-filter").addEventListener("change", filterProducts);
 }
 
 // 格式化日期時間
@@ -298,24 +294,7 @@ function formatDateTime(date) {
   });
 }
 
-// 初始化商品類型篩選器
-function initProductTypeFilter() {
-  const typeFilter = document.getElementById("product-type-filter");
-  if (!typeFilter) return;
-  
-  // 清空現有選項（保留「所有類型」選項）
-  while (typeFilter.options.length > 1) {
-    typeFilter.remove(1);
-  }
-  
-  // 添加商品類型選項
-  productTypesData.forEach(type => {
-    const option = document.createElement("option");
-    option.value = type.id;
-    option.textContent = type.name;
-    typeFilter.appendChild(option);
-  });
-}
+
 
 // 獲取商品類型名稱
 function getProductTypeName(typeId) {
@@ -325,19 +304,13 @@ function getProductTypeName(typeId) {
 
 // 篩選商品
 function filterProducts() {
-  const typeFilter = document.getElementById("product-type-filter").value;
   const statusFilter = document.getElementById("product-status-filter").value;
   
   // 重置為第一頁
   currentPage = 1;
   
-  // 篩選商品
+  // 篩選商品（移除類型篩選邏輯）
   filteredProducts = productsData.filter(product => {
-    // 類型篩選
-    if (typeFilter !== "all" && product.typeId !== parseInt(typeFilter)) {
-      return false;
-    }
-    
     // 狀態篩選
     if (statusFilter !== "all" && product.status !== statusFilter) {
       return false;
@@ -1484,13 +1457,7 @@ async function toggleProductStatus(productId) {
 
 // 檢查商品是否應該包含在篩選結果中
 function shouldIncludeInFiltered(product) {
-  const typeFilter = document.getElementById("product-type-filter").value;
   const statusFilter = document.getElementById("product-status-filter").value;
-  
-  // 類型篩選
-  if (typeFilter !== "all" && product.typeId !== parseInt(typeFilter)) {
-    return false;
-  }
   
   // 狀態篩選
   if (statusFilter !== "all" && product.status !== statusFilter) {
