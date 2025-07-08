@@ -163,7 +163,7 @@ class ChatWidget {
     }
 
     // 建立WebSocket連接
-    const socket = new SockJS(`${window.api_prefix}/ws`);
+    const socket = new SockJS(`${window.api_prefix}/ws-chat`);
     this.stompClient = Stomp.over(socket);
 
     // 禁用調試日誌
@@ -180,20 +180,17 @@ class ChatWidget {
         this.displayMessage("system", "聊天室已連接", Date.now());
 
         // 訂閱即時消息
-        this.stompClient.subscribe(
-          `/topic/${this.chatId}`,
-          (message) => {
-            const messageData = JSON.parse(message.body);
-            this.log("收到消息:", messageData);
+        this.stompClient.subscribe(`/topic/${this.chatId}`, (message) => {
+          const messageData = JSON.parse(message.body);
+          this.log("收到消息:", messageData);
 
-            // 顯示消息
-            this.displayMessage(
-              messageData.senderId == this.memId ? "self" : "other",
-              messageData.content,
-              messageData.timestamp
-            );
-          }
-        );
+          // 顯示消息
+          this.displayMessage(
+            messageData.senderId == this.memId ? "self" : "other",
+            messageData.content,
+            messageData.timestamp
+          );
+        });
 
         // 訂閱歷史消息
         this.stompClient.subscribe(
@@ -252,11 +249,7 @@ class ChatWidget {
       (error) => {
         this.isConnected = false;
         this.log("WebSocket連接錯誤:", error);
-        this.displayMessage(
-          "system",
-          "聊天室連接失敗，請稍後再試",
-          Date.now()
-        );
+        this.displayMessage("system", "聊天室連接失敗，請稍後再試", Date.now());
 
         // 嘗試重新連接
         this.attemptReconnect();
@@ -270,9 +263,12 @@ class ChatWidget {
       this.reconnectAttempts++;
 
       // 使用指數退避策略增加重連延遲
-      const delay = this.reconnectDelay * Math.pow(1.5, this.reconnectAttempts - 1);
+      const delay =
+        this.reconnectDelay * Math.pow(1.5, this.reconnectAttempts - 1);
 
-      this.log(`嘗試重新連接 (${this.reconnectAttempts}/${this.maxReconnectAttempts})，延遲 ${delay}ms`);
+      this.log(
+        `嘗試重新連接 (${this.reconnectAttempts}/${this.maxReconnectAttempts})，延遲 ${delay}ms`
+      );
 
       setTimeout(() => {
         this.connect();
