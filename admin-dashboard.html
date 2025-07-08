@@ -36,7 +36,7 @@
               gap: 10px;
             "
           >
-            <span id="adminName">管理員</span>
+            <span id="adminNameLabel">管理員</span>
             <!-- 登出按钮已移除 -->
           </div>
         </div>
@@ -200,7 +200,37 @@
             </div>
           </div>
 
+          
+          
+          <!-- 新增管理員彈窗 -->
+          <div id="add-admin-modal" class="modal" style="display:none;">
+            <div class="modal-content">
+              <span class="close-btn" id="close-modal">&times;</span>
+              <h5>新增管理員</h5>
+              <form id="add-admin-form">
+                <div class="form-group">
+                  <label for="adminAcc">管理員帳號</label>
+                  <input type="email" class="form-control" id="adminAcc" placeholder="帳號等於信箱" required>
+                </div>
+                <div class="form-group">
+                  <label for="adminName">管理員姓名</label>
+                  <input type="text" class="form-control" id="adminName" placeholder="請輸入姓名" required>
+                </div>
+                <div class="form-group">
+                  <label for="adminPwd">管理員密碼</label>
+                  <input type="password" class="form-control" id="adminPwd" placeholder="請輸入密碼" required>
+                </div>
+                <button type="submit" class="btn btn-success mt-2">送出</button>
+              </form>
+            </div>
+          </div>
+          <meta name="_csrf" content="${_csrf.token}"/>
+          <meta name="_csrf_header" content="${_csrf.headerName}"/>
+
+
+
           <div id="admins-tab" class="account-tab-content">
+            <div id="admin-page-header" class="text-end my-2"></div>
             <div class="table-container">
               <table class="data-table">
                 <thead>
