@@ -357,6 +357,10 @@
   }
 }
 
+.modal-content.order-detail-modal h3 {
+  color: white;
+}
+
 .section-header {
   margin-bottom: 35px;
   padding-bottom: 20px;
@@ -783,6 +787,7 @@
 
 .btn-deactivate {
   background-color: #dc3545;
+  margin-top: 5px;
 }
 
 .btn-deactivate:hover {
@@ -1224,6 +1229,7 @@
   text-align: center;
 }
 
+/* 商城訂單管理 */
 /* 讓重置篩選按鈕的文字永遠顯示 */
 .action-btn.btn-reset {
   white-space: nowrap !important;
@@ -1236,3 +1242,4 @@
   flex-grow: 0 !important;
   color: black !important;
 }
+

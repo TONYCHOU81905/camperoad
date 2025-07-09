@@ -1464,7 +1464,7 @@ class UserProfileManager {
     this.setupCouponFilters();
   }
 
-  
+
 
   // 初始化聊天管理
   initChatManagement() {
@@ -2461,8 +2461,8 @@ function viewShopOrderDetail(orderId) {
             const commentSatis =
               detail.commentSatis != null ? detail.commentSatis : "";
             const commentContent = detail.commentContent || "";
-            // 只有訂單狀態為3時才顯示評論按鈕
-            const canComment = order.shopOrderStatus === 3;
+            // 只有訂單狀態為3且未申請退貨時才顯示評論按鈕
+            const canComment = order.shopOrderStatus === 3 && order.shopReturnApply === 0;
 
             productRows += `
               <tr>
@@ -2780,21 +2780,6 @@ if (document.getElementById("commentForm")) {
     }
   };
 }
-
-// 自動關閉商城訂單詳情視窗（只要點擊商城訂單管理以外的區域）
-document.addEventListener("click", function (e) {
-  const modal = document.getElementById("shop-order-detail-modal");
-  const shopOrderSection = document.getElementById("shop-orders");
-  if (
-    modal &&
-    modal.style.display !== "none" &&
-    !modal.contains(e.target) &&
-    shopOrderSection &&
-    !shopOrderSection.contains(e.target)
-  ) {
-    closeShopOrderDetailModal();
-  }
-});
 
 
 
