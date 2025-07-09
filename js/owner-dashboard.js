@@ -1,4 +1,4 @@
-window.api_prefix = "http://localhost:8081/CJA101G02";
+// window.api_prefix = "http://localhost:8081/CJA101G02";
 // 營地主後台管理系統
 
 class OwnerDashboard {
@@ -334,22 +334,20 @@ class OwnerDashboard {
       console.log("this.camp:", this.allCamps);
 
       // 載入營地資料，只載入當前營地主的營地
-      if (!this.allCamps) {
-        const campResponse = await fetch(
-          `${window.api_prefix}/api/${this.currentOwner.ownerId}/getonecamp`
-        );
-        if (!campResponse.ok) {
-          throw new Error(`載入營地資料失敗：${campResponse.status}`);
-        }
-        const allCampsJson = await campResponse.json();
-        const allCamps = allCampsJson.data || [];
-        console.log("allCamps:", allCamps);
-        this.allCamps = allCamps;
-
-        // this.allCamps = allCamps.filter(
-        //   (camp) => String(camp.ownerId) == String(this.currentOwner.ownerId)
-        // );
+      const campResponse = await fetch(
+        `${window.api_prefix}/api/${this.currentOwner.ownerId}/getonecamp`
+      );
+      if (!campResponse.ok) {
+        throw new Error(`載入營地資料失敗：${campResponse.status}`);
       }
+      const allCampsJson = await campResponse.json();
+      const allCamps = allCampsJson.data || [];
+      console.log("allCamps:", allCamps);
+      this.allCamps = allCamps;
+
+      // this.allCamps = allCamps.filter(
+      //   (camp) => String(camp.ownerId) == String(this.currentOwner.ownerId)
+      // );
       if (this.allCamps.length === 0) {
         this.showMessage("您目前沒有營地資料，請先新增營地", "warning");
         return;
@@ -668,12 +666,15 @@ class OwnerDashboard {
     try {
       console.log("開始載入營地主資料...");
 
+      const params = new URLSearchParams();
+      params.append("ownerAcc", this.currentOwner.ownerAcc);
+
       const response = await fetch(`${window.api_prefix}/api/owner/profile`, {
-        method: "GET",
-        credentials: "include", // 包含Cookie
+        method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/x-www-form-urlencoded",
         },
+        body: params,
       });
 
       console.log("營地主資料 API 回應:", response);
@@ -3825,6 +3826,8 @@ class OwnerDashboard {
       return;
     }
     if (confirm("確定要刪除此加購商品嗎？")) {
+      console.log("deleteBundleItem:", bundleId);
+
       try {
         const response = await fetch(
           `${window.api_prefix}/bundleitem/deleteBundleItem`,
@@ -4155,10 +4158,20 @@ class OwnerDashboard {
           if (result.status === "success") {
             this.showMessage("房間刪除成功！", "success");
 
-            // 立即從前端資料移除
-            this.campsiteData = this.campsiteData.filter((room) => {
-              return room.campsiteId != roomId && room.campsite_id != roomId;
-            });
+            // 取得目前 modal 的房型ID與營地ID
+            const roomDetailModal = document.getElementById("roomDetailModal");
+            const campsiteTypeId = roomDetailModal?.getAttribute(
+              "data-current-campsite-type-id"
+            );
+            const campId = this.campData?.campId;
+
+            // 過濾出最新的房間清單
+            const roomList = this.campsiteData.filter(
+              (room) => room.campsiteTypeId == campsiteTypeId
+            );
+
+            // 重新渲染 modal
+            this.renderRoomDetailModal(roomList, campsiteTypeId, campId);
 
             // 新增：刪除房間後即時更新房型主表格的間數
             this.renderRoomTypes();
@@ -5304,6 +5317,36 @@ const removeAllBackdrops = () => {
 
 // 新增營地相關功能
 function openAddCampModal() {
+  // 重置表單和地區選單
+  const form = document.getElementById("addCampForm");
+  if (form) {
+    form.reset();
+  }
+
+  // 重置地區選擇下拉選單
+  const regionSelect = document.getElementById("new-camp-region");
+  const citySelect = document.getElementById("new-camp-city");
+  const districtSelect = document.getElementById("new-camp-district");
+
+  if (regionSelect) regionSelect.selectedIndex = 0;
+  if (citySelect) {
+    citySelect.innerHTML = '<option value="">請先選擇地區</option>';
+    citySelect.disabled = false;
+  }
+  if (districtSelect) {
+    districtSelect.innerHTML = '<option value="">請先選擇縣市</option>';
+    districtSelect.disabled = false;
+  }
+
+  // 清空圖片
+  for (let i = 1; i <= 4; i++) {
+    deleteAddCampImage(i);
+  }
+  window.addCampImages = {};
+
+  // 重新初始化地區選單事件監聽器
+  ownerDashboard.initAddCampAreaSelection();
+
   const modal = new bootstrap.Modal(document.getElementById("addCampModal"));
   modal.show();
 }
@@ -5456,6 +5499,8 @@ async function handleAddCampSubmit(e) {
         addingMessage.remove();
       }
 
+      console.log("createonecamp:", data);
+
       if (data && data.status === "success") {
         // 新增成功
         console.log("營地資料新增成功：", data);
@@ -5480,11 +5525,11 @@ async function handleAddCampSubmit(e) {
         if (regionSelect) regionSelect.selectedIndex = 0;
         if (citySelect) {
           citySelect.innerHTML = '<option value="">請先選擇地區</option>';
-          citySelect.disabled = true;
+          citySelect.disabled = false; // 確保不被禁用
         }
         if (districtSelect) {
           districtSelect.innerHTML = '<option value="">請先選擇縣市</option>';
-          districtSelect.disabled = true;
+          districtSelect.disabled = false; // 確保不被禁用
         }
 
         // 清空圖片
@@ -5493,8 +5538,33 @@ async function handleAddCampSubmit(e) {
         }
         window.addCampImages = {};
 
-        // 重新載入營地選項
-        ownerDashboard.loadOwnerCamps();
+        // 重新載入營地資料並更新下拉選單
+        ownerDashboard
+          .loadAllData()
+          .then(() => {
+            // 更新營地主資訊和下拉選單
+            ownerDashboard.updateOwnerInfo();
+
+            // 自動切換到新營地（最後一個營地）
+            if (ownerDashboard.allCamps && ownerDashboard.allCamps.length > 0) {
+              const newCamp =
+                ownerDashboard.allCamps[ownerDashboard.allCamps.length - 1];
+              const ownerProfileSelect =
+                document.getElementById("ownerProfileSelect");
+              if (ownerProfileSelect && newCamp) {
+                ownerProfileSelect.value = newCamp.campId;
+                // 觸發 change 事件以載入新營地的相關資料
+                ownerProfileSelect.dispatchEvent(new Event("change"));
+              }
+            }
+          })
+          .catch((error) => {
+            console.error("載入營地資料失敗：", error);
+            ownerDashboard.showMessage(
+              "載入營地資料失敗，請重新整理頁面",
+              "error"
+            );
+          });
       } else {
         // 新增失敗
         console.error("營地資料新增失敗：", data);

@@ -675,6 +675,79 @@ window.addEventListener("DOMContentLoaded", function () {
 
 
 
+// 綁定新增管理員事件
+sessionStorage.setItem("loginRole", "admin");
+document.addEventListener("DOMContentLoaded", () => {
+  const currentRole = sessionStorage.getItem("loginRole");
+
+  if (currentRole === "admin") {
+    const header = document.querySelector("#admin-page-header");
+    if (!header) return;
+
+    // 插入新增管理員按鈕
+    header.innerHTML = `
+      <button id="add-admin-btn" class="btn btn-outline-success rounded">新增管理員</button>
+    `;
+
+    const addBtn = document.getElementById("add-admin-btn");
+    const modal = document.getElementById("add-admin-modal");
+    const closeBtn = document.getElementById("close-modal");
+    const form = document.getElementById("add-admin-form");
+
+    addBtn.addEventListener("click", () => {
+      modal.style.display = "block";
+    });
+
+    closeBtn.addEventListener("click", () => {
+      modal.style.display = "none";
+    });
+
+    window.addEventListener("click", (e) => {
+      if (e.target === modal) {
+        modal.style.display = "none";
+      }
+    });
+
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+    
+      const adminAcc = document.getElementById("adminAcc").value.trim();
+      const adminName = document.getElementById("adminName").value.trim();
+      const adminPwd = document.getElementById("adminPwd").value.trim();
+    
+      // 使用 FormData 可以自動處理 CSRF token
+      const formData = new FormData();
+      formData.append("adminAcc", adminAcc);
+      formData.append("adminName", adminName);
+      formData.append("adminPwd", adminPwd);
+      formData.append("adminStatus", "0");
+    
+      try {
+        const response = await fetch(`${window.api_prefix}/api/admin/add`, {
+          method: "POST",
+          credentials: "include",
+          body: formData,
+        });
+    
+        if (response.ok) {
+          alert("新增成功！");
+          modal.style.display = "none";
+          form.reset();
+        } else {
+          const msg = await response.text();
+          alert("新增失敗：" + msg);
+        }
+      } catch (error) {
+        console.error("詳細錯誤:", error);
+        alert("發生錯誤：" + error.message);
+      }
+    });
+    
+  }
+});
+
+
+
 
 
 

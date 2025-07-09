@@ -164,8 +164,6 @@ class CheckoutManager {
       });
     });
 
-
-
     // 提交付款按鈕
     const submitPaymentBtn = document.getElementById("submit-payment");
     if (submitPaymentBtn) {
@@ -349,8 +347,6 @@ class CheckoutManager {
     };
   }
 
-
-
   // 處理伺服器付款
   async processServerPayment(orderData) {
     console.log("處理伺服器付款", orderData);
@@ -460,8 +456,15 @@ class CheckoutManager {
       const now = new Date();
       const orderDate = now.toISOString();
 
+      const memberData =
+        localStorage.getItem("currentMember") ||
+        sessionStorage.getItem("currentMember");
+      const memberDataJson = JSON.parse(memberData);
+      console.log("linepay_memberData:", memberData);
+
       // 從localStorage獲取會員ID
-      const memId = localStorage.getItem("memId") || 10000001; // 預設會員ID
+      const memId = memberDataJson.memId; // 預設會員ID
+      console.log("linepay_id:", memId);
 
       const linepay_order_body = {
         orderId: orderId,

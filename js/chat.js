@@ -6,6 +6,7 @@ class ChatWidget {
     this.stompClient = null;
     this.memId = null;
     this.ownerId = null;
+    this.hasSubscribedMessages = false; // 避免重複訂閱
     this.init();
   }
 
@@ -219,21 +220,33 @@ class ChatWidget {
       return;
     }
 
-    // 即時訊息
-    this.stompClient.subscribe("/user/queue/messages", (msg) => {
-      console.log("收到新訊息:", msg.body);
-      const message = JSON.parse(msg.body);
-      const time = this.formatTime(message.chatMsgTime);
+    // 即時訊息 - 避免重複訂閱
+    if (!this.hasSubscribedMessages) {
+      this.stompClient.subscribe("/user/queue/messages", (msg) => {
+        console.log("收到新訊息:", msg.body);
+        const message = JSON.parse(msg.body);
+        console.log("✅ 收到訊息:", message);
 
-      // 根據訊息方向決定顯示方式
-      if (message.chatMsgDirect === 0) {
-        // 會員發送的訊息
-        this.addMessage(message.chatMsgContent, "user", time);
-      } else {
-        // 營地主發送的訊息
-        this.addMessage(message.chatMsgContent, "other", time);
-      }
-    });
+        // 加入排除自己發送的訊息（防止本地與推播重複）
+        if (parseInt(message.memId) === parseInt(this.memId) && 
+            message.chatMsgDirect === 0) {
+          return; // 忽略自己已顯示的訊息
+        }
+
+        const time = this.formatTime(message.chatMsgTime);
+
+        // 根據訊息方向決定顯示方式
+        if (message.chatMsgDirect === 0) {
+          // 會員發送的訊息
+          this.addMessage(message.chatMsgContent, "user", time);
+        } else {
+          // 營地主發送的訊息
+          this.addMessage(message.chatMsgContent, "other", time);
+        }
+      });
+
+      this.hasSubscribedMessages = true;
+    }
     console.log("訂閱聊天完成即時顯示");
 
     // 一次性歷史訊息接收
@@ -346,11 +359,13 @@ class ChatWidget {
         },
         (error) => {
           // 連接錯誤處理
+          this.hasSubscribedMessages = false; // 重置訂閱標誌
           console.error("WebSocket連接錯誤:", error);
           this.addMessage("無法連接到聊天服務，請稍後再試", "system");
         }
       );
     } catch (error) {
+      this.hasSubscribedMessages = false; // 重置訂閱標誌
       console.error("WebSocket初始化錯誤:", error);
       this.addMessage("聊天服務暫時不可用", "system");
     }
