@@ -629,12 +629,6 @@ function showEditProductModal(productId) {
         return;
       }
       
-      // 記錄被刪除的顏色 ID
-      const originalId = parseInt(colorItem.dataset.originalId);
-      if (!isNaN(originalId) && originalId > 0) {
-        deletedColorIds.push(originalId);
-      }
-      
       if (colorItem && container) {
         container.removeChild(colorItem);
       }
@@ -831,12 +825,6 @@ function addColorField() {
     if (colorItems.length <= 1) {
       alert("至少需要保留一個顏色");
       return;
-    }
-    
-    // 記錄被刪除的顏色 ID
-    const originalId = parseInt(newItem.dataset.originalId);
-    if (!isNaN(originalId) && originalId > 0) {
-      deletedColorIds.push(originalId);
     }
     
     container.removeChild(newItem);
