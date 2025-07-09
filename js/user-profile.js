@@ -2954,20 +2954,6 @@ if (document.getElementById("commentForm")) {
   };
 }
 
-// 自動關閉商城訂單詳情視窗（只要點擊商城訂單管理以外的區域）
-document.addEventListener("click", function (e) {
-  const modal = document.getElementById("shop-order-detail-modal");
-  const shopOrderSection = document.getElementById("shop-orders");
-  if (
-    modal &&
-    modal.style.display !== "none" &&
-    !modal.contains(e.target) &&
-    shopOrderSection &&
-    !shopOrderSection.contains(e.target)
-  ) {
-    closeShopOrderDetailModal();
-  }
-});
 
 
 
