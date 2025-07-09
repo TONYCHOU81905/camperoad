@@ -1252,7 +1252,6 @@ function showAddProductModal() {
 }
 
 // 添加新商品
-// 修正 imageBoxes 錯誤與新增圖片上傳流程
 async function addNewProduct() {
   const imageBoxes = document.querySelectorAll('.image-upload-box');
   const productName = document.getElementById("product-name").value.trim();
@@ -1461,29 +1460,6 @@ function closeModal() {
   }
 }
 
-//商品圖片上傳功能 ✅
-async function imageUpload(file, prodId) {
-  const formData = new FormData();
-  formData.append("file", file);
-
-  try {
-    const response = await fetch(`${window.api_prefix}/api/prodpics/upload/${prodId}`, {
-      method: "POST",
-      body: formData,
-    });
-
-    const result = await response.json();
-    if (result.status === "success") {
-      return true;
-    } else {
-      showNotification("商品圖片上傳失敗，請重新嘗試", "error");
-      return null;
-    }
-  } catch (error) {
-    console.error("商品圖片上傳失敗", error);
-    return null;
-  }
-}
 
 // 上傳顏色圖片（指定 prodId + colorId） ✅
 async function uploadColorImage(file, prodId, colorId) {
