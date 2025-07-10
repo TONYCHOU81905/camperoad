@@ -454,6 +454,9 @@ class ArticleManager {
             url.searchParams.set('sort', this.currentSortType);
         }
         window.history.pushState({}, '', url);
+
+        // 新增：切換分頁時自動滾動到最上方
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     // 渲染文章詳情
