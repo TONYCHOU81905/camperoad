@@ -14,6 +14,7 @@ class ChatWidget {
     this.reconnectAttempts = 0;
     this.maxReconnectAttempts = 5;
     this.reconnectDelay = 2000; // 初始重連延遲 2 秒
+    this.hasSubscribedMessages = false; // 避免重複訂閱
 
     this.init();
   }
@@ -179,18 +180,28 @@ class ChatWidget {
         this.log("WebSocket連接成功");
         this.displayMessage("system", "聊天室已連接", Date.now());
 
-        // 訂閱即時消息
-        this.stompClient.subscribe(`/topic/${this.chatId}`, (message) => {
-          const messageData = JSON.parse(message.body);
-          this.log("收到消息:", messageData);
+        // 訂閱即時消息 - 避免重複訂閱
+        if (!this.hasSubscribedMessages) {
+          this.stompClient.subscribe(`/topic/${this.chatId}`, (message) => {
+            const messageData = JSON.parse(message.body);
+            this.log("收到消息:", messageData);
+            console.log("✅ 收到訊息:", messageData);
 
-          // 顯示消息
-          this.displayMessage(
-            messageData.senderId == this.memId ? "self" : "other",
-            messageData.content,
-            messageData.timestamp
-          );
-        });
+            // 加入排除自己發送的訊息（防止本地與推播重複）
+            if (messageData.senderId == this.memId) {
+              return; // 忽略自己已顯示的訊息
+            }
+
+            // 顯示消息
+            this.displayMessage(
+              messageData.senderId == this.memId ? "self" : "other",
+              messageData.content,
+              messageData.timestamp
+            );
+          });
+
+          this.hasSubscribedMessages = true;
+        }
 
         // 訂閱歷史消息
         this.stompClient.subscribe(
@@ -248,6 +259,7 @@ class ChatWidget {
       },
       (error) => {
         this.isConnected = false;
+        this.hasSubscribedMessages = false; // 重置訂閱標誌
         this.log("WebSocket連接錯誤:", error);
         this.displayMessage("system", "聊天室連接失敗，請稍後再試", Date.now());
 
