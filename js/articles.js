@@ -15,12 +15,9 @@ class ArticleManager {
         try {
             let url = `${window.api_prefix}/api/articles`;
 
-            // 如果有搜尋關鍵字或指定類型，使用進階搜尋 API
-            if (searchKeyword || acTypeId) {
-                url = `${window.api_prefix}/api/articles/search/advanced?keyword=${encodeURIComponent(searchKeyword || '')}`;
-                if (acTypeId) {
-                    url += `&acTypeId=${acTypeId}`;
-                }
+            // 如果有搜尋關鍵字，使用綜合搜尋 API
+            if (searchKeyword) {
+                url = `${window.api_prefix}/api/articles/search/comprehensive?keyword=${encodeURIComponent(searchKeyword)}`;
             }
 
             console.log('載入文章API URL:', url);
@@ -28,7 +25,14 @@ class ArticleManager {
             const result = await response.json();
 
             if (result.status === 'success' && result.data) {
-                this.articles = result.data || [];
+                let articles = result.data || [];
+
+                // 如果有指定文章類型，在前端過濾
+                if (acTypeId) {
+                    articles = articles.filter(article => article.acTypeId === acTypeId);
+                }
+
+                this.articles = articles;
                 console.log(`載入了 ${this.articles.length} 篇文章`);
             } else {
                 console.error('API 回應錯誤:', result);
@@ -347,7 +351,7 @@ class ArticleManager {
         }
 
         const totalArticles = articles.length;
-        const totalPages = Math.ceil(totalArticles / this.itemsPerPage);
+        const totalPages = Math.max(1, Math.ceil(totalArticles / this.itemsPerPage));
         const startIndex = (page - 1) * this.itemsPerPage;
         const endIndex = startIndex + this.itemsPerPage;
 
@@ -361,16 +365,30 @@ class ArticleManager {
     }
 
     // 渲染分頁控制（帶入排序方式）
-    renderPagination(totalPages, currentPage, typeId, sortType) {
+    renderPagination(totalPages, currentPage, typeId, sortType, totalArticles = null) {
         const paginationContainer = document.querySelector('.pagination');
         if (!paginationContainer) return;
 
         let paginationHTML = '';
 
-        if (totalPages <= 1) {
-            // 只顯示「1」
+        // 若無文章，僅顯示 1 頁
+        if (totalArticles === 0) {
             paginationHTML = '<a href="#" class="active">1</a>';
-        } else {
+            paginationContainer.innerHTML = paginationHTML;
+            // 事件監聽（仍需保留，避免點擊報錯）
+            const oldListener = paginationContainer._paginationListener;
+            if (oldListener) {
+                paginationContainer.removeEventListener('click', oldListener);
+            }
+            const clickListener = (e) => { e.preventDefault(); };
+            paginationContainer.addEventListener('click', clickListener);
+            paginationContainer._paginationListener = clickListener;
+            return;
+        }
+
+        if (totalPages <= 1) {
+            paginationHTML = '<a href="#" class="active">1</a>';
+        } else if (totalArticles > 0) { // 僅有資料時才產生多頁
             // 頁碼按鈕
             const maxVisiblePages = 5;
             let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
@@ -863,6 +881,8 @@ class ArticleManager {
         // 如果沒有文章，顯示提示訊息
         if (articlesToShow.length === 0) {
             container.innerHTML = '<div class="loading-message">沒有找到相關文章</div>';
+            // 強制分頁只顯示 1 頁
+            this.renderPagination(1, 1, typeId, sortType, 0);
             return;
         }
 
@@ -947,7 +967,7 @@ class ArticleManager {
         }).join('');
 
         container.innerHTML = htmlContent;
-        this.renderPagination(paginatedData.totalPages, page, typeId, sortType);
+        this.renderPagination(paginatedData.totalPages, page, typeId, sortType, paginatedData.totalArticles);
     }
 
     // 初始化文章詳情頁面

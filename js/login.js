@@ -190,8 +190,10 @@ async function handleLogin(e) {
       try {
         const redirectUrl = localStorage.getItem("redirectUrl");
         if (redirectUrl) {
-          window.location.href = redirectUrl;
-          localStorage.removeItem("redirectUrl");
+          setTimeout(() => {
+            window.location.href = redirectUrl;
+            localStorage.removeItem("redirectUrl");
+          }, 1000);
           return; // 如果有重定向URL，直接返回，不執行後面的index.html跳轉
         }
       } catch (error) {
