@@ -3276,7 +3276,7 @@
                 if (uploadBtn && fileInput) {
                     uploadBtn.addEventListener('click', () => {
                         console.log('📸 圖片上傳按鈕被點擊');
-                        fileInput.click();
+                        // fileInput.click();
                     });
                     fileInput.addEventListener('change', this.handleImageSelect);
                 }
@@ -3485,8 +3485,8 @@
                     }
                 });
 
-                // 立即更新內容以反映當前狀態
-                this.updateDynamicUploadAreaContent(dynamicUploadArea);
+                // // 立即更新內容以反映當前狀態
+                // this.updateDynamicUploadAreaContent(dynamicUploadArea);
 
                 console.log('✅ 動態圖片上傳區域創建完成');
             }
@@ -3617,15 +3617,15 @@
                     uploadArea.style.cursor = 'not-allowed';
                 }
 
-                // 重新綁定檔案輸入事件
-                const newFileInput = uploadArea.querySelector('.dynamic-image-input');
-                if (newFileInput && canAddMore) {
-                    newFileInput.addEventListener('change', (e) => {
-                        console.log('📸 動態上傳區域：選擇檔案', e.target.files.length, '個');
-                        this.handleImageSelect(e);
-                        this.updateDynamicUploadAreaContent(uploadArea);
-                    });
-                }
+                // // 重新綁定檔案輸入事件
+                // const newFileInput = uploadArea.querySelector('.dynamic-image-input');
+                // if (newFileInput && canAddMore) {
+                //     newFileInput.addEventListener('change', (e) => {
+                //         console.log('📸 動態上傳區域：選擇檔案', e.target.files.length, '個');
+                //         this.handleImageSelect(e);
+                //         this.updateDynamicUploadAreaContent(uploadArea);
+                //     });
+                // }
 
                 console.log('✅ 動態上傳區域內容已更新，當前圖片數:', selectedCount);
             }

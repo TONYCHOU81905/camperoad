@@ -1695,6 +1695,8 @@ class ArticleManager {
 
     // 新增：顯示圖片管理彈窗 - 增強版
     showImageManagementModal(images, articleId) {
+        // 若已存在彈窗則不再產生
+        if (document.querySelector('.image-management-modal')) return;
         // 創建彈窗
         const modal = document.createElement('div');
         modal.className = 'image-management-modal';
