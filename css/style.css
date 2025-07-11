@@ -238,7 +238,8 @@ h4 {
   display: flex;
   align-items: center;
   gap: 12px;
-  height: 40px; /* 確保統一高度 */
+  height: 40px;
+  /* 確保統一高度 */
 }
 
 /* .btn-search,
@@ -285,7 +286,8 @@ h4 {
 }
 
 .btn-login {
-  border: none; /* 移除外框 */
+  border: none;
+  /* 移除外框 */
   border-radius: 0;
   padding: 0;
   transition: all 0.3s ease;
@@ -296,8 +298,10 @@ h4 {
 
 /* 滑鼠移上去觸發閃爍動畫一次 */
 .btn-login:hover {
-  background-color: transparent; /* 移除懸停時的背景色 */
-  color: #2d4731; /* 保持懸停時的顏色變化 */
+  background-color: transparent;
+  /* 移除懸停時的背景色 */
+  color: #2d4731;
+  /* 保持懸停時的顏色變化 */
 }
 
 
@@ -461,7 +465,8 @@ h4 {
 
 .btn-search-submit {
   width: 100%;
-  grid-column: 1 / 7; /* 讓按鈕橫跨所有欄位，或改為與單一 .search-group 一樣寬 */
+  grid-column: 1 / 7;
+  /* 讓按鈕橫跨所有欄位，或改為與單一 .search-group 一樣寬 */
 }
 
 /* 營地卡片 */
@@ -792,7 +797,8 @@ h4 {
   position: absolute;
   top: 10px;
   right: 10px;
-  background-color: rgba(58, 90, 64, 0.8); /* 綠色 */
+  background-color: rgba(58, 90, 64, 0.8);
+  /* 綠色 */
   color: white;
   padding: 4px 8px;
   border-radius: 4px;
@@ -1279,20 +1285,19 @@ h4 {
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(
-    90deg,
-    #e76f51,
-    #f4a261,
-    #e9c46a,
-    #2a9d8f,
-    #264653
-  );
+  background: linear-gradient(90deg,
+      #e76f51,
+      #f4a261,
+      #e9c46a,
+      #2a9d8f,
+      #264653);
 }
 
 .footer-content {
   display: flex;
   align-items: center;
-  justify-content: center; /* 這行是關鍵，讓整組置中 */
+  justify-content: center;
+  /* 這行是關鍵，讓整組置中 */
   gap: 40px;
   margin-bottom: 40px;
 }
@@ -1372,7 +1377,8 @@ h4 {
   text-align: center;
   margin-bottom: 0;
   max-width: 50%;
-  flex: unset; /* 或直接刪除 flex: 1; */
+  flex: unset;
+  /* 或直接刪除 flex: 1; */
 }
 
 .footer-logo img {
@@ -1829,7 +1835,8 @@ h4 {
   }
 
   .footer-content {
-    display: flex; /* 改為flexbox佈局 */
+    display: flex;
+    /* 改為flexbox佈局 */
     gap: 40px;
     margin-bottom: 40px;
     flex-direction: column;
@@ -1981,7 +1988,7 @@ h4 {
 }
 
 /* 修正裝備商城 hover 效果 */
-.main-nav .dropdown > a:after {
+.main-nav .dropdown>a:after {
   content: "";
   position: absolute;
   bottom: 0;
@@ -1992,7 +1999,7 @@ h4 {
   transition: width 0.3s ease;
 }
 
-.main-nav .dropdown:hover > a:after {
+.main-nav .dropdown:hover>a:after {
   width: 100%;
 }
 
@@ -2008,6 +2015,7 @@ h4 {
   max-width: 1023px;
   border-collapse: collapse;
 }
+
 .data-table tr {
   height: 67.59px;
 }
@@ -2194,4 +2202,19 @@ h4 {
   justify-content: center;
   overflow: hidden;
   background: #f6f6f6;
+}
+
+/* 收藏按鈕亮起效果 */
+.reaction-btn.favorited {
+  background: rgba(255, 193, 7, 0.1);
+  border-color: #ffc107;
+  color: #ffc107;
+}
+
+.reaction-btn.favorited i {
+  color: #ffc107;
+}
+
+.reaction-btn.favorited:hover {
+  background: rgba(255, 193, 7, 0.2);
 }

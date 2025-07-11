@@ -1062,10 +1062,14 @@
                 if (!keyword.trim()) {
                     this.filteredFavorites = [...this.favorites];
                 } else {
-                    this.filteredFavorites = this.favorites.filter(article =>
-                        article.acTitle.toLowerCase().includes(keyword.toLowerCase()) ||
-                        (article.acContext && article.acContext.toLowerCase().includes(keyword.toLowerCase()))
-                    );
+                    const lowerKeyword = keyword.toLowerCase();
+                    this.filteredFavorites = this.favorites.filter(article => {
+                        return (
+                            (article.acTitle && article.acTitle.toLowerCase().includes(lowerKeyword)) ||
+                            (article.acContext && article.acContext.toLowerCase().includes(lowerKeyword)) ||
+                            (this.getAuthorName(article) && this.getAuthorName(article).toLowerCase().includes(lowerKeyword))
+                        );
+                    });
                 }
 
                 // 搜尋後應用當前選擇的排序

@@ -928,7 +928,7 @@
     <script src="js/header-auth.js"></script>
 
     <script>
-        // 文章收藏功能
+        // 文章收藏功能 - 重新設計版本
         class ArticleFavoriteManager {
             constructor() {
                 this.currentMember = null;
@@ -940,7 +940,7 @@
             init() {
                 this.checkLoginStatus();
                 this.setupFavoriteButton();
-                this.setupLoginStateListener();
+                this.checkFavoriteStatus();
             }
 
             // 檢查登入狀態
@@ -948,16 +948,16 @@
                 const memberData = localStorage.getItem("currentMember") || sessionStorage.getItem("currentMember");
                 if (memberData) {
                     this.currentMember = JSON.parse(memberData);
-                    return true; // 返回登入狀態
+                    return true;
                 }
-                return false; // 未登入
+                return false;
             }
 
             // 設置收藏按鈕
             setupFavoriteButton() {
                 this.favoriteBtn = document.getElementById('favorite-btn');
                 if (this.favoriteBtn) {
-                    // 從URL獲取文章ID，支援 acId 和 id 參數
+                    // 從URL獲取文章ID，支援 acId 和 id 參數，統一當成 acId
                     this.currentArticleId = new URLSearchParams(window.location.search).get('acId') || new URLSearchParams(window.location.search).get('id');
                     this.favoriteBtn.addEventListener('click', (e) => {
                         e.preventDefault();
@@ -978,13 +978,21 @@
                     return;
                 }
 
-                try {
-                    const isFavorited = this.favoriteBtn.classList.contains('favorited');
+                const memId = this.currentMember.mem_id || this.currentMember.memId || this.currentMember.id;
+                if (!memId) {
+                    this.showMessage('會員資料不完整，請重新登入', 'error');
+                    return;
+                }
 
+                const isFavorited = this.favoriteBtn.classList.contains('favorited');
+
+                try {
                     if (isFavorited) {
-                        await this.removeFavorite();
+                        // 取消收藏
+                        await this.removeFavorite(memId);
                     } else {
-                        await this.addFavorite();
+                        // 新增收藏
+                        await this.addFavorite(memId);
                     }
                 } catch (error) {
                     console.error('收藏操作失敗:', error);
@@ -993,286 +1001,88 @@
             }
 
             // 新增收藏
-            async addFavorite() {
-                // 檢查會員資料完整性
-                if (!this.currentMember) {
-                    console.error('會員資料不存在');
-                    this.showMessage('請先登入', 'error');
-                    return;
-                }
+            async addFavorite(memId) {
+                const favoriteData = {
+                    acId: parseInt(this.currentArticleId),
+                    memId: parseInt(memId),
+                    acFavTime: new Date().toISOString().slice(0, 19)
+                };
 
-                // 檢查會員ID，支援多種可能的欄位名稱
-                const memId = this.currentMember.mem_id || this.currentMember.memId || this.currentMember.id;
-                if (!memId) {
-                    console.error('會員ID不存在，會員資料:', this.currentMember);
-                    this.showMessage('會員資料不完整，請重新登入', 'error');
-                    return;
-                }
+                const response = await fetch(`${window.api_prefix}/api/favorites`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(favoriteData)
+                });
 
-                // console.log('準備發送收藏請求，會員資料:', {  // 已隱藏調試輸出
-                //     currentMember: this.currentMember,
-                //     memId: memId,
-                //     articleId: this.currentArticleId
-                // });
+                const result = await response.json();
 
-                try {
-                    // 使用後端期望的數據格式 (camelCase)
-                    const favoriteData = {
-                        acId: parseInt(this.currentArticleId),
-                        memId: parseInt(memId),
-                        acFavTime: new Date().toISOString().slice(0, 19) // 保持ISO格式，不替換T
-                    };
-
-                    // console.log('發送收藏請求:', favoriteData); // 已隱藏調試輸出
-
-                    const response = await fetch(`${window.api_prefix}/api/favorites`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(favoriteData)
-                    });
-
-                    const result = await response.json();
-                    // console.log('API回應:', result); // 已隱藏調試輸出
-
-                    if (response.ok && result.status === 'success') {
-                        this.favoriteBtn.classList.add('favorited');
-                        this.favoriteBtn.querySelector('span').textContent = '已收藏';
-                        this.showMessage('收藏成功！', 'success');
-
-                        // 儲存到localStorage作為備用
-                        this.saveToLocalStorage(favoriteData);
-                    } else {
-                        // 如果API失敗，使用模擬收藏
-                        // console.log('API失敗，使用模擬收藏'); // 已隱藏調試輸出
-                        this.simulateFavorite(favoriteData);
-                    }
-                } catch (error) {
-                    // console.error('收藏API調用失敗，使用模擬收藏:', error); // 已隱藏調試輸出
-                    const favoriteData = {
-                        acId: parseInt(this.currentArticleId),
-                        memId: parseInt(memId),
-                        acFavTime: new Date().toISOString().slice(0, 19).replace('T', ' ')
-                    };
-                    this.simulateFavorite(favoriteData);
-                }
-            }
-
-            // 模擬收藏功能
-            simulateFavorite(favoriteData) {
-                this.favoriteBtn.classList.add('favorited');
-                this.favoriteBtn.querySelector('span').textContent = '已收藏';
-                this.showMessage('收藏成功', 'success');
-
-                // 儲存到localStorage
-                this.saveToLocalStorage(favoriteData);
-            }
-
-            // 儲存到localStorage
-            saveToLocalStorage(favoriteData) {
-                const favorites = JSON.parse(localStorage.getItem('articleFavorites') || '[]');
-                const existingIndex = favorites.findIndex(fav =>
-                    fav.memId === favoriteData.memId && fav.acId === favoriteData.acId
-                );
-
-                if (existingIndex === -1) {
-                    favorites.push(favoriteData);
-                    localStorage.setItem('articleFavorites', JSON.stringify(favorites));
-                    // console.log('收藏已儲存到localStorage'); // 已隱藏調試輸出
+                if (response.ok && result.status === 'success') {
+                    this.favoriteBtn.classList.add('favorited');
+                    this.favoriteBtn.querySelector('span').textContent = '已收藏';
+                    this.showMessage('收藏成功！', 'success');
+                } else {
+                    this.showMessage(result.message || '收藏失敗', 'error');
                 }
             }
 
             // 取消收藏
-            async removeFavorite() {
-                // 檢查會員資料完整性
-                if (!this.currentMember) {
-                    console.error('會員資料不存在');
-                    this.showMessage('請先登入', 'error');
-                    return;
+            async removeFavorite(memId) {
+                const response = await fetch(`${window.api_prefix}/api/favorites?acId=${this.currentArticleId}&memId=${memId}`, {
+                    method: 'DELETE'
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.status === 'success') {
+                    this.favoriteBtn.classList.remove('favorited');
+                    this.favoriteBtn.querySelector('span').textContent = '收藏';
+                    this.showMessage('已取消收藏!', 'success');
+                } else {
+                    this.showMessage(result.message || '取消收藏失敗', 'error');
                 }
-
-                // 檢查會員ID，支援多種可能的欄位名稱
-                const memId = this.currentMember.mem_id || this.currentMember.memId || this.currentMember.id;
-                if (!memId) {
-                    console.error('會員ID不存在，無法從localStorage移除收藏');
-                    return;
-                }
-
-                // console.log('發送取消收藏請求:', {  // 已隱藏調試輸出
-                //     memId: memId,
-                //     acId: this.currentArticleId
-                // });
-
-                try {
-                    const response = await fetch(`${window.api_prefix}/api/favorites/${memId}/${this.currentArticleId}`, {
-                        method: 'DELETE'
-                    });
-
-                    // console.log('取消收藏API回應狀態:', response.status); // 已隱藏調試輸出
-                    const result = await response.json();
-                    // console.log('取消收藏API回應內容:', result); // 已隱藏調試輸出
-
-                    if (response.ok && result.status === 'success') {
-                        this.favoriteBtn.classList.remove('favorited');
-                        this.favoriteBtn.querySelector('span').textContent = '收藏';
-                        this.showMessage('已取消收藏!', 'success');
-
-                        // 從localStorage移除
-                        this.removeFromLocalStorage();
-                    } else {
-                        // 如果API失敗，使用模擬取消收藏
-                        // console.log('API失敗，使用模擬取消收藏'); // 已隱藏調試輸出
-                        this.simulateUnfavorite();
-                    }
-                } catch (error) {
-                    // console.error('取消收藏API調用失敗，使用模擬取消收藏:', error); // 已隱藏調試輸出
-                    this.simulateUnfavorite();
-                }
-            }
-
-            // 模擬取消收藏
-            simulateUnfavorite() {
-                this.favoriteBtn.classList.remove('favorited');
-                this.favoriteBtn.querySelector('span').textContent = '收藏';
-                this.showMessage('已取消收藏', 'success');
-
-                // 從localStorage移除
-                this.removeFromLocalStorage();
-            }
-
-            // 從localStorage移除
-            removeFromLocalStorage() {
-                // 檢查會員ID，支援多種可能的欄位名稱
-                const memId = this.currentMember.mem_id || this.currentMember.memId || this.currentMember.id;
-                if (!memId) {
-                    console.error('會員ID不存在，無法從localStorage移除收藏');
-                    return;
-                }
-
-                const favorites = JSON.parse(localStorage.getItem('articleFavorites') || '[]');
-                const filteredFavorites = favorites.filter(fav =>
-                    !(fav.memId === memId && fav.acId === parseInt(this.currentArticleId))
-                );
-                localStorage.setItem('articleFavorites', JSON.stringify(filteredFavorites));
-                // console.log('收藏已從localStorage移除'); // 已隱藏調試輸出
             }
 
             // 檢查收藏狀態
             async checkFavoriteStatus() {
                 if (!this.currentMember || !this.currentArticleId) {
-                    // console.log('無法檢查收藏狀態: 缺少會員資訊或文章ID'); // 已隱藏調試輸出
                     return;
                 }
 
-                // 檢查會員ID，支援多種可能的欄位名稱
                 const memId = this.currentMember.mem_id || this.currentMember.memId || this.currentMember.id;
                 if (!memId) {
-                    console.error('會員ID不存在，會員資料:', this.currentMember);
-                    return;
-                }
-
-                // console.log('檢查收藏狀態:', {  // 已隱藏調試輸出
-                //     memId: memId,
-                //     acId: this.currentArticleId
-                // });
-
-                // 先檢查localStorage中的模擬收藏
-                const localFavorites = JSON.parse(localStorage.getItem('articleFavorites') || '[]');
-                const isLocalFavorited = localFavorites.some(fav =>
-                    fav.memId === memId && fav.acId === parseInt(this.currentArticleId)
-                );
-
-                if (isLocalFavorited) {
-                    this.favoriteBtn.classList.add('favorited');
-                    this.favoriteBtn.querySelector('span').textContent = '已收藏';
-                    // console.log('文章已在localStorage中收藏'); // 已隱藏調試輸出
                     return;
                 }
 
                 try {
-                    // 使用更高效的 check API 直接查詢特定文章的收藏狀態
                     const response = await fetch(`${window.api_prefix}/api/favorites/check?acId=${this.currentArticleId}&memId=${memId}`);
-                    // console.log('檢查收藏狀態API回應:', response.status); // 已隱藏調試輸出
-
                     const result = await response.json();
-                    // console.log('收藏狀態檢查結果:', result); // 已隱藏調試輸出
 
                     if (response.ok && result.status === 'success') {
-                        const isFavorited = result.data; // 直接取得布林值
-
-                        if (isFavorited) {
+                        if (result.data) {
+                            // 已收藏
                             this.favoriteBtn.classList.add('favorited');
                             this.favoriteBtn.querySelector('span').textContent = '已收藏';
-                            // console.log('文章已收藏'); // 已隱藏調試輸出
                         } else {
+                            // 未收藏
                             this.favoriteBtn.classList.remove('favorited');
                             this.favoriteBtn.querySelector('span').textContent = '收藏';
-                            // console.log('文章未收藏'); // 已隱藏調試輸出
                         }
-                    } else {
-                        console.error('檢查收藏狀態API回應錯誤:', result);
-                        // 如果 check API 失敗，回退到原本的方式
-                        this.fallbackCheckFavoriteStatus(memId);
                     }
                 } catch (error) {
                     console.error('檢查收藏狀態失敗:', error);
-                    // 如果 check API 失敗，回退到原本的方式
-                    this.fallbackCheckFavoriteStatus(memId);
                 }
-            }
-
-            // 回退方法：使用原本的方式檢查收藏狀態
-            async fallbackCheckFavoriteStatus(memId) {
-                try {
-                    // 獲取所有收藏記錄，然後檢查當前文章是否在其中
-                    const response = await fetch(`${window.api_prefix}/api/favorites`);
-                    const result = await response.json();
-
-                    if (response.ok && result.status === 'success' && result.data) {
-                        // 檢查當前文章是否在收藏列表中
-                        const isFavorited = result.data.some(favorite => {
-                            const memMatch = favorite.memId === memId;
-                            const acMatch = favorite.acId === parseInt(this.currentArticleId);
-                            return memMatch && acMatch;
-                        });
-
-                        if (isFavorited) {
-                            this.favoriteBtn.classList.add('favorited');
-                            this.favoriteBtn.querySelector('span').textContent = '已收藏';
-                        } else {
-                            this.favoriteBtn.classList.remove('favorited');
-                            this.favoriteBtn.querySelector('span').textContent = '收藏';
-                        }
-                    } else {
-                        console.error('回退檢查收藏狀態失敗:', result);
-                    }
-                } catch (error) {
-                    console.error('回退檢查收藏狀態失敗:', error);
-                }
-            }
-
-            // 設置當前文章ID
-            setCurrentArticleId(articleId) {
-                this.currentArticleId = articleId;
-                if (this.favoriteBtn) {
-                    this.favoriteBtn.setAttribute('data-article-id', articleId);
-                }
-                // 設置文章ID後立即檢查收藏狀態
-                this.checkFavoriteStatus();
             }
 
             // 顯示登入提示
             showLoginPrompt() {
-                this.showMessage('請先登入才能收藏文章', 'warning');
-                setTimeout(() => {
-                    window.location.href = 'login.html';
-                }, 2000);
+                alert('請先登入才能收藏文章');
+                window.location.href = 'login.html?redirect=' + encodeURIComponent(window.location.href);
             }
 
             // 顯示訊息
             showMessage(message, type) {
-                // 創建訊息元素
                 const messageDiv = document.createElement('div');
                 messageDiv.className = `message ${type}`;
                 messageDiv.textContent = message;
@@ -1288,7 +1098,6 @@
                     animation: slideIn 0.3s ease;
                 `;
 
-                // 根據類型設置背景色
                 switch (type) {
                     case 'success':
                         messageDiv.style.backgroundColor = '#28a745';
@@ -1304,10 +1113,8 @@
                         messageDiv.style.backgroundColor = '#6c757d';
                 }
 
-                // 添加到頁面
                 document.body.appendChild(messageDiv);
 
-                // 3秒後自動移除
                 setTimeout(() => {
                     messageDiv.style.animation = 'slideOut 0.3s ease';
                     setTimeout(() => {
@@ -1316,31 +1123,6 @@
                         }
                     }, 300);
                 }, 3000);
-            }
-
-            // 監聽登入狀態變化
-            setupLoginStateListener() {
-                let previousLoginState = !!this.currentMember;
-
-                setInterval(() => {
-                    // 直接檢查localStorage和sessionStorage
-                    const memberData = localStorage.getItem("currentMember") || sessionStorage.getItem("currentMember");
-                    const currentLoginState = !!memberData;
-
-                    if (previousLoginState !== currentLoginState) {
-                        if (currentLoginState) {
-                            this.currentMember = JSON.parse(memberData);
-                        } else {
-                            this.currentMember = null;
-                        }
-
-                        if (this.currentArticleId) {
-                            this.checkFavoriteStatus();
-                        }
-                    }
-
-                    previousLoginState = currentLoginState;
-                }, 1000);
             }
         }
 
@@ -1405,7 +1187,7 @@
                         if (window.articleDisplayManager && window.articleDisplayManager.getCurrentArticleId()) {
                             const articleId = window.articleDisplayManager.getCurrentArticleId();
                             // console.log('文章ID已取得:', articleId); // 已隱藏調試輸出
-                            favoriteManager.setCurrentArticleId(articleId);
+                            // 新的收藏管理器會自動從URL取得文章ID，不需要手動設置
                             clearInterval(checkArticleLoaded);
                         } else if (window.articleDisplayManager) {
                             // 如果實例存在但文章還沒載入，檢查是否有錯誤
@@ -1879,7 +1661,7 @@
 
                 // 上一頁按鈕
                 if (this.currentPage > 1) {
-                    paginationHTML += `< a href = "#" class="page-btn prev-btn" data - page="${this.currentPage - 1}" > 上一頁</a > `;
+                    paginationHTML += `<a href="#" class="page-btn prev-btn" data-page="${this.currentPage - 1}">上一頁</a>`;
                 }
 
                 // 頁碼按鈕
@@ -1894,29 +1676,29 @@
 
                 // 如果起始頁面大於1，顯示第一頁和省略號
                 if (startPage > 1) {
-                    paginationHTML += `< a href = "#" class="page-btn" data - page="1" > 1</a > `;
+                    paginationHTML += `<a href="#" class="page-btn" data-page="1">1</a>`;
                     if (startPage > 2) {
-                        paginationHTML += `< span class="page-ellipsis" >...</span > `;
+                        paginationHTML += `<span class="page-ellipsis">...</span>`;
                     }
                 }
 
                 // 顯示頁碼
                 for (let i = startPage; i <= endPage; i++) {
                     const activeClass = i === this.currentPage ? ' active' : '';
-                    paginationHTML += `< a href = "#" class="page-btn${activeClass}" data - page="${i}" > ${i}</a > `;
+                    paginationHTML += `<a href="#" class="page-btn${activeClass}" data-page="${i}">${i}</a>`;
                 }
 
                 // 如果結束頁面小於總頁數，顯示省略號和最後一頁
                 if (endPage < this.totalPages) {
                     if (endPage < this.totalPages - 1) {
-                        paginationHTML += `< span class="page-ellipsis" >...</span > `;
+                        paginationHTML += `<span class="page-ellipsis">...</span>`;
                     }
-                    paginationHTML += `< a href = "#" class="page-btn" data - page="${this.totalPages}" > ${this.totalPages}</a > `;
+                    paginationHTML += `<a href="#" class="page-btn" data-page="${this.totalPages}">${this.totalPages}</a>`;
                 }
 
                 // 下一頁按鈕
                 if (this.currentPage < this.totalPages) {
-                    paginationHTML += `< a href = "#" class="page-btn next-btn" data - page="${this.currentPage + 1}" > 下一頁</a > `;
+                    paginationHTML += `<a href="#" class="page-btn next-btn" data-page="${this.currentPage + 1}">下一頁</a>`;
                 }
 
                 pagination.innerHTML = paginationHTML;
@@ -2262,13 +2044,12 @@
                 saveBtn.onclick = () => {
                     const newContent = textarea.value.trim();
                     const newImages = this.getEditSelectedImages(editForm);
-
+                    const hasRemovedImages = editForm.querySelector('.current-images-grid').querySelectorAll('img[data-reply-img-id][data-removed="true"]').length > 0;
                     // 檢查是否有變更
-                    if (newContent === originalText && newImages.length === 0) {
+                    if (newContent === originalText && newImages.length === 0 && !hasRemovedImages) {
                         this.cancelEditReply(replyId);
                         return;
                     }
-
                     this.saveEditReply(replyId, newContent, newImages);
                 };
 
@@ -2313,6 +2094,7 @@
                         currentImagesGrid.innerHTML = result.data.map(image => `
                             <div class="current-image-item" style="position: relative; border-radius: 4px; overflow: hidden; aspect-ratio: 1;">
                                 <img src="${window.api_prefix}/api/reply-images/${image.replyImgId}/image"
+                                    data-reply-img-id="${image.replyImgId}"
                                     alt="當前圖片"
                                     style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;"
                                     onclick="window.replySystem.showImageLightbox('${window.api_prefix}/api/reply-images/${image.replyImgId}/image')"
@@ -2329,7 +2111,8 @@
                                         this.onerror = null;">
                                 <div class="remove-current-image"
                                     style="position: absolute; top: 2px; right: 2px; background: rgba(220, 53, 69, 0.8); color: white; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center;"
-                                    onclick="this.parentElement.remove()" title="移除此圖片">❌</div>
+                                    onclick="this.parentElement.querySelector('img').setAttribute('data-removed','true'); this.parentElement.style.display='none';"
+                                    title="移除此圖片">❌</div>
                             </div>
                         `).join('');
                     } else {
@@ -2388,12 +2171,22 @@
 
                 if (files.length === 0) return;
 
-                // 檢查當前已有的圖片數量
+                // 取得目前還在的舊圖片數量
+                let oldCount = 0;
+                const editForm = previewArea.closest('.edit-reply-form');
+                if (editForm) {
+                    const currentImagesGrid = editForm.querySelector('.current-images-grid');
+                    if (currentImagesGrid) {
+                        oldCount = currentImagesGrid.querySelectorAll('img[data-reply-img-id]:not([data-removed="true"])').length;
+                    }
+                }
+
+                // 檢查當前已有的圖片數量（新圖片）
                 const currentCount = previewArea.querySelectorAll('.edit-image-preview-item').length;
-                const totalCount = currentCount + files.length;
+                const totalCount = oldCount + currentCount + files.length;
 
                 if (totalCount > 5) {
-                    this.showMessage(`最多只能選擇5張圖片，您已有${currentCount} 張，再選擇${files.length} 張會超過限制`, 'warning');
+                    this.showMessage(`最多只能選擇5張圖片（含舊圖片），您已有${oldCount} 張舊圖片、${currentCount} 張新圖片，再選擇${files.length} 張會超過限制`, 'warning');
                     return;
                 }
 
@@ -2485,8 +2278,13 @@
 
             // 儲存編輯的留言
             async saveEditReply(replyId, newContent, images = []) {
-                if (!newContent && images.length === 0) {
-                    this.showMessage('留言內容不能為空', 'warning');
+                // 檢查是否有任何變更（文字、圖片、或刪除舊圖片）
+                const editForm = document.querySelector(`.comment-item[data-replyid="${replyId}"] .edit-reply-form`);
+                const currentImagesGrid = editForm.querySelector('.current-images-grid');
+                const hasRemovedImages = currentImagesGrid.querySelectorAll('img[data-reply-img-id][data-removed="true"]').length > 0;
+
+                if (!newContent && images.length === 0 && !hasRemovedImages) {
+                    this.showMessage('沒有變更內容', 'warning');
                     return;
                 }
 
@@ -2514,99 +2312,97 @@
                         cancelBtn.disabled = true;
                     }
 
-                    // 獲取原始留言資料
+                    // 取得目前UI上還在的舊圖片ID
+                    const editForm = commentItem.querySelector('.edit-reply-form');
+                    const currentImagesGrid = editForm.querySelector('.current-images-grid');
+                    const keptOldImgIds = Array.from(currentImagesGrid.querySelectorAll('img[data-reply-img-id]:not([data-removed="true"])'))
+                        .map(img => img.getAttribute('data-reply-img-id'));
+
+                    // 取得原本所有舊圖片ID（從 allReplies 找）
+                    let originalOldImgIds = [];
                     const originalReply = this.allReplies.find(reply => {
                         const currentReplyId = reply.replyId || reply.id;
                         return currentReplyId == replyId;
                     });
-                    if (!originalReply) {
-                        console.log('🔍 當前 allReplies:', this.allReplies);
-                        console.log('🔍 尋找的 replyId:', replyId);
-                        throw new Error('找不到原始留言資料');
+                    if (originalReply) {
+                        // 更新留言文字內容
+                        try {
+                            const updateResponse = await fetch(`${window.api_prefix}/api/replies/${replyId}`, {
+                                method: 'PUT',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    replyContext: newContent,
+                                    memId: originalReply.memId || originalReply.mem_id,
+                                    acId: originalReply.acId || originalReply.ac_id,
+                                    replyTime: originalReply.replyTime || originalReply.reply_time,
+                                    replyStatus: originalReply.replyStatus || originalReply.reply_status || 0
+                                })
+                            });
+
+                            if (!updateResponse.ok) {
+                                throw new Error('更新留言文字失敗');
+                            }
+                            console.log('✅ 留言文字更新成功');
+                        } catch (error) {
+                            console.error('❌ 更新留言文字失敗:', error);
+                            throw error;
+                        }
+
+                        // 取得原本所有舊圖片ID
+                        try {
+                            const resp = await fetch(`${window.api_prefix}/api/reply-images/reply/${replyId}`);
+                            const data = await resp.json();
+                            if (resp.ok && data.status === 'success' && Array.isArray(data.data)) {
+                                originalOldImgIds = data.data.map(img => String(img.replyImgId));
+                            }
+                        } catch (e) { /* ignore */ }
                     }
 
-                    // 構建完整的請求資料
-                    const requestData = {
-                        replyContext: newContent,
-                        memId: originalReply.memId || originalReply.mem_id,
-                        acId: originalReply.acId || originalReply.ac_id,
-                        replyTime: originalReply.replyTime || originalReply.reply_time,
-                        replyStatus: originalReply.replyStatus || originalReply.reply_status || 0
-                    };
+                    // 找出被移除的舊圖片ID
+                    const removedImgIds = originalOldImgIds.filter(id => !keptOldImgIds.includes(id));
 
-                    console.log('📤 發送編輯請求:', requestData);
-
-                    // 調用更新API
-                    const response = await fetch(`${window.api_prefix}/api/replies/${replyId}`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(requestData)
-                    });
-
-                    console.log('📡 編輯API回應狀態:', response.status);
-                    const result = await response.json();
-                    console.log('📥 編輯API回應內容:', result);
-
-                    if (response.ok && result.status === 'success') {
-                        // 如果有新圖片需要處理
-                        if (images.length > 0) {
-                            console.log('🖼️ 開始處理編輯的圖片...');
-
-                            // 先刪除舊圖片
-                            try {
-                                await fetch(`${window.api_prefix}/api/reply-images/reply/${replyId}/cleanup`, {
-                                    method: 'DELETE'
-                                });
-                                console.log('🗑️ 舊圖片已清理');
-                            } catch (error) {
-                                console.warn('⚠️ 清理舊圖片失敗:', error);
-                            }
-
-                            // 上傳新圖片
-                            for (let i = 0; i < Math.min(images.length, 5); i++) {
-                                try {
-                                    const formData = new FormData();
-                                    formData.append('replyImg', images[i]);
-                                    formData.append('replyId', replyId);
-
-                                    const uploadResponse = await fetch(`${window.api_prefix}/api/reply-images/upload`, {
-                                        method: 'POST',
-                                        body: formData
-                                    });
-
-                                    if (!uploadResponse.ok) {
-                                        console.warn(`⚠️ 圖片 ${i + 1} 上傳失敗`);
-                                    } else {
-                                        console.log(`✅ 圖片 ${i + 1} 上傳成功`);
-                                    }
-                                } catch (error) {
-                                    console.warn(`⚠️ 圖片 ${i + 1} 上傳異常:`, error);
-                                }
-                            }
-                        }
-
-                        this.showMessage('留言已更新', 'success');
-
-                        // 移除編輯表單
-                        this.cancelEditReply(replyId);
-
-                        // 重新載入留言以顯示更新後的內容
-                        await this.loadReplies();
-
-                    } else {
-                        this.showMessage('更新失敗: ' + (result.message || '未知錯誤'), 'error');
-
-                        // 恢復按鈕狀態
-                        if (saveBtn) {
-                            saveBtn.textContent = '儲存';
-                            saveBtn.disabled = false;
-                        }
-                        if (cancelBtn) {
-                            cancelBtn.disabled = false;
+                    // 逐一刪除被移除的舊圖片
+                    for (const id of removedImgIds) {
+                        try {
+                            await fetch(`${window.api_prefix}/api/reply-images/${id}`, { method: 'DELETE' });
+                            console.log('🗑️ 已刪除舊圖片:', id);
+                        } catch (e) {
+                            console.warn('⚠️ 刪除舊圖片失敗:', id, e);
                         }
                     }
+
+                    // 上傳新圖片
+                    for (let i = 0; i < Math.min(images.length, 5 - keptOldImgIds.length); i++) {
+                        try {
+                            const formData = new FormData();
+                            formData.append('replyImg', images[i]);
+                            formData.append('replyId', replyId);
+
+                            const uploadResponse = await fetch(`${window.api_prefix}/api/reply-images/upload`, {
+                                method: 'POST',
+                                body: formData
+                            });
+
+                            if (!uploadResponse.ok) {
+                                console.warn(`⚠️ 圖片 ${i + 1} 上傳失敗`);
+                            } else {
+                                console.log(`✅ 圖片 ${i + 1} 上傳成功`);
+                            }
+                        } catch (error) {
+                            console.warn(`⚠️ 圖片 ${i + 1} 上傳異常:`, error);
+                        }
+                    }
+
+                    this.showMessage('留言已更新', 'success');
+
+                    // 移除編輯表單
+                    this.cancelEditReply(replyId);
+
+                    // 重新載入留言以顯示更新後的內容
+                    await this.loadReplies();
+
                 } catch (error) {
                     console.error('💥 儲存編輯時發生錯誤:', error);
                     this.showMessage('儲存失敗: ' + error.message, 'error');
@@ -3480,7 +3276,7 @@
                 if (uploadBtn && fileInput) {
                     uploadBtn.addEventListener('click', () => {
                         console.log('📸 圖片上傳按鈕被點擊');
-                        fileInput.click();
+                        // fileInput.click();
                     });
                     fileInput.addEventListener('change', this.handleImageSelect);
                 }
@@ -3689,8 +3485,8 @@
                     }
                 });
 
-                // 立即更新內容以反映當前狀態
-                this.updateDynamicUploadAreaContent(dynamicUploadArea);
+                // // 立即更新內容以反映當前狀態
+                // this.updateDynamicUploadAreaContent(dynamicUploadArea);
 
                 console.log('✅ 動態圖片上傳區域創建完成');
             }
@@ -3821,15 +3617,15 @@
                     uploadArea.style.cursor = 'not-allowed';
                 }
 
-                // 重新綁定檔案輸入事件
-                const newFileInput = uploadArea.querySelector('.dynamic-image-input');
-                if (newFileInput && canAddMore) {
-                    newFileInput.addEventListener('change', (e) => {
-                        console.log('📸 動態上傳區域：選擇檔案', e.target.files.length, '個');
-                        this.handleImageSelect(e);
-                        this.updateDynamicUploadAreaContent(uploadArea);
-                    });
-                }
+                // // 重新綁定檔案輸入事件
+                // const newFileInput = uploadArea.querySelector('.dynamic-image-input');
+                // if (newFileInput && canAddMore) {
+                //     newFileInput.addEventListener('change', (e) => {
+                //         console.log('📸 動態上傳區域：選擇檔案', e.target.files.length, '個');
+                //         this.handleImageSelect(e);
+                //         this.updateDynamicUploadAreaContent(uploadArea);
+                //     });
+                // }
 
                 console.log('✅ 動態上傳區域內容已更新，當前圖片數:', selectedCount);
             }

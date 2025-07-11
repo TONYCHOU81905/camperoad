@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>裝備評測文章列表</title>
+    <title>營地推薦文章列表</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono&display=swap"
@@ -587,8 +587,8 @@
     <section class="guide-hero">
         <div class="container">
             <div class="guide-hero-content">
-                <h1>裝備評測</h1>
-                <p>深入測試各類露營裝備的性能與特點，幫助您找到最適合的裝備</p>
+                <h1>營地推薦</h1>
+                <p>精選全台優質營地，詳細介紹各營地特色與實用攻略</p>
                 <div class="guide-search-box">
                     <form id="search-form">
                         <input type="text" placeholder="搜尋文章標題、內容、作者或關鍵字..." name="search" id="search-input"
@@ -602,8 +602,8 @@
         </div>
     </section>
 
-    <nav class="breadcrumb" style="margin: 0px 0 0 0; padding-left: 24px; font-size: 0.98rem;">
-        <a href="index.html">首頁</a> &gt; <a href="article-type.html">論壇攻略</a> &gt; <span>裝備評測</span>
+    <nav class="breadcrumb" style="margin: 00px 0 0 0; padding-left: 24px; font-size: 0.98rem;">
+        <a href="index.html">首頁</a> &gt; <a href="article-type.html">論壇攻略</a> &gt; <span>營地推薦</span>
     </nav>
 
     <section class="guide-content">
@@ -653,9 +653,9 @@
                     </div>
 
                     <div class="sidebar-widget write-guide">
-                        <h3 class="widget-title">分享你的裝備心得</h3>
+                        <h3 class="widget-title">分享你的營地經驗</h3>
                         <p>
-                            你有特別的露營裝備評測、選購經驗或產品心得想要分享嗎？歡迎投稿優質內容貢獻給社群，讓更多露營愛好者能夠交流學習。
+                            你有特別推薦的營地、實地體驗或攻略想要分享嗎？歡迎投稿優質內容貢獻給社群，讓更多露營愛好者能夠找到理想的營地。
                         </p>
                         <a href="#" id="submit-article-btn" class="btn-cta">立即投稿</a>
                     </div>
@@ -673,7 +673,7 @@
     <script src="js/include.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async function () {
-            await setupArticleListSort(30002);
+            await setupArticleListSort(30003);
 
             // 設置立即投稿按鈕的動態連結
             const submitBtn = document.getElementById('submit-article-btn');
@@ -683,14 +683,14 @@
                     const member = JSON.parse(memberData);
                     if (member.memId || member.mem_id) {
                         // 已登入會員，直接跳轉到文章新增頁面
-                        submitBtn.href = "articles-add.html?acTypeId=30002";
+                        submitBtn.href = "articles-add.html?acTypeId=30003";
                     } else {
                         // 非會員，跳轉到登入頁面
-                        submitBtn.href = "login.html?redirect=articles-add.html?acTypeId=30002";
+                        submitBtn.href = "login.html?redirect=articles-add.html?acTypeId=30003";
                     }
                 } else {
                     // 未登入，跳轉到登入頁面
-                    submitBtn.href = "login.html?redirect=articles-add.html?acTypeId=30002";
+                    submitBtn.href = "login.html?redirect=articles-add.html?acTypeId=30003";
                 }
             }
         });
